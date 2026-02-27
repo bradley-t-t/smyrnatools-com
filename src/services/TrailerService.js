@@ -1,246 +1,191 @@
 import Trailer from '../models/trailers/Trailer'
-import APIUtility from '../utils/APIUtility'
-import { isValidUUID } from '../utils/UserUtility'
-import { supabase } from './DatabaseService'
-import { UserService } from './UserService'
+import {
+    apiPostOrThrow,
+    apiPostRequireSuccess,
+    fetchAllCountsFromTable,
+    fetchAllOpenIssueCountsFromTable,
+    fetchWithDetailsBase,
+    normalizeSeverity,
+    resolveEntityId,
+    resolveUserIdOrAnonymous
+} from '../utils/BaseAssetUtility'
+import { ValidationUtility } from '../utils/ValidationUtility'
+
+const SERVICE_PREFIX = '/trailer-service'
 
 const TrailerService = {
-    async fetchAllCommentsCounts(trailerIds) {
-        if (!trailerIds || trailerIds.length === 0) return {}
-        const { data, error } = await supabase
-            .from('trailers_comments')
-            .select('trailer_id')
-            .in('trailer_id', trailerIds)
-        if (error) return {}
-        const counts = {}
-        trailerIds.forEach((id) => (counts[id] = 0))
-        ;(data || []).forEach((row) => {
-            if (row.trailer_id) counts[row.trailer_id] = (counts[row.trailer_id] || 0) + 1
-        })
-        return counts
-    },
-
-    async fetchAllIssuesCounts(trailerIds) {
-        if (!trailerIds || trailerIds.length === 0) return {}
-        const { data, error } = await supabase
-            .from('trailers_maintenance')
-            .select('trailer_id, time_completed')
-            .in('trailer_id', trailerIds)
-        if (error) return {}
-        const counts = {}
-        trailerIds.forEach((id) => (counts[id] = 0))
-        ;(data || []).forEach((row) => {
-            if (row.trailer_id && !row.time_completed) {
-                counts[row.trailer_id] = (counts[row.trailer_id] || 0) + 1
-            }
-        })
-        return counts
-    },
-
     async addComment(trailerId, commentText, userId) {
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         if (!commentText?.trim()) throw new Error('Comment text is required')
         if (!userId?.trim?.()) throw new Error('Author is required')
-        const { res, json } = await APIUtility.post('/trailer-service/add-comment', {
-            author: userId.trim(),
-            text: commentText.trim(),
-            trailerId
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-comment`,
+            {
+                author: userId.trim(),
+                text: commentText.trim(),
+                trailerId
+            },
+            'Failed to add comment'
+        )
         return json?.data ?? null
     },
 
     async addIssue(trailerId, issueText, severity, createdBy = null) {
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         if (!issueText?.trim()) throw new Error('Issue description is required')
-        const allowed = ['Low', 'Medium', 'High']
-        const finalSeverity = allowed.includes(severity) ? severity : 'Medium'
-        const { res, json } = await APIUtility.post('/trailer-service/add-issue', {
-            issue: issueText.trim(),
-            severity: finalSeverity,
-            trailerId,
-            userId: createdBy
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-issue`,
+            {
+                issue: issueText.trim(),
+                severity: normalizeSeverity(severity),
+                trailerId,
+                userId: createdBy
+            },
+            'Failed to add issue'
+        )
         return json?.data ?? null
     },
 
     async completeIssue(issueId) {
-        if (!isValidUUID(issueId)) throw new Error(`Invalid issue ID format: ${issueId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/complete-issue', { issueId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to complete issue')
-        return true
+        ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     },
 
     async createHistoryEntry(trailerId, fieldName, oldValue, newValue, changedBy) {
-        if (!isValidUUID(trailerId)) throw new Error('Trailer ID is required')
+        ValidationUtility.requireUUID(trailerId, 'Trailer ID is required')
         if (!fieldName) throw new Error('Field name required')
-        let userId = changedBy
-        if (!userId) {
-            const user = await UserService.getCurrentUser()
-            userId = typeof user === 'object' && user !== null ? user.id : user
-        }
-        if (!userId) userId = '00000000-0000-0000-0000-000000000000'
-        const { res, json } = await APIUtility.post('/trailer-service/add-history', {
-            changedBy: userId,
-            fieldName,
-            newValue,
-            oldValue,
-            trailerId
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
+        const userId = await resolveUserIdOrAnonymous(changedBy)
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-history`,
+            {
+                changedBy: userId,
+                fieldName,
+                newValue,
+                oldValue,
+                trailerId
+            },
+            'Failed to create history entry'
+        )
         return json?.data
     },
 
     async createTrailer(trailer, userId) {
-        const { res, json } = await APIUtility.post('/trailer-service/create', { trailer, userId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to create trailer')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { trailer, userId }, 'Failed to create trailer')
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     },
 
     async deleteComment(commentId) {
-        if (!isValidUUID(commentId)) throw new Error(`Invalid comment ID format: ${commentId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/delete-comment', { commentId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete comment')
-        return true
+        ValidationUtility.requireUUID(commentId, `Invalid comment ID format: ${commentId}`)
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     },
 
     async deleteIssue(issueId) {
-        if (!isValidUUID(issueId)) throw new Error(`Invalid issue ID format: ${issueId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/delete-issue', { issueId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete issue')
-        return true
+        ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     },
 
     async deleteTrailer(id) {
-        if (!isValidUUID(id)) throw new Error(`Invalid trailer ID format: ${id}`)
-        const { res, json } = await APIUtility.post('/trailer-service/delete', { id })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete trailer')
-        return true
+        ValidationUtility.requireUUID(id, `Invalid trailer ID format: ${id}`)
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete trailer')
+    },
+
+    async fetchAllCommentsCounts(trailerIds) {
+        return fetchAllCountsFromTable('trailers_comments', 'trailer_id', trailerIds)
+    },
+
+    async fetchAllIssuesCounts(trailerIds) {
+        return fetchAllOpenIssueCountsFromTable('trailers_maintenance', 'trailer_id', trailerIds)
     },
 
     async fetchComments(trailerId) {
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-comments', { trailerId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch comments')
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { trailerId }, 'Failed to fetch comments')
         return json?.data ?? []
     },
 
     async fetchIssues(trailerId) {
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-issues', { trailerId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch issues')
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { trailerId }, 'Failed to fetch issues')
         return json?.data ?? []
     },
 
     async fetchTrailerById(trailerId) {
         if (!trailerId) throw new Error('Trailer ID is required')
         if (typeof trailerId === 'object') trailerId = trailerId.id || trailerId.trailerId || ''
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-by-id', { id: trailerId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch trailer')
-        const data = json?.data
-        return data ? Trailer.fromApiFormat(data) : null
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id: trailerId }, 'Failed to fetch trailer')
+        return json?.data ? Trailer.fromApiFormat(json.data) : null
     },
 
     async fetchTrailers() {
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-all')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch trailers')
-        const data = json?.data ?? []
-        return data.map(Trailer.fromApiFormat)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch trailers')
+        return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
     async fetchTrailersWithDetails(regionCodes = null) {
-        const base = await this.fetchTrailers().catch(() => [])
-
-        const statusHistoryMap = {}
-        const trailerIds = (base || []).map((t) => t.id).filter(Boolean)
-        if (trailerIds.length > 0) {
-            try {
-                const { data: statusHistory } = await supabase
-                    .from('trailers_history')
-                    .select('trailer_id, changed_at')
-                    .eq('field_name', 'status')
-                    .in('trailer_id', trailerIds)
-                    .order('changed_at', { ascending: false })
-
-                if (statusHistory) {
-                    for (const h of statusHistory) {
-                        if (!statusHistoryMap[h.trailer_id]) {
-                            statusHistoryMap[h.trailer_id] = h.changed_at
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
-        const processedBase = (Array.isArray(base) ? base : []).map((t) => {
-            const trailer = { ...t }
-            if (typeof trailer.openIssuesCount !== 'number') trailer.openIssuesCount = 0
-            if (typeof trailer.commentsCount !== 'number') trailer.commentsCount = 0
-            trailer.statusChangedAt = statusHistoryMap[trailer.id] || trailer.createdAt || null
-            return trailer
+        return fetchWithDetailsBase({
+            fetchAllFn: () => this.fetchTrailers(),
+            historyTableName: 'trailers_history',
+            idColumnName: 'trailer_id',
+            regionCodes
         })
-        if (regionCodes) {
-            return processedBase.filter((t) =>
-                regionCodes.has(
-                    String(t.assignedPlant || '')
-                        .trim()
-                        .toUpperCase()
-                )
-            )
-        }
-        return processedBase
     },
 
     async getActiveTrailers() {
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-active')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch active trailers')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active trailers')
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
     async getCleanlinessHistory(trailerId = null, months = 6) {
         const payload = {}
         if (trailerId) {
-            if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
+            ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
             payload.trailerId = trailerId
         }
         if (months) payload.months = months
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-cleanliness-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch cleanliness history')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-cleanliness-history`,
+            payload,
+            'Failed to fetch cleanliness history'
+        )
         return json?.data ?? []
     },
 
     async getTrailerHistory(trailerId, limit = null) {
-        if (!isValidUUID(trailerId)) throw new Error(`Invalid trailer ID format: ${trailerId}`)
+        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         const payload = { trailerId }
         if (limit && Number.isInteger(limit)) payload.limit = limit
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch trailer history')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-history`, payload, 'Failed to fetch trailer history')
         return json?.data ?? []
     },
 
     async getTrailersByStatus(status) {
         if (!status) throw new Error('Status is required')
-        const { res, json } = await APIUtility.post('/trailer-service/fetch-by-status', { status })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch trailers by status')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-by-status`,
+            { status },
+            'Failed to fetch trailers by status'
+        )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
     async searchTrailersByTrailerNumber(query) {
         if (!query?.trim()) throw new Error('Search query is required')
-        const { res, json } = await APIUtility.post('/trailer-service/search-by-trailer-number', {
-            query: query.trim()
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to search trailers')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/search-by-trailer-number`,
+            { query: query.trim() },
+            'Failed to search trailers'
+        )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
     async searchTrailersByVin(query) {
         if (!query?.trim()) throw new Error('Search query is required')
-        const upper = query.trim().toUpperCase()
-        const { res, json } = await APIUtility.post('/trailer-service/search-by-vin', { query: upper })
-        if (!res.ok) throw new Error(json?.error || 'Failed to search trailers by VIN')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/search-by-vin`,
+            { query: query.trim().toUpperCase() },
+            'Failed to search trailers by VIN'
+        )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
@@ -254,11 +199,14 @@ const TrailerService = {
     },
 
     async updateTrailer(trailerId, updatedTrailer, userId, _oldTrailer) {
-        const id = typeof trailerId === 'object' ? trailerId.id : trailerId
-        if (!isValidUUID(id)) throw new Error(`Invalid trailer ID format: ${id}`)
+        const id = resolveEntityId(trailerId)
+        ValidationUtility.requireUUID(id, `Invalid trailer ID format: ${id}`)
         const trailer = updatedTrailer instanceof Trailer ? updatedTrailer : Trailer.ensureInstance(updatedTrailer)
-        const { res, json } = await APIUtility.post('/trailer-service/update', { id, trailer, userId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to update trailer')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/update`,
+            { id, trailer, userId },
+            'Failed to update trailer'
+        )
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     }
 }

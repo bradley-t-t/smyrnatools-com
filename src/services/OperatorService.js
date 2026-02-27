@@ -1,60 +1,56 @@
 import { Operator } from '../models/operators/Operator'
 import { OperatorHistory } from '../models/operators/OperatorHistory'
-import APIUtility from '../utils/APIUtility'
+import {
+    apiPost,
+    apiPostOrThrow,
+    apiPostRequireSuccess,
+    fetchAllCountsFromTable,
+    fetchStatusHistoryMap,
+    filterByRegionCodes,
+    getDuplicateFieldValues
+} from '../utils/BaseAssetUtility'
 import UserUtility from '../utils/UserUtility'
 import { supabase } from './DatabaseService'
 import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
 
+const SERVICE_PREFIX = '/operator-service'
+
 class OperatorServiceImpl {
     async fetchAllCommentsCounts(operatorIds) {
-        if (!operatorIds || operatorIds.length === 0) return {}
-        const { data, error } = await supabase
-            .from('operators_comments')
-            .select('operator_id')
-            .in('operator_id', operatorIds)
-        if (error) {
-            console.error('Error fetching operator comments counts:', error)
-            return {}
-        }
-        const counts = {}
-        operatorIds.forEach((id) => (counts[id] = 0))
-        ;(data || []).forEach((row) => {
-            if (row.operator_id) counts[row.operator_id] = (counts[row.operator_id] || 0) + 1
-        })
-        return counts
+        return fetchAllCountsFromTable('operators_comments', 'operator_id', operatorIds)
     }
 
     async getAllOperators() {
-        const { res, json } = await APIUtility.post('/operator-service/list')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch operators')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list`, {}, 'Failed to fetch operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
 
     async fetchActiveOperators() {
-        const { res, json } = await APIUtility.post('/operator-service/list-active')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch active operators')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-active`, {}, 'Failed to fetch active operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
 
     async fetchOperatorsByPlant(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
-        const { res, json } = await APIUtility.post('/operator-service/list-by-plant', { plantCode })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch operators by plant')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/list-by-plant`,
+            { plantCode },
+            'Failed to fetch operators by plant'
+        )
         return (json?.data ?? []).map((op) => new Operator(op))
     }
 
     async fetchTractorOperators() {
-        const { res, json } = await APIUtility.post('/operator-service/list-tractor')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractor operators')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-tractor`, {}, 'Failed to fetch tractor operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
 
     async getOperatorByEmployeeId(employeeId) {
         if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
-        const { res, json } = await APIUtility.post('/operator-service/get-by-employee-id', { employeeId })
+        const { res, json } = await apiPost(`${SERVICE_PREFIX}/get-by-employee-id`, { employeeId })
         if (!res.ok) return null
-        const data = json?.data || null
+        const data = json?.data ?? null
         if (!data) return null
         data.smyrna_id = data.smyrna_id ?? ''
         return new Operator(data)
@@ -63,9 +59,11 @@ class OperatorServiceImpl {
     async createOperator(operator) {
         const op = operator instanceof Operator ? operator : new Operator(operator)
         if (!UserUtility.isValidUUID(op.employeeId)) op.employeeId = UserUtility.generateUUID()
-        const payload = { operator: op.toApiFormat() }
-        const { res, json } = await APIUtility.post('/operator-service/create', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to create operator')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/create`,
+            { operator: op.toApiFormat() },
+            'Failed to create operator'
+        )
         return new Operator(json?.data)
     }
 
@@ -77,7 +75,7 @@ class OperatorServiceImpl {
         delete update.created_at
 
         const currentOperator = await this.getOperatorByEmployeeId(operator.employeeId)
-        if (currentOperator && currentOperator.plantCode !== op.plantCode) {
+        if (currentOperator?.plantCode !== op.plantCode) {
             const assignedMixers = await MixerService.getMixersByOperator(operator.employeeId)
             for (const mixer of assignedMixers) {
                 if (mixer.status === 'Active') {
@@ -96,21 +94,17 @@ class OperatorServiceImpl {
             }
         }
 
-        const { res, json } = await APIUtility.post('/operator-service/update', { operator: update })
-        if (!res.ok) throw new Error(json?.error || 'Failed to update operator')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/update`, { operator: update }, 'Failed to update operator')
         return new Operator(json?.data)
     }
 
     async deleteOperator(employeeId) {
         if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
-        const { res, json } = await APIUtility.post('/operator-service/delete', { employeeId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Operator was not deleted')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { employeeId }, 'Operator was not deleted')
     }
 
     async getAllTrainers() {
-        const { res, json } = await APIUtility.post('/operator-service/list-trainers')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch trainers')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-trainers`, {}, 'Failed to fetch trainers')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
 
@@ -119,26 +113,8 @@ class OperatorServiceImpl {
             const { data, error } = await supabase.from('operators').select('*')
             if (error) throw error
 
-            const statusHistoryMap = {}
             const operatorIds = (data || []).map((op) => op.employee_id).filter(Boolean)
-            if (operatorIds.length > 0) {
-                try {
-                    const { data: statusHistory } = await supabase
-                        .from('operators_history')
-                        .select('operator_id, changed_at')
-                        .eq('field_name', 'status')
-                        .in('operator_id', operatorIds)
-                        .order('changed_at', { ascending: false })
-
-                    if (statusHistory) {
-                        for (const h of statusHistory) {
-                            if (!statusHistoryMap[h.operator_id]) {
-                                statusHistoryMap[h.operator_id] = h.changed_at
-                            }
-                        }
-                    }
-                } catch (e) {}
-            }
+            const statusHistoryMap = await fetchStatusHistoryMap('operators_history', 'operator_id', operatorIds)
 
             const formattedOperators = data.map((op) => {
                 const rawPending = op.pending_start_date || ''
@@ -160,16 +136,8 @@ class OperatorServiceImpl {
                     statusChangedAt: statusHistoryMap[op.employee_id] || op.created_at || null
                 }
             })
-            if (regionCodes) {
-                return formattedOperators.filter((op) =>
-                    regionCodes.has(
-                        String(op.plantCode || '')
-                            .trim()
-                            .toUpperCase()
-                    )
-                )
-            }
-            return formattedOperators
+
+            return filterByRegionCodes(formattedOperators, regionCodes, 'plantCode')
         } catch {
             return []
         }
@@ -212,46 +180,53 @@ class OperatorServiceImpl {
 
     async getOperatorById(employeeId) {
         if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
-        const { res, json } = await APIUtility.post('/operator-service/get-by-employee-id', { employeeId })
+        const { res, json } = await apiPost(`${SERVICE_PREFIX}/get-by-employee-id`, { employeeId })
         if (!res.ok) return null
-        const data = json?.data || null
+        const data = json?.data ?? null
         if (!data) return null
         data.smyrna_id = data.smyrna_id ?? ''
         return new Operator(data)
     }
 
     getDuplicateNames(operators) {
-        const counts = new Map()
-        operators.forEach((op) => {
+        return getDuplicateFieldValues(operators, (op) => {
             const key = (op?.name || '').trim().toLowerCase()
-            if (!key) return
-            counts.set(key, (counts.get(key) || 0) + 1)
+            return key || null
         })
-        const dups = new Set()
-        counts.forEach((count, key) => {
-            if (count > 1) dups.add(key)
-        })
-        return dups
     }
 
     async getOperatorHistory(operatorId, limit = null) {
         const payload = { limit, operatorId }
-        const { res, json } = await APIUtility.post('/operator-service/fetch-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch operator history')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-history`,
+            payload,
+            'Failed to fetch operator history'
+        )
         return (json?.data ?? []).map((entry) => new OperatorHistory(entry))
     }
 
     async createHistoryEntry(operatorId, fieldName, oldValue, newValue, changedBy) {
-        const payload = { changedBy, fieldName, newValue, oldValue, operatorId }
-        const { res, json } = await APIUtility.post('/operator-service/add-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-history`,
+            {
+                changedBy,
+                fieldName,
+                newValue,
+                oldValue,
+                operatorId
+            },
+            'Failed to create history entry'
+        )
         return json?.data
     }
 
     async fetchComments(operatorId) {
         if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
-        const { res, json } = await APIUtility.post('/operator-service/fetch-comments', { operatorId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch comments')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-comments`,
+            { operatorId },
+            'Failed to fetch comments'
+        )
         return json?.data ?? []
     }
 
@@ -259,20 +234,21 @@ class OperatorServiceImpl {
         if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
         if (!text || !text.trim()) throw new Error('Comment text is required')
         if (!userId || !UserUtility.isValidUUID(userId)) throw new Error('Invalid User ID')
-        const { res, json } = await APIUtility.post('/operator-service/add-comment', {
-            operatorId,
-            text: text.trim(),
-            userId
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-comment`,
+            {
+                operatorId,
+                text: text.trim(),
+                userId
+            },
+            'Failed to add comment'
+        )
         return json?.data
     }
 
     async deleteComment(commentId) {
         if (!commentId || !UserUtility.isValidUUID(commentId)) throw new Error('Invalid Comment ID')
-        const { res, json } = await APIUtility.post('/operator-service/delete-comment', { commentId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete comment')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
 }
 

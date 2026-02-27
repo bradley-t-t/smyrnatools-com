@@ -1,6 +1,6 @@
-import RegionPlantScopeUtility from '../app/utils/RegionPlantScopeUtility'
 import { ListService } from '../services/ListService'
 import { UserService } from '../services/UserService'
+import RegionPlantScopeUtility from '../utils/RegionPlantScopeUtility'
 
 async function fetchListItemsWithRetry() {
     try {

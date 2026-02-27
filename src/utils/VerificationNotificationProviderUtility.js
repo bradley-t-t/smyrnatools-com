@@ -1,4 +1,4 @@
-import { UserService } from '../../services/UserService'
+import { UserService } from '../services/UserService'
 import RegionPlantScopeUtility from './RegionPlantScopeUtility'
 import VerificationDueDateUtility from './VerificationDueDateUtility'
 

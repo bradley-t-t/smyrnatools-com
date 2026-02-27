@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.4] - 2026-02-27
+
+- Added a new feature for exporting asset issues with the introduction of `AssetIssuesExport.js`. This module allows users to generate detailed reports of open issues for various asset types, grouped by plant, with formatted severity levels, issue descriptions, and user information.
+- Introduced `BaseAssetService.js` and `BaseAssetUtility.js` to provide shared functionality and utilities for managing different types of assets, streamlining service operations across equipment, mixers, pickup trucks, tractors, and trailers.
+- Added export functionality to asset views including `EquipmentsView`, `MixersView`, `PickupTrucksView`, `TractorsView`, and `TrailersView`, enabling users to export data directly from these views.
+- Implemented `VerificationNotificationProviderUtility.js` and `createVerificationNotificationProvider.js` to enhance notification handling for verification processes across various asset types.
+- Added `resolveEntityId.js` utility to assist in resolving entity IDs, improving data consistency and retrieval accuracy.
+
 ## [16.3] - 2026-02-25
 
 - Added a step in the CI workflow to configure Git to use HTTPS instead of SSH for GitHub packages, ensuring smoother dependency resolution in the build process.

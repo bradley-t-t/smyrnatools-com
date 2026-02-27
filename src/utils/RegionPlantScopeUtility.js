@@ -1,5 +1,5 @@
-import { RegionService } from '../../services/RegionService'
-import { UserService } from '../../services/UserService'
+import { RegionService } from '../services/RegionService'
+import { UserService } from '../services/UserService'
 
 function normalizePlantCodes(list) {
     const result = new Set()

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
+import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
@@ -42,6 +43,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
     const [modalPickupId, setModalPickupId] = useState(null)
     const [modalPickupNumber, setModalPickupNumber] = useState('')
     const [selectedPickupForHistory, setSelectedPickupForHistory] = useState(null)
+    const [isExportingIssues, setIsExportingIssues] = useState(false)
     const statusOptions = [
         'All Statuses',
         'Active',
@@ -216,6 +218,23 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         } else {
             setViewMode(mode)
             localStorage.setItem('pickup_trucks_last_view_mode', mode)
+        }
+    }
+
+    async function handleExportIssues() {
+        setIsExportingIssues(true)
+        try {
+            await exportAssetIssuesSheet({
+                assetType: 'Pickup Truck',
+                assets: pickups,
+                identifierField: 'assigned',
+                plants,
+                service: PickupTruckService
+            })
+        } catch (err) {
+            console.error('Export issues failed:', err)
+        } finally {
+            setIsExportingIssues(false)
         }
     }
 
@@ -745,6 +764,21 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             title={title}
                             addButtonLabel="Add Pickup"
                             onAddClick={() => setShowAddSheet(true)}
+                            customActions={
+                                <button
+                                    className="flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
+                                    style={{ backgroundColor: '#f59e0b' }}
+                                    onClick={handleExportIssues}
+                                    disabled={isExportingIssues || pickups.length === 0}
+                                    type="button"
+                                    aria-label="Export Issues"
+                                >
+                                    <i
+                                        className={`fas ${isExportingIssues ? 'fa-spinner fa-spin' : 'fa-file-export'}`}
+                                    />
+                                    <span>{isExportingIssues ? 'Exporting...' : 'Export Issues'}</span>
+                                </button>
+                            }
                             searchInput={searchInput}
                             onSearchInputChange={(v) => {
                                 setSearchInput(v)

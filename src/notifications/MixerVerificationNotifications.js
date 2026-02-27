@@ -1,6 +1,6 @@
-import createVerificationNotificationProvider from '../app/utils/createVerificationNotificationProvider'
 import { MixerService } from '../services/MixerService'
 import MixerUtility from '../utils/MixerUtility'
+import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'
 
 export default createVerificationNotificationProvider({
     entityLabel: (count) => (count === 1 ? 'mixer' : 'mixers'),

@@ -1,45 +1,199 @@
 import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 
+const STORAGE_BUCKET = 'smyrna'
+const STORAGE_PREFIX = 'maintenance'
+const IMAGE_CACHE_CONTROL = '3600'
+const PERMISSION_CREATE = 'maintenance.create'
+const PERMISSION_REVIEW = 'maintenance.review'
+const PERMISSION_IT = 'maintenance.it'
+const PERMISSION_BYPASS_PLANT = 'maintenance.bypass.plantrestriction'
+const AUTH_ERROR = 'User not authenticated'
+const PERMISSION_DENIED_ERROR = 'Permission denied'
+
+const FORM_WITH_FIELDS_SELECT = '*, maintenance_form_fields(*)'
+const SUBMISSION_DETAIL_SELECT = `
+    *,
+    maintenance_forms(*, maintenance_form_fields(*)),
+    maintenance_submission_responses(*, maintenance_form_fields(*))
+`
+
+const FREQUENCY_PERIOD_DAYS = {
+    biweekly: () => 14,
+    daily: (v) => v,
+    monthly: (v) => 31 * v,
+    quarterly: () => 92,
+    weekly: (v) => 7 * v,
+    yearly: (v) => 365 * v
+}
+const DEFAULT_PERIOD_DAYS = 7
+
+const MS_PER_DAY = 86400000
+
+function now() {
+    return new Date().toISOString()
+}
+
+function toDateString(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function startOfDay(date) {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+}
+
+async function requireAuthenticatedUser() {
+    const user = await UserService.getCurrentUser()
+    if (!user?.id) throw new Error(AUTH_ERROR)
+    return user
+}
+
+async function requirePermission(userId, permission) {
+    const hasPermission = await UserService.hasPermission(userId, permission)
+    if (!hasPermission) throw new Error(PERMISSION_DENIED_ERROR)
+}
+
+async function fetchUserPlantCode(userId) {
+    const { data: profile } = await supabase.from('users_profiles').select('plant_code').eq('id', userId).maybeSingle()
+    return profile?.plant_code ?? null
+}
+
+async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
+    const allowed = new Set()
+    if (hasBypass && userPlantCode) {
+        const { RegionService } = await import('./RegionService')
+        const regions = await RegionService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
+        for (const region of regions) {
+            const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
+            plants.forEach((p) => {
+                const code = p.plantCode || p.plant_code
+                if (code) allowed.add(code)
+            })
+        }
+    } else if (userPlantCode) {
+        allowed.add(userPlantCode)
+    }
+    return allowed
+}
+
+function buildFieldRows(fields, formId) {
+    const timestamp = now()
+    return fields.map((field, index) => ({
+        created_at: timestamp,
+        description: field.description || null,
+        field_order: index,
+        field_type: field.field_type,
+        form_id: formId,
+        image_required: field.image_required || false,
+        is_required: field.is_required || false,
+        label: field.label,
+        options: field.options || null,
+        updated_at: timestamp
+    }))
+}
+
+function buildResponseRows(responses, submissionId) {
+    const timestamp = now()
+    return responses.map((r) => ({
+        checklist_comments: r.checklist_comments || null,
+        checklist_images: r.checklist_images || null,
+        checklist_values: r.checklist_values || null,
+        created_at: timestamp,
+        field_id: r.field_id,
+        image_url: r.image_url || null,
+        response_value: r.response_value || null,
+        submission_id: submissionId,
+        updated_at: timestamp
+    }))
+}
+
+async function insertResponses(responses, submissionId) {
+    if (!responses?.length) return
+    const { error } = await supabase
+        .from('maintenance_submission_responses')
+        .insert(buildResponseRows(responses, submissionId))
+    if (error) throw error
+}
+
+async function replaceResponses(responses, submissionId) {
+    await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
+    await insertResponses(responses, submissionId)
+}
+
+async function insertFields(fields, formId) {
+    if (!fields?.length) return
+    const { error } = await supabase.from('maintenance_form_fields').insert(buildFieldRows(fields, formId))
+    if (error) throw error
+}
+
+async function fetchReviewableSubmissions(statusFilter, orderField, orderAscending) {
+    try {
+        const user = await UserService.getCurrentUser()
+        if (!user?.id) return []
+
+        const hasReviewPermission = await UserService.hasPermission(user.id, PERMISSION_REVIEW).catch(() => false)
+        if (!hasReviewPermission) return []
+
+        const [hasItPermission, hasBypass] = await Promise.all([
+            UserService.hasPermission(user.id, PERMISSION_IT).catch(() => false),
+            UserService.hasPermission(user.id, PERMISSION_BYPASS_PLANT).catch(() => false)
+        ])
+
+        let query = supabase
+            .from('maintenance_submissions')
+            .select(SUBMISSION_DETAIL_SELECT)
+            .order(orderField, { ascending: orderAscending })
+
+        query = Array.isArray(statusFilter) ? query.in('status', statusFilter) : query.eq('status', statusFilter)
+
+        const { data, error } = await query
+        if (error || !data?.length) return []
+        if (hasItPermission) return data
+
+        const currentUserWeight = await UserService.getUserWeight(user.id)
+        const userPlantCode = await fetchUserPlantCode(user.id)
+        const allowedPlantCodes = await resolveAllowedPlantCodes(user.id, hasBypass, userPlantCode)
+
+        const filtered = []
+        for (const submission of data) {
+            if (submission.submitted_by === user.id) continue
+            const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
+            if (submitterWeight > currentUserWeight) continue
+            if (allowedPlantCodes.size > 0 && (!submission.plant_code || !allowedPlantCodes.has(submission.plant_code)))
+                continue
+            filtered.push(submission)
+        }
+        return filtered
+    } catch {
+        return []
+    }
+}
+
+function extractStoragePath(imagePath) {
+    return imagePath.includes(`${STORAGE_BUCKET}/`) ? imagePath.split(`${STORAGE_BUCKET}/`)[1] : imagePath
+}
+
 export class MaintenanceService {
     static async checkPlantAccess(userId, plantCode) {
         if (!userId || !plantCode) return false
-
-        const hasBypass = await UserService.hasPermission(userId, 'maintenance.bypass.plantrestriction').catch(
-            () => false
-        )
+        const hasBypass = await UserService.hasPermission(userId, PERMISSION_BYPASS_PLANT).catch(() => false)
         if (hasBypass) return true
-
-        const { data: profile } = await supabase
-            .from('users_profiles')
-            .select('plant_code')
-            .eq('id', userId)
-            .maybeSingle()
-
-        return profile?.plant_code === plantCode
+        const userPlantCode = await fetchUserPlantCode(userId)
+        return userPlantCode === plantCode
     }
 
     static async fetchForms(filters = {}) {
         let query = supabase
             .from('maintenance_forms')
-            .select(
-                `
-                *,
-                maintenance_form_fields(*)
-            `
-            )
+            .select(FORM_WITH_FIELDS_SELECT)
             .eq('is_active', true)
             .order('created_at', { ascending: false })
 
-        if (filters.regionCode) {
-            query = query.eq('region_code', filters.regionCode)
-        }
-        if (filters.plantCode) {
-            query = query.eq('plant_code', filters.plantCode)
-        }
-        if (filters.createdBy) {
-            query = query.eq('created_by', filters.createdBy)
-        }
+        if (filters.regionCode) query = query.eq('region_code', filters.regionCode)
+        if (filters.plantCode) query = query.eq('plant_code', filters.plantCode)
+        if (filters.createdBy) query = query.eq('created_by', filters.createdBy)
 
         const { data, error } = await query
         if (error) throw error
@@ -49,150 +203,78 @@ export class MaintenanceService {
     static async fetchFormById(formId) {
         const { data, error } = await supabase
             .from('maintenance_forms')
-            .select(
-                `
-                *,
-                maintenance_form_fields(*)
-            `
-            )
+            .select(FORM_WITH_FIELDS_SELECT)
             .eq('id', formId)
             .single()
-
         if (error) throw error
         return data
     }
 
     static async createForm(formData) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
-
+        const user = await requireAuthenticatedUser()
         const { fields, plant_codes, ...formInfo } = formData
+        const timestamp = now()
 
         const { data: form, error: formError } = await supabase
             .from('maintenance_forms')
             .insert({
                 ...formInfo,
-                created_at: new Date().toISOString(),
+                created_at: timestamp,
                 created_by: user.id,
                 plant_codes: plant_codes || [],
-                updated_at: new Date().toISOString()
+                updated_at: timestamp
             })
             .select()
             .single()
-
         if (formError) throw formError
 
-        if (fields && fields.length > 0) {
-            const fieldsToInsert = fields.map((field, index) => ({
-                created_at: new Date().toISOString(),
-                description: field.description || null,
-                field_order: index,
-                field_type: field.field_type,
-                form_id: form.id,
-                image_required: field.image_required || false,
-                is_required: field.is_required || false,
-                label: field.label,
-                options: field.options || null,
-                updated_at: new Date().toISOString()
-            }))
-
-            const { error: fieldsError } = await supabase.from('maintenance_form_fields').insert(fieldsToInsert)
-
-            if (fieldsError) throw fieldsError
-        }
-
+        await insertFields(fields, form.id)
         return this.fetchFormById(form.id)
     }
 
     static async updateForm(formId, formData) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
-
-        const hasPermission = await UserService.hasPermission(user.id, 'maintenance.create')
-        if (!hasPermission) throw new Error('Permission denied')
+        const user = await requireAuthenticatedUser()
+        await requirePermission(user.id, PERMISSION_CREATE)
 
         const { fields, plant_codes, ...formInfo } = formData
 
         const { error: formError } = await supabase
             .from('maintenance_forms')
-            .update({
-                ...formInfo,
-                plant_codes: plant_codes || [],
-                updated_at: new Date().toISOString()
-            })
+            .update({ ...formInfo, plant_codes: plant_codes || [], updated_at: now() })
             .eq('id', formId)
-
         if (formError) throw formError
 
         if (fields) {
             await supabase.from('maintenance_form_fields').delete().eq('form_id', formId)
-
-            if (fields.length > 0) {
-                const fieldsToInsert = fields.map((field, index) => ({
-                    created_at: new Date().toISOString(),
-                    description: field.description || null,
-                    field_order: index,
-                    field_type: field.field_type,
-                    form_id: formId,
-                    image_required: field.image_required || false,
-                    is_required: field.is_required || false,
-                    label: field.label,
-                    options: field.options || null,
-                    updated_at: new Date().toISOString()
-                }))
-
-                const { error: fieldsError } = await supabase.from('maintenance_form_fields').insert(fieldsToInsert)
-
-                if (fieldsError) throw fieldsError
-            }
+            await insertFields(fields, formId)
         }
 
         return this.fetchFormById(formId)
     }
 
     static async deleteForm(formId) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
-
-        const hasPermission = await UserService.hasPermission(user.id, 'maintenance.create')
-        if (!hasPermission) throw new Error('Permission denied')
+        const user = await requireAuthenticatedUser()
+        await requirePermission(user.id, PERMISSION_CREATE)
 
         const { error } = await supabase
             .from('maintenance_forms')
-            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .update({ is_active: false, updated_at: now() })
             .eq('id', formId)
-
         if (error) throw error
         return true
     }
 
     static async fetchDueItems(filters = {}) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
+        await requireAuthenticatedUser()
 
         let query = supabase
             .from('maintenance_due_items')
-            .select(
-                `
-                *,
-                maintenance_forms(
-                    *,
-                    maintenance_form_fields(*)
-                ),
-                maintenance_submissions(*)
-            `
-            )
+            .select(`*, maintenance_forms(*, maintenance_form_fields(*)), maintenance_submissions(*)`)
             .order('due_date', { ascending: true })
 
-        if (filters.userId) {
-            query = query.eq('assigned_user_id', filters.userId)
-        }
-        if (filters.status) {
-            query = query.eq('status', filters.status)
-        }
-        if (filters.formId) {
-            query = query.eq('form_id', filters.formId)
-        }
+        if (filters.userId) query = query.eq('assigned_user_id', filters.userId)
+        if (filters.status) query = query.eq('status', filters.status)
+        if (filters.formId) query = query.eq('form_id', filters.formId)
 
         const { data, error } = await query
         if (error) throw error
@@ -204,114 +286,71 @@ export class MaintenanceService {
             const user = await UserService.getCurrentUser()
             if (!user?.id) return []
 
-            const userRoles = await UserService.getUserRoles(user.id).catch(() => [])
-            const userRoleIds = userRoles
-                .map((r) => {
-                    if (typeof r === 'object') return String(r.id || r.role_id || '')
-                    return String(r)
-                })
+            const userRoleIds = (await UserService.getUserRoles(user.id).catch(() => []))
+                .map((r) => String(typeof r === 'object' ? r.id || r.role_id || '' : r))
                 .filter(Boolean)
 
             const { data: allForms, error: formsError } = await supabase
                 .from('maintenance_forms')
-                .select(
-                    `
-                    *,
-                    maintenance_form_fields(*)
-                `
-                )
+                .select(FORM_WITH_FIELDS_SELECT)
                 .eq('is_active', true)
+            if (formsError || !allForms?.length) return []
 
-            if (formsError || !allForms || allForms.length === 0) return []
+            const hasBypass = await UserService.hasPermission(user.id, PERMISSION_BYPASS_PLANT).catch(() => false)
+            const userPlantCode = await fetchUserPlantCode(user.id)
+            const regionalPlantCodes = hasBypass
+                ? await resolveAllowedPlantCodes(user.id, true, userPlantCode)
+                : new Set()
 
-            const hasBypassPlantRestriction = await UserService.hasPermission(
-                user.id,
-                'maintenance.bypass.plantrestriction'
-            ).catch(() => false)
-            const { data: profile } = await supabase
-                .from('users_profiles')
-                .select('plant_code')
-                .eq('id', user.id)
-                .maybeSingle()
-            const userPlantCode = profile?.plant_code
-
-            let regionalPlantCodes = new Set()
-            if (hasBypassPlantRestriction) {
-                try {
-                    const { RegionService } = await import('./RegionService')
-                    if (userPlantCode) {
-                        const regions = await RegionService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
-                        for (const region of regions) {
-                            const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                            plants.forEach((p) => {
-                                const code = p.plantCode || p.plant_code
-                                if (code) regionalPlantCodes.add(code)
-                            })
-                        }
-                    }
-                } catch (e) {}
-            }
-
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-
+            const today = startOfDay(new Date())
             const dueItems = []
 
             for (const form of allForms) {
-                const assignedRoles = (form.assigned_roles || []).map((r) => String(r))
-                if (assignedRoles.length === 0) continue
-
-                const hasRole = userRoleIds.length > 0 && assignedRoles.some((roleId) => userRoleIds.includes(roleId))
-                if (!hasRole) continue
+                const assignedRoles = (form.assigned_roles || []).map(String)
+                if (!assignedRoles.length) continue
+                if (!userRoleIds.length || !assignedRoles.some((roleId) => userRoleIds.includes(roleId))) continue
 
                 const formPlantCodes = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
 
-                let plantsToCheck = []
-                if (formPlantCodes.length === 0) {
+                let plantsToCheck
+                if (!formPlantCodes.length) {
                     plantsToCheck = [null]
-                } else if (hasBypassPlantRestriction) {
-                    if (regionalPlantCodes.size > 0) {
-                        plantsToCheck = formPlantCodes.filter((pc) => regionalPlantCodes.has(pc))
-                    } else {
-                        plantsToCheck = formPlantCodes
-                    }
+                } else if (hasBypass) {
+                    plantsToCheck =
+                        regionalPlantCodes.size > 0
+                            ? formPlantCodes.filter((pc) => regionalPlantCodes.has(pc))
+                            : formPlantCodes
                 } else if (userPlantCode) {
                     plantsToCheck = formPlantCodes.filter((pc) => pc === userPlantCode)
                 } else {
                     plantsToCheck = formPlantCodes
                 }
-
-                if (plantsToCheck.length === 0) continue
+                if (!plantsToCheck.length) continue
 
                 const dueDates = this.calculateDueDates(form, today)
 
                 for (const plantCode of plantsToCheck) {
                     for (const dueDate of dueDates) {
-                        const dueDateStr = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}-${String(dueDate.getDate()).padStart(2, '0')}`
+                        const dueDateStr = toDateString(dueDate)
 
                         let submissionQuery = supabase
                             .from('maintenance_submissions')
                             .select('id, submitted_by')
                             .eq('form_id', form.id)
                             .eq('due_date', dueDateStr)
-
-                        if (plantCode) {
-                            submissionQuery = submissionQuery.eq('plant_code', plantCode)
-                        }
+                        if (plantCode) submissionQuery = submissionQuery.eq('plant_code', plantCode)
 
                         const { data: existingSubmissions } = await submissionQuery
-
                         const mySubmission = existingSubmissions?.find((s) => s.submitted_by === user.id)
-                        const anySubmission = existingSubmissions && existingSubmissions.length > 0
 
-                        if (anySubmission && !mySubmission) continue
+                        if (existingSubmissions?.length && !mySubmission) continue
 
                         const isCompleted = !!mySubmission
                         const isOverdue = dueDate <= today && !isCompleted
 
                         dueItems.push({
                             due_date: dueDateStr,
-                            form: form,
+                            form,
                             form_id: form.id,
                             id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
                             plant_code: plantCode,
@@ -327,78 +366,46 @@ export class MaintenanceService {
                 if (b.status === 'overdue' && a.status !== 'overdue') return 1
                 return new Date(a.due_date) - new Date(b.due_date)
             })
-        } catch (e) {
+        } catch {
             return []
         }
     }
 
     static calculateDueDates(form, referenceDate) {
-        const frequency = form.frequency
-        const frequencyValue = form.frequency_value || 1
+        const { frequency, frequency_value: frequencyValue = 1 } = form
 
-        let formStartDate
-        if (form.start_date) {
-            formStartDate = new Date(form.start_date + 'T00:00:00')
-        } else if (form.created_at) {
-            formStartDate = new Date(form.created_at)
-        } else {
-            formStartDate = new Date()
-        }
-        formStartDate.setHours(0, 0, 0, 0)
+        const formStartDate = startOfDay(
+            form.start_date
+                ? new Date(form.start_date + 'T00:00:00')
+                : form.created_at
+                  ? new Date(form.created_at)
+                  : new Date()
+        )
+        const today = startOfDay(referenceDate)
 
-        const today = new Date(referenceDate)
-        today.setHours(0, 0, 0, 0)
+        const periodFn = FREQUENCY_PERIOD_DAYS[frequency]
+        const periodDays = periodFn ? periodFn(frequencyValue) : DEFAULT_PERIOD_DAYS
 
-        const getPeriodDays = () => {
-            switch (frequency) {
-                case 'daily':
-                    return 1 * frequencyValue
-                case 'weekly':
-                    return 7 * frequencyValue
-                case 'biweekly':
-                    return 14
-                case 'monthly':
-                    return 31 * frequencyValue
-                case 'quarterly':
-                    return 92
-                case 'yearly':
-                    return 365 * frequencyValue
-                default:
-                    return 7
-            }
-        }
+        if (formStartDate > today) return [new Date(formStartDate)]
 
-        const periodDays = getPeriodDays()
-
-        if (formStartDate > today) {
-            return [new Date(formStartDate)]
-        }
-
-        const daysSinceStart = Math.floor((today - formStartDate) / (1000 * 60 * 60 * 24))
+        const daysSinceStart = Math.floor((today - formStartDate) / MS_PER_DAY)
         const currentPeriodIndex = Math.floor(daysSinceStart / periodDays)
 
-        const results = []
-
-        if (currentPeriodIndex > 0) {
-            const prevPeriodStart = new Date(formStartDate)
-            prevPeriodStart.setDate(prevPeriodStart.getDate() + (currentPeriodIndex - 1) * periodDays)
-            results.push(new Date(prevPeriodStart))
+        const addPeriod = (index) => {
+            const d = new Date(formStartDate)
+            d.setDate(d.getDate() + index * periodDays)
+            return d
         }
 
-        const currentPeriodStart = new Date(formStartDate)
-        currentPeriodStart.setDate(currentPeriodStart.getDate() + currentPeriodIndex * periodDays)
-        results.push(new Date(currentPeriodStart))
-
-        const nextPeriodStart = new Date(formStartDate)
-        nextPeriodStart.setDate(nextPeriodStart.getDate() + (currentPeriodIndex + 1) * periodDays)
-        results.push(new Date(nextPeriodStart))
-
+        const results = []
+        if (currentPeriodIndex > 0) results.push(addPeriod(currentPeriodIndex - 1))
+        results.push(addPeriod(currentPeriodIndex))
+        results.push(addPeriod(currentPeriodIndex + 1))
         return results
     }
 
     static async submitForm(formId, dueDate, responses, plantCode = null) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
+        const user = await requireAuthenticatedUser()
 
         const { data: existingDraft } = await supabase
             .from('maintenance_submissions')
@@ -411,93 +418,46 @@ export class MaintenanceService {
 
         if (existingDraft) {
             await supabase.from('maintenance_submission_responses').delete().eq('submission_id', existingDraft.id)
-
             await supabase.from('maintenance_submissions').delete().eq('id', existingDraft.id)
         }
 
+        const timestamp = now()
         const { data: submission, error: submissionError } = await supabase
             .from('maintenance_submissions')
             .insert({
-                created_at: new Date().toISOString(),
+                created_at: timestamp,
                 due_date: dueDate,
                 form_id: formId,
                 plant_code: plantCode,
                 status: 'submitted',
-                submitted_at: new Date().toISOString(),
+                submitted_at: timestamp,
                 submitted_by: user.id,
-                updated_at: new Date().toISOString()
+                updated_at: timestamp
             })
             .select()
             .single()
-
         if (submissionError) throw submissionError
 
-        if (responses && responses.length > 0) {
-            const responsesToInsert = responses.map((response) => ({
-                checklist_comments: response.checklist_comments || null,
-                checklist_images: response.checklist_images || null,
-                checklist_values: response.checklist_values || null,
-                created_at: new Date().toISOString(),
-                field_id: response.field_id,
-                image_url: response.image_url || null,
-                response_value: response.response_value || null,
-                submission_id: submission.id,
-                updated_at: new Date().toISOString()
-            }))
-
-            const { error: responsesError } = await supabase
-                .from('maintenance_submission_responses')
-                .insert(responsesToInsert)
-
-            if (responsesError) throw responsesError
-        }
-
+        await insertResponses(responses, submission.id)
         return submission
     }
 
     static async updateSubmission(submissionId, responses) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
+        const user = await requireAuthenticatedUser()
 
         const { error: updateError } = await supabase
             .from('maintenance_submissions')
-            .update({
-                updated_at: new Date().toISOString()
-            })
+            .update({ updated_at: now() })
             .eq('id', submissionId)
             .eq('submitted_by', user.id)
-
         if (updateError) throw updateError
 
-        await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
-
-        if (responses && responses.length > 0) {
-            const responsesToInsert = responses.map((response) => ({
-                checklist_comments: response.checklist_comments || null,
-                checklist_images: response.checklist_images || null,
-                checklist_values: response.checklist_values || null,
-                created_at: new Date().toISOString(),
-                field_id: response.field_id,
-                image_url: response.image_url || null,
-                response_value: response.response_value || null,
-                submission_id: submissionId,
-                updated_at: new Date().toISOString()
-            }))
-
-            const { error: responsesError } = await supabase
-                .from('maintenance_submission_responses')
-                .insert(responsesToInsert)
-
-            if (responsesError) throw responsesError
-        }
-
+        await replaceResponses(responses, submissionId)
         return true
     }
 
     static async saveDraftProgress(formId, dueDate, responses, plantCode = null, existingSubmissionId = null) {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
-
+        const user = await requireAuthenticatedUser()
         let submissionId = existingSubmissionId
 
         if (!submissionId) {
@@ -509,62 +469,36 @@ export class MaintenanceService {
                 .eq('submitted_by', user.id)
                 .eq('status', 'draft')
                 .maybeSingle()
-
-            if (existing) {
-                submissionId = existing.id
-            }
+            submissionId = existing?.id ?? null
         }
 
         if (submissionId) {
             const { error: updateError } = await supabase
                 .from('maintenance_submissions')
-                .update({
-                    updated_at: new Date().toISOString()
-                })
+                .update({ updated_at: now() })
                 .eq('id', submissionId)
-
             if (updateError) throw updateError
-
             await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
         } else {
+            const timestamp = now()
             const { data: submission, error: submissionError } = await supabase
                 .from('maintenance_submissions')
                 .insert({
-                    created_at: new Date().toISOString(),
+                    created_at: timestamp,
                     due_date: dueDate,
                     form_id: formId,
                     plant_code: plantCode,
                     status: 'draft',
                     submitted_by: user.id,
-                    updated_at: new Date().toISOString()
+                    updated_at: timestamp
                 })
                 .select()
                 .single()
-
             if (submissionError) throw submissionError
             submissionId = submission.id
         }
 
-        if (responses && responses.length > 0) {
-            const responsesToInsert = responses.map((response) => ({
-                checklist_comments: response.checklist_comments || null,
-                checklist_images: response.checklist_images || null,
-                checklist_values: response.checklist_values || null,
-                created_at: new Date().toISOString(),
-                field_id: response.field_id,
-                image_url: response.image_url || null,
-                response_value: response.response_value || null,
-                submission_id: submissionId,
-                updated_at: new Date().toISOString()
-            }))
-
-            const { error: responsesError } = await supabase
-                .from('maintenance_submission_responses')
-                .insert(responsesToInsert)
-
-            if (responsesError) throw responsesError
-        }
-
+        await insertResponses(responses, submissionId)
         return submissionId
     }
 
@@ -574,54 +508,27 @@ export class MaintenanceService {
 
         let query = supabase
             .from('maintenance_submissions')
-            .select(
-                `
-                *,
-                maintenance_submission_responses (*)
-            `
-            )
+            .select('*, maintenance_submission_responses (*)')
             .eq('form_id', formId)
             .eq('due_date', dueDate)
             .eq('submitted_by', user.id)
             .eq('status', 'draft')
-
-        if (plantCode) {
-            query = query.eq('plant_code', plantCode)
-        }
+        if (plantCode) query = query.eq('plant_code', plantCode)
 
         const { data, error } = await query.maybeSingle()
-
-        if (error) return null
-        return data
+        return error ? null : data
     }
 
     static async fetchSubmissions(filters = {}) {
         let query = supabase
             .from('maintenance_submissions')
-            .select(
-                `
-                *,
-                maintenance_forms(*),
-                maintenance_submission_responses(
-                    *,
-                    maintenance_form_fields(*)
-                )
-            `
-            )
+            .select(`*, maintenance_forms(*), maintenance_submission_responses(*, maintenance_form_fields(*))`)
             .order('submitted_at', { ascending: false })
 
-        if (filters.formId) {
-            query = query.eq('form_id', filters.formId)
-        }
-        if (filters.submittedBy) {
-            query = query.eq('submitted_by', filters.submittedBy)
-        }
-        if (filters.status) {
-            query = query.eq('status', filters.status)
-        }
-        if (filters.reviewedBy) {
-            query = query.eq('reviewed_by', filters.reviewedBy)
-        }
+        if (filters.formId) query = query.eq('form_id', filters.formId)
+        if (filters.submittedBy) query = query.eq('submitted_by', filters.submittedBy)
+        if (filters.status) query = query.eq('status', filters.status)
+        if (filters.reviewedBy) query = query.eq('reviewed_by', filters.reviewedBy)
 
         const { data, error } = await query
         if (error) throw error
@@ -631,237 +538,53 @@ export class MaintenanceService {
     static async fetchSubmissionById(submissionId) {
         const { data, error } = await supabase
             .from('maintenance_submissions')
-            .select(
-                `
-                *,
-                maintenance_forms(
-                    *,
-                    maintenance_form_fields(*)
-                ),
-                maintenance_submission_responses(
-                    *,
-                    maintenance_form_fields(*)
-                )
-            `
-            )
+            .select(SUBMISSION_DETAIL_SELECT)
             .eq('id', submissionId)
             .single()
-
         if (error) throw error
         return data
     }
 
     static async reviewSubmission(submissionId, status, notes = '') {
-        const user = await UserService.getCurrentUser()
-        if (!user?.id) throw new Error('User not authenticated')
-
-        const hasPermission = await UserService.hasPermission(user.id, 'maintenance.review')
-        if (!hasPermission) throw new Error('Permission denied')
+        const user = await requireAuthenticatedUser()
+        await requirePermission(user.id, PERMISSION_REVIEW)
 
         const { data, error } = await supabase
             .from('maintenance_submissions')
             .update({
                 review_notes: notes,
-                reviewed_at: new Date().toISOString(),
+                reviewed_at: now(),
                 reviewed_by: user.id,
-                status: status,
-                updated_at: new Date().toISOString()
+                status,
+                updated_at: now()
             })
             .eq('id', submissionId)
             .select()
             .single()
-
         if (error) throw error
         return data
     }
 
     static async fetchPendingReviews() {
-        try {
-            const user = await UserService.getCurrentUser()
-            if (!user?.id) return []
-
-            const hasReviewPermission = await UserService.hasPermission(user.id, 'maintenance.review').catch(
-                () => false
-            )
-            if (!hasReviewPermission) return []
-
-            const hasItPermission = await UserService.hasPermission(user.id, 'maintenance.it').catch(() => false)
-            const hasBypassPlantRestriction = await UserService.hasPermission(
-                user.id,
-                'maintenance.bypass.plantrestriction'
-            ).catch(() => false)
-
-            const { data, error } = await supabase
-                .from('maintenance_submissions')
-                .select(
-                    `
-                    *,
-                    maintenance_forms(
-                        *,
-                        maintenance_form_fields(*)
-                    ),
-                    maintenance_submission_responses(
-                        *,
-                        maintenance_form_fields(*)
-                    )
-                `
-                )
-                .eq('status', 'submitted')
-                .order('submitted_at', { ascending: true })
-
-            if (error) return []
-            if (!data || data.length === 0) return []
-
-            if (hasItPermission) return data
-
-            const currentUserWeight = await UserService.getUserWeight(user.id)
-            const { data: currentUserProfile } = await supabase
-                .from('users_profiles')
-                .select('plant_code')
-                .eq('id', user.id)
-                .maybeSingle()
-            const currentUserPlantCode = currentUserProfile?.plant_code
-
-            let allowedPlantCodes = new Set()
-            if (hasBypassPlantRestriction && currentUserPlantCode) {
-                const { RegionService } = await import('./RegionService')
-                const regions = await RegionService.fetchRegionsByPlantCode(currentUserPlantCode).catch(() => [])
-                for (const region of regions) {
-                    const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                    plants.forEach((p) => allowedPlantCodes.add(p.plantCode))
-                }
-            } else if (currentUserPlantCode) {
-                allowedPlantCodes.add(currentUserPlantCode)
-            }
-
-            const filteredData = []
-            for (const submission of data) {
-                if (submission.submitted_by === user.id) continue
-
-                const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-                if (submitterWeight > currentUserWeight) continue
-
-                const submissionPlantCode = submission.plant_code
-                if (allowedPlantCodes.size > 0) {
-                    if (!submissionPlantCode || !allowedPlantCodes.has(submissionPlantCode)) continue
-                }
-
-                filteredData.push(submission)
-            }
-
-            return filteredData
-        } catch (e) {
-            return []
-        }
+        return fetchReviewableSubmissions('submitted', 'submitted_at', true)
     }
 
     static async fetchMySubmissions(userId) {
         try {
             if (!userId) return []
-
             const { data, error } = await supabase
                 .from('maintenance_submissions')
-                .select(
-                    `
-                    *,
-                    maintenance_forms(
-                        *,
-                        maintenance_form_fields(*)
-                    ),
-                    maintenance_submission_responses(
-                        *,
-                        maintenance_form_fields(*)
-                    )
-                `
-                )
+                .select(SUBMISSION_DETAIL_SELECT)
                 .eq('submitted_by', userId)
                 .order('submitted_at', { ascending: false })
-
-            if (error) return []
-            return data || []
-        } catch (e) {
+            return error ? [] : data || []
+        } catch {
             return []
         }
     }
 
     static async fetchReviewedSubmissions() {
-        try {
-            const user = await UserService.getCurrentUser()
-            if (!user?.id) return []
-
-            const hasReviewPermission = await UserService.hasPermission(user.id, 'maintenance.review').catch(
-                () => false
-            )
-            if (!hasReviewPermission) return []
-
-            const hasItPermission = await UserService.hasPermission(user.id, 'maintenance.it').catch(() => false)
-            const hasBypassPlantRestriction = await UserService.hasPermission(
-                user.id,
-                'maintenance.bypass.plantrestriction'
-            ).catch(() => false)
-
-            const { data, error } = await supabase
-                .from('maintenance_submissions')
-                .select(
-                    `
-                    *,
-                    maintenance_forms(
-                        *,
-                        maintenance_form_fields(*)
-                    ),
-                    maintenance_submission_responses(
-                        *,
-                        maintenance_form_fields(*)
-                    )
-                `
-                )
-                .in('status', ['approved', 'rejected'])
-                .order('reviewed_at', { ascending: false })
-
-            if (error) return []
-            if (!data || data.length === 0) return []
-
-            if (hasItPermission) return data
-
-            const currentUserWeight = await UserService.getUserWeight(user.id)
-            const { data: currentUserProfile } = await supabase
-                .from('users_profiles')
-                .select('plant_code')
-                .eq('id', user.id)
-                .maybeSingle()
-            const currentUserPlantCode = currentUserProfile?.plant_code
-
-            let allowedPlantCodes = new Set()
-            if (hasBypassPlantRestriction && currentUserPlantCode) {
-                const { RegionService } = await import('./RegionService')
-                const regions = await RegionService.fetchRegionsByPlantCode(currentUserPlantCode).catch(() => [])
-                for (const region of regions) {
-                    const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
-                    plants.forEach((p) => allowedPlantCodes.add(p.plantCode))
-                }
-            } else if (currentUserPlantCode) {
-                allowedPlantCodes.add(currentUserPlantCode)
-            }
-
-            const filteredData = []
-            for (const submission of data) {
-                if (submission.submitted_by === user.id) continue
-
-                const submitterWeight = await UserService.getUserWeight(submission.submitted_by)
-                if (submitterWeight > currentUserWeight) continue
-
-                const submissionPlantCode = submission.plant_code
-                if (allowedPlantCodes.size > 0) {
-                    if (!submissionPlantCode || !allowedPlantCodes.has(submissionPlantCode)) continue
-                }
-
-                filteredData.push(submission)
-            }
-
-            return filteredData
-        } catch (e) {
-            return []
-        }
+        return fetchReviewableSubmissions(['approved', 'rejected'], 'reviewed_at', false)
     }
 
     static async checkPermissions() {
@@ -870,76 +593,49 @@ export class MaintenanceService {
             if (!user?.id) return { canCreate: false, canReview: false }
 
             const [canCreate, canReview] = await Promise.all([
-                UserService.hasPermission(user.id, 'maintenance.create').catch(() => false),
-                UserService.hasPermission(user.id, 'maintenance.review').catch(() => false)
+                UserService.hasPermission(user.id, PERMISSION_CREATE).catch(() => false),
+                UserService.hasPermission(user.id, PERMISSION_REVIEW).catch(() => false)
             ])
-
             return { canCreate, canReview }
-        } catch (e) {
+        } catch {
             return { canCreate: false, canReview: false }
         }
     }
 
     static async uploadImage(file, formId, fieldId) {
-        try {
-            const user = await UserService.getCurrentUser()
-            if (!user?.id) throw new Error('User not authenticated')
+        const user = await requireAuthenticatedUser()
+        const sanitizedFieldId = String(fieldId).replace(/[^a-zA-Z0-9_-]/g, '_')
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${STORAGE_PREFIX}/${formId}/${sanitizedFieldId}/${user.id}_${Date.now()}.${fileExt}`
 
-            const sanitizedFieldId = String(fieldId).replace(/[^a-zA-Z0-9_-]/g, '_')
-            const timestamp = Date.now()
-            const fileExt = file.name.split('.').pop()
-            const fileName = `maintenance/${formId}/${sanitizedFieldId}/${user.id}_${timestamp}.${fileExt}`
+        const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(fileName, file, {
+            cacheControl: IMAGE_CACHE_CONTROL,
+            upsert: false
+        })
+        if (error) throw new Error('Failed to upload image: ' + error.message)
 
-            const { error } = await supabase.storage.from('smyrna').upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false
-            })
-
-            if (error) throw error
-
-            const { data: urlData } = supabase.storage.from('smyrna').getPublicUrl(fileName)
-
-            return urlData?.publicUrl || fileName
-        } catch (e) {
-            throw new Error('Failed to upload image: ' + e.message)
-        }
+        const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName)
+        return urlData?.publicUrl || fileName
     }
 
     static async deleteImage(imagePath) {
-        try {
-            const path = imagePath.includes('smyrna/') ? imagePath.split('smyrna/')[1] : imagePath
-
-            const { error } = await supabase.storage.from('smyrna').remove([path])
-
-            if (error) throw error
-            return true
-        } catch (e) {
-            throw new Error('Failed to delete image: ' + e.message)
-        }
+        const path = extractStoragePath(imagePath)
+        const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path])
+        if (error) throw new Error('Failed to delete image: ' + error.message)
+        return true
     }
 
     static getImageUrl(imagePath) {
-        if (!imagePath) return null
-        if (typeof imagePath !== 'string') return null
+        if (!imagePath || typeof imagePath !== 'string') return null
 
         const trimmed = imagePath.trim()
-        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-            return trimmed
-        }
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
 
-        let path = trimmed
-        if (path.includes('smyrna/')) {
-            path = path.split('smyrna/')[1]
-        }
-        if (!path.startsWith('maintenance/') && !path.includes('/')) {
-            return null
-        }
-        if (!path.startsWith('maintenance/')) {
-            path = `maintenance/${path}`
-        }
+        let path = extractStoragePath(trimmed)
+        if (!path.startsWith(`${STORAGE_PREFIX}/`) && !path.includes('/')) return null
+        if (!path.startsWith(`${STORAGE_PREFIX}/`)) path = `${STORAGE_PREFIX}/${path}`
 
-        const { data } = supabase.storage.from('smyrna').getPublicUrl(path)
-
+        const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path)
         return data?.publicUrl || null
     }
 }

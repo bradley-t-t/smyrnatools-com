@@ -1,5 +1,5 @@
-import resolveEntityId, { requireEntityId } from '../app/utils/resolveEntityId'
 import APIUtility from '../utils/APIUtility'
+import resolveEntityId, { requireEntityId } from '../utils/EntityIdUtility'
 import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 

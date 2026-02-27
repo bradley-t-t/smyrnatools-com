@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
+import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
@@ -64,6 +65,7 @@ function TrailersView({
     const [sortDirection, setSortDirection] = useState('asc')
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedTrailerForHistory, setSelectedTrailerForHistory] = useState(null)
+    const [isExportingIssues, setIsExportingIssues] = useState(false)
     const filterOptions = ['All Types', 'Cement', 'End Dump', 'Past Due Service', 'Open Issues']
     const sortMappings = {
         Cleanliness: 'cleanlinessRating',
@@ -264,6 +266,23 @@ function TrailersView({
             setViewMode(mode)
             updateTrailerFilter('viewMode', mode)
             localStorage.setItem('trailers_last_view_mode', mode)
+        }
+    }
+
+    async function handleExportIssues() {
+        setIsExportingIssues(true)
+        try {
+            await exportAssetIssuesSheet({
+                assetType: 'Trailer',
+                assets: trailers,
+                identifierField: 'trailerNumber',
+                plants,
+                service: TrailerService
+            })
+        } catch (err) {
+            console.error('Export issues failed:', err)
+        } finally {
+            setIsExportingIssues(false)
         }
     }
 
@@ -902,6 +921,21 @@ function TrailersView({
                             title={title}
                             addButtonLabel="Add Trailer"
                             onAddClick={() => setShowAddSheet(true)}
+                            customActions={
+                                <button
+                                    className="flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
+                                    style={{ backgroundColor: '#f59e0b' }}
+                                    onClick={handleExportIssues}
+                                    disabled={isExportingIssues || trailers.length === 0}
+                                    type="button"
+                                    aria-label="Export Issues"
+                                >
+                                    <i
+                                        className={`fas ${isExportingIssues ? 'fa-spinner fa-spin' : 'fa-file-export'}`}
+                                    />
+                                    <span>{isExportingIssues ? 'Exporting...' : 'Export Issues'}</span>
+                                </button>
+                            }
                             searchInput={searchInput}
                             onSearchInputChange={(v) => {
                                 setSearchInput(v)

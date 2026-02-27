@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
+import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
@@ -73,6 +74,7 @@ function TractorsView({
     const [sortDirection, setSortDirection] = useState('asc')
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [selectedTractorForHistory, setSelectedTractorForHistory] = useState(null)
+    const [isExportingIssues, setIsExportingIssues] = useState(false)
     const [showVerifyModal, setShowVerifyModal] = useState(false)
     const [verifyTractor, setVerifyTractor] = useState(null)
     const [verifyVin, setVerifyVin] = useState('')
@@ -330,6 +332,23 @@ function TractorsView({
             setViewMode(mode)
             updateTractorFilter('viewMode', mode)
             localStorage.setItem('tractors_last_view_mode', mode)
+        }
+    }
+
+    async function handleExportIssues() {
+        setIsExportingIssues(true)
+        try {
+            await exportAssetIssuesSheet({
+                assetType: 'Tractor',
+                assets: allTractors,
+                identifierField: 'truckNumber',
+                plants,
+                service: TractorService
+            })
+        } catch (err) {
+            console.error('Export issues failed:', err)
+        } finally {
+            setIsExportingIssues(false)
         }
     }
 
@@ -1158,6 +1177,21 @@ function TractorsView({
                             }
                             addButtonLabel="Add Tractor"
                             onAddClick={() => setShowAddSheet(true)}
+                            customActions={
+                                <button
+                                    className="flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
+                                    style={{ backgroundColor: '#f59e0b' }}
+                                    onClick={handleExportIssues}
+                                    disabled={isExportingIssues || allTractors.length === 0}
+                                    type="button"
+                                    aria-label="Export Issues"
+                                >
+                                    <i
+                                        className={`fas ${isExportingIssues ? 'fa-spinner fa-spin' : 'fa-file-export'}`}
+                                    />
+                                    <span>{isExportingIssues ? 'Exporting...' : 'Export Issues'}</span>
+                                </button>
+                            }
                             searchInput={searchInput}
                             onSearchInputChange={(v) => {
                                 setSearchInput(v)

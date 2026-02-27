@@ -1,19 +1,56 @@
 import { Tractor } from '../models/tractors/Tractor'
 import { TractorComment } from '../models/tractors/TractorComment'
 import { TractorHistory } from '../models/tractors/TractorHistory'
-import APIUtility from '../utils/APIUtility'
+import {
+    apiPostOrThrow,
+    apiPostRequireSuccess,
+    dispatchNotificationsRefresh,
+    ensureSpareIfNoOperatorBase,
+    fetchAllCountsFromTable,
+    fetchAllOpenIssueCountsFromTable,
+    fetchWithDetailsBase,
+    normalizeSeverity,
+    requireUserId,
+    resolveEntityId,
+    resolveUserIdOrAnonymous,
+    uppercaseVin
+} from '../utils/BaseAssetUtility'
 import CleanupUtility from '../utils/CleanupUtility'
 import { TractorUtility } from '../utils/TractorUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
-import { supabase } from './DatabaseService'
-import { UserService } from './UserService'
+
+const SERVICE_PREFIX = '/tractor-service'
+
+const ALLOWED_HISTORY_FIELDS = [
+    'truck_number',
+    'assigned_plant',
+    'assigned_operator',
+    'last_service_date',
+    'cleanliness_rating',
+    'has_blower',
+    'vin',
+    'make',
+    'model',
+    'year',
+    'freight',
+    'status'
+]
+
+function toSnakeCase(fieldName) {
+    return fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
+}
+
+function enrichTractorWithVerification(tractor) {
+    tractor.vin = (tractor.vin || '').toUpperCase()
+    tractor.isVerified = () =>
+        TractorUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy, tractor.latestHistoryDate)
+    return tractor
+}
 
 export class TractorService {
     static async getAllTractors() {
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-all')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractors')
-        const data = json?.data ?? []
-        return data.map(Tractor.fromApiFormat)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch tractors')
+        return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
     static async fetchTractors() {
@@ -22,11 +59,8 @@ export class TractorService {
 
     static async getTractorById(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-by-id', { id })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractor')
-        const data = json?.data
-        if (!data) return null
-        return Tractor.fromApiFormat(data)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id }, 'Failed to fetch tractor')
+        return json?.data ? Tractor.fromApiFormat(json.data) : null
     }
 
     static async fetchTractorById(id) {
@@ -46,15 +80,17 @@ export class TractorService {
 
     static async getLatestHistoryDate(tractorId) {
         if (!tractorId) return null
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-history', { limit: 1, tractorId })
-        if (!res.ok) return null
-        const first = (json?.data ?? [])[0]
-        return first?.changed_at ?? null
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-history`,
+            { limit: 1, tractorId },
+            'Failed to fetch history'
+        ).catch(() => null)
+        if (!json) return null
+        return (json?.data ?? [])[0]?.changed_at ?? null
     }
 
     static async getActiveTractors() {
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-active')
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch active tractors')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active tractors')
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
@@ -62,114 +98,78 @@ export class TractorService {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         const payload = { tractorId }
         if (limit && Number.isInteger(limit) && limit > 0) payload.limit = limit
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractor history')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-history`, payload, 'Failed to fetch tractor history')
         return (json?.data ?? []).map(TractorHistory.fromApiFormat)
     }
 
     static async addTractor(tractor, userId) {
-        if (tractor && typeof tractor === 'object' && 'vin' in tractor && tractor.vin) {
-            tractor.vin = tractor.vin.toUpperCase()
-        }
-        const { res, json } = await APIUtility.post('/tractor-service/create', { tractor, userId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to create tractor')
+        uppercaseVin(tractor)
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { tractor, userId }, 'Failed to create tractor')
         return Tractor.fromApiFormat(json?.data)
     }
 
     static async createTractor(tractor, userId) {
-        if (!userId) {
-            const user = await UserService.getCurrentUser()
-            userId = typeof user === 'object' && user !== null ? user.id : user
-            if (!userId) throw new Error('Authentication required')
-        }
+        const resolvedUserId = await requireUserId(userId, 'Authentication required')
         if (tractor.id) delete tractor.id
-        if (tractor.vin) {
-            tractor.vin = tractor.vin.toUpperCase()
-        }
-        return this.addTractor(tractor, userId)
+        uppercaseVin(tractor)
+        return this.addTractor(tractor, resolvedUserId)
     }
 
     static async updateTractor(tractorId, tractor, userId, _prevTractorState = null) {
-        const id = typeof tractorId === 'object' ? tractorId.id : tractorId
+        const id = resolveEntityId(tractorId)
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
-        if (!userId) {
-            const user = await UserService.getCurrentUser()
-            userId = typeof user === 'object' && user !== null ? user.id : user
-        }
-        if (!userId) throw new Error('User ID is required')
-        if (tractor && typeof tractor === 'object' && 'vin' in tractor && tractor.vin) {
-            tractor.vin = tractor.vin.toUpperCase()
-        }
+        const resolvedUserId = await requireUserId(userId)
+        uppercaseVin(tractor)
 
-        if (_prevTractorState && _prevTractorState.assignedPlant !== tractor.assignedPlant) {
+        if (_prevTractorState?.assignedPlant !== tractor.assignedPlant) {
             tractor.assignedOperator = null
         }
 
-        const { res, json } = await APIUtility.post('/tractor-service/update', { id, tractor, userId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to update tractor')
-        try {
-            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh'))
-        } catch {}
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/update`,
+            { id, tractor, userId: resolvedUserId },
+            'Failed to update tractor'
+        )
+        dispatchNotificationsRefresh()
         return Tractor.fromApiFormat(json?.data)
     }
 
     static async verifyTractor(tractorId, userId) {
-        const id = typeof tractorId === 'object' ? tractorId.id : tractorId
+        const id = resolveEntityId(tractorId)
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
-        if (!userId) {
-            const user = await UserService.getCurrentUser()
-            userId = typeof user === 'object' && user !== null ? user.id : user
-        }
-        if (!userId) throw new Error('User ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/verify', { id, userId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to verify tractor')
-        try {
-            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('notifications-refresh'))
-        } catch {}
+        const resolvedUserId = await requireUserId(userId)
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/verify`,
+            { id, userId: resolvedUserId },
+            'Failed to verify tractor'
+        )
+        dispatchNotificationsRefresh()
         return Tractor.fromApiFormat(json?.data)
     }
 
     static async deleteTractor(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/delete', { id })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete tractor')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete tractor')
     }
 
     static async createHistoryEntry(tractorId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!fieldName) throw new Error('Field name required')
-        const allowedFields = [
-            'truck_number',
-            'assigned_plant',
-            'assigned_operator',
-            'last_service_date',
-            'cleanliness_rating',
-            'has_blower',
-            'vin',
-            'make',
-            'model',
-            'year',
-            'freight',
-            'status'
-        ]
-        const snakeCaseField = fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
-        if (!allowedFields.includes(snakeCaseField)) return null
-        let userId = changedBy
-        if (!userId) {
-            const user = await UserService.getCurrentUser()
-            userId = typeof user === 'object' && user !== null ? user.id : user
-        }
-        if (!userId) userId = '00000000-0000-0000-0000-000000000000'
-        if (snakeCaseField === 'vin') newValue = (newValue || '').toUpperCase()
-        const { res, json } = await APIUtility.post('/tractor-service/add-history', {
-            changedBy: userId,
-            fieldName: snakeCaseField,
-            newValue,
-            oldValue,
-            tractorId
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to create history entry')
+        const snakeCaseField = toSnakeCase(fieldName)
+        if (!ALLOWED_HISTORY_FIELDS.includes(snakeCaseField)) return null
+        const userId = await resolveUserIdOrAnonymous(changedBy)
+        const finalNewValue = snakeCaseField === 'vin' ? (newValue || '').toUpperCase() : newValue
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-history`,
+            {
+                changedBy: userId,
+                fieldName: snakeCaseField,
+                newValue: finalNewValue,
+                oldValue,
+                tractorId
+            },
+            'Failed to create history entry'
+        )
         return json?.data
     }
 
@@ -177,37 +177,51 @@ export class TractorService {
         const payload = {}
         if (tractorId) payload.tractorId = tractorId
         if (months) payload.months = months
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-cleanliness-history', payload)
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch cleanliness history')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-cleanliness-history`,
+            payload,
+            'Failed to fetch cleanliness history'
+        )
         return json?.data ?? []
     }
 
     static async getTractorsByOperator(operatorId) {
         ValidationUtility.requireUUID(operatorId, 'Operator ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-by-operator', { operatorId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractors by operator')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-by-operator`,
+            { operatorId },
+            'Failed to fetch tractors by operator'
+        )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
     static async getTractorsByStatus(status) {
         if (!status) throw new Error('Status is required')
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-by-status', { status })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractors by status')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-by-status`,
+            { status },
+            'Failed to fetch tractors by status'
+        )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
     static async searchTractorsByTruckNumber(query) {
         if (!query?.trim()) throw new Error('Search query is required')
-        const { res, json } = await APIUtility.post('/tractor-service/search-by-truck-number', { query: query.trim() })
-        if (!res.ok) throw new Error(json?.error || 'Failed to search tractors')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/search-by-truck-number`,
+            { query: query.trim() },
+            'Failed to search tractors'
+        )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
     static async searchTractorsByVin(query) {
         if (!query?.trim()) throw new Error('Search query is required')
-        const upper = query.trim().toUpperCase()
-        const { res, json } = await APIUtility.post('/tractor-service/search-by-vin', { query: upper })
-        if (!res.ok) throw new Error(json?.error || 'Failed to search tractors by VIN')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/search-by-vin`,
+            { query: query.trim().toUpperCase() },
+            'Failed to search tractors by VIN'
+        )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
@@ -222,47 +236,25 @@ export class TractorService {
     }
 
     static async getTractorsNeedingService(dayThreshold = 30) {
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-needing-service', { dayThreshold })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch tractors needing service')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/fetch-needing-service`,
+            { dayThreshold },
+            'Failed to fetch tractors needing service'
+        )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
 
     static async fetchAllCommentsCounts(tractorIds) {
-        if (!tractorIds || tractorIds.length === 0) return {}
-        const { data, error } = await supabase
-            .from('tractors_comments')
-            .select('tractor_id')
-            .in('tractor_id', tractorIds)
-        if (error) return {}
-        const counts = {}
-        tractorIds.forEach((id) => (counts[id] = 0))
-        ;(data || []).forEach((row) => {
-            if (row.tractor_id) counts[row.tractor_id] = (counts[row.tractor_id] || 0) + 1
-        })
-        return counts
+        return fetchAllCountsFromTable('tractors_comments', 'tractor_id', tractorIds)
     }
 
     static async fetchAllIssuesCounts(tractorIds) {
-        if (!tractorIds || tractorIds.length === 0) return {}
-        const { data, error } = await supabase
-            .from('tractors_maintenance')
-            .select('tractor_id, time_completed')
-            .in('tractor_id', tractorIds)
-        if (error) return {}
-        const counts = {}
-        tractorIds.forEach((id) => (counts[id] = 0))
-        ;(data || []).forEach((row) => {
-            if (row.tractor_id && !row.time_completed) {
-                counts[row.tractor_id] = (counts[row.tractor_id] || 0) + 1
-            }
-        })
-        return counts
+        return fetchAllOpenIssueCountsFromTable('tractors_maintenance', 'tractor_id', tractorIds)
     }
 
     static async fetchComments(tractorId) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-comments', { tractorId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch comments')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { tractorId }, 'Failed to fetch comments')
         return (json?.data ?? []).map(TractorComment.fromRow)
     }
 
@@ -270,20 +262,21 @@ export class TractorService {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!text?.trim()) throw new Error('Comment text is required')
         if (!author?.trim()) throw new Error('Author is required')
-        const { res, json } = await APIUtility.post('/tractor-service/add-comment', {
-            author: author.trim(),
-            text: text.trim(),
-            tractorId
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to add comment')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-comment`,
+            {
+                author: author.trim(),
+                text: text.trim(),
+                tractorId
+            },
+            'Failed to add comment'
+        )
         return json?.data ? TractorComment.fromRow(json.data) : null
     }
 
     static async deleteComment(commentId) {
         ValidationUtility.requireUUID(commentId, 'Comment ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/delete-comment', { commentId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete comment')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
 
     static async _fetchHistoryDates() {
@@ -297,107 +290,50 @@ export class TractorService {
 
     static async fetchIssues(tractorId) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/fetch-issues', { tractorId })
-        if (!res.ok) throw new Error(json?.error || 'Failed to fetch issues')
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { tractorId }, 'Failed to fetch issues')
         return json?.data ?? []
     }
 
     static async addIssue(tractorId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!issueText?.trim()) throw new Error('Issue description is required')
-        const validSeverities = ['Low', 'Medium', 'High']
-        const finalSeverity = validSeverities.includes(severity) ? severity : 'Medium'
-        const { res, json } = await APIUtility.post('/tractor-service/add-issue', {
-            issue: issueText.trim(),
-            severity: finalSeverity,
-            tractorId,
-            userId: createdBy
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to add issue')
+        const json = await apiPostOrThrow(
+            `${SERVICE_PREFIX}/add-issue`,
+            {
+                issue: issueText.trim(),
+                severity: normalizeSeverity(severity),
+                tractorId,
+                userId: createdBy
+            },
+            'Failed to add issue'
+        )
         return json?.data
     }
 
     static async deleteIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/delete-issue', { issueId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete issue')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     }
 
     static async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        const { res, json } = await APIUtility.post('/tractor-service/complete-issue', { issueId })
-        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to complete issue')
-        return true
+        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     }
 
     static async fetchTractorsWithDetails(regionCodes = null) {
-        const base = await this.getAllTractors().catch(() => [])
-
-        const statusHistoryMap = {}
-        const tractorIds = (base || []).map((t) => t.id).filter(Boolean)
-        if (tractorIds.length > 0) {
-            try {
-                const { data: statusHistory } = await supabase
-                    .from('tractors_history')
-                    .select('tractor_id, changed_at')
-                    .eq('field_name', 'status')
-                    .in('tractor_id', tractorIds)
-                    .order('changed_at', { ascending: false })
-
-                if (statusHistory) {
-                    for (const h of statusHistory) {
-                        if (!statusHistoryMap[h.tractor_id]) {
-                            statusHistoryMap[h.tractor_id] = h.changed_at
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
-        const processedBase = (Array.isArray(base) ? base : []).map((t) => {
-            const tractor = { ...t }
-            tractor.vin = (tractor.vin || '').toUpperCase()
-            tractor.isVerified = () =>
-                TractorUtility.isVerified(
-                    tractor.updatedLast,
-                    tractor.updatedAt,
-                    tractor.updatedBy,
-                    tractor.latestHistoryDate
-                )
-            if (typeof tractor.openIssuesCount !== 'number') tractor.openIssuesCount = 0
-            if (typeof tractor.commentsCount !== 'number') tractor.commentsCount = 0
-            tractor.statusChangedAt = statusHistoryMap[tractor.id] || tractor.createdAt || null
-            return tractor
+        return fetchWithDetailsBase({
+            enrichFn: enrichTractorWithVerification,
+            fetchAllFn: () => this.getAllTractors(),
+            historyTableName: 'tractors_history',
+            idColumnName: 'tractor_id',
+            regionCodes
         })
-        if (regionCodes) {
-            return processedBase.filter((t) =>
-                regionCodes.has(
-                    String(t.assignedPlant || '')
-                        .trim()
-                        .toUpperCase()
-                )
-            )
-        }
-        return processedBase
     }
 
     static async ensureSpareIfNoOperator(tractorsList) {
-        const updates = (tractorsList || []).filter(
-            (t) =>
-                t.status === 'Active' &&
-                (!t.assignedOperator ||
-                    t.assignedOperator === '0' ||
-                    t.assignedOperator === '' ||
-                    t.assignedOperator === null)
-        )
-        for (const tractor of updates) {
-            try {
-                await this.updateTractor(tractor.id, { ...tractor, status: 'Spare' }, undefined, tractor)
-                tractor.status = 'Spare'
-            } catch (e) {}
-        }
-        return tractorsList
+        return ensureSpareIfNoOperatorBase(tractorsList, async (t) => {
+            await this.updateTractor(t.id, { ...t, status: 'Spare' }, undefined, t)
+        })
     }
 
     static async cleanupNullOperators(tractors = null) {
