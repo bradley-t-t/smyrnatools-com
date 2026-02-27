@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [16.5] - 2026-02-27
+
+- Updated the turl-release dependency to version 4.1.0 for improved release management functionality.
+
 ## [16.4] - 2026-02-27
 
 - Added a new feature for exporting asset issues with the introduction of `AssetIssuesExport.js`. This module allows users to generate detailed reports of open issues for various asset types, grouped by plant, with formatted severity levels, issue descriptions, and user information.
