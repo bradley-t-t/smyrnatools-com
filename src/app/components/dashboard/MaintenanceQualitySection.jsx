@@ -1,0 +1,185 @@
+import React from 'react'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
+import { STATUS_COLORS } from '../../constants/dashboardConstants'
+import { DashboardCard, MetricCard, SectionTitle, StatusPill } from '../ui/DashboardCards'
+
+const STATUSES = ['Active', 'Spare', 'In Shop', 'Stationary']
+
+const calcMetrics = (data) => {
+    const total = data.reduce((sum, d) => sum + d.days, 0)
+    const findDays = (status) => data.find((d) => d.status === status)?.days || 0
+    return {
+        active: total > 0 ? Math.round((findDays('Active') / total) * 100) : 0,
+        inShop: total > 0 ? Math.round((findDays('In Shop') / total) * 100) : 0,
+        spare: total > 0 ? Math.round((findDays('Spare') / total) * 100) : 0
+    }
+}
+
+const buildChartEntry = (data, name) => {
+    if (!data?.length) return null
+    const entry = { name }
+    for (const status of STATUSES) {
+        const key = status === 'In Shop' ? 'inShop' : status.toLowerCase()
+        entry[key] = parseFloat(data.find((d) => d.status === status)?.percentage || 0)
+    }
+    return entry
+}
+
+const ASSET_CONFIG = [
+    { dataKey: 'mixers', isConcreteOnly: true, name: 'Mixers' },
+    { dataKey: 'tractors', isConcreteOnly: false, name: 'Tractors' },
+    { dataKey: 'trailers', isConcreteOnly: false, name: 'Trailers' },
+    { dataKey: 'equipment', isConcreteOnly: false, name: 'Equipment' },
+    { dataKey: 'pickups', isConcreteOnly: false, name: 'Pickups' }
+]
+
+function HistoryTooltip({ active, payload, label }) {
+    if (!active || !payload?.length) return null
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+            <p className="text-sm font-semibold text-slate-900 m-0 mb-1.5">{label}</p>
+            {payload
+                .filter((p) => p.value > 0)
+                .map((entry, index) => (
+                    <p key={index} className="text-xs m-0.5" style={{ color: entry.color }}>
+                        {entry.name}: {entry.value.toFixed(1)}%
+                    </p>
+                ))}
+        </div>
+    )
+}
+
+const DATE_FILTER_LABELS = ['last-week', 'this-month', 'this-quarter', 'this-year', 'all']
+
+const formatFilterLabel = (filter) =>
+    filter
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+
+export default function MaintenanceQualitySection({
+    displayStats,
+    isAggregate,
+    statusHistoryData,
+    handleQuickDateFilter,
+    isMobile
+}) {
+    const assets = ASSET_CONFIG.filter((a) => !a.isConcreteOnly || !isAggregate).map((a) => ({
+        name: a.name,
+        ...calcMetrics(statusHistoryData[a.dataKey])
+    }))
+
+    const chartData = ASSET_CONFIG.map((a) => {
+        if (a.isConcreteOnly && isAggregate) return null
+        return buildChartEntry(statusHistoryData[a.dataKey], a.name)
+    }).filter(Boolean)
+
+    return (
+        <DashboardCard>
+            <SectionTitle>Maintenance & Quality</SectionTitle>
+            <div
+                className={`grid ${isMobile ? 'gap-3 grid-cols-1' : 'gap-4 grid-cols-[repeat(auto-fit,minmax(250px,1fr))]'} mb-4 md:mb-6`}
+            >
+                <MetricCard
+                    label="Service Overdue"
+                    value={displayStats.overdueTotal}
+                    icon="fa-exclamation-triangle"
+                    iconBg="#fee2e2"
+                    iconColor="#dc2626"
+                >
+                    {!isAggregate && <StatusPill>Mixers {displayStats.mixers.overdue}</StatusPill>}
+                    <StatusPill>Tractors {displayStats.tractors.overdue}</StatusPill>
+                    <StatusPill>Trailers {displayStats.trailers.overdue}</StatusPill>
+                    <StatusPill>Equipment {displayStats.equipment.overdue}</StatusPill>
+                </MetricCard>
+                <MetricCard
+                    label="Open Issues"
+                    value={displayStats.openIssuesTotal}
+                    icon="fa-wrench"
+                    iconBg="#fef3c7"
+                    iconColor="#f59e0b"
+                >
+                    {!isAggregate && <StatusPill>Mixers {displayStats.mixers.issues}</StatusPill>}
+                    <StatusPill>Tractors {displayStats.tractors.issues}</StatusPill>
+                    <StatusPill>Trailers {displayStats.trailers.issues}</StatusPill>
+                    <StatusPill>Equipment {displayStats.equipment.issues}</StatusPill>
+                </MetricCard>
+            </div>
+
+            <div className="border-t border-slate-200 pt-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
+                    <h4 className="text-base font-semibold text-slate-900 m-0">Historical Status Distribution</h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                        {DATE_FILTER_LABELS.map((filter) => (
+                            <button
+                                key={filter}
+                                onClick={() => handleQuickDateFilter(filter)}
+                                className="bg-slate-100 border-none rounded-md text-slate-600 text-xs font-medium px-3 py-1.5 cursor-pointer hover:bg-slate-200"
+                            >
+                                {formatFilterLabel(filter)}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div
+                    className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-[repeat(auto-fit,minmax(140px,1fr))]'} gap-3 mb-4 md:mb-6`}
+                >
+                    {assets.map((asset, idx) => (
+                        <div key={idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3.5">
+                            <div className="text-sm font-semibold text-slate-600 mb-2.5">{asset.name}</div>
+                            <div className="flex flex-col gap-1.5">
+                                {[
+                                    { color: 'text-green-600', label: 'Active', value: asset.active },
+                                    { color: 'text-purple-600', label: 'Spare', value: asset.spare },
+                                    { color: 'text-blue-600', label: 'In Shop', value: asset.inShop }
+                                ].map(({ color, label, value }) => (
+                                    <div key={label} className="flex justify-between text-xs">
+                                        <span className={color}>{label}</span>
+                                        <span className="font-semibold text-slate-900">{value}%</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                    {chartData.length === 0 ? (
+                        <div className="text-center py-5 text-slate-400 text-sm">No historical data available</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={chartData} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                <XAxis
+                                    type="number"
+                                    domain={[0, 100]}
+                                    unit="%"
+                                    tick={{ fill: '#64748b', fontSize: 11 }}
+                                />
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    tick={{ fill: '#64748b', fontSize: 12 }}
+                                    width={80}
+                                />
+                                <Tooltip content={<HistoryTooltip />} />
+                                <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                                <Bar dataKey="active" stackId="a" fill={STATUS_COLORS.Active} name="Active" />
+                                <Bar dataKey="spare" stackId="a" fill={STATUS_COLORS.Spare} name="Spare" />
+                                <Bar dataKey="inShop" stackId="a" fill={STATUS_COLORS['In Shop']} name="In Shop" />
+                                <Bar
+                                    dataKey="stationary"
+                                    stackId="a"
+                                    fill={STATUS_COLORS.Stationary}
+                                    name="Stationary"
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+            </div>
+        </DashboardCard>
+    )
+}

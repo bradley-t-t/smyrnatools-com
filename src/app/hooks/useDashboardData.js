@@ -11,7 +11,16 @@ import DashboardUtility from '../../utils/DashboardUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS } from '../constants/dashboardConstants'
 
-export function useDashboardAssets({ refreshKey, computeStats }) {
+export function useDashboardAssets({
+    allEquipmentRef,
+    allMixersRef,
+    allOperatorsRef,
+    allPickupsRef,
+    allTractorsRef,
+    allTrailersRef,
+    computeStats,
+    refreshKey
+}) {
     const [loading, setLoading] = useState(true)
     const [dataReady, setDataReady] = useState(false)
     const [error, setError] = useState('')
@@ -21,12 +30,6 @@ export function useDashboardAssets({ refreshKey, computeStats }) {
     const [lightDutyOperators, setLightDutyOperators] = useState([])
     const [refreshing, setRefreshing] = useState(false)
 
-    const allMixersRef = useRef([])
-    const allTractorsRef = useRef([])
-    const allTrailersRef = useRef([])
-    const allEquipmentRef = useRef([])
-    const allPickupsRef = useRef([])
-    const allOperatorsRef = useRef([])
     const allOperatorsFullRef = useRef([])
     const initialLoadRef = useRef(true)
 
@@ -158,13 +161,7 @@ export function useDashboardAssets({ refreshKey, computeStats }) {
     }, [refreshKey, computeStats])
 
     return {
-        allEquipmentRef,
-        allMixersRef,
         allOperatorsFullRef,
-        allOperatorsRef,
-        allPickupsRef,
-        allTractorsRef,
-        allTrailersRef,
         dataReady,
         error,
         lastUpdated,
@@ -177,8 +174,16 @@ export function useDashboardAssets({ refreshKey, computeStats }) {
     }
 }
 
-export function useIssueCommentCounts({ allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats }) {
-    const countsRef = useRef({ equipment: {}, mixers: {}, tractors: {}, trailers: {} })
+export function useIssueCommentCounts({
+    allEquipmentRef,
+    allMixersRef,
+    allTractorsRef,
+    allTrailersRef,
+    computeStats,
+    countsRef: externalCountsRef
+}) {
+    const internalCountsRef = useRef({ equipment: {}, mixers: {}, tractors: {}, trailers: {} })
+    const countsRef = externalCountsRef || internalCountsRef
     const [assetIssueDetails, setAssetIssueDetails] = useState([])
 
     const fetchIssueCommentCounts = useCallback(async () => {

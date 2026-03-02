@@ -2,6 +2,19 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.6] - 2026-03-02
+
+- Added a new MaintenanceFormReview component for reviewing submitted maintenance forms, displaying form details, submitter information, and field responses with attached images.
+- Introduced a MaintenanceFormViewOnly component to provide a read-only view of maintenance forms with formatted field data and image previews.
+- Created multiple dashboard components including DashboardHeader, DashboardSkeleton, EmbeddedViewModal, FleetOverviewSection, MaintenanceQualitySection, PeopleSection, and RegionOverviewCard to enhance the dashboard UI and functionality.
+- Implemented new UI components like ImageAttachment for handling image uploads and ImagePreviewModal for viewing attached images in maintenance forms and other contexts.
+- Added several custom hooks for better data management, including useDashboardInit for dashboard initialization, useDashboardStats for dashboard statistics, useMaintenanceDraft for draft handling, useMaintenanceForm for form operations, useMaintenanceImages for image management, usePlantNotifications for notification handling, and useStatusHistory for tracking status changes.
+- Updated the DashboardView to integrate the new components and hooks, significantly restructuring the dashboard layout and data handling.
+- Refactored MaintenanceFormView to incorporate the new form components and hooks for improved form submission and review processes.
+- Enhanced App.css with new styles for full-width dashboard layouts and responsive design adjustments for mobile views.
+- Added new constants in maintenanceConstants.js to support form and checklist functionalities.
+- Updated utility functions in DateUtility.js and MaintenanceUtility.js to support formatting and processing of maintenance data.
+
 ## [17.5] - 2026-03-02
 
 - Added a new `OperatorExclusionReasonModal` component to handle cases where all operators are excluded from a report, allowing users to select a reason for the exclusion before submission.

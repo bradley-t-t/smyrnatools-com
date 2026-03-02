@@ -76,6 +76,23 @@
     cursor: pointer;
 }
 
+.content-area:has(.dashboard-full-width) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+@media (max-width: 767px) {
+    .dashboard-full-width .hidden-mobile {
+        display: none !important;
+    }
+    .dashboard-full-width .sm\:flex {
+        display: none !important;
+    }
+    .dashboard-full-width .sm\:inline {
+        display: none !important;
+    }
+}
+
 body:has(.my-account-wrapper) .App,
 body:has(.my-account-wrapper) .app-container,
 body:has(.my-account-wrapper) .main-content,

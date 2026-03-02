@@ -4,6 +4,15 @@ const DateUtility = {
         if (!date) return null
         return Math.ceil((Date.now() - date.getTime()) / 86400000)
     },
+    formatPendingDate(d) {
+        if (!d) return '-'
+        if (d.length === 10 && /\d{4}-\d{2}-\d{2}/.test(d)) return d
+        try {
+            return new Date(d).toISOString().slice(0, 10)
+        } catch {
+            return d
+        }
+    },
     getISOWeek(date) {
         const d = new Date(date)
         d.setHours(0, 0, 0, 0)
