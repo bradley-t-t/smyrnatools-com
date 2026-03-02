@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.0] - 2026-03-02
+
+- Refactored the ChangelogView component to use Tailwind CSS classes for styling, replacing inline styles with a more consistent and maintainable approach.
+- Simplified code structure by removing unnecessary nested conditions and redundant variable declarations in parsing functions.
+- Added two constants, GITHUB_URL and TURL_URL, for external links, though their usage is not yet visible in this diff.
+- Optimized date and time calculations by directly using new Date() operations in a single line for better readability.
+- Improved rendering logic by streamlining state updates for expanded versions and AI summaries with concise syntax.
+
 ## [17.9] - 2026-03-02
 
 - Updated the Copilot instructions to combine guidance for asset management services, merging the advice on centralizing shared logic into utility files like `BaseAssetUtility.js` with consolidating common fields and logic into reusable helpers or constants like `BASE_ASSET_FIELDS` and `resolvePlantCode` for consistent handling across asset types.

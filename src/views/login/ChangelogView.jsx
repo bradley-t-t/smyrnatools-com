@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
+const GITHUB_URL = 'https://github.com/bradley-t-t'
+const TURL_URL = 'https://taylorurl.com'
+
 function ChangelogView({ onBack }) {
     const [entries, setEntries] = useState([])
     const [loading, setLoading] = useState(true)
@@ -14,14 +17,11 @@ function ChangelogView({ onBack }) {
                 const changelogText = await changelogRes.text()
                 const parsed = parseMarkdown(changelogText)
                 setEntries(parsed)
-                if (parsed.length > 0) {
-                    setExpandedVersion(parsed[0].version)
-                }
+                if (parsed.length > 0) setExpandedVersion(parsed[0].version)
 
                 if (aiRes.ok) {
                     const aiText = await aiRes.text()
-                    const summaries = parseAiSummaries(aiText)
-                    setAiSummaries(summaries)
+                    setAiSummaries(parseAiSummaries(aiText))
                 }
             } catch {
                 setEntries([])
@@ -32,11 +32,10 @@ function ChangelogView({ onBack }) {
     }, [])
 
     const parseAiSummaries = (text) => {
-        const lines = text.split('\n')
         const summaries = {}
         let currentVersion = null
 
-        for (const line of lines) {
+        for (const line of text.split('\n')) {
             const versionMatch = line.match(/^## \[(.+?)]/)
             if (versionMatch) {
                 currentVersion = versionMatch[1]
@@ -49,19 +48,14 @@ function ChangelogView({ onBack }) {
     }
 
     const parseMarkdown = (text) => {
-        const lines = text.split('\n')
         const versions = []
         let currentVersion = null
 
-        for (const line of lines) {
+        for (const line of text.split('\n')) {
             const versionMatch = line.match(/^## \[(.+?)] - (.+)$/)
             if (versionMatch) {
                 if (currentVersion) versions.push(currentVersion)
-                currentVersion = {
-                    changes: [],
-                    date: versionMatch[2],
-                    version: versionMatch[1]
-                }
+                currentVersion = { changes: [], date: versionMatch[2], version: versionMatch[1] }
             } else if (currentVersion && line.startsWith('- ')) {
                 currentVersion.changes.push(line.substring(2))
             }
@@ -77,12 +71,11 @@ function ChangelogView({ onBack }) {
                 if (!isNaN(currentVer) && !isNaN(nextVer)) {
                     let ver = currentVer - 0.1
                     while (ver > nextVer + 0.05) {
-                        const skippedVersion = ver.toFixed(1)
                         filled.push({
                             changes: ['Bug fixes and performance improvements'],
                             date: versions[i].date,
                             isSkipped: true,
-                            version: skippedVersion
+                            version: ver.toFixed(1)
                         })
                         ver -= 0.1
                     }
@@ -94,8 +87,7 @@ function ChangelogView({ onBack }) {
 
     const formatDate = (dateStr) => {
         try {
-            const date = new Date(dateStr)
-            return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+            return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
         } catch {
             return dateStr
         }
@@ -103,9 +95,7 @@ function ChangelogView({ onBack }) {
 
     const getRelativeTime = (dateStr) => {
         try {
-            const date = new Date(dateStr)
-            const now = new Date()
-            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+            const diffDays = Math.floor((new Date() - new Date(dateStr)) / (1000 * 60 * 60 * 24))
             if (diffDays === 0) return 'Today'
             if (diffDays === 1) return 'Yesterday'
             if (diffDays < 7) return `${diffDays} days ago`
@@ -116,195 +106,119 @@ function ChangelogView({ onBack }) {
         }
     }
 
-    const getSummaryForVersion = (version) => {
-        return aiSummaries[version] || null
-    }
-
     const currentVersion = entries[0]?.version || '-'
     const totalUpdates = entries.filter((e) => !e.isSkipped).length
 
     return (
-        <div
-            style={{
-                background: '#f8fafc',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100vh',
-                overflow: 'hidden'
-            }}
-        >
-            <div
-                style={{
-                    background: '#fff',
-                    borderBottom: '1px solid #e2e8f0',
-                    flexShrink: 0,
-                    padding: '20px 24px'
-                }}
-            >
-                <div style={{ alignItems: 'center', display: 'flex', gap: 16 }}>
+        <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
+            <div className="shrink-0 bg-white border-b border-slate-200 px-6 py-5">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        style={{
-                            alignItems: 'center',
-                            background: '#f1f5f9',
-                            border: 'none',
-                            borderRadius: 10,
-                            color: '#475569',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            height: 40,
-                            justifyContent: 'center',
-                            transition: 'background 0.15s',
-                            width: 40
-                        }}
+                        className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-[10px] text-slate-600 border-none cursor-pointer transition-colors hover:bg-slate-200"
                     >
-                        <i className="fas fa-arrow-left" style={{ fontSize: 14 }}></i>
+                        <i className="fas fa-arrow-left text-sm" />
                     </button>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
-                            <h1 style={{ color: '#0f172a', fontSize: 20, fontWeight: 700, margin: 0 }}>
-                                Release Notes
-                            </h1>
-                            <span
-                                style={{
-                                    background: '#1e3a5f',
-                                    borderRadius: 6,
-                                    color: '#fff',
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    padding: '3px 8px'
-                                }}
-                            >
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2.5">
+                            <h1 className="text-xl font-bold text-slate-900 m-0">Release Notes</h1>
+                            <span className="bg-[#1e3a5f] rounded-md text-white text-[11px] font-semibold px-2 py-[3px]">
                                 v{currentVersion}
                             </span>
                         </div>
-                        <p style={{ color: '#64748b', fontSize: 13, margin: '4px 0 0 0' }}>
+                        <p className="text-slate-500 text-[13px] mt-1 mb-0">
                             {totalUpdates} releases · Updated {getRelativeTime(entries[0]?.date)}
+                            <span className="text-slate-400"> · </span>
+                            Managed by{' '}
+                            <a
+                                href={TURL_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#1e3a5f] font-semibold no-underline hover:underline"
+                            >
+                                TaylorURL.com
+                            </a>
+                            {' using the '}
+                            <span className="text-[#1e3a5f] font-semibold">TURL Release Management System</span>
                         </p>
                     </div>
+                    <a
+                        href={GITHUB_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-[10px] text-slate-600 no-underline transition-colors hover:bg-slate-200"
+                    >
+                        <i className="fab fa-github text-lg" />
+                    </a>
                 </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+            <div className="flex-1 overflow-y-auto px-6 py-5">
                 {loading ? (
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 12,
-                            justifyContent: 'center',
-                            padding: 64
-                        }}
-                    >
-                        <i className="fas fa-circle-notch fa-spin" style={{ color: '#1e3a5f', fontSize: 24 }}></i>
-                        <span style={{ color: '#64748b', fontSize: 13 }}>Loading releases...</span>
+                    <div className="flex flex-col items-center justify-center gap-3 py-16">
+                        <i className="fas fa-circle-notch fa-spin text-[#1e3a5f] text-2xl" />
+                        <span className="text-slate-500 text-[13px]">Loading releases...</span>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div className="flex flex-col gap-3">
                         {entries.map((entry, idx) => {
-                            const summary = getSummaryForVersion(entry.version)
+                            const summary = aiSummaries[entry.version] || null
                             const isExpanded = expandedVersion === entry.version
                             const isLatest = idx === 0
 
                             return (
                                 <div
                                     key={entry.version}
-                                    style={{
-                                        background: '#fff',
-                                        border: isLatest ? '2px solid #1e3a5f' : '1px solid #e2e8f0',
-                                        borderRadius: 14,
-                                        overflow: 'hidden',
-                                        transition: 'box-shadow 0.2s'
-                                    }}
+                                    className={`bg-white rounded-[14px] overflow-hidden transition-shadow ${
+                                        isLatest ? 'border-2 border-[#1e3a5f]' : 'border border-slate-200'
+                                    }`}
                                 >
                                     <div
                                         onClick={() => setExpandedVersion(isExpanded ? null : entry.version)}
-                                        style={{
-                                            alignItems: 'center',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            gap: 14,
-                                            padding: '14px 16px'
-                                        }}
+                                        className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer"
                                     >
                                         <div
-                                            style={{
-                                                alignItems: 'center',
-                                                background: entry.isSkipped
-                                                    ? '#f1f5f9'
+                                            className={`flex items-center justify-center flex-col w-11 h-11 rounded-[10px] ${
+                                                entry.isSkipped
+                                                    ? 'bg-slate-100'
                                                     : isLatest
-                                                      ? '#1e3a5f'
-                                                      : '#f0f9ff',
-                                                borderRadius: 10,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                height: 44,
-                                                justifyContent: 'center',
-                                                width: 44
-                                            }}
+                                                      ? 'bg-[#1e3a5f]'
+                                                      : 'bg-sky-50'
+                                            }`}
                                         >
                                             {entry.isSkipped ? (
-                                                <i
-                                                    className="fas fa-wrench"
-                                                    style={{ color: '#94a3b8', fontSize: 14 }}
-                                                ></i>
+                                                <i className="fas fa-wrench text-slate-400 text-sm" />
                                             ) : (
                                                 <span
-                                                    style={{
-                                                        color: isLatest ? '#fff' : '#1e3a5f',
-                                                        fontSize: 15,
-                                                        fontWeight: 700
-                                                    }}
+                                                    className={`text-[15px] font-bold ${
+                                                        isLatest ? 'text-white' : 'text-[#1e3a5f]'
+                                                    }`}
                                                 >
                                                     {entry.version}
                                                 </span>
                                             )}
                                         </div>
 
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-                                                <span style={{ color: '#1e293b', fontSize: 14, fontWeight: 600 }}>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-slate-800 text-sm font-semibold">
                                                     {entry.isSkipped
                                                         ? `Patch ${entry.version}`
                                                         : `Version ${entry.version}`}
                                                 </span>
                                                 {isLatest && (
-                                                    <span
-                                                        style={{
-                                                            background: '#dcfce7',
-                                                            borderRadius: 4,
-                                                            color: '#16a34a',
-                                                            fontSize: 9,
-                                                            fontWeight: 700,
-                                                            letterSpacing: '0.5px',
-                                                            padding: '2px 6px',
-                                                            textTransform: 'uppercase'
-                                                        }}
-                                                    >
+                                                    <span className="bg-green-100 rounded text-green-600 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5">
                                                         Latest
                                                     </span>
                                                 )}
                                             </div>
-                                            <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    color: '#94a3b8',
-                                                    display: 'flex',
-                                                    fontSize: 12,
-                                                    gap: 6,
-                                                    marginTop: 2
-                                                }}
-                                            >
-                                                <i className="fas fa-calendar" style={{ fontSize: 10 }}></i>
+                                            <div className="flex items-center text-slate-400 text-xs gap-1.5 mt-0.5">
+                                                <i className="fas fa-calendar text-[10px]" />
                                                 {formatDate(entry.date)}
                                                 {!entry.isSkipped && summary && (
                                                     <>
-                                                        <span style={{ color: '#e2e8f0' }}>·</span>
-                                                        <i
-                                                            className="fas fa-sparkles"
-                                                            style={{ color: '#f59e0b', fontSize: 10 }}
-                                                        ></i>
+                                                        <span className="text-slate-200">·</span>
+                                                        <i className="fas fa-sparkles text-amber-400 text-[10px]" />
                                                         {summary.length} improvements
                                                     </>
                                                 )}
@@ -312,125 +226,47 @@ function ChangelogView({ onBack }) {
                                         </div>
 
                                         <div
-                                            style={{
-                                                alignItems: 'center',
-                                                background: isExpanded ? '#f1f5f9' : 'transparent',
-                                                borderRadius: 8,
-                                                display: 'flex',
-                                                height: 32,
-                                                justifyContent: 'center',
-                                                transition: 'all 0.15s',
-                                                width: 32
-                                            }}
+                                            className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
+                                                isExpanded ? 'bg-slate-100' : 'bg-transparent'
+                                            }`}
                                         >
                                             <i
-                                                className={`fas fa-chevron-${isExpanded ? 'up' : 'down'}`}
-                                                style={{ color: '#94a3b8', fontSize: 11 }}
-                                            ></i>
+                                                className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-400 text-[11px]`}
+                                            />
                                         </div>
                                     </div>
 
                                     {isExpanded && (
-                                        <div
-                                            style={{
-                                                background: '#fafbfc',
-                                                borderTop: '1px solid #f1f5f9',
-                                                padding: '16px 16px 16px 74px'
-                                            }}
-                                        >
+                                        <div className="bg-[#fafbfc] border-t border-slate-100 py-4 pr-4 pl-[74px]">
                                             {entry.isSkipped ? (
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        color: '#64748b',
-                                                        display: 'flex',
-                                                        fontSize: 13,
-                                                        gap: 8
-                                                    }}
-                                                >
-                                                    <i
-                                                        className="fas fa-check-circle"
-                                                        style={{ color: '#22c55e', fontSize: 12 }}
-                                                    ></i>
+                                                <div className="flex items-center text-slate-500 text-[13px] gap-2">
+                                                    <i className="fas fa-check-circle text-green-500 text-xs" />
                                                     Bug fixes and performance improvements
                                                 </div>
-                                            ) : summary && summary.length > 0 ? (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                            ) : summary?.length > 0 ? (
+                                                <div className="flex flex-col gap-2.5">
                                                     {summary.map((change, i) => (
-                                                        <div
-                                                            key={i}
-                                                            style={{
-                                                                alignItems: 'flex-start',
-                                                                display: 'flex',
-                                                                gap: 10
-                                                            }}
-                                                        >
-                                                            <div
-                                                                style={{
-                                                                    alignItems: 'center',
-                                                                    background: '#dcfce7',
-                                                                    borderRadius: 6,
-                                                                    display: 'flex',
-                                                                    flexShrink: 0,
-                                                                    height: 20,
-                                                                    justifyContent: 'center',
-                                                                    marginTop: 1,
-                                                                    width: 20
-                                                                }}
-                                                            >
-                                                                <i
-                                                                    className="fas fa-check"
-                                                                    style={{ color: '#16a34a', fontSize: 9 }}
-                                                                ></i>
+                                                        <div key={i} className="flex items-start gap-2.5">
+                                                            <div className="flex items-center justify-center shrink-0 w-5 h-5 bg-green-100 rounded-md mt-px">
+                                                                <i className="fas fa-check text-green-600 text-[9px]" />
                                                             </div>
-                                                            <span
-                                                                style={{
-                                                                    color: '#334155',
-                                                                    fontSize: 13,
-                                                                    lineHeight: 1.5
-                                                                }}
-                                                            >
+                                                            <span className="text-slate-700 text-[13px] leading-normal">
                                                                 {change}
                                                             </span>
                                                         </div>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                                    {entry.changes.slice(0, 5).map((change, i) => (
+                                                <div className="flex flex-col gap-2">
+                                                    {entry.changes.map((change, i) => (
                                                         <div
                                                             key={i}
-                                                            style={{
-                                                                alignItems: 'flex-start',
-                                                                color: '#64748b',
-                                                                display: 'flex',
-                                                                fontSize: 12,
-                                                                gap: 10,
-                                                                lineHeight: 1.5
-                                                            }}
+                                                            className="flex items-start text-slate-500 text-xs gap-2.5 leading-normal"
                                                         >
-                                                            <span
-                                                                style={{
-                                                                    background: '#cbd5e1',
-                                                                    borderRadius: '50%',
-                                                                    flexShrink: 0,
-                                                                    height: 5,
-                                                                    marginTop: 6,
-                                                                    width: 5
-                                                                }}
-                                                            ></span>
-                                                            {change.length > 100
-                                                                ? change.substring(0, 100) + '...'
-                                                                : change}
+                                                            <span className="shrink-0 w-[5px] h-[5px] bg-slate-300 rounded-full mt-1.5" />
+                                                            {change}
                                                         </div>
                                                     ))}
-                                                    {entry.changes.length > 5 && (
-                                                        <span
-                                                            style={{ color: '#94a3b8', fontSize: 11, marginLeft: 15 }}
-                                                        >
-                                                            +{entry.changes.length - 5} more technical changes
-                                                        </span>
-                                                    )}
                                                 </div>
                                             )}
                                         </div>
