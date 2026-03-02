@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.8] - 2026-03-02
+
+- Updated the AddViewSection component to improve user interaction by refining the layout and enhancing the responsiveness of input fields for adding new views.
+- Adjusted the styling and event handling in AddViewSection.jsx to ensure a smoother and more intuitive user experience when interacting with the form elements.
+
 ## [17.7] - 2026-03-02
 
 - Added visual indicators for completed tasks in the Weekly Planner, showing a green overlay with a checkmark icon and "Completed" label when a task is marked as completed.

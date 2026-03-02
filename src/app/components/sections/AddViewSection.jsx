@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
@@ -7,6 +7,7 @@ import ErrorMessage from '../common/ErrorMessage'
 function AddViewSection({ title, onClose, children, error, isListItem = false }) {
     const [hasPermission, setHasPermission] = useState(null)
     const [internalError, setInternalError] = useState(null)
+    const pointerDownTargetRef = useRef(null)
 
     useEffect(() => {
         async function checkPermission() {
@@ -54,10 +55,15 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         }
     }, [error])
 
+    const handleBackdropPointerDown = (e) => {
+        pointerDownTargetRef.current = e.target
+    }
+
     const handleBackdropClick = (e) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && pointerDownTargetRef.current === e.currentTarget) {
             onClose()
         }
+        pointerDownTargetRef.current = null
     }
 
     const styles = {
@@ -198,7 +204,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                         to { transform: scale(1); opacity: 1; }
                     }
                 `}</style>
-                <div style={styles.backdrop} onClick={handleBackdropClick}>
+                <div style={styles.backdrop} onPointerDown={handleBackdropPointerDown} onClick={handleBackdropClick}>
                     <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                         <div style={styles.header}>
                             <div style={styles.headerContent}>
@@ -452,7 +458,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     background: #93c5fd;
                 }
             `}</style>
-            <div style={styles.backdrop} onClick={handleBackdropClick}>
+            <div style={styles.backdrop} onPointerDown={handleBackdropPointerDown} onClick={handleBackdropClick}>
                 <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
                     <div style={styles.header}>
                         <div style={styles.headerContent}>
