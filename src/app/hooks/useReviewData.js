@@ -16,6 +16,7 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
     const [showManagerEditButton, setShowManagerEditButton] = useState(false)
     const [plants, setPlants] = useState([])
     const [isPlantShutdown, setIsPlantShutdown] = useState(false)
+    const [operatorExclusionReason, setOperatorExclusionReason] = useState('')
     const [loadingPlants, setLoadingPlants] = useState(true)
     const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
 
@@ -100,11 +101,14 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
         if (report.name === 'plant_production' && operatorOptions.length > 0) {
             const rows = Array.isArray(form.rows) ? form.rows : []
             const excludedOperators = ReportUtility.getExcludedOperators(rows, operatorOptions)
-            setIsPlantShutdown(excludedOperators.length === operatorOptions.length && operatorOptions.length > 0)
+            const allExcluded = excludedOperators.length === operatorOptions.length && operatorOptions.length > 0
+            setIsPlantShutdown(allExcluded)
+            setOperatorExclusionReason(allExcluded ? form.operator_exclusion_reason || 'plant_shutdown' : '')
         } else {
             setIsPlantShutdown(false)
+            setOperatorExclusionReason('')
         }
-    }, [report.name, form.rows, operatorOptions])
+    }, [report.name, form.rows, form.operator_exclusion_reason, operatorOptions])
 
     useEffect(() => {
         async function fetchOwnerName() {
@@ -267,6 +271,7 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
         lostGrade,
         lostLabel,
         maintenanceItems,
+        operatorExclusionReason,
         operatorOptions,
         ownerName,
         plants,

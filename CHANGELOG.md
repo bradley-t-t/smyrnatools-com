@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.5] - 2026-03-02
+
+- Added a new `OperatorExclusionReasonModal` component to handle cases where all operators are excluded from a report, allowing users to select a reason for the exclusion before submission.
+- Introduced `OPERATOR_EXCLUSION_REASONS` constant in `reportConstants.js` with predefined reasons for operator exclusion, such as "All operators sent to another location" and "Plant was shut down".
+- Enhanced `useReportSubmission` hook to persist operator exclusion reasons to a new `report_operator_exclusion_reasons` table in Supabase when a report is submitted.
+- Updated `useReviewData` hook to detect when all operators are excluded in a plant production report and to manage the associated exclusion reason.
+- Modified `ReportsReviewView` and `ReportsSubmitView` to integrate the new operator exclusion reason modal and handle the submission flow when all operators are excluded.
+- Added a new database migration to create the `report_operator_exclusion_reasons` table for storing exclusion reasons tied to specific reports.
+
 ## [17.4] - 2026-02-27
 
 - Removed the LockedOverlay display for guest-only users in App.js, allowing them to bypass this restriction.

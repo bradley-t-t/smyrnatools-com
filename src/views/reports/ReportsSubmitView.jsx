@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import ConfirmationModal from '../../app/components/reports/ConfirmationModal'
 import ErrorModal from '../../app/components/reports/ErrorModal'
+import OperatorExclusionReasonModal from '../../app/components/reports/OperatorExclusionReasonModal'
 import SubmitHeader from '../../app/components/reports/SubmitHeader'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useSubmitData } from '../../app/hooks/useSubmitData'
@@ -158,6 +159,8 @@ function ReportsSubmitView({
     const [confirmationChecks, setConfirmationChecks] = useState([false, false])
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
+    const [showExclusionReasonModal, setShowExclusionReasonModal] = useState(false)
+    const rowsInitializedRef = useRef(false)
 
     const showError = (msg) => {
         setError(msg)
@@ -199,6 +202,11 @@ function ReportsSubmitView({
         }
 
         if (report.name === 'plant_production') {
+            const allExcluded = excludedOperators.length === operatorOptions.length && operatorOptions.length > 0
+            if (allExcluded) {
+                setShowExclusionReasonModal(true)
+                return
+            }
             setAiValidating(true)
             const v = await ReportUtility.validatePlantProduction(form, operatorOptions)
             setAiValidating(false)
@@ -224,6 +232,19 @@ function ReportsSubmitView({
             if (report.name === 'plant_manager' && user?.plant_code && !submitData.plant)
                 submitData.plant = user.plant_code
             await onSubmit(submitData, 'submit')
+            setSuccess(true)
+        } catch (err) {
+            showError(err?.message || 'Error submitting report')
+        }
+        setSubmitting(false)
+    }
+
+    const handleExclusionReasonConfirm = async (reason) => {
+        setShowExclusionReasonModal(false)
+        setSubmitting(true)
+        clearMessages()
+        try {
+            await onSubmit({ ...form, operator_exclusion_reason: reason }, 'submit')
             setSuccess(true)
         } catch (err) {
             showError(err?.message || 'Error submitting report')
@@ -272,11 +293,16 @@ function ReportsSubmitView({
         if (report.name !== 'plant_production') return
         if (!form.plant) {
             clearRows()
+            rowsInitializedRef.current = false
             return
         }
         fetchOperatorsAndMixers(form.plant).then((result) => {
-            if (!readOnly && !initialData?.rows?.length && !form.rows?.length) {
+            if (!readOnly && !initialData?.rows?.length && !form.rows?.length && !rowsInitializedRef.current) {
                 initializeRows(result.activeOperators, result.mixers)
+                rowsInitializedRef.current = true
+            }
+            if (form.rows?.length > 0) {
+                rowsInitializedRef.current = true
             }
         })
     }, [report.name, form.plant, readOnly, initialData, clearRows, fetchOperatorsAndMixers, initializeRows, form.rows])
@@ -329,7 +355,7 @@ function ReportsSubmitView({
             <div className="flex flex-col gap-2 col-span-full">
                 <label className="text-sm font-semibold text-gray-700">Operators</label>
                 <div>
-                    {form.plant && !form.rows?.length && (
+                    {form.plant && !form.rows?.length && !excludedOperators.length && (
                         <div className="text-slate-500 text-sm p-4 bg-slate-50 rounded-lg text-center">
                             No active operators for this plant.
                         </div>
@@ -727,6 +753,12 @@ function ReportsSubmitView({
                 />
             )}
             {showErrorModal && error && <ErrorModal error={error} onClose={() => setShowErrorModal(false)} />}
+            {showExclusionReasonModal && (
+                <OperatorExclusionReasonModal
+                    onConfirm={handleExclusionReasonConfirm}
+                    onCancel={() => setShowExclusionReasonModal(false)}
+                />
+            )}
             {aiValidating && (
                 <AIValidatingModal progress={aiValidationProgress} reportName={report.name} accentColor={accentColor} />
             )}

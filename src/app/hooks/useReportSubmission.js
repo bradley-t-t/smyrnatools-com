@@ -3,6 +3,13 @@ import { useCallback } from 'react'
 import { supabase } from '../../services/DatabaseService'
 import { reportTypeMap } from '../../types/ReportTypes'
 
+const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
+
+const persistExclusionReason = async (reportId, reason) => {
+    if (!reportId || !reason) return
+    await supabase.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
+}
+
 export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
     const buildUpsertData = useCallback(({ formData, weekIso, reportName, userId, completed = true }) => {
         const monday = weekIso ? new Date(weekIso) : null
@@ -105,6 +112,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             }
 
             if (data?.id) {
+                await persistExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
                     mapReportData({
                         data,
@@ -168,6 +176,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             }
 
             if (data?.id) {
+                await persistExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
                     mapReportData({
                         data,

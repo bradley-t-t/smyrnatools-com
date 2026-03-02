@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
+import { OPERATOR_EXCLUSION_REASONS } from '../../app/constants/reportConstants'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useReviewData } from '../../app/hooks/useReviewData'
 import { exportGeneralManagerReport } from '../../utils/ExportUtility'
@@ -52,6 +53,19 @@ const MetaItem = ({ icon, label, value }) => (
 )
 
 function ReportsReviewView({ report, initialData, onBack, user, completedByUser, onManagerEdit }) {
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        const el = containerRef.current
+        if (!el) return
+        let scrollable = el.parentElement
+        while (scrollable && scrollable.scrollHeight <= scrollable.clientHeight) {
+            scrollable = scrollable.parentElement
+        }
+        const target = scrollable || window
+        target.scrollTo(0, 0)
+    }, [])
+
     const {
         assignedPlant,
         form,
@@ -63,6 +77,7 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
         lostGrade,
         lostLabel,
         maintenanceItems,
+        operatorExclusionReason,
         operatorOptions,
         ownerName,
         plants,
@@ -205,7 +220,7 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
     )
 
     return (
-        <div className="bg-slate-50 min-h-screen w-full">
+        <div ref={containerRef} className="bg-slate-50 min-h-screen w-full">
             <div className="flex items-center justify-between flex-wrap gap-4 bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
                 <div className="flex items-center gap-4">
                     <button
@@ -262,8 +277,13 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
             )}
             {isPlantShutdown && (
                 <div className="bg-amber-100 text-amber-800 px-6 py-4 flex items-center gap-3 text-sm font-medium">
-                    <i className="fas fa-info-circle"></i>
-                    <span>Plant was shut down on {reportDateVerbose || 'the reported date'}</span>
+                    <i
+                        className={`fas ${operatorExclusionReason === 'operators_sent_to_other_location' ? 'fa-truck-loading' : 'fa-info-circle'}`}
+                    ></i>
+                    <span>
+                        {OPERATOR_EXCLUSION_REASONS[operatorExclusionReason] || 'Plant was shut down'}
+                        {reportDateVerbose ? ` on ${reportDateVerbose}` : ''}
+                    </span>
                 </div>
             )}
             <div className="p-6 max-w-5xl mx-auto">
