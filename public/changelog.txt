@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.9] - 2026-03-02
+
+- Updated the Copilot instructions to combine guidance for asset management services, merging the advice on centralizing shared logic into utility files like `BaseAssetUtility.js` with consolidating common fields and logic into reusable helpers or constants like `BASE_ASSET_FIELDS` and `resolvePlantCode` for consistent handling across asset types.
+
 ## [17.8] - 2026-03-02
 
 - Updated the AddViewSection component to improve user interaction by refining the layout and enhancing the responsiveness of input fields for adding new views.
