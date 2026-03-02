@@ -43,8 +43,10 @@ const getWeekDates = (weekOffset = 0) => {
     })
 }
 
-function PlannerItem({ item, onRemove, onSelect, accentColor }) {
+function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
     const statusColor = STATUS_COLORS[item.status] || STATUS_COLORS.pending
+    const isCompleted = item.status === 'completed' || item.completed
+    const needsFollowUp = isPast && !isCompleted
 
     return (
         <div
@@ -69,6 +71,42 @@ function PlannerItem({ item, onRemove, onSelect, accentColor }) {
                 e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)'
             }}
         >
+            {isCompleted && (
+                <div
+                    className="flex flex-col items-center justify-center gap-1"
+                    style={{
+                        background: 'rgba(22, 163, 74, 0.85)',
+                        borderRadius: '8px',
+                        bottom: 0,
+                        left: 0,
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        zIndex: 2
+                    }}
+                >
+                    <i className="fas fa-check-circle text-white text-lg" />
+                    <span className="text-white text-xs font-bold uppercase tracking-wide">Completed</span>
+                </div>
+            )}
+            {needsFollowUp && (
+                <div
+                    className="flex flex-col items-center justify-center gap-1"
+                    style={{
+                        background: 'rgba(220, 38, 38, 0.85)',
+                        borderRadius: '8px',
+                        bottom: 0,
+                        left: 0,
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        zIndex: 2
+                    }}
+                >
+                    <i className="fas fa-exclamation-triangle text-white text-lg" />
+                    <span className="text-white text-xs font-bold uppercase tracking-wide">Needs Follow Up</span>
+                </div>
+            )}
             <div style={{ background: statusColor.text, height: '3px', width: '100%' }} />
             <div style={{ padding: '10px 12px' }}>
                 <div style={{ alignItems: 'flex-start', display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
@@ -527,6 +565,7 @@ function DayColumn({
                             onRemove={() => onRemoveItem(day.dateStr, pi.list_item_id)}
                             onSelect={onSelectItem}
                             accentColor={accentColor}
+                            isPast={day.isPast}
                         />
                     )
                 })}

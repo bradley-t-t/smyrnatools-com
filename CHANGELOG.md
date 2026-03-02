@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [17.7] - 2026-03-02
+
+- Added visual indicators for completed tasks in the Weekly Planner, showing a green overlay with a checkmark icon and "Completed" label when a task is marked as completed.
+- Introduced a follow-up warning for past due tasks in the Weekly Planner, displaying a red overlay with an exclamation triangle icon and "Needs Follow Up" label for tasks that are past their due date and not completed.
+- Updated the PlannerItem component to handle a new `isPast` prop, which is used to determine if a task needs a follow-up indicator based on whether the task date is in the past.
+
 ## [17.6] - 2026-03-02
 
 - Added a new MaintenanceFormReview component for reviewing submitted maintenance forms, displaying form details, submitter information, and field responses with attached images.
