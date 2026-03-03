@@ -1,22 +1,7 @@
+// @ts-ignore
 import {createClient} from "@supabase/supabase-js";
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-    const allowedOrigins = ["http://localhost:3000", "https://smyrnatools.com", "https://www.smyrnatools.com", "https://db.smyrnatools.com"];
-    const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[1];
-
-    return {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers": "authorization, content-type, x-client-info, apikey",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400"
-    };
-}
-
-function handleOptions(origin: string | null) {
-    return new Response(null, {status: 204, headers: getCorsHeaders(origin)});
-}
+// @ts-ignore
+import {getCorsHeaders, handleOptions} from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");

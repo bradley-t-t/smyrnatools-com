@@ -1,5 +1,7 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
+// @ts-ignore
+import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 
 const USERS_TABLE = 'users';
 const PROFILES_TABLE = 'users_profiles';
@@ -9,27 +11,6 @@ const ELEVATED_WEIGHT_THRESHOLD = 75;
 const ROLES_SELECT = 'role_id, users_roles(id, name, permissions, weight)';
 const UNIVERSAL_PERMISSION = 'my_account.view';
 
-const ALLOWED_ORIGINS = ["http://localhost:3000", "https://smyrnatools.com", "https://www.smyrnatools.com", "https://db.smyrnatools.com"];
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-    return {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[1],
-        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400",
-        "Connection": "keep-alive"
-    };
-}
-
-function jsonResponse(data: unknown, headers: Record<string, string>, status = 200): Response {
-    return new Response(JSON.stringify(data), {status, headers});
-}
-
-function errorResponse(message: string, headers: Record<string, string>, status = 400): Response {
-    return jsonResponse({error: message}, headers, status);
-}
 
 function resolveUserId(userId: unknown): string {
     return typeof userId === 'object' && (userId as any)?.id ? (userId as any).id : userId as string;
@@ -66,7 +47,7 @@ function fallbackUserName(userId: string): string {
 
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
-    if (req.method === "OPTIONS") return new Response(null, {status: 204, headers: getCorsHeaders(origin)});
+    if (req.method === "OPTIONS") return handleOptions(origin);
     const headers = getCorsHeaders(origin);
     try {
         const url = new URL(req.url);

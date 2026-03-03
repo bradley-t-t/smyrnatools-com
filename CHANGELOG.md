@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.3] - 2026-03-03
+
+- Added a new shared CORS utility module in `supabase/functions/_shared/cors.ts` to standardize CORS handling across serverless functions with predefined allowed origins and helper functions for response formatting.
+- Refactored `auth-context/index.ts` to use the new CORS utility, simplifying CORS header management and response handling by importing shared functions.
+- Updated multiple serverless functions to integrate the shared CORS utility, ensuring consistent CORS behavior and response formatting across endpoints like `auth-service`, `user-service`, and various equipment services.
+- Simplified Copilot instructions in `.github/copilot-instructions.md` by consolidating redundant guidelines and removing overly specific rules to improve clarity and maintainability.
+
 ## [18.2] - 2026-03-03
 
 - Refactored the user-service function in Supabase to improve code organization and readability by introducing helper functions like `jsonResponse`, `errorResponse`, and `resolveUserId`.

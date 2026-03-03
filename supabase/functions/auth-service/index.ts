@@ -1,30 +1,11 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
+// @ts-ignore
+import {getCorsHeaders, handleOptions} from "../_shared/cors.ts";
 
 const USERS_TABLE = "users";
 const PROFILES_TABLE = "users_profiles";
-const CORS_TIMEOUT = 5000;
-const ALLOWED_ORIGINS = ["http://localhost:3000", "https://smyrnatools.com", "https://www.smyrnatools.com", "https://db.smyrnatools.com"];
-
-function getCorsHeaders(origin: string | null) {
-    const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[1];
-    return {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Max-Age": "86400",
-        "Access-Control-Allow-Credentials": "true",
-        "Connection": "keep-alive"
-    };
-}
-
-function handleOptions(origin: string | null) {
-    return new Response(null, {
-        status: 204,
-        headers: getCorsHeaders(origin)
-    });
-}
+const SESSION_RESTORE_TIMEOUT = 5000;
 
 const AuthUtility = {
     emailIsValid(email) {
@@ -271,7 +252,7 @@ Deno.serve(async (req) => {
                 if (!userId) {
                     return new Response(JSON.stringify({success: false}), {headers: corsHeaders});
                 }
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Session restore timed out")), CORS_TIMEOUT));
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Session restore timed out")), SESSION_RESTORE_TIMEOUT));
                 try {
                     const {data, error} = await Promise.race([
                         supabase.from(USERS_TABLE).select("id, email").eq("id", userId).single(),

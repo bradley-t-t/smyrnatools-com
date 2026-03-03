@@ -1,21 +1,7 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
-
-function getCorsHeaders(origin: string | null): Record<string, string> {
-    const allowedOrigins = ['http://localhost:3000', 'https://smyrnatools.com', 'https://www.smyrnatools.com', 'https://db.smyrnatools.com'];
-    const isAllowed = origin && allowedOrigins.includes(origin);
-    return {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-client-info, apikey',
-        'Access-Control-Allow-Credentials': 'true'
-    };
-}
-
-function handleOptions(origin: string | null) {
-    return new Response(null, {status: 204, headers: getCorsHeaders(origin)});
-}
+// @ts-ignore
+import {getCorsHeaders, handleOptions} from "../_shared/cors.ts";
 
 function nowIso() {
     return new Date().toISOString();
