@@ -1,3 +1,4 @@
+/** Mixer comment record with snake_case API mapping. */
 export class MixerComment {
     constructor(data = {}) {
         this.id = data.id ?? null

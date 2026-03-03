@@ -1,5 +1,10 @@
 import UserUtility from '../../utils/UserUtility'
 
+/**
+ * Operator domain model. Handles dual snake_case/camelCase field resolution,
+ * UUID-based employee IDs, trainer assignments, and API serialization
+ * with UUID validation guards.
+ */
 export class Operator {
     constructor(data = {}) {
         this.employeeId = data.employee_id ?? data.employeeId ?? UserUtility.generateUUID()

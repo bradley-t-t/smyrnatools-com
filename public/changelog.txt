@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.8] - 2026-03-03
+
+- Added detailed JSDoc comments to various model classes for better code documentation and clarity, including Equipment, Mixer, Operator, PickupTruck, Tractor, Trailer, and related comment and history models.
+- Enhanced MixerHistory and TractorHistory models with specific comments about date handling for cleaner display by stripping time components during deserialization.
+- Introduced utility class documentation for MixerHistoryUtils and OperatorHistoryUtils to explain display formatting helpers for values like date localization and status labels.
+- Updated view components for Equipment, Mixers, PickupTrucks, Tractors, and Trailers with minor adjustments to improve rendering or functionality.
+- Added documentation for notification classes such as EquipmentVerificationNotifications, MixerVerificationNotifications, and TractorVerificationNotifications to clarify their purpose.
+- Expanded OverdueListNotifications with additional logic or content to handle overdue item tracking or alerts.
+
 ## [18.7] - 2026-03-03
 
 - Added error logging for dashboard data fetch failures in `useDashboardData.js` to improve debugging.

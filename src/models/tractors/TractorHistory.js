@@ -1,3 +1,7 @@
+/**
+ * Tractor field-change history entry. Strips time components from service date fields
+ * during deserialization for cleaner display.
+ */
 export class TractorHistory {
     constructor(data = {}) {
         this.id = data.id ?? null
@@ -56,6 +60,11 @@ export class TractorHistory {
     }
 }
 
+/**
+ * Display formatting helpers for tractor history values:
+ * date localization, cleanliness rating labels, blower boolean formatting,
+ * and null-operator normalization.
+ */
 export class TractorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''

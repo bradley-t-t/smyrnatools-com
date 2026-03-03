@@ -1,3 +1,4 @@
+/** Tractor verification notification provider — alerts when unverified tractors exist at a plant. */
 import { TractorService } from '../services/TractorService'
 import TractorUtility from '../utils/TractorUtility'
 import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'

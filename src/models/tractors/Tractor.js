@@ -1,6 +1,11 @@
 import { DateUtility } from '../../utils/DateUtility'
 import { TractorUtility } from '../../utils/TractorUtility'
 
+/**
+ * Tractor domain model. Maps snake_case API data to camelCase properties,
+ * provides serialization (toApiFormat), status/operator mutations,
+ * blower tracking, and freight classification.
+ */
 export class Tractor {
     constructor(data = {}) {
         this.id = data.id ?? null

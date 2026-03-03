@@ -1,5 +1,10 @@
 import EquipmentUtility from '../../utils/EquipmentUtility'
 
+/**
+ * Equipment domain model with heuristic field resolution.
+ * Maps snake_case API fields to camelCase properties and applies
+ * fuzzy key matching for non-standard field names via heuristic fill.
+ */
 export class Equipment {
     constructor(data = {}) {
         this.id = data.id ?? null

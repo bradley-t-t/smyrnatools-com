@@ -1,3 +1,4 @@
+/** Equipment comment record with snake_case API mapping. */
 export class EquipmentComment {
     constructor(data = {}) {
         this.id = data.id ?? null

@@ -1,5 +1,9 @@
 import { DateUtility } from '../../utils/DateUtility'
 
+/**
+ * Pickup truck domain model. Maps snake_case API data to camelCase properties
+ * with safe mileage coercion and database timestamp serialization.
+ */
 export class PickupTruck {
     constructor(data = {}) {
         this.id = data.id ?? null

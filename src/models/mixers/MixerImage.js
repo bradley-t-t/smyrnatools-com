@@ -1,3 +1,4 @@
+/** Mixer image attachment record (part-keyed photo uploads). */
 export class MixerImage {
     constructor(data = {}) {
         this.id = data.id ?? null

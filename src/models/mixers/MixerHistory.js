@@ -1,3 +1,7 @@
+/**
+ * Mixer field-change history entry. Strips time components from date fields
+ * during deserialization for cleaner display.
+ */
 export class MixerHistory {
     constructor(data = {}) {
         this.id = data.id ?? null
@@ -54,6 +58,10 @@ export class MixerHistory {
     }
 }
 
+/**
+ * Display formatting helpers for mixer history values:
+ * date localization, cleanliness rating labels, and null-operator normalization.
+ */
 export class MixerHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''

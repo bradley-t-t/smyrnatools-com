@@ -2,6 +2,13 @@ import { ListService } from '../services/ListService'
 import { UserService } from '../services/UserService'
 import RegionPlantScopeUtility from '../utils/RegionPlantScopeUtility'
 
+/**
+ * Overdue task-list notification provider.
+ * Detects incomplete overdue list items per plant and produces
+ * single-plant or multi-plant notifications based on user permissions.
+ */
+
+/** Fetches list items with a single retry on transient network failures. */
 async function fetchListItemsWithRetry() {
     try {
         await ListService.fetchListItems({ force: false })
@@ -12,10 +19,12 @@ async function fetchListItemsWithRetry() {
     }
 }
 
+/** @returns Whether the item is both incomplete and past its due date. */
 function isOverdueIncompleteItem(item) {
     return !item.completed && ListService.isOverdue(item)
 }
 
+/** Constructs a plant-scoped overdue notification with appropriate messaging. */
 function buildPlantNotification(plantCode, overdueCount, isMultiplePlant) {
     if (overdueCount <= 0) return null
     const plural = overdueCount === 1 ? 'item' : 'items'
@@ -32,6 +41,10 @@ function buildPlantNotification(plantCode, overdueCount, isMultiplePlant) {
     }
 }
 
+/**
+ * Resolves overdue task notifications for the given user.
+ * Multi-plant users see per-plant notifications; single-plant users see a consolidated one.
+ */
 async function getNotifications({ userId, selectedRegion }) {
     if (!userId) return []
 

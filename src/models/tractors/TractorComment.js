@@ -1,3 +1,4 @@
+/** Tractor comment record with snake_case API mapping. */
 export class TractorComment {
     constructor(data = {}) {
         this.id = data.id ?? null

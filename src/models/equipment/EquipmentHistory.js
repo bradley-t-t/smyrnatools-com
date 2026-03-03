@@ -1,3 +1,4 @@
+/** Equipment field-change history entry with snake_case API mapping. */
 export class EquipmentHistory {
     constructor({ id, equipmentId, fieldName, oldValue, newValue, changedAt, changedBy }) {
         this.id = id

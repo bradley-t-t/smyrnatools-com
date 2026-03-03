@@ -1,3 +1,8 @@
+/**
+ * Trailer domain model. Uses destructured constructor for snake_case API fields,
+ * auto-generates UUID on creation, and provides weekly verification
+ * with history-aware staleness checking.
+ */
 class Trailer {
     constructor({
         id = null,

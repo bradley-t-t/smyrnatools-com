@@ -1,3 +1,4 @@
+/** Plant location record with code and display name. */
 export class Plant {
     constructor(data = {}) {
         this.plantCode = data.plant_code ?? ''

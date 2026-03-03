@@ -1,6 +1,11 @@
 import { DateUtility } from '../../utils/DateUtility'
 import MixerUtility from '../../utils/MixerUtility'
 
+/**
+ * Mixer domain model. Maps snake_case API data to camelCase properties,
+ * provides serialization (toApiFormat), status/operator mutations,
+ * and service/chip date calculations.
+ */
 export class Mixer {
     constructor(data = {}) {
         this.id = data.id ?? null

@@ -1,3 +1,4 @@
+/** Equipment verification notification provider — alerts when unverified equipment exists at a plant. */
 import { EquipmentService } from '../services/EquipmentService'
 import EquipmentUtility from '../utils/EquipmentUtility'
 import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'

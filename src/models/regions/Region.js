@@ -1,3 +1,4 @@
+/** Region record with code, name, and type classification (Office, Aggregate, etc.). */
 class Region {
     constructor({ id, regionCode, regionName, type, createdAt, updatedAt }) {
         this.id = id

@@ -1,3 +1,4 @@
+/** Operator field-change history entry with snake_case API mapping. */
 export class OperatorHistory {
     constructor(data = {}) {
         this.id = data.id ?? null
@@ -47,6 +48,10 @@ export class OperatorHistory {
     }
 }
 
+/**
+ * Display formatting helpers for operator history values:
+ * date localization and status label normalization.
+ */
 export class OperatorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''

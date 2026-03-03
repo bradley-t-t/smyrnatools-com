@@ -1,3 +1,4 @@
+/** Mixer verification notification provider — alerts when unverified mixers exist at a plant. */
 import { MixerService } from '../services/MixerService'
 import MixerUtility from '../utils/MixerUtility'
 import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'
