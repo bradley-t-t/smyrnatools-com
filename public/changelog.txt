@@ -4,6 +4,12 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 ## [18.4] - 2026-03-03
 
+- Introduced a new shared utility file `asset-helpers.ts` in the `supabase/functions/_shared` directory to centralize common logic for asset management services, including functions for timestamp handling, data normalization, user ID resolution, and diff computation for tracking changes.
+- Refactored asset-related service files (`equipment-service`, `mixer-service`, `pickup-truck-service`, `tractor-service`, and `trailer-service`) to leverage the new shared `asset-helpers.ts` utilities, significantly reducing code duplication and improving consistency across these services.
+- Updated `.github/copilot-instructions.md` to combine related guidelines for API interaction centralization and database query efficiency in service files into a single cohesive instruction for better clarity.
+
+## [18.4] - 2026-03-03
+
 - Removed fallback logic instruction from Copilot guidelines in `.github/copilot-instructions.md` to streamline development guidance.
 - Refactored `auth-service` to improve code organization by extracting utility functions like `isValidEmail`, `passwordStrength`, `generateSalt`, `bytesToHex`, `hashPassword`, `sanitizeEmail`, and `nowISO` directly into the service file, replacing the previous `AuthUtility` object.
 - Updated `auth-service` to use shared utility functions from `../_shared/cors.ts` for consistent response handling with `jsonResponse` and `errorResponse`.
