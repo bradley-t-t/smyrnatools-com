@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.2] - 2026-03-03
+
+- Refactored the user-service function in Supabase to improve code organization and readability by introducing helper functions like `jsonResponse`, `errorResponse`, and `resolveUserId`.
+- Added new utility functions for user data handling, such as `fetchUserRoles`, `collectPermissions`, `isElevatedUser`, and `formatEmailAsDisplayName`.
+- Introduced constants for configuration values, including `ELEVATED_WEIGHT_THRESHOLD`, `ROLES_SELECT`, `UNIVERSAL_PERMISSION`, and `ALLOWED_ORIGINS` for better maintainability.
+- Simplified CORS handling by using a constant array for allowed origins and streamlining the `getCorsHeaders` function.
+- Improved response handling by consolidating response creation into reusable functions, reducing code duplication across endpoints.
+- Enhanced user name fallback logic with a dedicated `fallbackUserName` function for consistent display name formatting.
+- Optimized database queries and permission checks by restructuring role and permission retrieval logic.
+
 ## [18.1] - 2026-03-03
 
 - Updated the styling and layout of the StatsDisplay component on the login view to use Tailwind CSS classes for a more consistent and modern look, including centered text, adjusted font sizes, and better spacing.
