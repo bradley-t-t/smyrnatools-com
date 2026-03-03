@@ -1,3 +1,8 @@
+/**
+ * Determines whether an asset is currently verified by checking that
+ * the last verification timestamp is more recent than the most recent
+ * Monday at 5 PM CST and that no updates occurred after verification.
+ */
 const VerifiedUtility = {
     isVerified(updatedLast, updatedAt, updatedBy) {
         if (!updatedLast || !updatedBy) return false

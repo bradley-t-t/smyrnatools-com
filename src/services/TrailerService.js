@@ -118,6 +118,12 @@ const TrailerService = {
         return json?.data ?? []
     },
 
+    /** Fetches all trailers from the API. */
+    async fetchTrailers() {
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch trailers')
+        return (json?.data ?? []).map(Trailer.fromApiFormat)
+    },
+
     /** Fetches a single trailer by ID, handling both string and object ID arguments. */
     async fetchTrailerById(trailerId) {
         if (!trailerId) throw new Error('Trailer ID is required')

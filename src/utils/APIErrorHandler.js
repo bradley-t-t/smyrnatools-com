@@ -1,3 +1,7 @@
+/**
+ * Suppresses noisy CORS and fetch-related console errors and unhandled rejections
+ * to prevent them from cluttering browser dev tools during normal operation.
+ */
 const originalConsoleError = console.error
 
 console.error = (...args) => {

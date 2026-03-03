@@ -1,3 +1,8 @@
+/**
+ * Date parsing, formatting, and comparison helpers.
+ * Provides ISO week calculation, database timestamp formatting,
+ * staleness checks, and timezone-safe local date handling.
+ */
 const DateUtility = {
     daysSince(d) {
         const date = this.parse(d)

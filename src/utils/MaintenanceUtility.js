@@ -1,3 +1,8 @@
+/**
+ * Maintenance form helpers: status badges, date formatting, frequency labels,
+ * field-type icons, form response initialization/parsing (with image support),
+ * checklist validation, and response data building for submission.
+ */
 export function getStatusBadgeClass(status) {
     switch (status) {
         case 'overdue':

@@ -1,5 +1,9 @@
 import VerifiedUtility from './VerifiedUtility'
 
+/**
+ * Mixer-specific fleet statistics: status counts, plant distribution,
+ * cleanliness averages, chip/service overdue detection, and verification checks.
+ */
 const mixerUtility = {
     formatDate(date) {
         if (!date) return 'Not available'

@@ -1,3 +1,4 @@
+/** In-memory key-value cache with TTL-based expiration. */
 const CacheUtility = {
     caches: {},
     clear() {

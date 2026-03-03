@@ -1,3 +1,8 @@
+/**
+ * Input validation primitives: VIN format checking with detailed error explanations,
+ * UUID validation, string/ID requirement guards, positive-integer parsing,
+ * and allowlist-based object property sanitization.
+ */
 const ValidationUtility = {
     explainVIN(v) {
         const reasons = []

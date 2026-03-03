@@ -1,6 +1,10 @@
 import { RegionService } from '../services/RegionService'
 import { UserService } from '../services/UserService'
 
+/**
+ * Region-scoped plant code resolution: builds a set of plant codes the user
+ * can access based on their selected region, handling Office (all regions) vs single-region modes.
+ */
 function normalizePlantCodes(list) {
     const result = new Set()
     if (!list) return result

@@ -1,3 +1,8 @@
+/**
+ * Dashboard computation utilities: slim asset mappers for memory-efficient storage,
+ * status distribution calculations across date ranges, AI summary caching,
+ * service-overdue checks, long-term shop detection, and plant-set filtering.
+ */
 const AI_CACHE_KEY = 'srm_plant_ai_summaries'
 const AI_CACHE_DURATION = 24 * 60 * 60 * 1000
 const SERVICE_OVERDUE_DAYS = 180

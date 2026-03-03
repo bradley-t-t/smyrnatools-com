@@ -1,5 +1,9 @@
 import APIUtility from './APIUtility'
 
+/**
+ * Edge-function-backed authentication helpers for email validation,
+ * password hashing, salt generation, and user identity resolution.
+ */
 const AUTH_UTILITY_FUNCTION = 'auth-utility'
 
 const AuthUtility = {

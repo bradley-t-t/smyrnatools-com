@@ -1,5 +1,9 @@
 import VerifiedUtility from './VerifiedUtility'
 
+/**
+ * Tractor-specific fleet statistics: status counts, plant distribution,
+ * cleanliness averages, service-overdue detection, and verification checks.
+ */
 const TractorUtility = {
     formatDate(date) {
         if (!date) return 'Not available'

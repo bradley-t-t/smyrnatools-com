@@ -1,3 +1,7 @@
+/**
+ * Display formatting helpers: human-readable dates with ordinal suffixes,
+ * locale-aware date-time strings, and natural VIN sorting comparator.
+ */
 const FormatUtility = {
     compareVINs: (vinA, vinB) => {
         const a = String(vinA || '').toUpperCase()

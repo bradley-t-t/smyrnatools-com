@@ -1,5 +1,9 @@
 import { supabase } from '../services/DatabaseService'
 
+/**
+ * Authenticated HTTP client for Supabase Edge Functions.
+ * Handles token resolution, retries with backoff, and request timeouts.
+ */
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 

@@ -1,3 +1,8 @@
+/**
+ * Leaderboard computation engine: calculates per-plant fleet counts, cross-plant hours adjustments,
+ * efficiency/YPH/production metrics from weekly reports, safety incident aggregation,
+ * and category-based sorting for plant rankings.
+ */
 const LeaderboardsUtility = {
     calculateFleetCounts(plantCodesInRegion, mixersData, tractorsData, trailersData, equipmentData, operatorsData) {
         const fleetCountsByPlant = {}

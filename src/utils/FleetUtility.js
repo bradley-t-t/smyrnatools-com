@@ -1,3 +1,7 @@
+/**
+ * Fleet sorting and operator-assignment helpers: status-priority comparators,
+ * unassigned active operator counting with search/filter support, and retired-last sorting.
+ */
 export function compareByStatusThenNumber(a, b, statusField = 'status', numberField = 'truckNumber') {
     const order = { Active: 0, 'In Shop': 3, Retired: 4, Sold: 5, Spare: 2, Stationary: 1 }
     const sa = order[a?.[statusField]] ?? 99

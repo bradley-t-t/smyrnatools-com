@@ -1,6 +1,11 @@
 import { supabase } from '../services/DatabaseService'
 import { ReportUtility } from './ReportUtility'
 
+/**
+ * Excel export infrastructure: workbook creation, styled header/data row builders,
+ * report fetching with week-window alignment, change-percentage formatting,
+ * and reusable section/overview layout helpers for ExcelJS workbooks.
+ */
 export { exportGeneralManagerReport } from '../app/components/modules/export/ExportModule'
 
 const LOCALE_COMPARE_OPTIONS = { numeric: true, sensitivity: 'base' }

@@ -1,3 +1,8 @@
+/**
+ * Verification due-date severity resolver using Central Time zone awareness.
+ * Returns "Past Due" (error) or "Due" (warning) based on the Friday 10 AM CT
+ * through Monday 5 PM CT past-due window.
+ */
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const CENTRAL_TIME_FORMAT_OPTIONS = {

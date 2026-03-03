@@ -1,3 +1,7 @@
+/**
+ * Entity lookup helpers: resolves operator names/Smyrna IDs, plant names,
+ * tractor truck numbers, and detects multi-assignment conflicts by field value.
+ */
 export function getOperatorName(operators, operatorId) {
     if (!operatorId || operatorId === '0') return 'None'
     const operator = Array.isArray(operators) ? operators.find((op) => op.employeeId === operatorId) : null

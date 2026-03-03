@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.7] - 2026-03-03
+
+- Added error logging for dashboard data fetch failures in `useDashboardData.js` to improve debugging.
+- Introduced new JSDoc comments in `useDashboardEffects.js` for better documentation of animated stats, AI typing effects, and date filter management.
+- Added a new `fetchTrailers` method in `TrailerService.js` to retrieve all trailers from the API.
+- Implemented `handlePresenceChange` in `UserPresenceService.js` to refresh the online user list on Supabase realtime presence events.
+- Enhanced error handling in `APIErrorHandler.js` by suppressing noisy CORS and fetch-related console errors.
+- Added detailed JSDoc comments across multiple utility files (e.g., `APIUtility.js`, `AuthUtility.js`, `BaseAssetUtility.js`) to improve code readability and maintainability.
+- Reduced complexity in `NetworkUtility.js` by refactoring and streamlining the codebase, removing unnecessary logic.
+
 ## [18.6] - 2026-03-03
 
 - Added new AI prompt templates and tone modifiers in the AI module, including role-aware context and special handling for favorite plants to adjust the tone of responses.

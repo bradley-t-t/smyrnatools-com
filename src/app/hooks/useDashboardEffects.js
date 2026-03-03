@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { INITIAL_STATS } from '../constants/dashboardConstants'
 
+/**
+ * Animates dashboard stat counters from zero to their final values on first render
+ * and on region changes. Uses requestAnimationFrame for smooth 60fps transitions.
+ */
 export function useAnimatedStats(stats, regionPlantsLoaded, dashboardRegionCode) {
     const [animatedStats, setAnimatedStats] = useState(null)
     const animationRef = useRef(null)
@@ -85,6 +89,10 @@ export function useAnimatedStats(stats, regionPlantsLoaded, dashboardRegionCode)
     return animatedStats || INITIAL_STATS
 }
 
+/**
+ * Produces a character-by-character typing effect for AI-generated plant summaries.
+ * Splits the response at the ACTION PLAN separator and reveals action items after typing completes.
+ */
 export function useAITypingEffect(aiSummary, dashboardPlant) {
     const [aiDisplayText, setAiDisplayText] = useState('')
     const [aiActionPlan, setAiActionPlan] = useState([])
@@ -144,6 +152,11 @@ export function useAITypingEffect(aiSummary, dashboardPlant) {
     return { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan }
 }
 
+/**
+ * Manages date range filter state for the status history chart.
+ * Provides quick-select presets (this week, last month, this quarter, etc.)
+ * and tracks the oldest available history date for the "all" option.
+ */
 export function useDateFilter() {
     const [historyStartDate, setHistoryStartDate] = useState('')
     const [historyEndDate, setHistoryEndDate] = useState('')

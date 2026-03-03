@@ -1,5 +1,9 @@
 import APIUtility from './APIUtility'
 
+/**
+ * Edge-function-backed UUID operations: server-side generation,
+ * format validation, and safe sanitization of user-provided UUIDs.
+ */
 const USER_UTILITY_FUNCTION = '/user-utility'
 
 const userUtility = {

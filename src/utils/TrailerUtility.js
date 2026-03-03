@@ -1,3 +1,8 @@
+/**
+ * Trailer-specific fleet statistics: type-based counts (Cement/End Dump),
+ * status distribution, cleanliness averages, 90-day service-overdue detection,
+ * and weekly verification with history-aware staleness checks.
+ */
 const TrailerUtility = {
     getCleanlinessAverage(trailers) {
         const ratings = trailers.filter((t) => t.cleanlinessRating).map((t) => t.cleanlinessRating)

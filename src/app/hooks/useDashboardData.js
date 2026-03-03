@@ -148,7 +148,8 @@ export function useDashboardAssets({
                         })
                     )
                 } catch {}
-            } catch {
+            } catch (err) {
+                console.error('Dashboard data fetch error:', err)
                 if (!cancelled) setError('Failed to load dashboard data')
             } finally {
                 if (!cancelled) {

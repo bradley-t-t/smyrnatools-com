@@ -1,6 +1,10 @@
 import { DAYS_IN_MS, DEFAULT_STATUS_COLOR, MILEAGE_MILESTONES, STATUS_COLORS } from '../app/constants/historyConstants'
 import { FormatUtility } from './FormatUtility'
 
+/**
+ * History view presentation helpers: field-name normalization, consolidated timeline building,
+ * duration formatting, asset identifier resolution, and field-name display mapping.
+ */
 export const normalizeFieldToSnakeCase = (fieldName) => {
     if (!fieldName) return ''
     return fieldName.includes('_')

@@ -71,6 +71,11 @@ class UserPresenceService {
         document.addEventListener('mousemove', this.onUserActivity, { passive: true })
     }
 
+    /** Handles Supabase realtime presence change events by refreshing the online user list. */
+    handlePresenceChange() {
+        this.notifyListeners()
+    }
+
     /** Throttled handler that updates last-activity timestamp (max once per 30s). */
     handleUserActivity() {
         const now = Date.now()

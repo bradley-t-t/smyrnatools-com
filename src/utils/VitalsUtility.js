@@ -1,3 +1,4 @@
+/** Lazily reports Core Web Vitals (CLS, FID, FCP, LCP, TTFB) via a provided callback. */
 const vitalsUtility = (onPerfEntry) => {
     if (onPerfEntry && onPerfEntry instanceof Function) {
         import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {

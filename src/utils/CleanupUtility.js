@@ -2,6 +2,11 @@ import { UserService } from '../services/UserService'
 import ValidationUtility from './ValidationUtility'
 import VerifiedUtility from './VerifiedUtility'
 
+/**
+ * Data-integrity cleanup routines for fleet assets.
+ * Fixes null-operator assignments and invalidates verification status
+ * on assets that fail completeness checks (missing VIN, make, model, year, or operator).
+ */
 class CleanupUtility {
     static async cleanupNullOperators(items, updateItemFn, getAllItemsFn = null) {
         const allItems = items || (getAllItemsFn ? await getAllItemsFn() : [])

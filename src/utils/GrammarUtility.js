@@ -1,3 +1,7 @@
+/**
+ * Text normalization engine: applies sentence-case, preserves industry acronyms (DOT, VIN, OSHA, etc.),
+ * normalizes whitespace, enforces period-termination, and formats phone numbers.
+ */
 const ACRONYMS = new Set([
     'USA',
     'CAT',

@@ -2,6 +2,11 @@ import { UserService } from '../services/UserService'
 import RegionPlantScopeUtility from './RegionPlantScopeUtility'
 import VerificationDueDateUtility from './VerificationDueDateUtility'
 
+/**
+ * Factory for creating verification notification providers.
+ * Groups assets by plant, counts unverified items, and produces
+ * plant-specific or single-plant notifications based on user permissions.
+ */
 function groupByPlantCode(items, scopedPlants, plantCodeAccessor) {
     const grouped = new Map()
     for (const item of items) {

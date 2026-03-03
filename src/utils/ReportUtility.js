@@ -1,3 +1,8 @@
+/**
+ * Weekly report computation helpers: YPH/yardage metric grading, week date calculations,
+ * Monday-anchored ISO normalization, cross-plant hours adjustment, report status resolution,
+ * operator exclusion detection, and AI-assisted plant production validation.
+ */
 const ReportUtility = {
     buildHoursReceivedByWeek(allReports, targetPlantCode) {
         const hoursReceivedByWeek = {}

@@ -2,6 +2,11 @@ import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import APIUtility from './APIUtility'
 
+/**
+ * Shared asset-level helpers used across all fleet services (Mixer, Tractor, Trailer, Equipment).
+ * Provides user resolution, API wrappers, issue/comment counting, status history,
+ * region filtering, severity normalization, and duplicate detection.
+ */
 const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000'
 const VALID_SEVERITIES = ['Low', 'Medium', 'High']
 const DEFAULT_SEVERITY = 'Medium'
