@@ -30,32 +30,18 @@ const VideoFallback = memo(function VideoFallback() {
 
 const StatsDisplay = memo(function StatsDisplay({ stats }) {
     return (
-        <div
-            style={{
-                borderTop: '1px solid rgba(255,255,255,0.15)',
-                display: 'flex',
-                gap: '2rem',
-                marginTop: '3rem',
-                paddingTop: '2rem'
-            }}
-        >
-            <div>
-                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                    {stats.assets > 0 ? stats.assets : '-'}
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Fleet Assets</div>
+        <div className="flex justify-center gap-10 border-t border-white/15 pt-8 w-full">
+            <div className="text-center">
+                <div className="text-white text-3xl font-bold">{stats.assets > 0 ? stats.assets : '-'}</div>
+                <div className="text-white/50 text-xs mt-1">Fleet Assets</div>
             </div>
-            <div>
-                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                    {stats.plants > 0 ? stats.plants : '-'}
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Plants</div>
+            <div className="text-center">
+                <div className="text-white text-3xl font-bold">{stats.plants > 0 ? stats.plants : '-'}</div>
+                <div className="text-white/50 text-xs mt-1">Plants</div>
             </div>
-            <div>
-                <div style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 700 }}>
-                    {stats.operators > 0 ? stats.operators : '-'}
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>Operators</div>
+            <div className="text-center">
+                <div className="text-white text-3xl font-bold">{stats.operators > 0 ? stats.operators : '-'}</div>
+                <div className="text-white/50 text-xs mt-1">Operators</div>
             </div>
         </div>
     )
@@ -442,47 +428,13 @@ function LoginView() {
                     zIndex: 10
                 }}
             >
-                <div
-                    style={{
-                        alignItems: 'center',
-                        display: 'none',
-                        flex: 1,
-                        justifyContent: 'center',
-                        padding: '3rem',
-                        position: 'relative'
-                    }}
-                    className="lg-show"
-                >
-                    <div style={{ maxWidth: '480px', position: 'relative', zIndex: 2 }}>
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                background: 'rgba(255,255,255,0.1)',
-                                borderRadius: '16px',
-                                display: 'inline-flex',
-                                height: '72px',
-                                justifyContent: 'center',
-                                marginBottom: '2rem',
-                                width: '72px'
-                            }}
-                        >
-                            <img src={SrmLogo} alt="SRM" style={{ height: '44px', width: '44px' }} loading="eager" />
-                        </div>
-                        <h1
-                            style={{
-                                color: '#fff',
-                                fontSize: '3rem',
-                                fontWeight: 800,
-                                letterSpacing: '-0.03em',
-                                lineHeight: 1.1,
-                                margin: '0 0 1rem 0'
-                            }}
-                        >
-                            Smyrna
-                            <br />
-                            <span style={{ color: 'rgba(255,255,255,0.7)' }}>Tools</span>
+                <div className="lg-show hidden flex-1 items-center justify-center relative p-12">
+                    <div className="relative z-[2] flex flex-col items-center text-center max-w-lg">
+                        <img src={SrmLogo} alt="SRM" className="h-32 w-32 mb-8 drop-shadow-2xl" loading="eager" />
+                        <h1 className="text-white text-5xl font-extrabold tracking-tight leading-tight mb-3">
+                            Smyrna <span className="text-white/70">Tools</span>
                         </h1>
-                        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', lineHeight: 1.6, margin: 0 }}>
+                        <p className="text-white/50 text-lg leading-relaxed mb-10 max-w-sm">
                             Fleet management and operations platform for concrete delivery excellence.
                         </p>
                         <StatsDisplay stats={animatedStats} />

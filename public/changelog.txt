@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.1] - 2026-03-03
+
+- Updated the styling and layout of the StatsDisplay component on the login view to use Tailwind CSS classes for a more consistent and modern look, including centered text, adjusted font sizes, and better spacing.
+- Revamped the login view's branding section for larger screens by replacing inline styles with Tailwind CSS classes, improving the layout with a centered design, and enhancing the visual presentation of the Smyrna Tools logo and text with drop shadows and refined typography.
+
 ## [18.0] - 2026-03-02
 
 - Refactored the ChangelogView component to use Tailwind CSS classes for styling, replacing inline styles with a more consistent and maintainable approach.
