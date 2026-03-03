@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.4] - 2026-03-03
+
+- Removed fallback logic instruction from Copilot guidelines in `.github/copilot-instructions.md` to streamline development guidance.
+- Refactored `auth-service` to improve code organization by extracting utility functions like `isValidEmail`, `passwordStrength`, `generateSalt`, `bytesToHex`, `hashPassword`, `sanitizeEmail`, and `nowISO` directly into the service file, replacing the previous `AuthUtility` object.
+- Updated `auth-service` to use shared utility functions from `../_shared/cors.ts` for consistent response handling with `jsonResponse` and `errorResponse`.
+- Consolidated constants in `auth-service` such as `USERS_TABLE`, `PROFILES_TABLE`, `PREFERENCES_TABLE`, `SESSION_RESTORE_TIMEOUT`, `MIN_PASSWORD_LENGTH`, `WEAK_THRESHOLD`, `MEDIUM_THRESHOLD`, `EMAIL_REGEX`, and `SPECIAL_CHAR_REGEX` at the top of the file for better maintainability.
+- Simplified endpoint handling in multiple services (`auth-service`, `auth-utility`, `crypto-utility`, `database-service`, `list-service`, `operator-service`, `plan-service`, `plant-service`, `region-service`, `report-service`, `user-preferences-service`, `user-presence-service`, `user-utility`) by reducing code duplication and improving readability through modularized response handling and utility functions.
+
 ## [18.3] - 2026-03-03
 
 - Added a new shared CORS utility module in `supabase/functions/_shared/cors.ts` to standardize CORS handling across serverless functions with predefined allowed origins and helper functions for response formatting.

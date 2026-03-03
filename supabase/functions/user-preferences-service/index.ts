@@ -1,12 +1,37 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 // @ts-ignore
-import {getCorsHeaders, handleOptions} from "../_shared/cors.ts";
+import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
+
+const PREFERENCES_TABLE = "users_preferences";
+
+async function parseBody(req: Request): Promise<any> {
+    try { return await req.json(); } catch { return {}; }
+}
+
+function requireStringId(body: any, key: string): string | null {
+    const val = body?.[key];
+    return typeof val === "string" && val ? val : null;
+}
+
+function nowISO(): string {
+    return new Date().toISOString();
+}
+
+async function upsertPreference(supabase: any, userId: string, field: string, value: unknown, headers: Record<string, string>): Promise<Response> {
+    const now = nowISO();
+    const {error} = await supabase.from(PREFERENCES_TABLE).upsert(
+        {user_id: userId, [field]: value, updated_at: now, created_at: now},
+        {onConflict: "user_id"}
+    );
+    if (error) return errorResponse(error.message, headers, 400);
+    return jsonResponse({success: true}, headers);
+}
 
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
-    const corsHeaders = getCorsHeaders(origin);
+    const headers = getCorsHeaders(origin);
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
@@ -18,124 +43,31 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "get": {
-                let body: any;
-                try {
-                    body = await req.json();
-                } catch {
-                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                const {userId} = body || {};
-                if (typeof userId !== "string" || !userId) return new Response(JSON.stringify({error: "User ID is required"}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                const {data, error} = await supabase
-                    .from("users_preferences")
-                    .select("*")
-                    .eq("user_id", userId)
-                    .maybeSingle();
-                if (error) return new Response(JSON.stringify({error: error.message}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                return new Response(JSON.stringify({data: data ?? null}), {headers: corsHeaders});
+                const body = await parseBody(req);
+                const userId = requireStringId(body, "userId");
+                if (!userId) return errorResponse("User ID is required", headers, 400);
+                const {data, error} = await supabase.from(PREFERENCES_TABLE).select("*").eq("user_id", userId).maybeSingle();
+                if (error) return errorResponse(error.message, headers, 400);
+                return jsonResponse({data: data ?? null}, headers);
             }
             case "save-mixer-filters": {
-                let body: any;
-                try {
-                    body = await req.json();
-                } catch {
-                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                const {userId, filters} = body || {};
-                if (typeof userId !== "string" || !userId) return new Response(JSON.stringify({error: "User ID is required"}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                if (filters == null) return new Response(JSON.stringify({error: "Filters are required"}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                const now = new Date().toISOString();
-                const {data: existing, error: selectError} = await supabase
-                    .from("users_preferences")
-                    .select("id")
-                    .eq("user_id", userId);
-                if (selectError) return new Response(JSON.stringify({error: selectError.message}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                if (existing && existing.length > 0) {
-                    const {error} = await supabase
-                        .from("users_preferences")
-                        .update({mixer_filters: filters, updated_at: now})
-                        .eq("user_id", userId);
-                    if (error) return new Response(JSON.stringify({error: error.message}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                } else {
-                    const {error} = await supabase
-                        .from("users_preferences")
-                        .insert({user_id: userId, mixer_filters: filters, created_at: now, updated_at: now});
-                    if (error) return new Response(JSON.stringify({error: error.message}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+                const body = await parseBody(req);
+                const userId = requireStringId(body, "userId");
+                if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (body.filters == null) return errorResponse("Filters are required", headers, 400);
+                return upsertPreference(supabase, userId, "mixer_filters", body.filters, headers);
             }
             case "save-last-viewed-filters": {
-                let body: any;
-                try {
-                    body = await req.json();
-                } catch {
-                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                const {userId, filters} = body || {};
-                if (typeof userId !== "string" || !userId) return new Response(JSON.stringify({error: "User ID is required"}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                if (filters == null) return new Response(JSON.stringify({error: "Filters are required"}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                const now = new Date().toISOString();
-                const {error} = await supabase
-                    .from("users_preferences")
-                    .upsert({
-                        user_id: userId,
-                        last_viewed_filters: filters,
-                        updated_at: now,
-                        created_at: now
-                    }, {onConflict: "user_id"});
-                if (error) return new Response(JSON.stringify({error: error.message}), {
-                    status: 400,
-                    headers: corsHeaders
-                });
-                return new Response(JSON.stringify({success: true}), {headers: corsHeaders});
+                const body = await parseBody(req);
+                const userId = requireStringId(body, "userId");
+                if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (body.filters == null) return errorResponse("Filters are required", headers, 400);
+                return upsertPreference(supabase, userId, "last_viewed_filters", body.filters, headers);
             }
             default:
-                return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {
-                    status: 404,
-                    headers: corsHeaders
-                });
+                return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: "Internal server error",
-            message: (error as Error).message
-        }), {status: 500, headers: corsHeaders});
+        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
     }
 });
-

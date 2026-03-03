@@ -1,142 +1,112 @@
 // @ts-ignore
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 // @ts-ignore
-import {getCorsHeaders, handleOptions} from "../_shared/cors.ts";
+import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 
 const PWD_HASH_TIMEOUT = 5000;
+const MIN_PASSWORD_LENGTH = 8;
+const WEAK_THRESHOLD = 3;
+const MEDIUM_THRESHOLD = 5;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 
+function bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function scorePassword(password: string): number {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (SPECIAL_CHAR_REGEX.test(password)) score++;
+    return score;
+}
+
+function strengthLabel(score: number): string {
+    return score < WEAK_THRESHOLD ? "weak" : score < MEDIUM_THRESHOLD ? "medium" : "strong";
+}
+
+async function sha256Hex(input: string): Promise<string> {
+    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+    return bytesToHex(new Uint8Array(hash));
+}
+
+function fallbackHash(input: string): string {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+        hash = (hash << 5) - hash + input.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return (hash >>> 0).toString(16);
+}
 
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
-    const corsHeaders = getCorsHeaders(origin);
+    const headers = getCorsHeaders(origin);
     try {
         const url = new URL(req.url);
         const endpoint = url.pathname.split("/").pop();
         const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
-            global: {
-                headers: {
-                    Authorization: req.headers.get("Authorization") || ""
-                }
-            }
+            global: {headers: {Authorization: req.headers.get("Authorization") || ""}}
         });
+
         switch (endpoint) {
             case "password-strength": {
                 const {password} = await req.json();
-                if (!password || password.length < 8) {
-                    return new Response(JSON.stringify({value: "weak"}), {headers: corsHeaders});
-                }
-                let score = 0;
-                if (password.length >= 8) score++;
-                if (password.length >= 12) score++;
-                if (/[A-Z]/.test(password)) score++;
-                if (/[a-z]/.test(password)) score++;
-                if (/[0-9]/.test(password)) score++;
-                if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-                let result;
-                if (score < 3) {
-                    result = "weak";
-                } else if (score < 5) {
-                    result = "medium";
-                } else {
-                    result = "strong";
-                }
-                return new Response(JSON.stringify({value: result}), {headers: corsHeaders});
+                if (!password || password.length < MIN_PASSWORD_LENGTH) return jsonResponse({value: "weak"}, headers);
+                return jsonResponse({value: strengthLabel(scorePassword(password))}, headers);
             }
             case "email-is-valid": {
                 const {email} = await req.json();
-                if (!email) {
-                    return new Response(JSON.stringify({error: "Email is required"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                return new Response(JSON.stringify({isValid}), {headers: corsHeaders});
+                if (!email) return errorResponse("Email is required", headers, 400);
+                return jsonResponse({isValid: EMAIL_REGEX.test(email)}, headers);
             }
             case "normalize-name": {
                 const {name} = await req.json();
-                if (!name) {
-                    return new Response(JSON.stringify({error: "Name is required"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
-                const n = name.replace(/\s+/g, "");
-                const normalizedName = n ? n.charAt(0).toUpperCase() + n.slice(1).toLowerCase() : "";
-                return new Response(JSON.stringify({normalizedName}), {headers: corsHeaders});
+                if (!name) return errorResponse("Name is required", headers, 400);
+                const stripped = name.replace(/\s+/g, "");
+                const normalizedName = stripped ? stripped.charAt(0).toUpperCase() + stripped.slice(1).toLowerCase() : "";
+                return jsonResponse({normalizedName}, headers);
             }
             case "generate-salt": {
                 const randomBytes = new Uint8Array(16);
                 crypto.getRandomValues(randomBytes);
-                const salt = Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-                return new Response(JSON.stringify({salt}), {headers: corsHeaders});
+                return jsonResponse({salt: bytesToHex(randomBytes)}, headers);
             }
             case "hash-password": {
-                let requestBody;
+                let body;
                 try {
-                    requestBody = await req.json();
-                } catch (err) {
-                    console.error("Error parsing request body:", err);
-                    return new Response(JSON.stringify({error: "Invalid JSON in request body"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
+                    body = await req.json();
+                } catch {
+                    return errorResponse("Invalid JSON in request body", headers, 400);
                 }
-                const {password, salt} = requestBody;
-                if (!password || !salt) {
-                    return new Response(JSON.stringify({error: "Password and salt are required"}), {
-                        status: 400,
-                        headers: corsHeaders
-                    });
-                }
+                const {password, salt} = body;
+                if (!password || !salt) return errorResponse("Password and salt are required", headers, 400);
                 try {
-                    const data = password + salt;
-                    const encoder = new TextEncoder();
-                    const dataBuffer = encoder.encode(data);
-                    const hashPromise = crypto.subtle.digest("SHA-256", dataBuffer).then((hash) => {
-                        return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
-                    });
+                    const hashPromise = sha256Hex(password + salt);
                     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Password hash timed out")), PWD_HASH_TIMEOUT));
                     const hash = await Promise.race([hashPromise, timeoutPromise]);
-                    return new Response(JSON.stringify({hash}), {headers: corsHeaders});
-                } catch (error) {
-                    console.error("Error in crypto API, using fallback:", error);
-                    const data = password + salt;
-                    let hash = 0;
-                    for (let i = 0; i < data.length; i++) {
-                        const char = data.charCodeAt(i);
-                        hash = (hash << 5) - hash + char;
-                        hash = hash & hash;
-                    }
-                    const syncHash = (hash >>> 0).toString(16);
-                    return new Response(JSON.stringify({hash: syncHash, fallback: true}), {headers: corsHeaders});
+                    return jsonResponse({hash}, headers);
+                } catch {
+                    return jsonResponse({hash: fallbackHash(password + salt), fallback: true}, headers);
                 }
             }
             case "get-user-id": {
                 try {
                     const {data} = await supabase.auth.getSession();
-                    const userId = data?.session?.user?.id || null;
-                    return new Response(JSON.stringify({userId}), {headers: corsHeaders});
+                    return jsonResponse({userId: data?.session?.user?.id ?? null}, headers);
                 } catch (error) {
-                    console.error("Error getting user session:", error);
-                    return new Response(JSON.stringify({
-                        userId: null,
-                        error: (error as Error).message
-                    }), {headers: corsHeaders});
+                    return jsonResponse({userId: null, error: (error as Error).message}, headers);
                 }
             }
             default:
-                return new Response(JSON.stringify({error: "Invalid endpoint", path: url.pathname}), {
-                    status: 404,
-                    headers: corsHeaders
-                });
+                return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        console.error("Unhandled error:", error);
-        return new Response(JSON.stringify({
-            error: "Internal server error",
-            message: (error as Error).message
-        }), {status: 500, headers: corsHeaders});
+        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
     }
 });
