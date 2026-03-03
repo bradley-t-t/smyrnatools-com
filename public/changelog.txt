@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.5] - 2026-03-03
+
+- Refactored UserService.js to improve code organization and readability by introducing new constants and helper functions for better modularity.
+- Added new utility functions in UserService.js, including `checkPermission` for streamlined permission checks, `safelyFetchRegions` for robust region fetching, `findMatchingRegion` for region matching by code or name, and `throwFirstError` for error handling in Supabase queries.
+- Updated session storage keys in UserService.js to use `SESSION_KEY` ('smyrna_session') and `SESSION_FALLBACK_KEY` ('userId') for fetching the current user.
+- Introduced new constants in UserService.js for user management, such as `UNKNOWN_USER` for default user fallback, `DEFAULT_ROLE_NAME` as 'User', `ALWAYS_PERMITTED` for 'my_account.view', and `ALL_REGIONS_PERMISSION` for 'regions.select.all'.
+- Renamed table constant in UserService.js from `USERS_PROFILES_TABLE` to `PROFILES_TABLE` for consistency.
+- Simplified permission check methods (`hasPermission`, `hasAnyPermission`, `hasAllPermissions`) in UserService.js to use the new `checkPermission` helper for consistent behavior.
+- Enhanced error handling and input validation in UserService.js by consolidating entity ID resolution and improving query safety in profile field fetching.
+
 ## [18.4] - 2026-03-03
 
 - Introduced a new shared utility file `asset-helpers.ts` in the `supabase/functions/_shared` directory to centralize common logic for asset management services, including functions for timestamp handling, data normalization, user ID resolution, and diff computation for tracking changes.

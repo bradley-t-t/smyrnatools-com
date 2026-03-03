@@ -4,20 +4,34 @@ import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 
 const USER_FUNCTION = '/user-service'
-const USERS_PROFILES_TABLE = 'users_profiles'
+const PROFILES_TABLE = 'users_profiles'
 const USER_ID_REQUIRED = 'User ID is required'
+const SESSION_KEY = 'smyrna_session'
+const SESSION_FALLBACK_KEY = 'userId'
+const UNKNOWN_USER = { id: 'unknown', name: 'Unknown User' }
+const DEFAULT_ROLE_NAME = 'User'
+const ALWAYS_PERMITTED = 'my_account.view'
+const ALL_REGIONS_PERMISSION = 'regions.select.all'
 
-const fallbackUserName = (userId) => `User ${userId.slice(0, 8)}`
-
+/** Centralized API helper for all user-service endpoints. */
 const postUser = (endpoint, body, options) => APIUtility.post(`${USER_FUNCTION}/${endpoint}`, body, options)
 
 const resolveUser = (userId) => requireEntityId(userId, USER_ID_REQUIRED)
 
+const fallbackName = (userId) => `User ${userId.slice(0, 8)}`
+
+/**
+ * Fetches a single profile field directly from the database.
+ * More efficient than fetching entire profile records when only one field is needed.
+ */
 const fetchProfileField = async (userId, field) => {
     if (!userId) return ''
-    const id = resolveEntityId(userId)
     try {
-        const { data, error } = await supabase.from(USERS_PROFILES_TABLE).select(field).eq('id', id).maybeSingle()
+        const { data, error } = await supabase
+            .from(PROFILES_TABLE)
+            .select(field)
+            .eq('id', resolveEntityId(userId))
+            .maybeSingle()
         if (error) throw error
         return data?.[field] || ''
     } catch {
@@ -25,12 +39,48 @@ const fetchProfileField = async (userId, field) => {
     }
 }
 
-class UserServiceImpl {
-    constructor() {
-        this.userProfileCache = new Map()
-        this.userRolesCache = new Map()
-        this.rolesPermissionsCache = new Map()
+/** Shared guard + postUser pattern for permission-check endpoints. */
+const checkPermission = async (userId, endpoint, payload) => {
+    if (!userId) return false
+    const { json } = await postUser(endpoint, { ...payload, userId: resolveEntityId(userId) })
+    return !!json
+}
+
+/** Safely fetches regions, returning empty array on failure. */
+const safelyFetchRegions = async (fetcher) => {
+    try {
+        return await fetcher()
+    } catch {
+        return []
     }
+}
+
+/** Matches a profile region string against all available regions by code or name. */
+const findMatchingRegion = (normalizedInput, allRegions) =>
+    allRegions.find((r) => {
+        const code = String(r.regionCode || '')
+            .toLowerCase()
+            .trim()
+        const name = String(r.regionName || '')
+            .toLowerCase()
+            .trim()
+        return code === normalizedInput || name === normalizedInput
+    })
+
+/** Throws the first error found in an array of Supabase query results. */
+const throwFirstError = (results) => {
+    const firstError = results.find((r) => r.error)?.error
+    if (firstError) throw firstError
+}
+
+/**
+ * Centralized user management service.
+ * Handles authentication state, profiles, roles, permissions, and region access.
+ */
+class UserServiceImpl {
+    userProfileCache = new Map()
+    userRolesCache = new Map()
+    rolesPermissionsCache = new Map()
 
     clearCache() {
         this.userRolesCache.clear()
@@ -38,26 +88,26 @@ class UserServiceImpl {
     }
 
     async getCurrentUser() {
-        const userId = localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId')
+        const userId = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_FALLBACK_KEY)
         return userId ? { id: userId } : null
     }
 
     async getUserById(userId) {
-        if (!userId) return { id: 'unknown', name: 'Unknown User' }
+        if (!userId) return UNKNOWN_USER
 
         if (this.userProfileCache.has(userId)) {
             const cached = this.userProfileCache.get(userId)
             return {
                 email: cached.email,
                 id: userId,
-                name: cached.displayName || cached.name || fallbackUserName(userId)
+                name: cached.displayName || cached.name || fallbackName(userId)
             }
         }
 
         const { json } = await postUser('user-by-id', { userId })
 
         if (!json?.id) {
-            const basicUser = { id: userId, name: fallbackUserName(userId) }
+            const basicUser = { id: userId, name: fallbackName(userId) }
             this.userProfileCache.set(userId, basicUser)
             return basicUser
         }
@@ -66,7 +116,7 @@ class UserServiceImpl {
         return {
             email: json.email,
             id: json.id,
-            name: json.name || json.email?.split('@')[0] || fallbackUserName(userId)
+            name: json.name || json.email?.split('@')[0] || fallbackName(userId)
         }
     }
 
@@ -115,50 +165,40 @@ class UserServiceImpl {
     }
 
     async getUserProfile(userId) {
-        const id = resolveUser(userId)
-        const { json } = await postUser('user-profile', { userId: id })
+        const { json } = await postUser('user-profile', { userId: resolveUser(userId) })
         return json
     }
 
     async getUserPermissions(userId) {
-        const id = resolveUser(userId)
-        const { json } = await postUser('user-permissions', { userId: id })
+        const { json } = await postUser('user-permissions', { userId: resolveUser(userId) })
         return json ?? []
     }
 
     async hasPermission(userId, permission) {
-        if (!userId || !permission) return false
-        if (permission === 'my_account.view') return true
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('has-permission', { permission, userId: id })
-        return !!json
+        if (!permission) return false
+        if (permission === ALWAYS_PERMITTED) return true
+        return checkPermission(userId, 'has-permission', { permission })
     }
 
     async hasAnyPermission(userId, permissions) {
-        if (!userId || !permissions?.length) return false
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('has-any-permission', { permissions, userId: id })
-        return !!json
+        if (!permissions?.length) return false
+        return checkPermission(userId, 'has-any-permission', { permissions })
     }
 
     async hasAllPermissions(userId, permissions) {
-        if (!userId || !permissions?.length) return false
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('has-all-permissions', { permissions, userId: id })
-        return !!json
+        if (!permissions?.length) return false
+        return checkPermission(userId, 'has-all-permissions', { permissions })
     }
 
     async getMenuVisibility(userId, requiredPermissions = {}) {
         if (!userId) return {}
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('menu-visibility', { requiredPermissions, userId: id })
+        const { json } = await postUser('menu-visibility', { requiredPermissions, userId: resolveEntityId(userId) })
         return json ?? {}
     }
 
     async getHighestRole(userId) {
         if (!userId) return null
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('highest-role', { userId: id }, { skipAuthCheck: true })
+        const { json } = await postUser('highest-role', { userId: resolveEntityId(userId) }, { skipAuthCheck: true })
         return json
     }
 
@@ -201,8 +241,7 @@ class UserServiceImpl {
 
     async getUserPlant(userId) {
         if (!userId) return null
-        const id = resolveEntityId(userId)
-        const { json } = await postUser('user-plant', { userId: id })
+        const { json } = await postUser('user-plant', { userId: resolveEntityId(userId) })
         return json ?? null
     }
 
@@ -215,27 +254,21 @@ class UserServiceImpl {
     }
 
     async getAllUsersWithProfilesAndRoles() {
-        const [
-            { data: users, error: usersError },
-            { data: profiles, error: profilesError },
-            { data: permissions, error: permissionsError },
-            { data: rolesList, error: rolesError }
-        ] = await Promise.all([
+        const results = await Promise.all([
             supabase.from('users').select('id, email, created_at, updated_at'),
-            supabase.from(USERS_PROFILES_TABLE).select('id, first_name, last_name, plant_code, created_at, updated_at'),
+            supabase.from(PROFILES_TABLE).select('id, first_name, last_name, plant_code, created_at, updated_at'),
             supabase.from('users_permissions').select('user_id, role_id'),
             supabase.from('users_roles').select('id, name, weight')
         ])
 
-        if (usersError) throw usersError
-        if (profilesError) throw profilesError
-        if (permissionsError) throw permissionsError
-        if (rolesError) throw rolesError
+        throwFirstError(results)
+
+        const [{ data: users }, { data: profiles }, { data: permissions }, { data: rolesList }] = results
 
         return users.map((user) => {
             const profile = profiles.find((p) => p.id === user.id) ?? {}
-            const permission = permissions.find((p) => p.user_id === user.id) ?? {}
-            const role = permission.role_id ? rolesList.find((r) => r.id === permission.role_id) : null
+            const permission = permissions.find((p) => p.user_id === user.id)
+            const role = permission?.role_id ? rolesList.find((r) => r.id === permission.role_id) : null
             return {
                 createdAt: user.created_at,
                 email: user.email,
@@ -243,28 +276,26 @@ class UserServiceImpl {
                 id: user.id,
                 lastName: profile.last_name || '',
                 plantCode: profile.plant_code || '',
-                roleName: role?.name || 'User',
+                roleName: role?.name || DEFAULT_ROLE_NAME,
                 roleWeight: role?.weight || 0,
                 updatedAt: user.updated_at
             }
         })
     }
 
+    /**
+     * Resolves which regions a user is permitted to access.
+     * Falls back through: all-regions permission → profile regions → plant code lookup.
+     */
     async getPermittedRegions(userId) {
         if (!userId) return []
         const id = resolveEntityId(userId)
 
-        const hasAllRegionsPermission = await this.hasPermission(id, 'regions.select.all').catch(() => false)
-        if (hasAllRegionsPermission) {
-            try {
-                return await RegionService.fetchRegions()
-            } catch {
-                return []
-            }
-        }
+        const hasAllRegions = await this.hasPermission(id, ALL_REGIONS_PERMISSION).catch(() => false)
+        if (hasAllRegions) return safelyFetchRegions(() => RegionService.fetchRegions())
 
         const { data: profile } = await supabase
-            .from(USERS_PROFILES_TABLE)
+            .from(PROFILES_TABLE)
             .select('plant_code, regions')
             .eq('id', id)
             .maybeSingle()
@@ -275,28 +306,15 @@ class UserServiceImpl {
 
         if (!profileRegions.length) {
             if (!profile?.plant_code) return []
-            try {
-                return await RegionService.fetchRegionsByPlantCode(profile.plant_code)
-            } catch {
-                return []
-            }
+            return safelyFetchRegions(() => RegionService.fetchRegionsByPlantCode(profile.plant_code))
         }
 
-        try {
+        return safelyFetchRegions(async () => {
             const allRegions = await RegionService.fetchRegions()
             const addedCodes = new Set()
 
-            const permitted = profileRegions.reduce((acc, profileRegion) => {
-                const normalizedProfileRegion = profileRegion.toLowerCase().trim()
-                const match = allRegions.find((r) => {
-                    const code = String(r.regionCode || '')
-                        .toLowerCase()
-                        .trim()
-                    const name = String(r.regionName || '')
-                        .toLowerCase()
-                        .trim()
-                    return code === normalizedProfileRegion || name === normalizedProfileRegion
-                })
+            const permitted = profileRegions.reduce((acc, regionStr) => {
+                const match = findMatchingRegion(regionStr.toLowerCase().trim(), allRegions)
                 if (match && !addedCodes.has(match.regionCode)) {
                     addedCodes.add(match.regionCode)
                     acc.push(match)
@@ -305,11 +323,9 @@ class UserServiceImpl {
             }, [])
 
             if (permitted.length) return permitted
-            if (profile?.plant_code) return await RegionService.fetchRegionsByPlantCode(profile.plant_code)
+            if (profile?.plant_code) return RegionService.fetchRegionsByPlantCode(profile.plant_code)
             return []
-        } catch {
-            return []
-        }
+        })
     }
 }
 
