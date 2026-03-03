@@ -147,8 +147,9 @@ class AIInsightsServiceClass {
 
     /** Generates a role-aware, tone-adjusted summary for a specific plant's performance. */
     async generatePlantSummary(plantData) {
-        const { roleName, isViewingOwnPlant, assignedPlant } = plantData.userContext ?? {}
-        const systemPrompt = `${getRoleContext(roleName, isViewingOwnPlant, assignedPlant)}${getToneModifier(plantData.plantCode)}\n\n${PLANT_SUMMARY_BASE}`
+        const { roleName, isViewingOwnPlant, assignedPlant, roleWeight } = plantData.userContext ?? {}
+        const roleContext = await getRoleContext(roleName, isViewingOwnPlant, assignedPlant, roleWeight)
+        const systemPrompt = `${roleContext}${getToneModifier(plantData.plantCode)}\n\n${PLANT_SUMMARY_BASE}`
         const result = await this.callAPI(systemPrompt, this.formatPlantSummaryData(plantData), {
             model: FAST_MODEL,
             temperature: 0.5

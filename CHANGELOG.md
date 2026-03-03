@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.9] - 2026-03-03
+
+- Added a lazy loading retry mechanism with page reload in App.js to handle failed dynamic imports of view components, ensuring a smoother user experience by clearing stale chunk hashes on the first failure.
+- Updated AI context in context.json to refine the validation rules for plant manager metrics, focusing on identifying obvious data entry errors with specific thresholds for YPH, hours, and yardage.
+- Enhanced AI service functionality in AIService.js to improve data validation and error detection logic for weekly reports.
+- Improved report generation in ReportService.js by incorporating additional checks or data handling to support accurate reporting.
+
 ## [18.8] - 2026-03-03
 
 - Added detailed JSDoc comments to various model classes for better code documentation and clarity, including Equipment, Mixer, Operator, PickupTruck, Tractor, Trailer, and related comment and history models.

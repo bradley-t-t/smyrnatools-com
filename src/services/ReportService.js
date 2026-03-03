@@ -66,6 +66,11 @@ class ReportServiceImpl {
     }
 
     /** Formats a Date as M-D-YY. */
+    /** Formats two Date objects into a "MM-DD-YY through MM-DD-YY" range string. */
+    getWeekRangeString(monday, saturday) {
+        return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
+    }
+
     formatDateMMDDYY(date) {
         const mm = date.getMonth() + 1
         const dd = date.getDate()

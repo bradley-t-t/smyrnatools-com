@@ -19,27 +19,41 @@ import { useTutorial } from './context/TutorialContext'
 import { useAuth } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
 
-const AppInstallPromptModal = lazy(() => import('./components/common/AppInstallPromptModal'))
-const CalculatorView = lazy(() => import('../views/calculator/CalculatorView'))
-const DashboardView = lazy(() => import('../views/dashboard/DashboardView'))
-const EquipmentsView = lazy(() => import('../views/equipment/EquipmentsView'))
-const LeaderboardsView = lazy(() => import('../views/leaderboards/LeaderboardsView'))
-const ListDetailView = lazy(() => import('../views/list/ListDetailView'))
-const ListView = lazy(() => import('../views/list/ListView'))
-const MaintenanceView = lazy(() => import('../views/maintenance/MaintenanceView'))
-const ManagersView = lazy(() => import('../views/managers/ManagersView'))
-const MixerDetailView = lazy(() => import('../views/mixers/MixerDetailView'))
-const MixersView = lazy(() => import('../views/mixers/MixersView'))
-const MyAccountView = lazy(() => import('../views/myaccount/MyAccountView'))
-const OperatorsView = lazy(() => import('../views/operators/OperatorsView'))
-const PickupTrucksView = lazy(() => import('../views/pickup-trucks/PickupTrucksView'))
-const PlanView = lazy(() => import('../views/plan/PlanView'))
-const PlantsView = lazy(() => import('../views/plants/PlantsView'))
-const RegionsView = lazy(() => import('../views/regions/RegionsView'))
-const ReportsView = lazy(() => import('../views/reports/ReportsView'))
-const RolesView = lazy(() => import('../views/roles/RolesView'))
-const TractorsView = lazy(() => import('../views/tractors/TractorsView'))
-const TrailersView = lazy(() => import('../views/trailers/TrailersView'))
+const CHUNK_RELOAD_KEY = 'chunk_reload_attempted'
+
+/** Retries a failed dynamic import once by forcing a full page reload to clear stale chunk hashes. */
+const lazyWithRetry = (importer) =>
+    lazy(() =>
+        importer().catch(() => {
+            if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+                sessionStorage.setItem(CHUNK_RELOAD_KEY, '1')
+                window.location.reload()
+            }
+            return importer()
+        })
+    )
+
+const AppInstallPromptModal = lazyWithRetry(() => import('./components/common/AppInstallPromptModal'))
+const CalculatorView = lazyWithRetry(() => import('../views/calculator/CalculatorView'))
+const DashboardView = lazyWithRetry(() => import('../views/dashboard/DashboardView'))
+const EquipmentsView = lazyWithRetry(() => import('../views/equipment/EquipmentsView'))
+const LeaderboardsView = lazyWithRetry(() => import('../views/leaderboards/LeaderboardsView'))
+const ListDetailView = lazyWithRetry(() => import('../views/list/ListDetailView'))
+const ListView = lazyWithRetry(() => import('../views/list/ListView'))
+const MaintenanceView = lazyWithRetry(() => import('../views/maintenance/MaintenanceView'))
+const ManagersView = lazyWithRetry(() => import('../views/managers/ManagersView'))
+const MixerDetailView = lazyWithRetry(() => import('../views/mixers/MixerDetailView'))
+const MixersView = lazyWithRetry(() => import('../views/mixers/MixersView'))
+const MyAccountView = lazyWithRetry(() => import('../views/myaccount/MyAccountView'))
+const OperatorsView = lazyWithRetry(() => import('../views/operators/OperatorsView'))
+const PickupTrucksView = lazyWithRetry(() => import('../views/pickup-trucks/PickupTrucksView'))
+const PlanView = lazyWithRetry(() => import('../views/plan/PlanView'))
+const PlantsView = lazyWithRetry(() => import('../views/plants/PlantsView'))
+const RegionsView = lazyWithRetry(() => import('../views/regions/RegionsView'))
+const ReportsView = lazyWithRetry(() => import('../views/reports/ReportsView'))
+const RolesView = lazyWithRetry(() => import('../views/roles/RolesView'))
+const TractorsView = lazyWithRetry(() => import('../views/tractors/TractorsView'))
+const TrailersView = lazyWithRetry(() => import('../views/trailers/TrailersView'))
 
 /** Views only available when region type is "Office". */
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
@@ -97,6 +111,10 @@ function AppContent() {
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
     useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView)
     const { triggerTutorial } = useTutorial()
+
+    useEffect(() => {
+        sessionStorage.removeItem(CHUNK_RELOAD_KEY)
+    }, [])
 
     useEffect(() => {
         if (userId && rolesLoaded) {
