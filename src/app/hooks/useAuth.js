@@ -1,5 +1,10 @@
 import { useEffect } from 'react'
 
+/**
+ * Manages authentication session lifecycle on app mount.
+ * Restores sessions from storage, loads user roles, handles sign-in/sign-out events,
+ * and gates guest-only users to a restricted view.
+ */
 export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView) {
     useEffect(() => {
         const initSession = async () => {

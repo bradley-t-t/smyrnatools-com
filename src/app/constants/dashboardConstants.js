@@ -1,7 +1,11 @@
+/** Dashboard cache key for localStorage persistence. */
 export const DASHBOARD_CACHE_KEY = 'dashboard_assets_cache_v1'
+/** Cache time-to-live: 2 minutes. */
 export const DASHBOARD_CACHE_TTL_MS = 120000
+/** Auto-refresh interval: 10 minutes. */
 export const DASHBOARD_REFRESH_INTERVAL_MS = 600000
 
+/** Color mapping for asset status badges and charts. */
 export const STATUS_COLORS = {
     Active: '#22c55e',
     'In Shop': '#3b82f6',
@@ -10,11 +14,13 @@ export const STATUS_COLORS = {
     Stationary: '#eab308'
 }
 
+/** Percentage thresholds for fleet allocation health indicators. */
 export const ALLOCATION_THRESHOLDS = {
     HIGH: 80,
     MEDIUM: 50
 }
 
+/** Zero-state structure for all dashboard statistics categories. */
 export const INITIAL_STATS = {
     equipment: { active: 0, allocationPercent: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 },
     fleetTotal: 0,
@@ -79,6 +85,7 @@ export const INITIAL_STATS = {
     verificationAverage: 0
 }
 
+/** Zero-state structure for per-plant notification/alert data. */
 export const INITIAL_PLANT_NOTIFICATIONS = {
     aiSummary: null,
     aiSummaryFailed: false,
@@ -96,6 +103,7 @@ export const INITIAL_PLANT_NOTIFICATIONS = {
     unverifiedMixers: []
 }
 
+/** Default collapsed state for plant notification accordion sections. */
 export const INITIAL_EXPANDED_SECTIONS = {
     assetsWithIssues: false,
     longTermShop: false,
@@ -106,6 +114,7 @@ export const INITIAL_EXPANDED_SECTIONS = {
     unverifiedMixers: false
 }
 
+/** Available date range filter options for status history charts. */
 export const DATE_FILTER_OPTIONS = [
     'last-week',
     'this-week',
@@ -118,9 +127,12 @@ export const DATE_FILTER_OPTIONS = [
     'all'
 ]
 
+/** Known tractor freight type categories. */
 export const TRACTOR_FREIGHT_TYPES = ['Cement', 'Aggregate', 'Dump Truck', 'Other']
+/** Known trailer type categories. */
 export const TRAILER_TYPES = ['Cement', 'End Dump']
 
+/** FontAwesome icon class mapping for tractor freight types. */
 export const FREIGHT_ICONS = {
     Aggregate: 'fa-mountain',
     Cement: 'fa-industry',
@@ -128,6 +140,7 @@ export const FREIGHT_ICONS = {
     Other: 'fa-truck'
 }
 
+/** FontAwesome icon class mapping for asset type categories. */
 export const ASSET_ICONS = {
     Equipment: 'fa-snowplow',
     Mixer: 'fa-truck',

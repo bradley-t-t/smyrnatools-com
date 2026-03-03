@@ -2,6 +2,17 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [18.6] - 2026-03-03
+
+- Added new AI prompt templates and tone modifiers in the AI module, including role-aware context and special handling for favorite plants to adjust the tone of responses.
+- Introduced region-based view filtering in the App component, with specific visibility rules for Office and Aggregate region types, and default hidden views for other regions.
+- Enhanced dashboard constants with new cache keys, refresh intervals, and color mappings for asset status and allocation thresholds, along with initial state structures for stats and notifications.
+- Expanded history constants with mappings for asset types to CRUD services, history fetching methods, Supabase table names, and issue management services, plus color codings for status and severity.
+- Added new context providers for authentication, user preferences, and tutorials to manage global state across the application.
+- Implemented a variety of custom hooks for managing dashboard data, maintenance forms, notifications, offline detection, and real-time subscriptions, improving data handling and UI responsiveness.
+- Introduced new service modules for AI, app installation prompts, database operations, maintenance, notifications, and various asset types like mixers, tractors, and trailers, centralizing business logic.
+- Enhanced existing services like EquipmentService, OperatorService, ReportService, TrailerService, and UserPresenceService with additional methods and improved functionality for data retrieval and management.
+
 ## [18.5] - 2026-03-03
 
 - Refactored UserService.js to improve code organization and readability by introducing new constants and helper functions for better modularity.

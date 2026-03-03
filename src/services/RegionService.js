@@ -2,9 +2,15 @@ import Region from '../models/regions/Region'
 import APIUtility from '../utils/APIUtility'
 import { UserService } from './UserService'
 
+/**
+ * Region CRUD and plant-to-region mapping service.
+ * Manages organizational hierarchy (regions contain plants) with an in-memory cache.
+ * Includes retry logic for region plant fetching to handle transient network issues.
+ */
 class RegionServiceImpl {
     allRegions = []
 
+    /** Fetches all regions from the API and updates the local cache. */
     async fetchRegions() {
         const { res, json } = await APIUtility.post('/region-service/fetch-regions')
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch regions')
@@ -13,6 +19,7 @@ class RegionServiceImpl {
         return data.map((row) => Region.fromRow(row))
     }
 
+    /** Fetches a single region by code, using the cache first. */
     async fetchRegionByCode(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
         const region = this.getRegionByCode(regionCode)
@@ -23,16 +30,19 @@ class RegionServiceImpl {
         return data ? Region.fromRow(data) : null
     }
 
+    /** Looks up a region in the local cache by code. */
     getRegionByCode(regionCode) {
         const region = this.allRegions.find((r) => r.region_code === regionCode)
         return region ? Region.fromRow(region) : null
     }
 
+    /** Returns a region's display name, falling back to the code itself. */
     getRegionName(regionCode) {
         const r = this.getRegionByCode(regionCode)
         return r?.regionName ?? regionCode
     }
 
+    /** Creates a new region with a type classification and refreshes the cache. */
     async createRegion(regionCode, regionName, type) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
         if (!type || !['Concrete', 'Aggregate', 'Office'].includes(type)) throw new Error('Region type is invalid')
@@ -42,6 +52,7 @@ class RegionServiceImpl {
         return true
     }
 
+    /** Updates a region's name, plant assignments, and optionally its type. */
     async updateRegion(regionCode, regionName, plantCodes = [], type) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
         const payload = { plantCodes, regionCode, regionName }
@@ -52,6 +63,7 @@ class RegionServiceImpl {
         return true
     }
 
+    /** Deletes a region and refreshes the cache. */
     async deleteRegion(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
         const { res, json } = await APIUtility.post('/region-service/delete', { regionCode })
@@ -60,6 +72,10 @@ class RegionServiceImpl {
         return true
     }
 
+    /**
+     * Fetches plants belonging to a region with exponential backoff retry (up to 3 attempts).
+     * Returns an empty array on persistent failure rather than throwing.
+     */
     async fetchRegionPlants(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
         let attempt = 0
@@ -82,6 +98,7 @@ class RegionServiceImpl {
         return []
     }
 
+    /** Fetches a region with its full plant membership list. */
     async getRegionWithPlants(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
         const region = await this.fetchRegionByCode(regionCode)
@@ -90,6 +107,7 @@ class RegionServiceImpl {
         return { ...region, plants }
     }
 
+    /** Fetches all regions that contain a specific plant code. */
     async fetchRegionsByPlantCode(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
         const { res, json } = await APIUtility.post('/region-service/fetch-regions-by-plant-code', { plantCode })
@@ -98,6 +116,11 @@ class RegionServiceImpl {
         return data.map((row) => Region.fromRow(row))
     }
 
+    /**
+     * Resolves the set of plant codes the current user is allowed to access.
+     * Falls back through: selected region → user profile plant → region lookup.
+     * Returns null if no restrictions apply.
+     */
     async getAllowedPlantCodes(selectedRegionCode) {
         let regionCode = selectedRegionCode || ''
         if (!regionCode) {

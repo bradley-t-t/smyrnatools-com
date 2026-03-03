@@ -18,6 +18,10 @@ const createBaseTotals = () => ({
     verified: 0
 })
 
+/**
+ * Computes dashboard statistics (totals, allocation percentages, verification rates)
+ * from fleet asset refs, filtered by the active region/plant scope.
+ */
 export function useDashboardStats({ createFilterFn, dashboardRegionCode, updatePlantSet }) {
     const [stats, setStats] = useState(INITIAL_STATS)
     const prevSnapshotRef = useRef(null)

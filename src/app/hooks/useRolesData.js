@@ -19,6 +19,10 @@ const parsePermissionsText = (text) =>
 
 const getPluralized = (count, singular, plural) => (count === 1 ? singular : plural)
 
+/**
+ * Manages roles CRUD: fetching all roles with user counts, creating/updating/deleting roles,
+ * assigning/removing role-user associations, and IT access permission checks.
+ */
 export function useRolesData() {
     const [roles, setRoles] = useState([])
     const [isLoading, setIsLoading] = useState(true)

@@ -8,6 +8,7 @@ import { UserService } from './UserService'
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
 
+/** Sorts plants by plant_code numerically, falling back to string comparison. */
 function sortPlants(plants) {
     return (plants || [])
         .filter((p) => p.plant_code && p.plant_name)
@@ -19,6 +20,7 @@ function sortPlants(plants) {
         })
 }
 
+/** Calculates Monday and Saturday dates from a week ISO string. */
 function getWeekRangeDates(weekIso) {
     if (!weekIso) return null
     const monday = new Date(weekIso)
@@ -29,7 +31,13 @@ function getWeekRangeDates(weekIso) {
     return { monday, saturday }
 }
 
+/**
+ * Weekly report management service handling plant manager, general manager,
+ * efficiency, and RMI reports. Provides date utilities, production insights,
+ * yardage metrics, overdue assignment detection, and cached data fetching.
+ */
 class ReportServiceImpl {
+    /** Formats a week ISO into a human-readable "MM-DD-YY through MM-DD-YY" range. */
     getWeekRangeFromIso(weekIso) {
         const monday = new Date(weekIso)
         monday.setDate(monday.getDate() + 1)
@@ -39,6 +47,7 @@ class ReportServiceImpl {
         return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
     }
 
+    /** Calculates the Monday and Saturday bounding a given date. */
     getMondayAndSaturday(date = new Date()) {
         const d = new Date(date)
         const day = d.getDay()
@@ -51,10 +60,12 @@ class ReportServiceImpl {
         return { monday, saturday }
     }
 
+    /** Returns the ISO date string (YYYY-MM-DD) for the Monday of a given date's week. */
     getMondayISO(date) {
         return this.getMondayAndSaturday(date).monday.toISOString().slice(0, 10)
     }
 
+    /** Formats a Date as M-D-YY. */
     formatDateMMDDYY(date) {
         const mm = date.getMonth() + 1
         const dd = date.getDate()
@@ -62,10 +73,7 @@ class ReportServiceImpl {
         return `${mm}-${dd}-${yy}`
     }
 
-    getWeekRangeString(start, end) {
-        return `${this.formatDateMMDDYY(start)} to ${this.formatDateMMDDYY(end)}`
-    }
-
+    /** Extracts the plant code from a report's data structure. */
     getPlantNameFromReport(report) {
         if (report.data?.plant) return report.data.plant
         if (report.data?.rows?.[0]?.plant_code) return report.data.rows[0].plant_code
@@ -78,6 +86,7 @@ class ReportServiceImpl {
         return ''
     }
 
+    /** Parses a "HH:MM" time string into total minutes. */
     parseTimeToMinutes(timeStr) {
         if (!timeStr || typeof timeStr !== 'string') return null
         const [h, m] = timeStr.split(':').map(Number)
@@ -85,6 +94,7 @@ class ReportServiceImpl {
         return h * 60 + m
     }
 
+    /** Resolves an operator's display name from row data and operator options. */
     getOperatorName(row, operatorOptions) {
         if (!row?.name) return ''
         if (Array.isArray(operatorOptions)) {
@@ -95,6 +105,10 @@ class ReportServiceImpl {
         return row.name
     }
 
+    /**
+     * Computes yardage efficiency metrics (yards per hour, lost yardage)
+     * with performance grades from form data using multiple possible field name formats.
+     */
     getYardageMetrics(form) {
         let yards = parseFloat(form.total_yards_delivered || form['Yardage'] || form['yardage'])
         let hours = parseFloat(
@@ -160,6 +174,7 @@ class ReportServiceImpl {
         return { lost, lostGrade, lostLabel, yph, yphGrade, yphLabel }
     }
 
+    /** Maps a yardage performance grade to its CSS variable color. */
     getYphColor(grade) {
         if (grade === 'excellent') return 'var(--excellent)'
         if (grade === 'good') return 'var(--success)'
@@ -168,6 +183,10 @@ class ReportServiceImpl {
         return ''
     }
 
+    /**
+     * Analyzes per-row production data for a plant, computing totals, averages,
+     * and flagging efficiency warnings (late starts, long hours, low loads).
+     */
     getPlantProductionInsights(rows) {
         function parseTimeToMinutes(timeStr) {
             if (!timeStr || typeof timeStr !== 'string') return null
@@ -277,6 +296,7 @@ class ReportServiceImpl {
         }
     }
 
+    /** Fetches active mixer counts grouped by plant code. */
     async fetchActiveMixerCountsByPlant(plantCodes = []) {
         if (!plantCodes || plantCodes.length === 0) return {}
         const { data, error } = await supabase
@@ -297,6 +317,7 @@ class ReportServiceImpl {
         return counts
     }
 
+    /** Fetches all plants sorted by code with a 10-minute cache. */
     async fetchPlantsSorted() {
         const cacheKey = 'plants:all'
         const cached = CacheUtility.get(cacheKey)
@@ -310,6 +331,10 @@ class ReportServiceImpl {
         return plants
     }
 
+    /**
+     * Fetches plants accessible to a user based on their profile plant
+     * and region memberships, with a 5-minute cache.
+     */
     async fetchPlantsForUser(userId) {
         if (!userId) return []
         const cacheKey = `plants:user:${userId}`
@@ -346,6 +371,7 @@ class ReportServiceImpl {
         }
     }
 
+    /** Fetches operator name/ID options for a plant for use in report dropdowns. */
     async fetchOperatorOptions(plantCode) {
         if (!plantCode) return []
         const key = `operators:${plantCode}`
@@ -357,6 +383,7 @@ class ReportServiceImpl {
         return options
     }
 
+    /** Fetches active operators and mixers for a plant for report context. */
     async fetchActiveOperatorsAndMixers(plantCode) {
         if (!plantCode) return { activeOperators: [], mixers: [], operatorOptions: [] }
         const key = `activeOpsAndMixers:${plantCode}`
@@ -381,6 +408,7 @@ class ReportServiceImpl {
         return result
     }
 
+    /** Fetches completed maintenance items within a week's date range. */
     async fetchMaintenanceItems(weekIso) {
         if (!weekIso) return []
         const key = `maintenance:${weekIso}`
@@ -400,6 +428,11 @@ class ReportServiceImpl {
         return items
     }
 
+    /**
+     * Detects overdue report assignments by cross-referencing user permissions
+     * against submitted reports across the last 52 weeks. Checks multiple report
+     * date fields (week, date range, submitted_at) to handle format variations.
+     */
     async fetchOverdueAssignments(today = new Date(), options = {}) {
         const force = !!options.force
         const allowedReview = Array.isArray(options.allowedReview) ? options.allowedReview.filter(Boolean) : null
@@ -585,6 +618,7 @@ class ReportServiceImpl {
         return overdue
     }
 
+    /** Fetches completed plant manager reports for a given week, excluding a specific plant. */
     async fetchPlantManagerReportsForWeek(weekIso, excludePlantCode) {
         if (!weekIso) return { data: [], error: null }
 

@@ -2,6 +2,11 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 
 import TutorialService from '../../services/TutorialService'
 
+/**
+ * Tutorial dismissal context managing which in-app tutorials have been seen.
+ * Supports delayed triggering, per-tutorial reset, and respects the user's
+ * global tutorials-enabled preference.
+ */
 const TutorialContext = createContext({
     activeTutorial: null,
     dismissedTutorials: [],
@@ -14,6 +19,11 @@ const TutorialContext = createContext({
     triggerTutorial: () => {}
 })
 
+/**
+ * Tutorial provider that loads dismissed state from TutorialService on mount,
+ * persists dismissals to both localStorage and the database, and provides
+ * show/dismiss/trigger/reset methods to the component tree.
+ */
 export function TutorialProvider({ children }) {
     const [dismissedTutorials, setDismissedTutorials] = useState([])
     const [activeTutorial, setActiveTutorial] = useState(null)
@@ -148,6 +158,7 @@ export function TutorialProvider({ children }) {
     )
 }
 
+/** Hook to access tutorial context (activeTutorial, trigger, dismiss, reset). */
 export function useTutorial() {
     return useContext(TutorialContext)
 }

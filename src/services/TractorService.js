@@ -21,6 +21,7 @@ import { ValidationUtility } from '../utils/ValidationUtility'
 
 const SERVICE_PREFIX = '/tractor-service'
 
+/** Fields that are allowed in the tractor history audit trail. */
 const ALLOWED_HISTORY_FIELDS = [
     'truck_number',
     'assigned_plant',
@@ -36,10 +37,12 @@ const ALLOWED_HISTORY_FIELDS = [
     'status'
 ]
 
+/** Converts camelCase field names to snake_case for API compatibility. */
 function toSnakeCase(fieldName) {
     return fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
 }
 
+/** Attaches an isVerified() method and uppercases VIN on a tractor instance. */
 function enrichTractorWithVerification(tractor) {
     tractor.vin = (tractor.vin || '').toUpperCase()
     tractor.isVerified = () =>
@@ -47,6 +50,10 @@ function enrichTractorWithVerification(tractor) {
     return tractor
 }
 
+/**
+ * Tractor CRUD, history, comments, issues, and verification service.
+ * Delegates shared asset operations to BaseAssetUtility.
+ */
 export class TractorService {
     static async getAllTractors() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch tractors')
@@ -78,6 +85,7 @@ export class TractorService {
         return tractor
     }
 
+    /** Fetches the most recent history entry date for a tractor. */
     static async getLatestHistoryDate(tractorId) {
         if (!tractorId) return null
         const json = await apiPostOrThrow(
@@ -102,12 +110,14 @@ export class TractorService {
         return (json?.data ?? []).map(TractorHistory.fromApiFormat)
     }
 
+    /** Creates a new tractor, uppercasing VIN before submission. */
     static async addTractor(tractor, userId) {
         uppercaseVin(tractor)
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { tractor, userId }, 'Failed to create tractor')
         return Tractor.fromApiFormat(json?.data)
     }
 
+    /** Creates a tractor with user ID resolution, ID cleanup, and VIN normalization. */
     static async createTractor(tractor, userId) {
         const resolvedUserId = await requireUserId(userId, 'Authentication required')
         if (tractor.id) delete tractor.id
@@ -115,6 +125,10 @@ export class TractorService {
         return this.addTractor(tractor, resolvedUserId)
     }
 
+    /**
+     * Updates a tractor record. Clears operator assignment when the plant changes
+     * to prevent cross-plant operator assignments.
+     */
     static async updateTractor(tractorId, tractor, userId, _prevTractorState = null) {
         const id = resolveEntityId(tractorId)
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
@@ -134,6 +148,7 @@ export class TractorService {
         return Tractor.fromApiFormat(json?.data)
     }
 
+    /** Marks a tractor as verified and dispatches a notification refresh. */
     static async verifyTractor(tractorId, userId) {
         const id = resolveEntityId(tractorId)
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
@@ -152,6 +167,10 @@ export class TractorService {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete tractor')
     }
 
+    /**
+     * Records a field-level change in the tractor history audit trail.
+     * Only allowed fields are recorded; VIN values are uppercased.
+     */
     static async createHistoryEntry(tractorId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!fieldName) throw new Error('Field name required')
@@ -320,6 +339,10 @@ export class TractorService {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     }
 
+    /**
+     * Fetches all tractors with enriched details (comments count, issues count, status history, verification).
+     * Optionally filtered by region codes.
+     */
     static async fetchTractorsWithDetails(regionCodes = null) {
         return fetchWithDetailsBase({
             enrichFn: enrichTractorWithVerification,
@@ -330,12 +353,14 @@ export class TractorService {
         })
     }
 
+    /** Sets unassigned-operator tractors to Spare status in batch. */
     static async ensureSpareIfNoOperator(tractorsList) {
         return ensureSpareIfNoOperatorBase(tractorsList, async (t) => {
             await this.updateTractor(t.id, { ...t, status: 'Spare' }, undefined, t)
         })
     }
 
+    /** Batch-corrects null operator fields by setting affected tractors to Spare. */
     static async cleanupNullOperators(tractors = null) {
         return CleanupUtility.cleanupNullOperators(
             tractors,

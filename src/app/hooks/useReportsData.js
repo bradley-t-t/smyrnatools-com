@@ -11,6 +11,10 @@ const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
 const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
 
+/**
+ * Loads all reports data: user's own reports, review permissions, assigned report types,
+ * region-scoped plant lists, and reporter-to-plant mappings.
+ */
 export function useReportsData() {
     const [localReports, setLocalReports] = useState([])
     const [user, setUser] = useState(null)

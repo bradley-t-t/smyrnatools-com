@@ -30,36 +30,46 @@ const DEFAULT_PERIOD_DAYS = 7
 
 const MS_PER_DAY = 86400000
 
+/** Returns the current ISO timestamp. */
 function now() {
     return new Date().toISOString()
 }
 
+/** Formats a Date as YYYY-MM-DD string. */
 function toDateString(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+/** Zeroes out the time portion of a Date for day-level comparisons. */
 function startOfDay(date) {
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
     return d
 }
 
+/** Resolves the current authenticated user or throws if not logged in. */
 async function requireAuthenticatedUser() {
     const user = await UserService.getCurrentUser()
     if (!user?.id) throw new Error(AUTH_ERROR)
     return user
 }
 
+/** Asserts that a user has a specific permission, throwing on denial. */
 async function requirePermission(userId, permission) {
     const hasPermission = await UserService.hasPermission(userId, permission)
     if (!hasPermission) throw new Error(PERMISSION_DENIED_ERROR)
 }
 
+/** Fetches the plant_code from a user's profile for plant-based access control. */
 async function fetchUserPlantCode(userId) {
     const { data: profile } = await supabase.from('users_profiles').select('plant_code').eq('id', userId).maybeSingle()
     return profile?.plant_code ?? null
 }
 
+/**
+ * Resolves the full set of plant codes a user can access based on bypass permissions
+ * and region membership. Used for plant-scoped form visibility and review filtering.
+ */
 async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
     const allowed = new Set()
     if (hasBypass && userPlantCode) {
@@ -78,6 +88,7 @@ async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
     return allowed
 }
 
+/** Converts form field definitions into database-ready rows with ordering and timestamps. */
 function buildFieldRows(fields, formId) {
     const timestamp = now()
     return fields.map((field, index) => ({
@@ -94,6 +105,7 @@ function buildFieldRows(fields, formId) {
     }))
 }
 
+/** Converts submission response data into database-ready rows with timestamps. */
 function buildResponseRows(responses, submissionId) {
     const timestamp = now()
     return responses.map((r) => ({
@@ -109,6 +121,7 @@ function buildResponseRows(responses, submissionId) {
     }))
 }
 
+/** Inserts response rows for a submission. No-op if responses array is empty. */
 async function insertResponses(responses, submissionId) {
     if (!responses?.length) return
     const { error } = await supabase
@@ -117,17 +130,23 @@ async function insertResponses(responses, submissionId) {
     if (error) throw error
 }
 
+/** Replaces all existing responses for a submission (delete + re-insert). */
 async function replaceResponses(responses, submissionId) {
     await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
     await insertResponses(responses, submissionId)
 }
 
+/** Inserts field definition rows for a form. No-op if fields array is empty. */
 async function insertFields(fields, formId) {
     if (!fields?.length) return
     const { error } = await supabase.from('maintenance_form_fields').insert(buildFieldRows(fields, formId))
     if (error) throw error
 }
 
+/**
+ * Fetches submissions eligible for review, filtered by the reviewer's permissions,
+ * role weight hierarchy, and plant access scope.
+ */
 async function fetchReviewableSubmissions(statusFilter, orderField, orderAscending) {
     try {
         const user = await UserService.getCurrentUser()
@@ -171,11 +190,18 @@ async function fetchReviewableSubmissions(statusFilter, orderField, orderAscendi
     }
 }
 
+/** Extracts the storage path portion from a full image URL or path. */
 function extractStoragePath(imagePath) {
     return imagePath.includes(`${STORAGE_BUCKET}/`) ? imagePath.split(`${STORAGE_BUCKET}/`)[1] : imagePath
 }
 
+/**
+ * Maintenance forms and submissions service.
+ * Handles form CRUD, due date calculation, submission workflow (draft → submitted → reviewed),
+ * image uploads, and plant-scoped access control for reviewers.
+ */
 export class MaintenanceService {
+    /** Checks if a user has access to a specific plant (via bypass permission or direct match). */
     static async checkPlantAccess(userId, plantCode) {
         if (!userId || !plantCode) return false
         const hasBypass = await UserService.hasPermission(userId, PERMISSION_BYPASS_PLANT).catch(() => false)
@@ -184,6 +210,7 @@ export class MaintenanceService {
         return userPlantCode === plantCode
     }
 
+    /** Fetches all active maintenance forms, optionally filtered by region, plant, or creator. */
     static async fetchForms(filters = {}) {
         let query = supabase
             .from('maintenance_forms')
@@ -200,6 +227,7 @@ export class MaintenanceService {
         return data || []
     }
 
+    /** Fetches a single form by ID with its field definitions. */
     static async fetchFormById(formId) {
         const { data, error } = await supabase
             .from('maintenance_forms')
@@ -210,6 +238,7 @@ export class MaintenanceService {
         return data
     }
 
+    /** Creates a new maintenance form with field definitions. */
     static async createForm(formData) {
         const user = await requireAuthenticatedUser()
         const { fields, plant_codes, ...formInfo } = formData
@@ -232,6 +261,7 @@ export class MaintenanceService {
         return this.fetchFormById(form.id)
     }
 
+    /** Updates a form's metadata and optionally replaces its field definitions. */
     static async updateForm(formId, formData) {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
@@ -252,6 +282,7 @@ export class MaintenanceService {
         return this.fetchFormById(formId)
     }
 
+    /** Soft-deletes a form by marking it inactive. */
     static async deleteForm(formId) {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
@@ -264,6 +295,7 @@ export class MaintenanceService {
         return true
     }
 
+    /** Fetches due items with their associated forms and submissions. */
     static async fetchDueItems(filters = {}) {
         await requireAuthenticatedUser()
 
@@ -281,6 +313,11 @@ export class MaintenanceService {
         return data || []
     }
 
+    /**
+     * Fetches the current user's due maintenance items across all assigned forms.
+     * Calculates due dates based on form frequency and checks for existing submissions.
+     * Returns items sorted by overdue status first, then by due date.
+     */
     static async fetchMyDueItems() {
         try {
             const user = await UserService.getCurrentUser()
@@ -371,6 +408,11 @@ export class MaintenanceService {
         }
     }
 
+    /**
+     * Calculates the relevant due dates for a form relative to a reference date.
+     * Returns the previous, current, and next period due dates based on the form's
+     * frequency configuration (daily, weekly, biweekly, monthly, quarterly, yearly).
+     */
     static calculateDueDates(form, referenceDate) {
         const { frequency, frequency_value: frequencyValue = 1 } = form
 
@@ -404,6 +446,10 @@ export class MaintenanceService {
         return results
     }
 
+    /**
+     * Submits a completed form, cleaning up any existing draft for the same form/date/user.
+     * Creates the submission record and inserts all response rows.
+     */
     static async submitForm(formId, dueDate, responses, plantCode = null) {
         const user = await requireAuthenticatedUser()
 
@@ -442,6 +488,7 @@ export class MaintenanceService {
         return submission
     }
 
+    /** Updates the responses of an existing submission. */
     static async updateSubmission(submissionId, responses) {
         const user = await requireAuthenticatedUser()
 
@@ -456,6 +503,10 @@ export class MaintenanceService {
         return true
     }
 
+    /**
+     * Saves draft progress for a form submission, creating a new draft record
+     * or updating an existing one. Enables resume-later functionality.
+     */
     static async saveDraftProgress(formId, dueDate, responses, plantCode = null, existingSubmissionId = null) {
         const user = await requireAuthenticatedUser()
         let submissionId = existingSubmissionId
@@ -502,6 +553,7 @@ export class MaintenanceService {
         return submissionId
     }
 
+    /** Fetches a user's draft submission for a specific form/date/plant combination. */
     static async fetchDraft(formId, dueDate, plantCode = null) {
         const user = await UserService.getCurrentUser()
         if (!user?.id) return null
@@ -519,6 +571,7 @@ export class MaintenanceService {
         return error ? null : data
     }
 
+    /** Fetches submissions with optional filters, including full form and response details. */
     static async fetchSubmissions(filters = {}) {
         let query = supabase
             .from('maintenance_submissions')
@@ -535,6 +588,7 @@ export class MaintenanceService {
         return data || []
     }
 
+    /** Fetches a single submission with full details (form fields, responses). */
     static async fetchSubmissionById(submissionId) {
         const { data, error } = await supabase
             .from('maintenance_submissions')
@@ -545,6 +599,7 @@ export class MaintenanceService {
         return data
     }
 
+    /** Records a review decision (approved/rejected) with optional notes. */
     static async reviewSubmission(submissionId, status, notes = '') {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_REVIEW)
@@ -565,10 +620,12 @@ export class MaintenanceService {
         return data
     }
 
+    /** Fetches all submitted (pending review) submissions visible to the current reviewer. */
     static async fetchPendingReviews() {
         return fetchReviewableSubmissions('submitted', 'submitted_at', true)
     }
 
+    /** Fetches all submissions created by a specific user. */
     static async fetchMySubmissions(userId) {
         try {
             if (!userId) return []
@@ -583,10 +640,12 @@ export class MaintenanceService {
         }
     }
 
+    /** Fetches all reviewed (approved/rejected) submissions visible to the current reviewer. */
     static async fetchReviewedSubmissions() {
         return fetchReviewableSubmissions(['approved', 'rejected'], 'reviewed_at', false)
     }
 
+    /** Checks the current user's maintenance create and review permissions. */
     static async checkPermissions() {
         try {
             const user = await UserService.getCurrentUser()
@@ -602,6 +661,7 @@ export class MaintenanceService {
         }
     }
 
+    /** Uploads an image file to Supabase storage for a form field response. */
     static async uploadImage(file, formId, fieldId) {
         const user = await requireAuthenticatedUser()
         const sanitizedFieldId = String(fieldId).replace(/[^a-zA-Z0-9_-]/g, '_')
@@ -618,6 +678,7 @@ export class MaintenanceService {
         return urlData?.publicUrl || fileName
     }
 
+    /** Deletes an image from Supabase storage by its path. */
     static async deleteImage(imagePath) {
         const path = extractStoragePath(imagePath)
         const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path])
@@ -625,6 +686,7 @@ export class MaintenanceService {
         return true
     }
 
+    /** Resolves an image path to its public URL, handling both relative and absolute paths. */
     static getImageUrl(imagePath) {
         if (!imagePath || typeof imagePath !== 'string') return null
 

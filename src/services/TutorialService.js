@@ -2,11 +2,21 @@ import { supabase } from './DatabaseService'
 
 const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
 
+/** Resolves the current user ID from local or session storage. */
 const getUserId = () => {
     return localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId') || null
 }
 
+/**
+ * Tutorial dismissal tracking service.
+ * Persists dismissed tutorial IDs to both localStorage (for offline/fast access)
+ * and the database (for cross-device sync). Supports per-tutorial and bulk reset.
+ */
 export const TutorialService = {
+    /**
+     * Marks a tutorial as dismissed in both localStorage and the database.
+     * Always returns true (fails gracefully if the DB write fails).
+     */
     async dismissTutorial(tutorialId) {
         const localDismissed = localStorage.getItem(TUTORIAL_STORAGE_KEY)
         const dismissed = localDismissed ? JSON.parse(localDismissed) : []
@@ -48,6 +58,10 @@ export const TutorialService = {
         }
     },
 
+    /**
+     * Returns the merged set of dismissed tutorial IDs from localStorage and the database.
+     * Falls back to localStorage-only if the DB query fails.
+     */
     async getDismissedTutorials() {
         const local = localStorage.getItem(TUTORIAL_STORAGE_KEY)
         const localDismissed = local ? JSON.parse(local) : []
@@ -67,6 +81,7 @@ export const TutorialService = {
         }
     },
 
+    /** Resets all tutorial dismissals for the current user (localStorage + database). */
     async resetAllTutorials() {
         localStorage.removeItem(TUTORIAL_STORAGE_KEY)
 
@@ -100,6 +115,7 @@ export const TutorialService = {
         }
     },
 
+    /** Resets a single tutorial's dismissal status for the current user. */
     async resetTutorial(tutorialId) {
         const localDismissed = localStorage.getItem(TUTORIAL_STORAGE_KEY)
         const localList = localDismissed ? JSON.parse(localDismissed) : []

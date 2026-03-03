@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+/** Generic pagination hook with page size, navigation, and auto-reset on dependency changes. */
 export function usePagination({ items, initialPageSize = 25, resetDependencies = [] }) {
     const [pageSize, setPageSize] = useState(initialPageSize)
     const [currentPage, setCurrentPage] = useState(1)

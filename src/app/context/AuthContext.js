@@ -5,18 +5,21 @@ import APIUtility from '../../utils/APIUtility'
 
 const AUTH_CONTEXT_FUNCTION = '/auth-context'
 
+/**
+ * Authentication context providing sign-in, sign-up, sign-out, session restoration,
+ * and profile management to the entire component tree.
+ */
 const AuthContext = createContext()
 
+/** Hook to access the authentication context (user, loading, error, auth methods). */
 export function useAuth() {
     return useContext(AuthContext)
 }
 
-function _normalizeName(name) {
-    let n = name.replace(/\s+/g, '')
-    if (!n) return ''
-    return n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()
-}
-
+/**
+ * Authentication provider that wraps the app and supplies auth state and methods.
+ * Restores sessions on mount and lazy-loads user profiles after sign-in.
+ */
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)

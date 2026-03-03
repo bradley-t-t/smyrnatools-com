@@ -4,6 +4,10 @@ import { supabase } from '../../services/DatabaseService'
 
 const activeChannels = new Map()
 
+/**
+ * Supabase realtime subscription hook with debounced change processing.
+ * Handles INSERT, UPDATE, DELETE events with per-event-type callbacks.
+ */
 export function useRealtimeSubscription(config) {
     const {
         table,
@@ -98,6 +102,10 @@ export function useRealtimeSubscription(config) {
     }, [table, event, filter, enabled, handleChange])
 }
 
+/**
+ * Subscribes to multiple Supabase tables simultaneously,
+ * invoking a shared onAnyChange handler for any event.
+ */
 export function useMultiTableSubscription(tables, handlers) {
     const { onAnyChange, enabled = true } = handlers
 
@@ -129,6 +137,7 @@ export function useMultiTableSubscription(tables, handlers) {
     }, [tables, onAnyChange, enabled])
 }
 
+/** Imperatively subscribes to a single Supabase table outside of React lifecycle. */
 export function subscribeToTable(table, callback, options = {}) {
     const { event = '*', filter = null } = options
     const channelName = `manual-${table}-${Date.now()}`

@@ -41,6 +41,10 @@ const filterEquivalentEntries = (entries) => {
     }
 }
 
+/**
+ * Loads and manages asset/operator history data, issues, comments, AI summaries,
+ * and user display names for the history detail view.
+ */
 export default function useHistoryData(item, type) {
     const [history, setHistory] = useState([])
     const [isLoading, setIsLoading] = useState(true)

@@ -11,6 +11,11 @@ import DashboardUtility from '../../utils/DashboardUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS } from '../constants/dashboardConstants'
 
+/**
+ * Fetches and caches all fleet assets (mixers, tractors, trailers, equipment, operators, pickups)
+ * for the dashboard, using localStorage cache with TTL to reduce API calls.
+ * Subscribes to Supabase realtime for live updates.
+ */
 export function useDashboardAssets({
     allEquipmentRef,
     allMixersRef,

@@ -16,6 +16,10 @@ const filterByPlantSet = (operators, plantSet, plantField, trainerField = null) 
             (trainerField && plantSet.has(String(o[trainerField] || '').trim()))
     )
 
+/**
+ * Computes per-plant notification alerts (unverified mixers, overdue service, pending operators,
+ * unassigned operators, training operators, long-term shop assets, assets with most issues).
+ */
 export function usePlantNotifications({
     allEquipmentRef,
     allMixersRef,
@@ -184,6 +188,10 @@ export function usePlantNotifications({
     return { filterByPlantSet, plantNotifications, setPlantNotifications }
 }
 
+/**
+ * Calculates per-plant leaderboard efficiency metrics from weekly reports
+ * and fleet data, enriching plants with rankings and yardage comparisons.
+ */
 export function useLeaderboardMetrics({
     allEquipmentRef,
     allMixersRef,
@@ -363,14 +371,10 @@ export function useLeaderboardMetrics({
     ])
 }
 
-const updateAISummaryState = (setPlantNotifications, aiSummary, failed) =>
-    setPlantNotifications((prev) => ({
-        ...prev,
-        aiSummary,
-        aiSummaryFailed: failed,
-        aiSummaryLoading: false
-    }))
-
+/**
+ * Generates an AI-powered plant summary using fleet data, efficiency metrics,
+ * and role context. Caches results per plant and supports regeneration.
+ */
 export function useAISummary({
     allMixersRef,
     createFilterFn,
@@ -504,3 +508,11 @@ export function useAISummary({
 
     return { handleRegenerateAISummary }
 }
+
+const updateAISummaryState = (setPlantNotifications, aiSummary, failed) =>
+    setPlantNotifications((prev) => ({
+        ...prev,
+        aiSummary,
+        aiSummaryFailed: failed,
+        aiSummaryLoading: false
+    }))

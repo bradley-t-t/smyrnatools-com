@@ -5,14 +5,24 @@ import { RegionService } from '../../services/RegionService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
 
+/**
+ * User preferences context managing per-entity filter states, region selection,
+ * view modes, accent color, and tutorial toggles. Persists to Supabase on change.
+ * Auto-resolves the user's default region from their plant assignment on first load.
+ */
 const PreferencesContext = createContext()
 
+/**
+ * Hook to access user preferences (filters, region, theme).
+ * @throws If used outside PreferencesProvider.
+ */
 export function usePreferences() {
     const context = useContext(PreferencesContext)
     if (!context) throw new Error('usePreferences must be used within a PreferencesProvider')
     return context
 }
 
+/** Default preference values used for new users or when DB fetch fails. */
 const defaultPreferences = {
     accentColor: '#1e3a5f',
     acceptReportSubmittedEmails: true,
@@ -60,6 +70,10 @@ const defaultPreferences = {
     tutorials: true
 }
 
+/**
+ * Preferences provider that loads/saves user preferences to the database.
+ * Provides per-entity filter update/reset helpers and region selection methods.
+ */
 export const PreferencesProvider = ({ children }) => {
     const [preferences, setPreferences] = useState(defaultPreferences)
     const [loading, setLoading] = useState(true)

@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { buildResponseData } from '../../utils/MaintenanceUtility'
 
+/**
+ * Manages maintenance form draft auto-saving to both localStorage and the database.
+ * Saves drafts every 30 seconds while in progress and restores on remount.
+ */
 export function useMaintenanceDraft({
     checklistComments,
     checklistStates,

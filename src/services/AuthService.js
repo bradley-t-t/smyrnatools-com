@@ -5,18 +5,25 @@ const AUTH_SERVICE_FUNCTION = '/auth-service'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
 
+/**
+ * Authentication service managing sign-in, sign-up, sign-out, session persistence,
+ * and credential updates. Tracks sessions in the database with browser/device metadata
+ * and supports observer-pattern notifications for auth state changes.
+ */
 class AuthServiceImpl {
     currentUser = null
     isAuthenticated = false
     sessionValidated = false
     observers = []
 
+    /** Generates a cryptographically random 64-character hex session ID. */
     _generateSessionId() {
         const array = new Uint8Array(32)
         crypto.getRandomValues(array)
         return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('')
     }
 
+    /** Extracts browser, OS, and device type from the user-agent string. */
     _getBrowserInfo() {
         const ua = navigator.userAgent
         let browser = 'Unknown'
@@ -40,6 +47,10 @@ class AuthServiceImpl {
         return { browser, device, os, userAgent: ua }
     }
 
+    /**
+     * Creates a database-tracked session record with browser metadata.
+     * Falls back to local/session storage if the DB write fails.
+     */
     async _createDbSession(userId) {
         const sessionId = this._generateSessionId()
         const { browser, os, device, userAgent } = this._getBrowserInfo()
@@ -74,6 +85,10 @@ class AuthServiceImpl {
         }
     }
 
+    /**
+     * Validates the current session against the database.
+     * Expires sessions older than 30 days and refreshes the last_active timestamp.
+     */
     async _validateDbSession() {
         const userId = localStorage.getItem(SESSION_KEY)
         const sessionId = localStorage.getItem(SESSION_ID_KEY)
@@ -124,6 +139,7 @@ class AuthServiceImpl {
         }
     }
 
+    /** Clears all local auth state (localStorage, sessionStorage). */
     _clearSession() {
         localStorage.removeItem(SESSION_KEY)
         localStorage.removeItem(SESSION_ID_KEY)
@@ -135,6 +151,7 @@ class AuthServiceImpl {
         return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem('userId') || null
     }
 
+    /** Authenticates a user with email/password and creates a tracked session. */
     async signIn(email, password) {
         const { res, json } = await APIUtility.post(
             `${AUTH_SERVICE_FUNCTION}/sign-in`,
@@ -153,6 +170,7 @@ class AuthServiceImpl {
         return this.currentUser
     }
 
+    /** Initializes a default user preferences row on first sign-up. */
     async _createDefaultPreferencesRow(userId) {
         if (!userId) return
         try {
@@ -178,6 +196,7 @@ class AuthServiceImpl {
         } catch {}
     }
 
+    /** Registers a new user, creates a session, and initializes default preferences. */
     async signUp(email, password, firstName, lastName) {
         const { res, json } = await APIUtility.post(
             `${AUTH_SERVICE_FUNCTION}/sign-up`,
@@ -199,6 +218,7 @@ class AuthServiceImpl {
         return this.currentUser
     }
 
+    /** Signs out the user, removes the DB session record, and clears local state. */
     async signOut() {
         const sessionId = localStorage.getItem(SESSION_ID_KEY)
         if (sessionId) {
@@ -216,6 +236,7 @@ class AuthServiceImpl {
         this._notifyObservers()
     }
 
+    /** Updates the authenticated user's email address. */
     async updateEmail(newEmail) {
         if (!this.currentUser) throw new Error('No authenticated user')
         const { res, json } = await APIUtility.post(
@@ -232,6 +253,7 @@ class AuthServiceImpl {
         return true
     }
 
+    /** Updates the authenticated user's password. */
     async updatePassword(newPassword) {
         if (!this.currentUser) throw new Error('No authenticated user')
         const { res, json } = await APIUtility.post(
@@ -246,6 +268,10 @@ class AuthServiceImpl {
         return true
     }
 
+    /**
+     * Restores a session from local/session storage on app load.
+     * Validates the stored session against the database before accepting it.
+     */
     async restoreSession() {
         if (this.sessionValidated && this.isAuthenticated) {
             return true
@@ -276,6 +302,7 @@ class AuthServiceImpl {
         return !!this._getStoredUserId()
     }
 
+    /** Registers a callback to be invoked on auth state changes. */
     addObserver(callback) {
         this.observers.push(callback)
     }

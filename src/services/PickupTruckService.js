@@ -13,6 +13,10 @@ import { ValidationUtility } from '../utils/ValidationUtility'
 
 const SERVICE_PREFIX = '/pickup-truck-service'
 
+/**
+ * Pickup truck CRUD, comments, issues, history, and verification service.
+ * Delegates shared asset operations to BaseAssetUtility.
+ */
 class PickupTruckServiceImpl {
     static async fetchAllCommentsCounts(pickupTruckIds) {
         return fetchAllCountsFromTable('pickup_trucks_comments', 'truck_id', pickupTruckIds)
@@ -27,6 +31,7 @@ class PickupTruckServiceImpl {
         return (json?.data ?? []).map(PickupTruck.fromApiFormat)
     }
 
+    /** Fetches all pickup trucks with enriched details, optionally filtered by region. */
     static async fetchAll(regionCodes = null) {
         return fetchWithDetailsBase({
             fetchAllFn: () => this.getAll(),
@@ -90,6 +95,7 @@ class PickupTruckServiceImpl {
         return (json?.data ?? []).map(PickupTruck.fromApiFormat)
     }
 
+    /** Verifies a pickup truck by updating its last-verified timestamp. */
     static async verify(pickupId, userId) {
         const id = resolveEntityId(pickupId)
         ValidationUtility.requireUUID(id, 'Pickup Truck ID is required')
@@ -99,6 +105,7 @@ class PickupTruckServiceImpl {
         return PickupTruck.fromApiFormat(json?.data)
     }
 
+    /** Detects duplicate VINs across pickup trucks for data quality alerts. */
     static getDuplicateVINs(pickups) {
         return getDuplicateFieldValues(pickups, (p) => {
             const key = String(p.vin || '')
@@ -109,6 +116,7 @@ class PickupTruckServiceImpl {
         })
     }
 
+    /** Detects duplicate assignee names for data quality alerts. */
     static getDuplicateAssigned(pickups) {
         return getDuplicateFieldValues(pickups, (p) => {
             const key = String(p.assigned || '')

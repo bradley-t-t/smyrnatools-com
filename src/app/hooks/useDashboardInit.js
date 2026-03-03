@@ -6,6 +6,10 @@ import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { DASHBOARD_REFRESH_INTERVAL_MS } from '../constants/dashboardConstants'
 
+/**
+ * Initializes the dashboard: resolves user permissions, loads permitted regions and plants,
+ * sets up auto-refresh intervals, and determines the active region/plant scope.
+ */
 export function useDashboardInit({ plantSetRef, preferences }) {
     const [refreshKey, setRefreshKey] = useState(0)
     const [permittedRegions, setPermittedRegions] = useState([])

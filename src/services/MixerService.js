@@ -23,6 +23,7 @@ import { ValidationUtility } from '../utils/ValidationUtility'
 
 const SERVICE_PREFIX = '/mixer-service'
 
+/** Attaches a lazy isVerified() method to a mixer instance using MixerUtility logic. */
 function attachIsVerified(mixer) {
     if (!mixer) return mixer
     if (typeof mixer.isVerified !== 'function') {
@@ -38,12 +39,17 @@ function attachIsVerified(mixer) {
     return mixer
 }
 
+/** Attaches an isVerified() method directly using current mixer field values. */
 function enrichMixerWithVerification(mixer) {
     mixer.isVerified = () =>
         MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
     return mixer
 }
 
+/**
+ * Mixer CRUD, history, comments, issues, images, and verification service.
+ * Delegates shared asset operations to BaseAssetUtility.
+ */
 class MixerServiceImpl {
     static async getAllMixers() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch mixers')
@@ -54,18 +60,21 @@ class MixerServiceImpl {
         return this.getAllMixers()
     }
 
+    /** Fetches a single mixer by UUID. */
     static async getMixerById(id) {
         ValidationUtility.requireUUID(id, 'Mixer ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id }, 'Failed to fetch mixer')
         return json?.data ? new Mixer(json.data) : null
     }
 
+    /** Fetches a mixer by ID with verification status attached. */
     static async fetchMixerById(id) {
         ValidationUtility.requireUUID(id, 'Invalid mixer ID')
         const mixer = await this.getMixerById(id)
         return mixer ? attachIsVerified(mixer) : null
     }
 
+    /** Fetches the most recent history entry date for a mixer. */
     static async getLatestHistoryDate(mixerId) {
         if (!mixerId) return null
         const json = await apiPostOrThrow(
@@ -90,12 +99,14 @@ class MixerServiceImpl {
         return (json?.data ?? []).map((entry) => new MixerHistory(entry))
     }
 
+    /** Creates a new mixer, uppercasing VIN before submission. */
     static async addMixer(mixer, userId) {
         uppercaseVin(mixer)
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { mixer, userId }, 'Failed to create mixer')
         return new Mixer(json?.data)
     }
 
+    /** Creates a mixer with user ID resolution, ID cleanup, and VIN normalization. */
     static async createMixer(mixer, userId) {
         const resolvedUserId = await requireUserId(userId, 'Authentication required')
         if (mixer.id) delete mixer.id
@@ -103,6 +114,10 @@ class MixerServiceImpl {
         return this.addMixer(mixer, resolvedUserId)
     }
 
+    /**
+     * Updates a mixer record. Clears operator assignment when the plant changes
+     * to prevent cross-plant operator assignments.
+     */
     static async updateMixer(mixerId, mixer, userId, _prevMixerState = null) {
         const id = resolveEntityId(mixerId)
         ValidationUtility.requireUUID(id, 'Mixer ID is required')
@@ -126,6 +141,7 @@ class MixerServiceImpl {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete mixer')
     }
 
+    /** Records a field-level change in the mixer history audit trail. Uppercases VIN values. */
     static async createHistoryEntry(mixerId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
         if (!fieldName) throw new Error('Field name required')
@@ -332,6 +348,10 @@ class MixerServiceImpl {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     }
 
+    /**
+     * Fetches all mixers with enriched details (comments count, issues count, status history, verification).
+     * Optionally filtered by region codes.
+     */
     static async fetchMixersWithDetails(regionCodes = null) {
         return fetchWithDetailsBase({
             enrichFn: enrichMixerWithVerification,
@@ -342,6 +362,7 @@ class MixerServiceImpl {
         })
     }
 
+    /** Sets unassigned-operator mixers to Spare status in batch. */
     static async ensureSpareIfNoOperator(mixersList) {
         return ensureSpareIfNoOperatorBase(mixersList, async (m) => {
             await this.updateMixer(m.id, {
@@ -358,6 +379,7 @@ class MixerServiceImpl {
         })
     }
 
+    /** Batch-corrects null operator fields by setting affected mixers to Spare. */
     static async cleanupNullOperators(mixers = null) {
         return CleanupUtility.cleanupNullOperators(
             mixers,
@@ -366,6 +388,7 @@ class MixerServiceImpl {
         )
     }
 
+    /** Marks a mixer as verified by the given user and refreshes notification badges. */
     static async verifyMixer(mixerId, userId) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
         const resolvedUserId = await requireUserId(userId)

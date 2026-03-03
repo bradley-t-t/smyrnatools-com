@@ -41,10 +41,14 @@ const RolesView = lazy(() => import('../views/roles/RolesView'))
 const TractorsView = lazy(() => import('../views/tractors/TractorsView'))
 const TrailersView = lazy(() => import('../views/trailers/TrailersView'))
 
+/** Views only available when region type is "Office". */
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
+/** Views hidden when region type is "Aggregate". */
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
+/** Views hidden by default (non-Office, non-Aggregate). */
 const DEFAULT_HIDDEN_VIEWS = new Set(['Plants', 'Regions'])
 
+/** Suspense fallback spinner shown while lazy-loaded views resolve. */
 const LoadingFallback = memo(function LoadingFallback() {
     return (
         <div
@@ -71,6 +75,10 @@ const LoadingFallback = memo(function LoadingFallback() {
     )
 })
 
+/**
+ * Main application shell managing authentication state, view routing,
+ * region-based view filtering, role checks, and offline/terminated overlays.
+ */
 function AppContent() {
     const [userId, setUserId] = useState(null)
     const [selectedView, setSelectedView] = useState({ initialStatusFilter: null, view: 'Dashboard' })
@@ -343,6 +351,10 @@ function AppContent() {
     )
 }
 
+/**
+ * Root application component wrapping AppContent with global providers,
+ * analytics, speed insights, install prompt, and tutorial manager.
+ */
 function App() {
     useEffect(() => {
         document.documentElement.style.overflowX = 'hidden'

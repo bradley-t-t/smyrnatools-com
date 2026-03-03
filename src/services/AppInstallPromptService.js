@@ -1,6 +1,12 @@
 import { supabase } from './DatabaseService'
 
+/**
+ * Manages PWA install prompt visibility and user dismissal preferences.
+ * Persists prompt actions (installed, dismissed, remind-later) to the database
+ * and respects a 7-day cool-down period for "remind later" dismissals.
+ */
 class AppInstallPromptServiceImpl {
+    /** Determines whether the install prompt should be shown based on the user's prior actions. */
     async shouldShowPrompt(userId, promptType) {
         if (!userId) return false
 
@@ -36,6 +42,7 @@ class AppInstallPromptServiceImpl {
         }
     }
 
+    /** Records a user's prompt action (installed, dismissed_forever, remind_later) via upsert. */
     async recordPromptAction(userId, promptType, action, deviceType = null) {
         if (!userId) return { error: 'No user ID', success: false }
 
@@ -72,18 +79,22 @@ class AppInstallPromptServiceImpl {
         }
     }
 
+    /** Convenience shorthand for recording an "installed" action. */
     async markAsInstalled(userId, promptType, deviceType) {
         return this.recordPromptAction(userId, promptType, 'installed', deviceType)
     }
 
+    /** Convenience shorthand for recording a "dismissed_forever" action. */
     async dismissForever(userId, promptType, deviceType) {
         return this.recordPromptAction(userId, promptType, 'dismissed_forever', deviceType)
     }
 
+    /** Convenience shorthand for recording a "remind_later" action. */
     async remindLater(userId, promptType, deviceType) {
         return this.recordPromptAction(userId, promptType, 'remind_later', deviceType)
     }
 
+    /** Detects the user's device type from the user-agent string. */
     detectDeviceType() {
         const ua = navigator.userAgent || navigator.vendor || window.opera
 
@@ -98,6 +109,7 @@ class AppInstallPromptServiceImpl {
         return 'desktop'
     }
 
+    /** Returns true if the app is running in standalone (installed PWA) mode. */
     isStandalone() {
         return (
             window.matchMedia('(display-mode: standalone)').matches ||
@@ -106,6 +118,7 @@ class AppInstallPromptServiceImpl {
         )
     }
 
+    /** Returns true if the install prompt is allowed (i.e., not already in standalone mode). */
     canShowInstallPrompt() {
         return !this.isStandalone()
     }

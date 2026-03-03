@@ -1,3 +1,4 @@
+/** Leaderboard ranking categories grouped by Performance, Production, Hours, and Teamwork. */
 export const LEADERBOARD_CATEGORIES = [
     { group: 'Performance', icon: 'fa-chart-line', id: 'efficiency', label: 'Efficiency' },
     { group: 'Performance', icon: 'fa-tachometer-alt', id: 'yph', label: 'YPH' },
@@ -12,8 +13,10 @@ export const LEADERBOARD_CATEGORIES = [
     { group: 'Teamwork', icon: 'fa-hands-helping', id: 'help-received', label: 'Help Received' }
 ]
 
+/** Display ordering for leaderboard category group tabs. */
 export const CATEGORY_GROUPS = ['Performance', 'Production', 'Hours', 'Teamwork']
 
+/** Zero-state fleet data used as fallback before leaderboard data loads. */
 export const DEFAULT_FLEET_DATA = {
     avgFleetCleanliness: 0,
     avgFleetCleanlinessForEfficiency: 0,

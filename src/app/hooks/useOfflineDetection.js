@@ -2,6 +2,10 @@ import { useEffect, useRef } from 'react'
 
 import { NetworkUtility } from '../../utils/NetworkUtility'
 
+/**
+ * Detects offline state using periodic network checks with streak-based thresholds.
+ * Uses different sensitivity on mobile vs desktop to reduce false positives.
+ */
 export function useOfflineDetection(setOfflineMode) {
     const onlineStreakRef = useRef(0)
     const offlineStreakRef = useRef(0)

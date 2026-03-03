@@ -2,6 +2,12 @@ import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 import { UserService } from './UserService'
 
+/**
+ * Real-time user presence tracking service using Supabase.
+ * Maintains online status via heartbeats (30s), detects stale sessions (5min),
+ * tracks user activity (click/keydown/mousemove), and broadcasts presence changes
+ * to registered listeners via Supabase realtime subscriptions.
+ */
 class UserPresenceService {
     constructor() {
         this.listeners = []
@@ -19,6 +25,11 @@ class UserPresenceService {
         this.onUserActivity = this.handleUserActivity.bind(this)
     }
 
+    /**
+     * Initializes presence tracking: subscribes to realtime changes,
+     * sets the user online, starts heartbeat/cleanup intervals, and
+     * registers activity and browser lifecycle event listeners.
+     */
     async setup() {
         if (this.isSetup) return true
         try {
@@ -53,12 +64,14 @@ class UserPresenceService {
         }
     }
 
+    /** Registers DOM event listeners for user activity detection. */
     setupActivityTracking() {
         document.addEventListener('click', this.onUserActivity)
         document.addEventListener('keydown', this.onUserActivity)
         document.addEventListener('mousemove', this.onUserActivity, { passive: true })
     }
 
+    /** Throttled handler that updates last-activity timestamp (max once per 30s). */
     handleUserActivity() {
         const now = Date.now()
         if (now - this.lastActivityUpdate < 30000) return
@@ -66,6 +79,7 @@ class UserPresenceService {
         this.updateActivity()
     }
 
+    /** Writes the current timestamp to last_activity and last_seen in the database. */
     async updateActivity() {
         if (!this.currentUserId) return false
         try {
@@ -80,6 +94,7 @@ class UserPresenceService {
         }
     }
 
+    /** Starts a 60-second interval that notifies listeners of presence changes. */
     startActivityRefresh() {
         if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
         this.activityRefreshInterval = setInterval(() => {
@@ -87,6 +102,7 @@ class UserPresenceService {
         }, 60000)
     }
 
+    /** Ensures the current user has an online presence record, resolving the user ID if needed. */
     async ensureCurrentUserOnline() {
         if (!this.currentUserId) {
             try {
@@ -104,6 +120,7 @@ class UserPresenceService {
         return !!this.currentUserId
     }
 
+    /** Upserts a presence record marking the user as online. */
     async setUserOnline(userId) {
         if (!userId) return false
         try {
@@ -124,6 +141,7 @@ class UserPresenceService {
         }
     }
 
+    /** Updates the presence record to mark the user as offline. */
     async setUserOffline(userId) {
         if (!userId) return false
         try {
@@ -138,6 +156,7 @@ class UserPresenceService {
         }
     }
 
+    /** Updates the heartbeat timestamp to prevent stale session cleanup. */
     async updateHeartbeat() {
         if (!this.currentUserId) return false
         try {
@@ -152,11 +171,13 @@ class UserPresenceService {
         }
     }
 
+    /** Starts a 30-second heartbeat interval. */
     startHeartbeat() {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
         this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), 30000)
     }
 
+    /** Starts a 60-second cleanup interval that marks stale sessions (>5min) as offline. */
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
@@ -172,10 +193,7 @@ class UserPresenceService {
         }, 60000)
     }
 
-    handlePresenceChange() {
-        this.notifyListeners()
-    }
-
+    /** Uses sendBeacon to mark the user offline on page unload (best-effort). */
     handleBeforeUnload() {
         if (this.currentUserId) {
             const now = new Date().toISOString()
@@ -187,6 +205,7 @@ class UserPresenceService {
         }
     }
 
+    /** Handles browser online/offline events by toggling presence and heartbeat. */
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
         if (isOnline) {
@@ -201,6 +220,10 @@ class UserPresenceService {
         }
     }
 
+    /**
+     * Fetches all currently online users with their display names, roles, and region codes.
+     * Ensures the current user is always included in the result set.
+     */
     async getOnlineUsers() {
         try {
             await this.ensureCurrentUserOnline()
@@ -285,6 +308,7 @@ class UserPresenceService {
         }
     }
 
+    /** Registers a callback to be invoked when the online user list changes. */
     addListener(callback) {
         if (typeof callback === 'function') this.listeners.push(callback)
     }
@@ -293,6 +317,7 @@ class UserPresenceService {
         this.listeners = this.listeners.filter((listener) => listener !== callback)
     }
 
+    /** Fetches online users and broadcasts to all registered listeners. */
     notifyListeners() {
         this.getOnlineUsers().then((users) => {
             this.listeners.forEach((listener) => {
@@ -303,6 +328,10 @@ class UserPresenceService {
         })
     }
 
+    /**
+     * Tears down all intervals, event listeners, and Supabase subscriptions.
+     * Should be called on app unmount or user sign-out.
+     */
     cleanup() {
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval)

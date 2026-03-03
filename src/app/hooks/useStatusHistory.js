@@ -47,6 +47,10 @@ const buildStatusDistribution = (assetRefs, historyRecords, filterAssets, startF
     )
 })
 
+/**
+ * Tracks asset status change history across all fleet types (mixers, tractors, trailers,
+ * equipment, pickups) and computes status distributions for a given date range.
+ */
 export function useStatusHistory({
     allEquipmentRef,
     allMixersRef,

@@ -5,6 +5,10 @@ import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
 
+/**
+ * Loads data for the report review view: form state, maintenance items, operator options,
+ * owner name, submission metadata, and manager-edit permissions.
+ */
 export function useReviewData({ report, initialData, user, completedByUser }) {
     const [form, setForm] = useState(initialData?.data || initialData || {})
     const [maintenanceItems, setMaintenanceItems] = useState([])

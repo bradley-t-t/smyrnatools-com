@@ -13,7 +13,12 @@ import { ValidationUtility } from '../utils/ValidationUtility'
 
 const SERVICE_PREFIX = '/trailer-service'
 
+/**
+ * Trailer CRUD, comments, issues, history, and search service.
+ * Uses a plain object pattern (vs class) and delegates shared operations to BaseAssetUtility.
+ */
 const TrailerService = {
+    /** Adds a text comment to a trailer record. */
     async addComment(trailerId, commentText, userId) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         if (!commentText?.trim()) throw new Error('Comment text is required')
@@ -30,6 +35,7 @@ const TrailerService = {
         return json?.data ?? null
     },
 
+    /** Reports a new maintenance issue with severity classification. */
     async addIssue(trailerId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         if (!issueText?.trim()) throw new Error('Issue description is required')
@@ -46,11 +52,13 @@ const TrailerService = {
         return json?.data ?? null
     },
 
+    /** Marks an issue as completed/resolved. */
     async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     },
 
+    /** Records a field-level change in the trailer history audit trail. */
     async createHistoryEntry(trailerId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(trailerId, 'Trailer ID is required')
         if (!fieldName) throw new Error('Field name required')
@@ -69,6 +77,7 @@ const TrailerService = {
         return json?.data
     },
 
+    /** Creates a new trailer record. */
     async createTrailer(trailer, userId) {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { trailer, userId }, 'Failed to create trailer')
         return json?.data ? Trailer.fromApiFormat(json.data) : null
@@ -109,6 +118,7 @@ const TrailerService = {
         return json?.data ?? []
     },
 
+    /** Fetches a single trailer by ID, handling both string and object ID arguments. */
     async fetchTrailerById(trailerId) {
         if (!trailerId) throw new Error('Trailer ID is required')
         if (typeof trailerId === 'object') trailerId = trailerId.id || trailerId.trailerId || ''
@@ -117,11 +127,10 @@ const TrailerService = {
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     },
 
-    async fetchTrailers() {
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch trailers')
-        return (json?.data ?? []).map(Trailer.fromApiFormat)
-    },
-
+    /**
+     * Fetches all trailers with enriched details (comments count, issues count, status history).
+     * Optionally filtered by region codes.
+     */
     async fetchTrailersWithDetails(regionCodes = null) {
         return fetchWithDetailsBase({
             fetchAllFn: () => this.fetchTrailers(),
@@ -189,6 +198,7 @@ const TrailerService = {
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
+    /** Searches trailers by VIN with defaults for missing count properties. */
     async searchTrailersByVinProcessed(query) {
         const vinTrailers = await this.searchTrailersByVin(query)
         return vinTrailers.map((t) => {
@@ -198,6 +208,7 @@ const TrailerService = {
         })
     },
 
+    /** Updates a trailer record, ensuring proper model instantiation. */
     async updateTrailer(trailerId, updatedTrailer, userId, _oldTrailer) {
         const id = resolveEntityId(trailerId)
         ValidationUtility.requireUUID(id, `Invalid trailer ID format: ${id}`)

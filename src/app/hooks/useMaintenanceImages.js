@@ -3,14 +3,17 @@ import { useCallback, useRef, useState } from 'react'
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { IMAGE_VALIDATION_MESSAGES, MAX_IMAGE_SIZE_BYTES, VALID_IMAGE_TYPES } from '../constants/maintenanceConstants'
 
+/** Resolves the composite storage key for a checklist item's image. */
 function resolveImageKey(fieldId, checklistItem) {
     return checklistItem ? `${fieldId}_${checklistItem}` : fieldId
 }
 
+/** Resolves the composite error key for a checklist item's image validation. */
 function resolveErrorKey(fieldId, checklistItem) {
     return checklistItem ? `${fieldId}_${checklistItem}_image` : `${fieldId}_image`
 }
 
+/** Converts a stored image path to a displayable URL (handles blob, http, and storage paths). */
 export function getImageDisplayUrl(url) {
     if (!url || typeof url !== 'string') return null
     const trimmedUrl = url.trim()
@@ -20,6 +23,10 @@ export function getImageDisplayUrl(url) {
     return MaintenanceService.getImageUrl(trimmedUrl)
 }
 
+/**
+ * Manages image capture, upload, preview, and deletion for maintenance form fields.
+ * Supports both camera and file input, validates size/type, and uploads via MaintenanceService.
+ */
 export function useMaintenanceImages({ formId, setErrors }) {
     const [fieldImages, setFieldImages] = useState({})
     const [uploadingImage, setUploadingImage] = useState(null)

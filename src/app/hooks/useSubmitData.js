@@ -6,6 +6,10 @@ import { UserService } from '../../services/UserService'
 import { DateUtility } from '../../utils/DateUtility'
 import { ReportUtility } from '../../utils/ReportUtility'
 
+/**
+ * Loads data needed for the report submission form: maintenance items, operator options,
+ * mixer lists, plants, and cross-plant hours received.
+ */
 export function useSubmitData({ report, initialData, user, managerEditUser }) {
     const [maintenanceItems, setMaintenanceItems] = useState([])
     const [operatorOptions, setOperatorOptions] = useState([])

@@ -3,12 +3,20 @@ import CacheUtility from '../utils/CacheUtility'
 import GrammarUtility from '../utils/GrammarUtility'
 import { UserService } from './UserService'
 
+/**
+ * Task list management service handling CRUD, filtering, sorting, and status tracking
+ * for plant-level list items. Caches items and creator profiles for performance.
+ */
 class ListServiceImpl {
     listItems = []
     creatorProfiles = {}
     plants = []
     plantDistribution = {}
 
+    /**
+     * Fetches all list items with their creator profiles in a single call.
+     * Uses a 60-second cache to reduce redundant API calls.
+     */
     async fetchListItems(opts = {}) {
         const { force = false } = opts || {}
         const user = await UserService.getCurrentUser()
@@ -40,6 +48,7 @@ class ListServiceImpl {
         return this.listItems
     }
 
+    /** Fetches available plants for list item assignment with a 10-minute cache. */
     async fetchPlants(opts = {}) {
         const { force = false } = opts || {}
         if (!force) {
@@ -56,6 +65,7 @@ class ListServiceImpl {
         return this.plants
     }
 
+    /** Fetches display profiles for list item creators by their user IDs. */
     async fetchCreatorProfiles(listItems) {
         const userIds = [...new Set(listItems.map((item) => item.user_id).filter((id) => id))]
         const newProfiles = { ...this.creatorProfiles }
@@ -71,6 +81,7 @@ class ListServiceImpl {
         return this.creatorProfiles
     }
 
+    /** Creates a new list item with grammar-cleaned description and comments. */
     async createListItem(plantCode, description, deadline, comments, status = 'pending', responsibleRole = null) {
         const user = await UserService.getCurrentUser()
         if (!user) throw new Error('No authenticated user')
@@ -94,6 +105,7 @@ class ListServiceImpl {
         return true
     }
 
+    /** Updates an existing list item with grammar-cleaned text fields. */
     async updateListItem(item) {
         if (!item?.id) throw new Error('Item ID is required')
         const desc = GrammarUtility.cleanDescription(item?.description || '')
@@ -116,6 +128,7 @@ class ListServiceImpl {
         return true
     }
 
+    /** Toggles the completion status of a list item and records the completing user. */
     async toggleCompletion(item, currentUserId) {
         if (!item?.id) throw new Error('Item ID is required')
         if (!currentUserId) throw new Error('No authenticated user')
@@ -131,6 +144,7 @@ class ListServiceImpl {
         return true
     }
 
+    /** Deletes a list item and triggers a notifications refresh. */
     async deleteListItem(id) {
         if (!id) throw new Error('Item ID is required')
         const { res, json } = await APIUtility.post('/list-service/delete', { id })
@@ -145,6 +159,10 @@ class ListServiceImpl {
         return true
     }
 
+    /**
+     * Filters and sorts list items by plant, search term, completion status, and status type.
+     * Overdue items are prioritized in non-completed views.
+     */
     getFilteredItems({ plantCode, searchTerm, showCompleted, statusFilter }) {
         let items = [...this.listItems]
         if (plantCode && plantCode !== 'All') items = items.filter((item) => item.plant_code === plantCode)
@@ -180,6 +198,7 @@ class ListServiceImpl {
         return items
     }
 
+    /** Formats a date string for display (e.g., "Jan 5, 2026, 02:30 PM"). */
     formatDate(dateString) {
         if (!dateString) return 'N/A'
         const date = new Date(dateString)
@@ -193,6 +212,7 @@ class ListServiceImpl {
         })
     }
 
+    /** Formats a date string into an HTML datetime-local input value. */
     formatDateForInput(dateString) {
         if (!dateString) return ''
         const date = new Date(dateString)
@@ -200,10 +220,12 @@ class ListServiceImpl {
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
     }
 
+    /** Returns true if the item has a deadline that has passed and is not completed. */
     isOverdue(item) {
         return item.deadline && !item.completed && new Date(item.deadline) < new Date()
     }
 
+    /** Returns status display metadata (color, icon, label) based on item state and deadline. */
     calculateStatusInfo(item) {
         if (!item) return { color: 'var(--gray-500)', icon: 'question-circle', label: 'Unknown' }
         if (item.completed || item.status === 'completed')
@@ -235,6 +257,7 @@ class ListServiceImpl {
         return { color: 'var(--primary)', icon: 'calendar-check', label: 'Pending' }
     }
 
+    /** Maps a status key to its human-readable label. */
     getStatusLabel(status) {
         const labels = {
             blocked: 'Blocked',
@@ -248,6 +271,7 @@ class ListServiceImpl {
         return labels[status] || 'Pending'
     }
 
+    /** Maps a status key to its FontAwesome icon class. */
     getStatusIcon(status) {
         const icons = {
             blocked: 'fa-ban',
@@ -261,6 +285,7 @@ class ListServiceImpl {
         return icons[status] || 'fa-clock'
     }
 
+    /** Maps a status key to its CSS color class name. */
     getStatusColor(status) {
         const colors = {
             blocked: 'blocked',
@@ -274,6 +299,7 @@ class ListServiceImpl {
         return colors[status] || 'pending'
     }
 
+    /** Maps a responsible role key to its display label. */
     getResponsibleRoleLabel(role) {
         const labels = {
             district_manager: 'District Manager',
@@ -283,6 +309,7 @@ class ListServiceImpl {
         return labels[role] || 'Unassigned'
     }
 
+    /** Maps a responsible role key to its FontAwesome icon class. */
     getResponsibleRoleIcon(role) {
         const icons = {
             district_manager: 'fa-user-shield',
@@ -292,11 +319,13 @@ class ListServiceImpl {
         return icons[role] || 'fa-users'
     }
 
+    /** Resolves a plant code to its display name from the cached plants list. */
     getPlantName(plantCode) {
         const plant = this.plants.find((p) => p.plant_code === plantCode)
         return plant ? plant.plant_name : plantCode || 'No Plant'
     }
 
+    /** Truncates text by character count or word count with ellipsis. */
     truncateText(text, maxLength, byWords = false) {
         if (!text) return ''
         if (byWords) {
@@ -306,6 +335,7 @@ class ListServiceImpl {
         return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
     }
 
+    /** Resolves a creator's display name from the cached profiles. */
     getCreatorName(userId) {
         if (!userId) return 'Unknown'
         const profile = this.creatorProfiles[userId]
@@ -316,6 +346,7 @@ class ListServiceImpl {
         return userId.slice(0, 8)
     }
 
+    /** Computes per-plant distribution of total, completed, pending, and overdue items. */
     getPlantDistribution(listItems) {
         const distribution = {}
         const uniquePlants = [...new Set(listItems.map((item) => item.plant_code || 'Unassigned'))]
@@ -336,12 +367,14 @@ class ListServiceImpl {
         return distribution
     }
 
+    /** Fetches planned items within a date range for calendar views. */
     async fetchPlannedItems(startDate, endDate) {
         const { res, json } = await APIUtility.post('/list-service/fetch-planned-items', { endDate, startDate })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch planned items')
         return json?.data ?? []
     }
 
+    /** Associates a list item with a planned date for scheduling. */
     async addPlannedItem(listItemId, plannedDate) {
         const user = await UserService.getCurrentUser()
         const { res, json } = await APIUtility.post('/list-service/add-planned-item', {
@@ -353,12 +386,14 @@ class ListServiceImpl {
         return json
     }
 
+    /** Removes a planned date association from a list item. */
     async removePlannedItem(listItemId, plannedDate) {
         const { res, json } = await APIUtility.post('/list-service/remove-planned-item', { listItemId, plannedDate })
         if (!res.ok) throw new Error(json?.error || 'Failed to remove planned item')
         return json
     }
 
+    /** Clears all planned items within a date range. */
     async clearPlannedItems(startDate, endDate) {
         const { res, json } = await APIUtility.post('/list-service/clear-planned-items', { endDate, startDate })
         if (!res.ok) throw new Error(json?.error || 'Failed to clear planned items')

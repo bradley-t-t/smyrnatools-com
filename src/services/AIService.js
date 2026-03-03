@@ -16,11 +16,13 @@ const CLEANLINESS_THRESHOLDS = [
     { min: 0, points: '-10', label: 'Poor - significantly hurting rankings', impact: 'significantly hurting' }
 ]
 
+/** Builds authorization and content-type headers for the Grok API. */
 const buildHeaders = () => ({
     Authorization: `Bearer ${GROK_API_KEY}`,
     'Content-Type': 'application/json'
 })
 
+/** Constructs the request body with a system prompt prepended to the conversation. */
 const buildRequestBody = (systemPrompt, messages, { model = DEFAULT_MODEL, temperature = 0.3 }) => ({
     messages: [{ content: systemPrompt, role: 'system' }, ...messages],
     model,
@@ -28,11 +30,13 @@ const buildRequestBody = (systemPrompt, messages, { model = DEFAULT_MODEL, tempe
     temperature
 })
 
+/** Maps a cleanliness score to its threshold tier for ranking impact assessment. */
 const getCleanlinessImpact = (score) => {
     if (score <= 0) return null
     return CLEANLINESS_THRESHOLDS.find((t) => score >= t.min) ?? null
 }
 
+/** Formats fleet statistics (active/spare/in-shop counts) into readable summary lines. */
 const formatFleetStatLine = (label, stats) => {
     if (!stats) return []
     const lines = [`\n${label}: ${stats.total} total`]
@@ -43,6 +47,7 @@ const formatFleetStatLine = (label, stats) => {
     return lines
 }
 
+/** Returns a single-line fleet stat summary, or null if stats are unavailable. */
 const formatFleetStatSummary = (label, stats) =>
     stats
         ? `${label}: ${stats.total} total, ${stats.active} active${stats.inShop !== undefined ? `, ${stats.inShop} in shop` : ''}${stats.spare !== undefined ? `, ${stats.spare} spare` : ''}`
@@ -54,7 +59,16 @@ const findByTruckNumber = (list, truckNum) =>
 const filterByTruckNumber = (list, truckNum) =>
     list?.filter((item) => String(item.truckNumber) === truckNum || String(item.truckNumber).includes(truckNum)) ?? []
 
+/**
+ * AI-powered insights service using the Grok API.
+ * Provides dashboard analysis, history summaries, report validation,
+ * follow-up conversations, and content generation for fleet management.
+ */
 class AIInsightsServiceClass {
+    /**
+     * Core API call with retry/error handling.
+     * @returns Parsed response content, or an error descriptor object.
+     */
     async fetchFromAPI(systemPrompt, messages, options = {}) {
         if (!GROK_API_KEY) return null
 
@@ -80,10 +94,12 @@ class AIInsightsServiceClass {
         }
     }
 
+    /** Convenience wrapper for single-prompt API calls. */
     async callAPI(systemPrompt, userPrompt, options = {}) {
         return this.fetchFromAPI(systemPrompt, [{ content: userPrompt, role: 'user' }], options)
     }
 
+    /** Multi-message conversation call with user-friendly error fallback strings. */
     async callAPIWithMessages(systemPrompt, messages, options = {}) {
         const result = await this.fetchFromAPI(systemPrompt, messages, options)
         if (!result) return 'Error connecting to AI service.'
@@ -92,6 +108,7 @@ class AIInsightsServiceClass {
         return result.content ?? 'Could not process that question.'
     }
 
+    /** Generic prompt-driven content generator using a registered prompt key and data formatter. */
     async generateContentFromPrompt(promptKey, dataFormatter, context, options = {}) {
         const userPrompt = dataFormatter.call(this, context)
         const result = await this.callAPI(PROMPTS[promptKey], userPrompt, {
@@ -102,6 +119,7 @@ class AIInsightsServiceClass {
         return result?.content ?? null
     }
 
+    /** Generates strategic insights from aggregated dashboard fleet/operator/maintenance data. */
     async generateDashboardInsights(dashboardData) {
         const userPrompt = this.formatDashboardData(dashboardData)
         const result = await this.callAPI(PROMPTS.dashboardInsights, userPrompt)
@@ -117,6 +135,7 @@ class AIInsightsServiceClass {
         return result?.content ?? 'Unable to generate insights at this time.'
     }
 
+    /** Handles follow-up questions within an ongoing conversation, selecting relevant context. */
     async askFollowUp(question, conversationHistory, contextData) {
         const formattedContext = this.selectRelevantContext(question, contextData)
         const messages = [
@@ -126,6 +145,7 @@ class AIInsightsServiceClass {
         return this.callAPIWithMessages(PROMPTS.followUp, messages)
     }
 
+    /** Generates a role-aware, tone-adjusted summary for a specific plant's performance. */
     async generatePlantSummary(plantData) {
         const { roleName, isViewingOwnPlant, assignedPlant } = plantData.userContext ?? {}
         const systemPrompt = `${getRoleContext(roleName, isViewingOwnPlant, assignedPlant)}${getToneModifier(plantData.plantCode)}\n\n${PLANT_SUMMARY_BASE}`
@@ -182,6 +202,10 @@ class AIInsightsServiceClass {
             .slice(0, MAX_SUGGESTIONS)
     }
 
+    /**
+     * Validates whether an operator's free-text comment adequately explains
+     * flagged efficiency issues (late start, early end, low loads, excessive hours).
+     */
     async validateEfficiencyComment(comment, issues) {
         const issueLines = [
             issues.startDelayed && `Punch in to 1st load: ${issues.startMinutes} minutes (expected: <=15)`,
@@ -204,6 +228,10 @@ class AIInsightsServiceClass {
             : { guidance: 'Please provide a detailed explanation for the timing issues.', valid: false }
     }
 
+    /**
+     * Validates plant manager report metrics for mathematical consistency.
+     * Flags entries where yardage, hours, or loss ratios appear anomalous.
+     */
     async validatePlantManagerMetrics(form) {
         const yardage = Number(form.yardage) || 0
         const hours = Number(form.total_hours) || 0
@@ -238,6 +266,10 @@ class AIInsightsServiceClass {
         }
     }
 
+    /**
+     * Selects the most relevant context data based on the user's question keywords.
+     * Avoids sending the entire dataset to the API for better token efficiency.
+     */
     selectRelevantContext(question, ctx) {
         const q = question.toLowerCase()
         const parts = [
@@ -254,6 +286,7 @@ class AIInsightsServiceClass {
         return parts.join('\n')
     }
 
+    /** Appends truck-specific context (mixer/tractor details, operator history) when a truck number is detected. */
     appendTruckContext(q, ctx, parts) {
         const truckMatch = q.match(/\b\d{3,5}\b/)
         if (!truckMatch) return
@@ -347,6 +380,7 @@ class AIInsightsServiceClass {
         parts.push(`Week ${latestWeek}: ${totalYards} total yards across ${weekReports.length} plants`)
     }
 
+    /** Composes the full dashboard data prompt with fleet, operator, maintenance, and historical sections. */
     formatDashboardData(data) {
         const parts = [`Analysis Date: ${new Date().toLocaleDateString()}`]
 
@@ -452,6 +486,7 @@ class AIInsightsServiceClass {
         }
     }
 
+    /** Formats plant-level summary data including leaderboard metrics, alerts, and cleanliness. */
     formatPlantSummaryData(plantData) {
         const parts = [`Plant ${plantData.plantCode} Current Status:`]
 
@@ -573,6 +608,7 @@ class AIInsightsServiceClass {
             )
     }
 
+    /** Formats asset history data (status changes, cleanliness trends, service records) for AI analysis. */
     formatHistoryData(ctx) {
         const parts = [
             `Asset Type: ${ctx.assetType}`,
@@ -640,6 +676,7 @@ class AIInsightsServiceClass {
         return parts.join('\n')
     }
 
+    /** Formats General Manager weekly report data for AI-powered analysis. */
     formatGMReportData(ctx) {
         const parts = ['Weekly General Manager Report Summary', `Week: ${ctx.weekIso || 'Unknown'}`]
 
@@ -697,6 +734,7 @@ class AIInsightsServiceClass {
         return parts.join('\n')
     }
 
+    /** Formats condensed GM export data for AI-generated summary paragraphs. */
     formatGMExportData(ctx) {
         const parts = [`Week: ${ctx.weekIso || 'Unknown'}`, `Plants: ${ctx.plantCount || 0}`]
 

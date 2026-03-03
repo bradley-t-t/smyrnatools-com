@@ -10,6 +10,10 @@ const persistExclusionReason = async (reportId, reason) => {
     await supabase.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
 }
 
+/**
+ * Handles report upsert (create/update) and submission workflows,
+ * including operator exclusion reason persistence and auto-mark-as-reviewed logic.
+ */
 export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
     const buildUpsertData = useCallback(({ formData, weekIso, reportName, userId, completed = true }) => {
         const monday = weekIso ? new Date(weekIso) : null

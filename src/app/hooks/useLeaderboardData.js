@@ -54,6 +54,10 @@ function buildPlantMetrics(
     }
 }
 
+/**
+ * Loads leaderboard rankings by aggregating weekly report data, fleet counts,
+ * safety records, and hours adjustments across all plants in the selected region.
+ */
 export function useLeaderboardData(selectedRegionCode, selectedYear) {
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])

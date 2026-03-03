@@ -3,6 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ReportService } from '../../services/ReportService'
 import { ReportUtility } from '../../utils/ReportUtility'
 
+/**
+ * Manages report form state, validation, AI-powered metric validation,
+ * and field-level change handlers for the report submission wizard.
+ */
 export function useSubmitForm({
     report,
     initialData,

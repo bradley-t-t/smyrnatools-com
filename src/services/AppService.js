@@ -3,6 +3,10 @@ import { CacheUtility } from '../utils/CacheUtility'
 const VERSION_CACHE_KEY = 'app:version'
 const VERSION_CACHE_TTL_MS = 60_000
 
+/**
+ * Fetches the current app version from turl.json with a 60-second cache TTL.
+ * Falls back to an empty string on network or parse failure.
+ */
 async function getVersion() {
     const cached = CacheUtility.get(VERSION_CACHE_KEY)
     if (cached) return cached
@@ -17,5 +21,6 @@ async function getVersion() {
     }
 }
 
+/** Provides application-level metadata such as the deployed version. */
 export const AppService = { getVersion }
 export default AppService

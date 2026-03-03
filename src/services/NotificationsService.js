@@ -10,7 +10,16 @@ const providers = [
     OverdueListProvider
 ]
 
+/**
+ * Aggregates notifications from multiple providers (mixer, equipment, tractor verifications
+ * and overdue list items). Results are sorted by plant code for consistent display ordering.
+ */
 const NotificationsService = {
+    /**
+     * Collects and merges notifications from all registered providers.
+     * Sorts results with plant-specific notifications first (by plant code),
+     * followed by non-plant notifications.
+     */
     async getNotifications(userId, selectedRegion) {
         if (!userId) return []
         const ctx = { selectedRegion, userId }
