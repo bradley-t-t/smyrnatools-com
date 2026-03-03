@@ -7,7 +7,7 @@ All Rights Reserved.
 PROPRIETARY SOFTWARE LICENSE
 
 This software and associated documentation files (the "Software") are the
-exclusive property of SRM Concrete and SmyrnaTools. The Software is protected
+exclusive property of Trenton Bradley Taylor. The Software is protected
 by copyright laws and international treaty provisions.
 
 RESTRICTIONS:
