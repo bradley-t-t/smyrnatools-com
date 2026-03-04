@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.3] - 2026-03-04
+
+- Added a new Supabase CLI wrapper script in `scripts/supabase.js` to improve accessibility and consistency across different developer environments.
+- Implemented multiple resolution strategies in the script to locate the Supabase CLI binary, including environment variables, common install paths, system PATH, and npm global bin directory.
+- Introduced a fallback mechanism using `npx` to auto-install and run the Supabase CLI if no local or global installation is found.
+- Enhanced the script with detailed JSDoc comments for better code documentation and maintainability.
+- Added utility functions like `exists()`, `which()`, `npmGlobalBin()`, `findSupabase()`, `run()`, and `tryNpx()` to handle binary resolution and execution with proper error handling.
+
 ## [19.2] - 2026-03-04
 
 - Added detailed JSDoc comments to various components for better code documentation and developer experience.
