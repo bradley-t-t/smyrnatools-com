@@ -2,6 +2,9 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.4] - 2026-03-04
+
+- SmyrnaTools Release v19.4
 ## [19.3] - 2026-03-04
 
 - Added a new Supabase CLI wrapper script in `scripts/supabase.js` to improve accessibility and consistency across different developer environments.

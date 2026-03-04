@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     async function restoreSession() {
         setLoading(true)
         setError(null)
-        const userId = sessionStorage.getItem('userId')
+        const userId = sessionStorage.getItem('userId') || localStorage.getItem('smyrna_session')
         if (!userId) {
             setUser(null)
             setLoading(false)

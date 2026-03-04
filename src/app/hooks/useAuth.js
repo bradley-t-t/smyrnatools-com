@@ -4,8 +4,9 @@ import { useEffect } from 'react'
  * Manages authentication session lifecycle on app mount.
  * Restores sessions from storage, loads user roles, handles sign-in/sign-out events,
  * and gates guest-only users to a restricted view.
+ * @param {Function} setSessionChecked - Called with `true` once the initial session restore attempt finishes.
  */
-export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView) {
+export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked) {
     useEffect(() => {
         const initSession = async () => {
             const { AuthService } = await import('../../services/AuthService')
@@ -15,6 +16,7 @@ export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedVi
                     setUserId(AuthService.currentUser.userId)
                 }
             }
+            setSessionChecked(true)
         }
 
         const handleAuthSuccess = (event) => {
@@ -38,5 +40,5 @@ export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedVi
             window.removeEventListener('authSuccess', handleAuthSuccess)
             window.removeEventListener('authSignOut', handleSignOut)
         }
-    }, [setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView])
+    }, [setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked])
 }

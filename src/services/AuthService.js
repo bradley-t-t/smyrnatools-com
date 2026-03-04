@@ -4,6 +4,7 @@ import { supabase } from './DatabaseService'
 const AUTH_SERVICE_FUNCTION = '/auth-service'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
+const SESSION_EXPIRY_DAYS = 7
 
 /**
  * Authentication service managing sign-in, sign-up, sign-out, session persistence,
@@ -118,10 +119,10 @@ class AuthServiceImpl {
             }
 
             const lastActive = new Date(data.last_active)
-            const thirtyDaysAgo = new Date()
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            const expiryThreshold = new Date()
+            expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
 
-            if (lastActive < thirtyDaysAgo) {
+            if (lastActive < expiryThreshold) {
                 this._clearSession()
                 return { userId: null, valid: false }
             }
@@ -290,6 +291,7 @@ class AuthServiceImpl {
         this.currentUser = { userId }
         this.isAuthenticated = true
         this.sessionValidated = true
+        sessionStorage.setItem('userId', userId)
         this._notifyObservers()
         return true
     }

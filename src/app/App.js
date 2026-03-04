@@ -107,9 +107,10 @@ function AppContent() {
     const [offlineMode, setOfflineMode] = useState(false)
     const [terminatedMode, setTerminatedMode] = useState(false)
     const [regionKey, setRegionKey] = useState(0)
+    const [sessionChecked, setSessionChecked] = useState(false)
 
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
-    useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView)
+    useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
     const { triggerTutorial } = useTutorial()
 
     useEffect(() => {
@@ -346,6 +347,7 @@ function AppContent() {
     }
 
     if (terminatedMode) return <TerminatedOverlay />
+    if (!sessionChecked) return null
     if (!userId) return <div className="App">{renderCurrentView()}</div>
     if (!rolesLoaded) return null
 
