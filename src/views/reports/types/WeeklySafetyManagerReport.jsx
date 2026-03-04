@@ -335,6 +335,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
     )
 }
 
+/** Submit-mode plugin for the Safety Manager report — manages safety issues with plant/tag/severity tagging and photo uploads. */
 export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [selectedIssueIdForPlant, setSelectedIssueIdForPlant] = useState(null)
@@ -781,6 +782,7 @@ function SafetyEmptyState({ success }) {
     )
 }
 
+/** Review-mode plugin for the Safety Manager report — read-only view of submitted safety issues with photos. */
 export function SafetyManagerReviewPlugin({ form }) {
     const issues = normalizeIssues(form.issues)
 

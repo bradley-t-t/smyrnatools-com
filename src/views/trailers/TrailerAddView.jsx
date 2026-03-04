@@ -6,6 +6,11 @@ import Trailer from '../../models/trailers/Trailer'
 import { AuthService } from '../../services/AuthService'
 import { TrailerService } from '../../services/TrailerService'
 
+/**
+ * Slide-in form for creating a new trailer record. Requires trailer number
+ * and plant assignment. Supports trailer type selection (Cement/Aggregate/Flat Bed)
+ * and initial cleanliness rating.
+ */
 function TrailerAddView({ plants, onClose, onTrailerAdded }) {
     const [trailerNumber, setTrailerNumber] = useState('')
     const [assignedPlant, setAssignedPlant] = useState('')

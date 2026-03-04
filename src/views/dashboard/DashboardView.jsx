@@ -23,6 +23,13 @@ import { useStatusHistory } from '../../app/hooks/useStatusHistory'
 import { RegionService } from '../../services/RegionService'
 import DateUtility from '../../utils/DateUtility'
 
+/**
+ * Primary dashboard view. Orchestrates region/plant-scoped fleet, operator,
+ * maintenance, and analytics data through a network of specialized hooks.
+ * Supports role-based visibility (plant managers see AI summaries and
+ * notifications), region/plant filtering via a modal picker, and
+ * status history charting with quick date-range filters.
+ */
 export default function DashboardView() {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -190,6 +197,7 @@ export default function DashboardView() {
         dashboardPlant
     )
 
+    // Debounce stat recomputation (30ms) to batch rapid plant/region filter changes.
     const applyFilters = useCallback(() => {
         if (loading) {
             computeStats()
@@ -216,6 +224,7 @@ export default function DashboardView() {
     const isAggregate = selectedRegion?.type === 'Aggregate'
     const showSkeleton = !dataReady
 
+    // Resolve the display label: specific plant > specific region > "All Regions" (admins) > first permitted region.
     const regionDisplayName = (() => {
         if (selectedRegion?.type === 'Office') return 'Home Office'
         return dashboardRegionCode
@@ -225,6 +234,8 @@ export default function DashboardView() {
               : permittedRegions[0]?.regionName || 'Region'
     })()
 
+    // Build the hero subtitle: office shows combined region/plant/aggregate counts;
+    // otherwise shows the selected plant code or a count of plants in the active scope.
     const heroRegionSub = (() => {
         const isOffice = selectedRegion?.type === 'Office'
         if (isOffice) {
@@ -238,6 +249,7 @@ export default function DashboardView() {
               : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`
     })()
 
+    // Scope operator status lists to the active plant set, checking both operator and trainer plant assignments.
     const filteredTrainingOperators = filterByPlantSet(
         trainingOperators,
         activePlantSetRef.current,

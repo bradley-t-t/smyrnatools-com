@@ -9,6 +9,15 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 
+/**
+ * Detail/edit view for a single task list item. Supports editing description,
+ * plant, deadline, status, role, and comments with AI-powered description
+ * improvement. Tracks unsaved changes and provides save/delete with
+ * keyboard shortcuts (Escape to close, Delete to remove).
+ *
+ * @param {string} itemId - ID of the task to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ */
 function ListDetailView({ itemId, onClose }) {
     const { preferences } = usePreferences()
     const [item, setItem] = useState(null)
@@ -118,6 +127,7 @@ function ListDetailView({ itemId, onClose }) {
         }
     }
 
+    // Resolve which plants the user can assign to, scoped by their region permissions.
     useEffect(() => {
         let cancelled = false
 
@@ -265,10 +275,9 @@ function ListDetailView({ itemId, onClose }) {
         }
     }
 
+    // Keyboard shortcuts: Escape to close, Delete/Backspace to delete — but only when not focused on a form input.
     useEffect(() => {
         function onKeyDown(e) {
-            const tag = (e.target && e.target.tagName) || ''
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return
             const key = (e.key || '').toLowerCase()
             if (key === 'escape') {
                 e.preventDefault()

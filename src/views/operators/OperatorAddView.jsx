@@ -8,6 +8,18 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import UserUtility from '../../utils/UserUtility'
 
+/**
+ * Slide-in form for creating a new operator record. Supports name, phone,
+ * plant assignment (region-scoped), status (with permission-gated Training/
+ * Pending Start options), position, trainer assignment, and CDL automatic
+ * restriction. Warns on duplicate operator names before saving.
+ *
+ * @param {Object[]} plants - Available plant records for the plant picker.
+ * @param {Object[]} [operators] - Existing operators used for duplicate-name detection.
+ * @param {Function} onClose - Callback to dismiss the add view.
+ * @param {Function} onOperatorAdded - Callback with the newly created operator record.
+ * @param {Set<string>} [allowedPlantCodes] - Region-scoped plant codes to restrict the picker.
+ */
 function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, allowedPlantCodes }) {
     const { preferences } = usePreferences()
     const [name, setName] = useState('')

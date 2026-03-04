@@ -87,6 +87,13 @@ const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, style
     </select>
 )
 
+/**
+ * Interactive daily dispatch planning tool. Users build driver assignments
+ * between plants with configurable stagger times, auto-calculated leave
+ * times (accounting for pre-trip and travel), and per-driver custom time
+ * overrides. Generates a copyable text summary for dispatch and auto-saves
+ * drafts to the server.
+ */
 function PlanView() {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'

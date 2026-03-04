@@ -10,6 +10,15 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 
+/**
+ * Add/edit form for task list items. Supports multi-plant creation in add mode
+ * (broadcast a single task to multiple plants) and single-plant editing.
+ * Integrates AI-powered description improvement and task suggestions via AIService.
+ *
+ * @param {Function} onClose - Dismiss the form.
+ * @param {Function} [onItemAdded] - Callback after successful save.
+ * @param {Object} [item] - When provided, switches to edit mode for this existing item.
+ */
 function ListAddView({ onClose, onItemAdded, item = null }) {
     const { preferences } = usePreferences()
     const [description, setDescription] = useState('')
@@ -100,6 +109,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         }
     }, [])
 
+    /** Sends the description (and comments) to AI for rewriting; response may be a string or {description, comments} object. */
     const handleImproveDescription = async () => {
         if (!description.trim()) return
         setIsImprovingDescription(true)

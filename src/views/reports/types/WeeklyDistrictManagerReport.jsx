@@ -220,10 +220,12 @@ function DistrictManagerPlugin({ maintenanceItems, plants, form, setForm, readOn
     )
 }
 
+/** Submit-mode wrapper for the District Manager report plugin. */
 export function DistrictManagerSubmitPlugin(props) {
     return <DistrictManagerPlugin {...props} />
 }
 
+/** Review-mode wrapper for the District Manager report plugin (read-only). */
 export function DistrictManagerReviewPlugin({ maintenanceItems, plants, form }) {
     return <DistrictManagerPlugin maintenanceItems={maintenanceItems} plants={plants} form={form} readOnly />
 }

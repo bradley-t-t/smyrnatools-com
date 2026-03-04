@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import { PlantService } from '../../services/PlantService'
 
+/** Detail/edit view for a single plant record. Supports renaming, saving, and deletion. */
 function PlantsDetailView({ plant, onClose, onDelete }) {
     const [plantName, setPlantName] = useState(plant.plant_name || plant.plantName || '')
     const [plantCode, setPlantCode] = useState(plant.plant_code || plant.plantCode || '')

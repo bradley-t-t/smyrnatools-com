@@ -14,6 +14,7 @@ import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 const CURRENT_YEAR = new Date().getFullYear()
 const SKELETON_COUNT = 5
 
+/** Subtle grid overlay for the header background, tinted to the user's accent color. */
 const GRID_PATTERN_STYLE = (accentColor) => ({
     backgroundImage: `
         linear-gradient(${accentColor}10 1px, transparent 1px),
@@ -22,6 +23,12 @@ const GRID_PATTERN_STYLE = (accentColor) => ({
     backgroundSize: '20px 20px'
 })
 
+/**
+ * Region-scoped plant leaderboard view. Ranks plants by a selectable
+ * performance category (efficiency, quality, safety, etc.) for a given year.
+ * Provides a drill-down modal showing hours-adjustment details when
+ * a plant has recorded time additions or subtractions.
+ */
 export default function LeaderboardsView() {
     const { preferences } = usePreferences()
     const isMobile = useIsMobile()
@@ -34,6 +41,7 @@ export default function LeaderboardsView() {
     const { hoursAdjustmentsData, loading, plantMetrics } = useLeaderboardData(selectedRegionCode, selectedYear)
     const categoryData = LeaderboardsUtility.getCategoryData(plantMetrics, selectedCategory)
 
+    /** Opens the hours-adjustment detail modal only if the plant has non-zero adjustment data. */
     const openHelpModal = (plant) => {
         const details = hoursAdjustmentsData[plant.plantCode]
         if (details?.hoursAdded > 0 || details?.hoursSubtracted > 0) {

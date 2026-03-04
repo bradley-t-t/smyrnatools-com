@@ -21,6 +21,23 @@ import OperatorCard from './OperatorCard'
 import OperatorCommentModal from './OperatorCommentModal'
 import OperatorDetailView from './OperatorDetailView'
 
+/**
+ * Main list/grid view for the operator roster. Handles data fetching,
+ * Supabase realtime subscriptions for live INSERT/UPDATE/DELETE,
+ * region-scoped plant filtering, name/ID search, status and position
+ * filtering, sortable columns, operator ratings export, and drill-down
+ * into OperatorDetailView. Falls back to a 1-hour localStorage cache
+ * on API failure.
+ *
+ * @param {string} [title] - Page heading (defaults to "Operator Roster").
+ * @param {Function} [onSelectOperator] - Optional external callback when an operator is selected.
+ * @param {string} [initialStatusFilter] - Pre-set status filter on mount.
+ * @param {string} [initialSelectedPlant] - Pre-set plant filter on mount (applied with 1s delay).
+ * @param {string} [initialPositionFilter] - Pre-set position filter on mount (applied with 1s delay).
+ * @param {boolean} [embedded] - When true, disables filter persistence and forces list mode.
+ * @param {string} [initialSearch] - Pre-populates the search field on mount.
+ * @param {boolean} [exactMatch] - When true, search matches name exactly.
+ */
 function OperatorsView({
     title = 'Operator Roster',
     onSelectOperator,
@@ -113,6 +130,7 @@ function OperatorsView({
         }
     }, [initialSearch])
 
+    // Subscribe to Supabase realtime changes on the operators table to keep the list in sync without refetching.
     useEffect(() => {
         const channel = supabase
             .channel('operators-realtime-changes')
@@ -273,6 +291,7 @@ function OperatorsView({
         }
     }
 
+    /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */
     const fetchOperators = async (codes) => {
         try {
             const data = await OperatorService.fetchOperators(codes)

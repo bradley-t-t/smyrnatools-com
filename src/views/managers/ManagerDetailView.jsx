@@ -9,6 +9,15 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import { AuthUtility } from '../../utils/AuthUtility'
 
+/**
+ * Detail/edit view for a single manager. Provides name, email, plant,
+ * and role editing with inline password reset. Enforces role-weight-based
+ * permissions — users can only edit managers with a lower role weight
+ * (or if their own weight exceeds 75). Region-scopes the plant picker.
+ *
+ * @param {string} managerId - ID of the manager to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ */
 function ManagerDetailView({ managerId, onClose }) {
     const { preferences } = usePreferences()
     const { user } = useAuth()
@@ -58,6 +67,7 @@ function ManagerDetailView({ managerId, onClose }) {
         setHasUnsavedChanges(hasChanges)
     }, [firstName, lastName, email, plantCode, roleName, password, showPasswordField, originalValues, isLoading])
 
+    // Enforce read-only mode unless the current user outranks this manager (or has weight > 75).
     useEffect(() => {
         if (!manager) return
         const canEditAny = currentUserRoleWeight > 75
@@ -291,10 +301,8 @@ function ManagerDetailView({ managerId, onClose }) {
             const selectedRole = availableRoles.find((role) => role.name === roleName)
             if (!selectedRole) throw new Error(`Role '${roleName}' not found in available roles.`)
 
+            // Upsert the role assignment — insert if this is the user's first role, otherwise update.
             const { data: existingPermission } = await supabase
-                .from('users_permissions')
-                .select('id')
-                .eq('user_id', managerId)
             const updateData = {
                 role_id: selectedRole.id,
                 updated_at: new Date().toISOString()

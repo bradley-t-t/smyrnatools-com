@@ -2,6 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
+/**
+ * Concrete set time estimator. Uses real-time geolocation weather data
+ * (or manual entry) combined with mix design parameters to predict
+ * initial and final set times. Accounts for temperature, W/C ratio,
+ * slump, cementitious content, supplemental ratio, time of day / sun
+ * exposure, humidity, and wind speed as adjustment factors.
+ */
 const SetTimeCalculator = () => {
     const isMobile = useIsMobile()
     const [weather, setWeather] = useState(null)
@@ -76,6 +83,7 @@ const SetTimeCalculator = () => {
         setManualWeather((prev) => ({ ...prev, [field]: value }))
     }
 
+    /** Standard weight of water: 8.34 lbs per gallon at 60°F. */
     const WATER_LBS_PER_GALLON = 8.34
 
     const calculateSetTime = useCallback(() => {
@@ -114,9 +122,11 @@ const SetTimeCalculator = () => {
         const humidity = useManual ? parseFloat(manualWeather.humidity) || 50 : weather?.humidity || 50
         const windSpeed = weather?.windSpeed || 5
 
+        // Base set times in minutes under standard conditions (70°F, 0.45 W/C, 4" slump).
         let baseInitialSet = 120
         let baseFinalSet = 480
 
+        // Temperature factor: cold delays hydration, hot accelerates it.
         if (temp < 50) {
             const coldFactor = 1 + (50 - temp) * 0.03
             baseInitialSet *= coldFactor
@@ -127,6 +137,7 @@ const SetTimeCalculator = () => {
             baseFinalSet *= Math.max(hotFactor, 0.5)
         }
 
+        // Higher W/C ratio dilutes cement paste, delaying set.
         if (wc > 0.5) {
             const wcFactor = 1 + (wc - 0.5) * 0.5
             baseInitialSet *= wcFactor
@@ -137,6 +148,7 @@ const SetTimeCalculator = () => {
             baseFinalSet *= wcFactor
         }
 
+        // Higher slump (wetter mix) generally extends set time.
         if (slump > 6) {
             const slumpFactor = 1 + (slump - 6) * 0.04
             baseInitialSet *= slumpFactor
@@ -147,6 +159,7 @@ const SetTimeCalculator = () => {
             baseFinalSet *= Math.max(slumpFactor, 0.9)
         }
 
+        // More cementitious content generates more heat, accelerating set.
         if (totalCementPerYd > 600) {
             const cementFactor = 1 - (totalCementPerYd - 600) * 0.0003
             baseInitialSet *= Math.max(cementFactor, 0.7)
@@ -157,6 +170,7 @@ const SetTimeCalculator = () => {
             baseFinalSet *= Math.min(cementFactor, 1.25)
         }
 
+        // SCMs (fly ash, slag) react more slowly than Portland cement, extending set.
         if (cement > 0 && supplemental > 0) {
             const supplementalRatio = supplemental / totalCementPerYd
             if (supplementalRatio > 0.2) {
@@ -165,12 +179,14 @@ const SetTimeCalculator = () => {
             }
         }
 
+        // Solar radiation and ambient cooling effects by time of day.
         const currentHour = new Date().getHours()
         const isPeakSun = currentHour >= 10 && currentHour < 16
         const isMorning = currentHour >= 6 && currentHour < 10
         const isEvening = currentHour >= 16 && currentHour < 20
         const isNight = currentHour >= 20 || currentHour < 6
 
+        // Direct sun with clear skies significantly accelerates surface set.
         if (isPeakSun && cloudCover < 25 && temp > 70) {
             baseInitialSet *= 0.85
             baseFinalSet *= 0.8
@@ -185,12 +201,14 @@ const SetTimeCalculator = () => {
             baseFinalSet *= 1.08
         }
 
+        // Low humidity accelerates surface drying; high humidity retards evaporation.
         if (humidity < 40) {
             baseInitialSet *= 0.95
         } else if (humidity > 80) {
             baseInitialSet *= 1.05
         }
 
+        // High wind increases evaporation rate, accelerating surface set.
         if (windSpeed > 15) {
             baseInitialSet *= 0.9
         }

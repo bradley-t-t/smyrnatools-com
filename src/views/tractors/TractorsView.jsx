@@ -26,6 +26,19 @@ import TractorCommentModal from './TractorCommentModal'
 import TractorDetailView from './TractorDetailView'
 import TractorIssueModal from './TractorIssueModal'
 
+/**
+ * Main list/grid view for the tractor fleet. Handles data fetching,
+ * Supabase realtime subscriptions for live updates, region-scoped plant
+ * filtering, search, status and freight filtering, inline verification,
+ * sortable columns, issue export, and drill-down into TractorDetailView.
+ *
+ * @param {string} [title] - Page heading (defaults to "Tractor Fleet").
+ * @param {Function} [onSelectTractor] - Optional external callback when a tractor is selected.
+ * @param {Function} [setSelectedView] - Optional parent view-switching callback.
+ * @param {boolean} [embedded] - When true, disables filter persistence and forces list mode.
+ * @param {string} [initialSearch] - Pre-populates the search field on mount.
+ * @param {boolean} [exactMatch] - When true, search matches truck number exactly.
+ */
 function TractorsView({
     title = 'Tractor Fleet',
     onSelectTractor,

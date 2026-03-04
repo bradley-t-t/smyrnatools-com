@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.0] - 2026-03-04
+
+- Added comprehensive documentation comments to various calculator components, including detailed explanations of functionality and logic for ProportionsCalculator (Overweight Fix), SetTimeCalculator, SlumpAdjustmentCalculator, WaterCementCalculator, and YardagePerHourCalculator.
+- Enhanced CalculatorView with a clear description of the tab bar interface for switching between different concrete industry calculators.
+- Improved code clarity across multiple views by adding inline comments explaining key logic and calculations, such as iterative material adjustments in ProportionsCalculator and environmental factor adjustments in SetTimeCalculator.
+- Updated various views including Dashboard, Equipment, Mixers, Operators, Pickup Trucks, Tractors, Trailers, Maintenance, Reports, and others with additional comments or minor structural enhancements for better readability and maintainability.
+
 ## [18.9] - 2026-03-03
 
 - Added a lazy loading retry mechanism with page reload in App.js to handle failed dynamic imports of view components, ensuring a smoother user experience by clearing stale chunk hashes on the first failure.

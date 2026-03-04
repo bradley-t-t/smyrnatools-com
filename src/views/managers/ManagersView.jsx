@@ -11,6 +11,15 @@ import { UserService } from '../../services/UserService'
 import ManagerCard from './ManagerCard'
 import ManagerDetailView from './ManagerDetailView'
 
+/**
+ * List/grid view for all managers (users with profiles and roles).
+ * Supports region-scoped plant filtering, role filtering, name/email
+ * search, sortable columns, and drill-down into ManagerDetailView.
+ * Falls back to a 1-hour localStorage cache if the API fetch fails.
+ *
+ * @param {string} [title] - Page heading (defaults to "Managers").
+ * @param {Function} [onSelectManager] - Optional external callback; if omitted, opens inline detail view.
+ */
 function ManagersView({ title = 'Managers', onSelectManager }) {
     const { preferences, updateManagerFilter, resetManagerFilters } = usePreferences()
     const [managers, setManagers] = useState([])
@@ -133,6 +142,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         }
     }
 
+    /** Fetches all users with profiles/roles; falls back to a 1-hour localStorage cache on failure. */
     async function fetchManagers() {
         try {
             const managersData = await UserService.getAllUsersWithProfilesAndRoles()
@@ -163,6 +173,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         }
     }
 
+    // Default sort: highest role weight first, then alphabetically by last/first name.
     const filteredManagers = managers
         .filter((manager) => {
             const matchesSearch =

@@ -11,6 +11,7 @@ import { PlantManagerReviewPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorReviewPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerReviewPlugin } from './types/WeeklySafetyManagerReport'
 
+/** Maps report type keys to their review-mode plugin components. */
 const PLUGINS = {
     district_manager: DistrictManagerReviewPlugin,
     general_manager: GeneralManagerReviewPlugin,
@@ -52,6 +53,12 @@ const MetaItem = ({ icon, label, value }) => (
     </div>
 )
 
+/**
+ * Read-only review view for a submitted report. Delegates rendering to a
+ * type-specific review plugin (e.g. GeneralManagerReviewPlugin). Shows
+ * computed metrics (YPH, grades), submission metadata, and a "Manager Edit"
+ * button for users with that permission. Supports GM report export.
+ */
 function ReportsReviewView({ report, initialData, onBack, user, completedByUser, onManagerEdit }) {
     const containerRef = useRef(null)
 

@@ -485,6 +485,7 @@ function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
     )
 }
 
+/** Submit-mode plugin for the Ready Mix Instructor report — manages trainer/trainee rosters by category (Mixer/Tractor) with operator selection. */
 export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants }) {
     const [liveOperators, setLiveOperators] = useState([])
     const [isLoading, setIsLoading] = useState(false)
@@ -1146,6 +1147,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     )
 }
 
+/** Review-mode plugin for the Ready Mix Instructor report — read-only view of trainer/trainee assignments by category. */
 export function ReadyMixInstructorReviewPlugin({ form, plants }) {
     const snapshotData = form?.snapshot_data || {}
     const mixerTrainers = snapshotData.mixer_trainers || []

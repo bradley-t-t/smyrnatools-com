@@ -15,6 +15,15 @@ import TrailerCommentModal from './TrailerCommentModal'
 import TrailerHistoryView from './TrailerHistoryView'
 import TrailerIssueModal from './TrailerIssueModal'
 
+/**
+ * Full detail/edit view for a single trailer. Handles tractor assignment/
+ * unassignment, region-scoped plant transfer, deletion, trailer type,
+ * cleanliness rating, and sub-modals for comments, issues, and history.
+ *
+ * @param {Object} [initialTrailer] - Pre-loaded trailer data (optional, fetched if absent).
+ * @param {string} [trailerId] - Trailer ID used to fetch data when initialTrailer is absent.
+ * @param {Function} onClose - Callback to return to the list view.
+ */
 function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     const { preferences } = usePreferences()
     const [trailer, setTrailer] = useState(initialTrailer || null)

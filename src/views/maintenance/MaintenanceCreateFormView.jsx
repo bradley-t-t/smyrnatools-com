@@ -7,6 +7,16 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import { getFieldTypeIcon, getFieldTypeName } from '../../utils/MaintenanceUtility'
 
+/**
+ * Form builder for creating or editing a maintenance form definition.
+ * Supports dynamic field composition (short answer, long answer, checklist,
+ * notes), multi-plant assignment, role-based responsibility, configurable
+ * recurrence frequency, and per-field image-required toggles.
+ *
+ * @param {Object} [editingForm] - When provided, pre-populates the builder for editing.
+ * @param {Function} onBack - Callback to return to the maintenance list.
+ * @param {Function} onSaved - Callback after successful create/update/delete.
+ */
 export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved }) {
     const { preferences } = usePreferences()
     const [saving, setSaving] = useState(false)
@@ -64,6 +74,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         }
     }
 
+    /** Hydrates all form state from an existing form record, mapping DB field rows into the local builder shape. */
     const populateForm = (form) => {
         setTitle(form.title || '')
         setDescription(form.description || '')

@@ -20,6 +20,15 @@ import MixerHistoryView from './MixerHistoryView'
 import MixerIssueModal from './MixerIssueModal'
 import OperatorSelectModal from './OperatorSelectModal'
 
+/**
+ * Full detail/edit view for a single mixer record. Handles loading, saving,
+ * verification (with missing-field modal), deletion, operator assignment/
+ * unassignment, region-scoped plant transfer, In Shop sub-status tracking,
+ * and sub-modals for comments, issues, and history.
+ *
+ * @param {string} mixerId - ID of the mixer record to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ */
 function MixerDetailView({ mixerId, onClose }) {
     const { preferences } = usePreferences()
     const [mixer, setMixer] = useState(null)

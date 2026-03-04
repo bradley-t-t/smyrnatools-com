@@ -14,6 +14,13 @@ import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
 
+/**
+ * Top-level reports hub. Shows the user's submitted reports grouped by week
+ * and a reviewable reports list (for managers with review permissions).
+ * Supports report type and plant filtering, paginated lists, drill-down
+ * into ReportsSubmitView for filling/editing and ReportsReviewView for
+ * reviewing submissions. Managers can also edit reports on behalf of other users.
+ */
 function ReportsView() {
     const {
         getUserName,

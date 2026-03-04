@@ -15,6 +15,16 @@ import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentHistoryView from './EquipmentHistoryView'
 import EquipmentIssueModal from './EquipmentIssueModal'
 
+/**
+ * Full detail/edit view for a single equipment record. Handles loading,
+ * saving, verification, deletion, region transfer, and unsaved-change
+ * protection. Renders sub-modals for comments, issues, history, plant
+ * selection, and verification requirements.
+ *
+ * @param {string} equipmentId - ID of the equipment record to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ * @param {Function} [onSaved] - Optional callback fired after a successful save/verify with the updated record.
+ */
 function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     const { preferences } = usePreferences()
     const [equipment, setEquipment] = useState(null)
@@ -98,6 +108,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         fetchData()
     }, [equipmentId])
 
+    // Resolve which plants the user can reassign to, scoped by their region permissions.
     useEffect(() => {
         let cancelled = false
 
@@ -280,6 +291,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
 
             const statusValue = overrides.status ?? status
 
+            // Business rule: equipment cannot be set to "In Shop" unless it has at least one open maintenance issue.
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const { data: openIssues } = await supabase
                     .from('heavy_equipment_maintenance')
@@ -297,8 +309,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 }
             }
 
+            // Floor ratings to 1 on save — a rating of 0 is treated as "not yet rated" in the UI.
             let cleanlinessValue = cleanlinessRating
-            if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
 
             let conditionValue = conditionRating
             if (!conditionValue || isNaN(conditionValue) || conditionValue < 1) conditionValue = 1

@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 
+/** Hook for computing week-over-week variance percentages and styling classes between last week's and current week's report data. */
 export function useReportVariance(lastWeekData, currentWeekData = {}) {
     const getLastWeekValue = useCallback(
         (fieldName) => {

@@ -9,6 +9,7 @@ import { UserService } from '../../services/UserService'
 const MAX_BRIGHTNESS_HEX = '#D6D6D6'
 const MAX_BRIGHTNESS_VALUE = 214
 
+/** Parses a 6-digit hex color string into its {r, g, b} components. */
 const getRgbFromHex = (hex) => {
     const cleanHex = hex.replace('#', '')
     return {
@@ -18,6 +19,7 @@ const getRgbFromHex = (hex) => {
     }
 }
 
+/** Darkens a color if its average brightness exceeds the threshold, ensuring sufficient contrast on white backgrounds. */
 const clampColorToMaxBrightness = (hex) => {
     const { b, g, r } = getRgbFromHex(hex)
     const currentBrightness = (r + g + b) / 3
@@ -29,6 +31,16 @@ const clampColorToMaxBrightness = (hex) => {
     return `#${clampedR.toString(16).padStart(2, '0')}${clampedG.toString(16).padStart(2, '0')}${clampedB.toString(16).padStart(2, '0')}`
 }
 
+/**
+ * Tabbed account settings view with Profile, Security, and Preferences sections.
+ * Profile: editable name, read-only email/role/plant, and region selector scoped
+ * to the user's permitted regions. Security: password change with current-password
+ * verification (forces re-login), active session management with revoke.
+ * Preferences: accent color picker (with brightness clamping) and tutorial toggles.
+ * Session deduplication runs on load, keeping only one session per browser/OS/device.
+ *
+ * @param {string} [userId] - Explicit user ID; falls back to Supabase auth session or sessionStorage.
+ */
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
     const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
@@ -92,6 +104,7 @@ function MyAccountView({ userId }) {
         return `${diffDays}d ago`
     }
 
+    /** Deletes a remote session record. Refuses to revoke the current session — user must sign out instead. */
     const handleRevokeSession = async (sessionId) => {
         if (sessionId === currentSessionId) {
             setMessage('Cannot revoke current session. Please sign out instead.')
@@ -116,12 +129,12 @@ function MyAccountView({ userId }) {
         triggerTutorial('preferences-tab-hint', 500)
     }, [triggerTutorial])
 
+    // Loads profile, roles, permitted regions, and active sessions.
+    // Deduplicates sessions per browser/OS/device combo to prevent ghost entries.
     useEffect(() => {
         let cancelled = false
 
         async function load() {
-            setLoading(true)
-            setRegionsLoaded(false)
             try {
                 const { data } = await supabase.auth.getSession()
                 const session = data?.session
@@ -348,6 +361,7 @@ function MyAccountView({ userId }) {
         }
     }
 
+    /** Verifies the current password, hashes the new one with a fresh salt, then forces sign-out so the user re-authenticates. */
     const updatePassword = async (e) => {
         e.preventDefault()
         setLoading(true)
@@ -396,6 +410,7 @@ function MyAccountView({ userId }) {
         }
     }
 
+    /** Deletes the current session record, signs out of both custom auth and Supabase auth, then redirects to root. */
     const handleSignOut = async () => {
         setLoading(true)
         try {
@@ -420,6 +435,7 @@ function MyAccountView({ userId }) {
         }
     }
 
+    /** Updates the globally-stored selected region preference when the user picks a different region. */
     const handleChangeRegion = (e) => {
         const code = e.target.value
         if (!code) {

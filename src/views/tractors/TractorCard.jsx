@@ -3,6 +3,11 @@ import React from 'react'
 import CardSection from '../../app/components/sections/CardSection'
 import { TractorUtility } from '../../utils/TractorUtility'
 
+/**
+ * Grid-mode card for a single tractor. Displays plant, operator, status,
+ * service overdue warning, blower indicator, cleanliness rating, and
+ * verification state with tooltip.
+ */
 function TractorCard({
     tractor,
     operatorName,

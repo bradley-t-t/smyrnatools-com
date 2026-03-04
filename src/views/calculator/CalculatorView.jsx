@@ -8,6 +8,7 @@ import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
 import WaterCementCalculator from './types/WaterCementCalculator'
 import YardagePerHourCalculator from './types/YardagePerHourCalculator'
 
+/** Tab definitions for each available calculator type with display metadata. */
 const CALCULATOR_TYPES = [
     { icon: 'fa-tachometer-alt', id: 'yardage-hour', name: 'Yd/Hr' },
     { icon: 'fa-balance-scale', id: 'proportions', name: 'Overweight Fix' },
@@ -16,6 +17,10 @@ const CALCULATOR_TYPES = [
     { icon: 'fa-clock', id: 'set-time', name: 'Set Time' }
 ]
 
+/**
+ * Main calculator hub view. Renders a tab bar for switching between concrete
+ * industry calculators (Yd/Hr, Overweight Fix, Slump, W/C Ratio, Set Time).
+ */
 const CalculatorView = () => {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'

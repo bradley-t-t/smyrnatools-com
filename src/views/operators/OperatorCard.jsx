@@ -4,6 +4,7 @@ import CardSection from '../../app/components/sections/CardSection'
 import formatUtility from '../../utils/FormatUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 
+/** Maps operator lifecycle statuses to their card accent colors. */
 const operatorStatusColors = {
     active: '#10b981',
     default: '#64748b',
@@ -11,6 +12,11 @@ const operatorStatusColors = {
     terminated: '#6b7280'
 }
 
+/**
+ * Grid-mode card for a single operator. Displays plant, status, employee ID,
+ * phone, trainer badge, position, star rating, scheduled-off icon, and a
+ * duplicate-name warning when applicable.
+ */
 function OperatorCard({
     operator,
     plantName,

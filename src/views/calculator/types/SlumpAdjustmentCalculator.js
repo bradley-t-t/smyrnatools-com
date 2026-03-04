@@ -2,6 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
+/**
+ * Slump adjustment calculator for concrete batching. Determines how much
+ * water to add or remove to achieve a target slump, using the industry-standard
+ * approximation of ~3 gallons per yard per inch of slump change.
+ * Optionally shows the resulting total batch water and warns about
+ * potential strength reduction from added water.
+ */
 const SlumpAdjustmentCalculator = () => {
     const isMobile = useIsMobile()
     const [values, setValues] = useState({
@@ -29,10 +36,12 @@ const SlumpAdjustmentCalculator = () => {
         }
 
         const slumpDiff = target - current
+        // Industry rule of thumb: ~3 gallons of water per yard per inch of slump change.
         const waterPerInch = 3
         const waterAdjustment = slumpDiff * waterPerInch * batch
         const newWater = water + waterAdjustment
 
+        // Rough estimate: each % increase in batch water reduces strength by ~0.5%.
         const strengthImpact = waterAdjustment > 0 ? Math.round((waterAdjustment / (water || 1)) * 100 * 0.5) : 0
 
         setResult({

@@ -3,8 +3,15 @@ import React from 'react'
 import CardSection from '../../app/components/sections/CardSection'
 import EquipmentUtility from '../../utils/EquipmentUtility'
 
+/**
+ * Grid-mode card for a single equipment item. Displays key details
+ * (plant, status, type, service date, hours/mileage, cleanliness, condition)
+ * along with verification state and status-colored accent. Delegates
+ * layout and interaction chrome to the shared CardSection component.
+ */
 function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onShowIssueModal }) {
     const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)
+    // Verification can be a method (attached at runtime) or computed statically via EquipmentUtility.
     const isVerified =
         typeof equipment.isVerified === 'function'
             ? equipment.isVerified(equipment.latestHistoryDate)

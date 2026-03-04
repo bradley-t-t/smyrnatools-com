@@ -21,6 +21,16 @@ import PickupTrucksAddView from './PickupTrucksAddView'
 import PickupTrucksCard from './PickupTrucksCard'
 import PickupTrucksDetailView from './PickupTrucksDetailView'
 
+/**
+ * Main list/grid view for the pickup truck fleet. Handles data fetching
+ * with comment/issue count aggregation, Supabase realtime subscriptions
+ * for live INSERT/UPDATE/DELETE, region-scoped plant filtering, search
+ * across VIN/make/model/year/assigned, status filtering (including "Over
+ * 300k Miles"), sortable columns, issue export, and drill-down into
+ * PickupTrucksDetailView.
+ *
+ * @param {string} [title] - Page heading (defaults to "Pickup Trucks").
+ */
 function PickupTrucksView({ title = 'Pickup Trucks' }) {
     const { preferences } = usePreferences()
     const headerRef = useRef(null)
@@ -65,6 +75,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         Year: 'year'
     }
 
+    /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep the pickup list in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
             if (eventType === 'UPDATE' && data.new) {
@@ -141,6 +152,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         }
     }, [handleRealtimeUpdate])
 
+    /** Fetches all pickups scoped to the user's region, then batch-loads comment and issue counts. */
     const fetchAllPickups = useCallback(async () => {
         setIsLoading(true)
         try {

@@ -13,6 +13,18 @@ import GrammarUtility from '../../utils/GrammarUtility'
 import OperatorCommentModal from './OperatorCommentModal'
 import OperatorHistoryView from './OperatorHistoryView'
 
+/**
+ * Full detail/edit view for a single operator. Supports editing name, Smyrna ID,
+ * status, plant (with region-scoped picker), position, trainer assignment,
+ * rating, phone, CDL restriction, and pending start date. Automatically
+ * unassigns the operator from active mixers/tractors when their plant changes
+ * or status moves to non-Active. Also supports cross-region transfer and
+ * sub-modals for comments and history.
+ *
+ * @param {string} operatorId - Employee ID of the operator to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ * @param {Set<string>} [allowedPlantCodes] - Region-scoped plant codes for the plant picker.
+ */
 function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     const { preferences } = usePreferences()
     const [operator, setOperator] = useState(null)
@@ -178,6 +190,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         }
     }, [operator?.plant_code])
 
+    /** Transfers the operator to a different region/plant via OperatorService, then refreshes local state. */
     const handleRegionTransfer = async (newRegionCode, newPlantCode) => {
         if (!operator?.employeeId || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid operator, region, or plant')
@@ -221,6 +234,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         if (onClose) onClose()
     }
 
+    /** Persists all field changes. If plant changed or status became non-Active, auto-unassigns the operator from active mixers and tractors. */
     const handleSave = async () => {
         setIsSaving(true)
         setMessage('')

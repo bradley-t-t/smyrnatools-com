@@ -2,6 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
+/**
+ * Overweight/proportion-fix calculator for concrete batching.
+ * Given a target mix design (coarse/fine aggregate, primary/supplemental powder)
+ * and actual batched weights, iteratively determines the minimum material
+ * additions needed to restore the original design ratios without removing material.
+ */
 const ProportionsCalculator = () => {
     const isMobile = useIsMobile()
     const [target, setTarget] = useState({
@@ -51,6 +57,7 @@ const ProportionsCalculator = () => {
             return
         }
 
+        // Start from whichever is higher (actual or target) since we can only add material, never remove.
         let workingCoarse = Math.max(a.coarse, t.coarse)
         let workingFine = Math.max(a.fine, t.fine)
         let workingCite = Math.max(a.cement, t.cement)
@@ -62,6 +69,8 @@ const ProportionsCalculator = () => {
         const targetAggToCiteRatio = targetTotalCite > 0 ? targetTotalAgg / targetTotalCite : 0
         const targetCiteToSuppRatio = t.supplemental > 0 ? t.cement / t.supplemental : 0
 
+        // Iteratively adjust each material upward until all three ratios converge.
+        // Adjusting one ratio may throw off another, so multiple passes are needed.
         let iterations = 0
         const maxIterations = 10
 
@@ -69,6 +78,7 @@ const ProportionsCalculator = () => {
             iterations++
             let changed = false
 
+            // Step 1: Correct the coarse-to-fine aggregate ratio.
             const currentAggRatio = workingFine > 0 ? workingCoarse / workingFine : 0
 
             if (Math.abs(currentAggRatio - targetAggRatio) > 0.001) {
@@ -91,6 +101,7 @@ const ProportionsCalculator = () => {
             const currentTotalCite = workingCite + workingSupp
             const currentAggToCiteRatio = currentTotalCite > 0 ? currentTotalAgg / currentTotalCite : 0
 
+            // Step 2: Correct the aggregate-to-cementitious ratio by adding powder.
             if (targetAggToCiteRatio > 0 && Math.abs(currentAggToCiteRatio - targetAggToCiteRatio) > 0.001) {
                 const neededTotalCite = currentTotalAgg / targetAggToCiteRatio
 
@@ -117,6 +128,7 @@ const ProportionsCalculator = () => {
                 }
             }
 
+            // Step 3: Correct the primary-to-supplemental cementitious ratio.
             if (targetCiteToSuppRatio > 0) {
                 const currentCiteToSuppRatio = workingSupp > 0 ? workingCite / workingSupp : 0
 
@@ -148,6 +160,7 @@ const ProportionsCalculator = () => {
         const totalTargetWeight = t.coarse + t.cement + t.fine + t.supplemental
         const totalAdjustedWeight = workingCoarse + workingFine + workingCite + workingSupp
 
+        // ~3800 lbs is the approximate weight of one cubic yard of concrete.
         const targetYards = totalTargetWeight > 0 ? totalTargetWeight / 3800 : 0
         const adjustedYards = totalAdjustedWeight > 0 ? totalAdjustedWeight / 3800 : 0
 
@@ -175,6 +188,7 @@ const ProportionsCalculator = () => {
         setAdjustments(null)
     }
 
+    /** Returns the rounded material addition, treating sub-0.5 lb differences as negligible. */
     const getAddition = (key) => {
         if (!adjustments) return null
         const value = adjustments[key]

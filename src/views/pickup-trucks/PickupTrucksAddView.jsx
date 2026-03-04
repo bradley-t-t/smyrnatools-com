@@ -8,6 +8,14 @@ import { PickupTruckService } from '../../services/PickupTruckService'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
 
+/**
+ * Slide-in form for creating a new pickup truck record. Supports VIN
+ * (with I/O/Q letter stripping), make, model, year, assigned person,
+ * mileage, comments, region-scoped plant assignment, and status selection.
+ *
+ * @param {Function} onClose - Callback to dismiss the add view.
+ * @param {Function} [onAdded] - Callback with the newly created pickup record.
+ */
 function PickupTrucksAddView({ onClose, onAdded }) {
     const { preferences } = usePreferences()
     const [vin, setVin] = useState('')

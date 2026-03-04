@@ -12,6 +12,7 @@ const INPUT_BASE_CLASSES =
     'w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-[#1e3a5f] focus:ring-[3px] focus:ring-[#1e3a5f]/10'
 const INPUT_ERROR_CLASSES = 'border-red-500'
 
+/** Reusable single-line text input for short-answer and fallback field types. */
 function FormInput({ field, value, disabled, hasError, onChange, placeholder = 'Type your answer...' }) {
     return (
         <input
@@ -40,6 +41,10 @@ function FormTextarea({ field, value, disabled, hasError, onChange, placeholder 
     )
 }
 
+/**
+ * Renders a checklist with per-item check state, optional image attachments,
+ * and a "why incomplete?" comment field for unchecked required items.
+ */
 function ChecklistField({
     field,
     checklistStates,
@@ -113,6 +118,7 @@ function ChecklistField({
     )
 }
 
+/** Dispatches to the correct input component based on the field's type (short_answer, long_answer, checklist, notes). */
 function FieldRenderer({ field, form, imageHook, errors, disabled }) {
     const {
         responses,
@@ -210,6 +216,7 @@ function FieldImageSection({ field, imageHook, errors, disabled }) {
     )
 }
 
+/** Sticky wizard header with progress bar, step counter, and prev/next/submit navigation. */
 function StepperHeader({
     formTitle,
     dueDate,
@@ -353,6 +360,16 @@ function EmptyFieldsState({ formTitle, onBack }) {
     )
 }
 
+/**
+ * Stepper-based form filler for maintenance tasks. Renders one field per
+ * step with image attachments, then submits responses. Also handles
+ * review mode (managers approve/reject) and read-only view for
+ * previously submitted/reviewed forms, delegating to dedicated components.
+ *
+ * @param {Object} item - The maintenance task or submission record.
+ * @param {Function} onBack - Callback to return to the list.
+ * @param {Function} onSubmitted - Callback after successful submission.
+ */
 export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
     const form = useMaintenanceForm({ item, onSubmitted })
     const { imageHook } = form

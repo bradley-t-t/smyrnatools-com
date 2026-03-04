@@ -3,6 +3,13 @@ import ReactDOM from 'react-dom'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 
+/**
+ * Portal-rendered modal for selecting an operator to assign to a mixer.
+ * Filters operators to the mixer's assigned plant, highlights already-assigned
+ * or inactive operators as unavailable, and supports an "available first" sort
+ * toggle. Hidden operators already assigned to other active mixers are excluded
+ * unless in read-only mode.
+ */
 function OperatorSelectModal({
     isOpen,
     onClose,
@@ -46,6 +53,7 @@ function OperatorSelectModal({
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
 
+    /** Returns true if the operator is already assigned to an active mixer (prevents double-assignment). */
     function isOperatorAssigned(operatorId) {
         if (!operatorId || operatorId === '0' || !Array.isArray(mixers)) return false
         return mixers.some((mixer) => mixer.assignedOperator === operatorId && mixer.status === 'Active')

@@ -17,6 +17,7 @@ import { PlantManagerSubmitPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorSubmitPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerSubmitPlugin } from './types/WeeklySafetyManagerReport'
 
+/** Maps report type keys to their submit-mode plugin components. */
 const PLUGINS = {
     aggregate_production: AggregateProductionSubmitPlugin,
     district_manager: DistrictManagerSubmitPlugin,
@@ -83,6 +84,12 @@ const getFieldIcon = (fieldName) => {
     return iconMap[fieldName] || 'fa-recycle'
 }
 
+/**
+ * Generic report submission form. Delegates rendering to a type-specific
+ * plugin component (e.g. EfficiencySubmitPlugin, PlantManagerSubmitPlugin).
+ * Handles validation, draft auto-save, GM multi-plant field requirements,
+ * operator exclusion reasons, and manager-on-behalf-of editing.
+ */
 function ReportsSubmitView({
     report,
     initialData,

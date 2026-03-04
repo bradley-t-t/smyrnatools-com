@@ -12,6 +12,7 @@ const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
 const VideoBackground = lazy(() => import('../../app/components/common/VideoBackground'))
 
+/** Static gradient placeholder shown while the video background lazy-loads. */
 const VideoFallback = memo(function VideoFallback() {
     return (
         <div
@@ -28,6 +29,7 @@ const VideoFallback = memo(function VideoFallback() {
     )
 })
 
+/** Animated fleet/plant/operator stat counters shown on the login hero panel. */
 const StatsDisplay = memo(function StatsDisplay({ stats }) {
     return (
         <div className="flex justify-center gap-10 border-t border-white/15 pt-8 w-full">
@@ -47,6 +49,7 @@ const StatsDisplay = memo(function StatsDisplay({ stats }) {
     )
 })
 
+/** Horizontal bar that fills to 33/66/100% based on Weak/Medium/Strong password strength. */
 const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
     if (!strength.value) return null
     const widthMap = { Medium: '66%', Strong: '100%', Weak: '33%' }
@@ -82,6 +85,12 @@ const inputBaseStyle = {
     width: '100%'
 }
 
+/**
+ * Full-screen login/signup view with a lazy-loaded video background,
+ * animated fleet stats, password strength indicator, and links to
+ * password recovery and the changelog. Creates a browser session
+ * record in Supabase on successful authentication.
+ */
 function LoginView() {
     const version = useVersion()
     const isMobile = useIsMobile()
@@ -110,10 +119,11 @@ function LoginView() {
         return () => clearTimeout(timer)
     }, [])
 
+    // Fetch aggregate fleet counts after a 1s delay (so the UI paints first),
+    // then animate them with a cubic ease-out over 1.5s.
     useEffect(() => {
         let cancelled = false
         const fetchStats = async () => {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
             if (cancelled) return
             try {
                 const [mixersRes, tractorsRes, trailersRes, equipmentRes, operatorsRes, plantsRes] = await Promise.all([
@@ -222,6 +232,7 @@ function LoginView() {
         return 'Desktop'
     }, [])
 
+    /** Records a browser session in `users_sessions` for presence tracking and audit. */
     const createSession = useCallback(
         async (userId) => {
             try {
@@ -246,6 +257,7 @@ function LoginView() {
         [getBrowserInfo, getOSInfo, getDeviceInfo]
     )
 
+    /** Handles sign-in or sign-up with a 10s safety timeout to prevent infinite loading state. */
     const handleSubmit = useCallback(
         async (e) => {
             e.preventDefault()

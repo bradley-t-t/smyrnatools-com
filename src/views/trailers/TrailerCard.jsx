@@ -3,6 +3,11 @@ import React from 'react'
 import CardSection from '../../app/components/sections/CardSection'
 import { TrailerUtility } from '../../utils/TrailerUtility'
 
+/**
+ * Grid-mode card for a single trailer. Displays plant, trailer type, status,
+ * service overdue warning, assigned tractor/operator with multi-assignment
+ * warning, and cleanliness rating.
+ */
 function TrailerCard({
     trailer,
     tractorName,

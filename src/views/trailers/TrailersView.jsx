@@ -24,6 +24,18 @@ import TrailerCommentModal from './TrailerCommentModal'
 import TrailerDetailView from './TrailerDetailView'
 import TrailerIssueModal from './TrailerIssueModal'
 
+/**
+ * Main list/grid view for the trailer fleet. Handles data fetching,
+ * Supabase realtime subscriptions for live updates, region-scoped plant
+ * filtering, search, status and trailer type filtering, sortable columns,
+ * issue export, and drill-down into TrailerDetailView.
+ *
+ * @param {string} [title] - Page heading (defaults to "Trailer Fleet").
+ * @param {Function} [onSelectTrailer] - Optional external callback when a trailer is selected.
+ * @param {boolean} [embedded] - When true, disables filter persistence and forces list mode.
+ * @param {string} [initialSearch] - Pre-populates the search field on mount.
+ * @param {boolean} [exactMatch] - When true, search matches trailer number exactly.
+ */
 function TrailersView({
     title = 'Trailer Fleet',
     onSelectTrailer,

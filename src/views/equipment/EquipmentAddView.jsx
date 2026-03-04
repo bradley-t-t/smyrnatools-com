@@ -5,6 +5,16 @@ import AddViewSection from '../../app/components/sections/AddViewSection'
 import { AuthService } from '../../services/AuthService'
 import { EquipmentService } from '../../services/EquipmentService'
 
+/**
+ * Slide-in form for creating a new heavy equipment record.
+ * Requires identifying number, assigned plant, and equipment type.
+ * Detects duplicate identifying numbers from API errors and surfaces
+ * a user-friendly message.
+ *
+ * @param {Object[]} plants - Available plant records for the plant picker.
+ * @param {Function} onClose - Callback to dismiss the add view.
+ * @param {Function} onEquipmentAdded - Callback with the newly created equipment record.
+ */
 function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
     const [identifyingNumber, setIdentifyingNumber] = useState('')
     const [assignedPlant, setAssignedPlant] = useState('')

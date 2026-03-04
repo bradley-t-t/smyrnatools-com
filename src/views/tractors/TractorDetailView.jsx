@@ -20,6 +20,15 @@ import TractorCommentModal from './TractorCommentModal'
 import TractorHistoryView from './TractorHistoryView'
 import TractorIssueModal from './TractorIssueModal'
 
+/**
+ * Full detail/edit view for a single tractor. Handles operator assignment/
+ * unassignment, region-scoped plant transfer, verification (with missing-field
+ * modal), deletion, freight type, blower toggle, and sub-modals for comments,
+ * issues, and history.
+ *
+ * @param {string} tractorId - ID of the tractor record to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ */
 function TractorDetailView({ tractorId, onClose }) {
     const { preferences } = usePreferences()
     const [tractor, setTractor] = useState(null)

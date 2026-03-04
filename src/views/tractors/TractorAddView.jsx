@@ -8,6 +8,11 @@ import { AuthService } from '../../services/AuthService'
 import { RegionService } from '../../services/RegionService'
 import { TractorService } from '../../services/TractorService'
 
+/**
+ * Slide-in form for creating a new tractor record. Requires truck number,
+ * region-scoped plant assignment, and freight type (Cement/Aggregate/Flat Bed).
+ * Optional blower toggle.
+ */
 function TractorAddView({ plants, onClose, onTractorAdded }) {
     const { preferences } = usePreferences()
     const [truckNumber, setTruckNumber] = useState('')

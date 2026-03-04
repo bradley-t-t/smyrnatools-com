@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
+/**
+ * Water-to-cementitious (W/C) ratio calculator. Converts water from gallons
+ * to pounds (at 8.34 lbs/gal) and divides by total cementitious content
+ * (primary + supplemental powder) to determine the W/C ratio. Grades the
+ * result as Low / Optimal / Standard / High for quick quality assessment.
+ * Optionally computes per-yard breakdowns when batch size is provided.
+ */
 const WaterCementCalculator = () => {
     const isMobile = useIsMobile()
     const [values, setValues] = useState({
@@ -13,6 +20,7 @@ const WaterCementCalculator = () => {
 
     const [result, setResult] = useState(null)
 
+    /** Standard weight of water: 8.34 lbs per gallon at 60°F. */
     const WATER_LBS_PER_GALLON = 8.34
 
     const handleChange = (field, value) => {
@@ -51,6 +59,10 @@ const WaterCementCalculator = () => {
         }
     }, [values])
 
+    /**
+     * Classifies the W/C ratio into quality tiers per ACI 318 guidelines:
+     * < 0.35 Low (very stiff), 0.35-0.45 Optimal, 0.45-0.55 Standard, > 0.55 High (weak).
+     */
     const getRatioStatus = () => {
         if (!result) return null
         const r = parseFloat(result.ratio)

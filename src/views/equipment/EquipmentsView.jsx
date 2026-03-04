@@ -24,6 +24,19 @@ import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentDetailView from './EquipmentDetailView'
 import EquipmentIssueModal from './EquipmentIssueModal'
 
+/**
+ * Main list/grid view for the heavy equipment fleet. Handles data fetching,
+ * Supabase realtime subscriptions for live updates, region-scoped plant filtering,
+ * search, status/type filtering, sorting, inline verification, issue export,
+ * and drill-down into EquipmentDetailView. Can be embedded in other views
+ * with a pre-set search and exact-match mode.
+ *
+ * @param {string} [title] - Page heading (defaults to "Equipment Fleet").
+ * @param {Function} [onSelectEquipment] - Optional external callback when an item is selected.
+ * @param {boolean} [embedded] - When true, disables filter persistence and forces list mode.
+ * @param {string} [initialSearch] - Pre-populates the search field on mount.
+ * @param {boolean} [exactMatch] - When true, search matches identifying number exactly instead of substring.
+ */
 function EquipmentsView({
     title = 'Equipment Fleet',
     onSelectEquipment,
@@ -116,6 +129,7 @@ function EquipmentsView({
         'Unknown'
     ]
     const headerRef = useRef(null)
+    /** Maps list-view column header labels to their corresponding equipment property keys. */
     const sortMappings = {
         Cleanliness: 'cleanlinessRating',
         Condition: 'conditionRating',
@@ -138,6 +152,7 @@ function EquipmentsView({
         }
     }, [initialSearch])
 
+    /** Attaches a bound `isVerified` method to an equipment object so cards can call it with history context. */
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
         obj.isVerified = function (latestHistoryDate) {
@@ -151,6 +166,7 @@ function EquipmentsView({
         return obj
     }, [])
 
+    /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep the local list in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
             if (eventType === 'UPDATE' && data.new) {
@@ -212,6 +228,7 @@ function EquipmentsView({
         [regionPlantCodes, attachIsVerified]
     )
 
+    // Subscribe to Supabase realtime changes on the heavy_equipment table for live updates.
     useEffect(() => {
         const channel = supabase
             .channel('equipment-realtime-changes')
@@ -254,6 +271,7 @@ function EquipmentsView({
         }
     }, [preferences])
 
+    // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
@@ -289,6 +307,7 @@ function EquipmentsView({
             loadDetailsForEquipments(processedBase)
 
             if (processedBase && processedBase.length > 0) {
+                // Defer verification check 1s so the UI renders before the background audit runs.
                 setTimeout(() => {
                     runVerificationCheck(processedBase)
                 }, 1000)
@@ -305,6 +324,7 @@ function EquipmentsView({
         } catch {}
     }
 
+    /** Runs a background verification integrity check and re-fetches if any records were auto-corrected. */
     async function runVerificationCheck(equipmentsToCheck) {
         if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
 
@@ -323,6 +343,7 @@ function EquipmentsView({
         } catch (error) {}
     }
 
+    /** Batch-loads comment and open-issue counts for all equipment and merges them into local state. */
     const loadDetailsForEquipments = async (equipmentsList) => {
         if (!equipmentsList || equipmentsList.length === 0) return
         const equipmentIds = equipmentsList.map((e) => e.id).filter(Boolean)
@@ -390,6 +411,7 @@ function EquipmentsView({
         [equipments]
     )
 
+    /** Persists any changed verification fields (make, model, year, etc.) then marks the equipment as verified. */
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyEquipment) return
 
@@ -447,6 +469,7 @@ function EquipmentsView({
         [safeUpdateEquipmentFilter]
     )
 
+    /** Applies search, plant, region, status, and type filters, then sorts with retired items pushed to the end. */
     const filteredEquipments = useMemo(() => {
         const filtered = equipments.filter((equipment) => {
             let matchesSearch = true

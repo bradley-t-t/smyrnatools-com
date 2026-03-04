@@ -8,6 +8,12 @@ import { formatFrequency, formatMaintenanceDate, getStatusBadgeClass } from '../
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
 import MaintenanceFormView from './MaintenanceFormView'
 
+/**
+ * Top-level maintenance hub. Shows tabbed views for the user's due tasks,
+ * submission reviews (managers), submission history, and form management
+ * (creators). Permissions are resolved at load to determine which tabs
+ * are visible. Supports plant and form-type filtering within each tab.
+ */
 export default function MaintenanceView() {
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('due')
@@ -29,6 +35,7 @@ export default function MaintenanceView() {
         loadData()
     }, [])
 
+    /** Loads permissions first, then fetches all data in parallel — review/manage data is skipped if the user lacks those permissions. */
     const loadData = async () => {
         setLoading(true)
         try {
@@ -111,6 +118,7 @@ export default function MaintenanceView() {
     const reviewPlants = getUniquePlants([...pendingReviews, ...reviewedSubmissions])
     const reviewFormTypes = getUniqueFormTypes([...pendingReviews, ...reviewedSubmissions], true)
 
+    /** Opens an item for filling or editing. Completed items re-fetch their full submission data for inline editing. */
     const handleItemClick = async (item) => {
         if (item.status === 'completed' && item.submission_id) {
             try {

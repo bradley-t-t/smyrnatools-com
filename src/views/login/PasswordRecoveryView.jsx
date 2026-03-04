@@ -4,6 +4,13 @@ import VideoBackground from '../../app/components/common/VideoBackground'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import APIUtility from '../../utils/APIUtility'
 
+/**
+ * Password recovery form. Sends the user's email to the backend which
+ * generates and emails a new password if the account exists. Uses a
+ * deliberately vague success message to avoid leaking account existence.
+ *
+ * @param {Function} onBackToLogin - Callback to return to the login screen.
+ */
 function PasswordRecoveryView({ onBackToLogin }) {
     const [email, setEmail] = useState('')
     const [submitting, setSubmitting] = useState(false)

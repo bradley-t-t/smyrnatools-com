@@ -1575,6 +1575,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
     )
 }
 
+/** Submit-mode plugin for the Plant Manager report — operator metrics, YPH/lost yards, maintenance items, weekly trends, and operator exclusion handling. */
 export function PlantManagerSubmitPlugin({
     yph: propYph,
     yphGrade: propYphGrade,
@@ -1632,6 +1633,7 @@ export function PlantManagerSubmitPlugin({
     )
 }
 
+/** Review-mode plugin for the Plant Manager report — read-only view of metrics, maintenance items, and weekly trends. */
 export function PlantManagerReviewPlugin({
     yph: _propYph,
     yphGrade: _propYphGrade,

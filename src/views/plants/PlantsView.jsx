@@ -7,6 +7,7 @@ import { RegionService } from '../../services/RegionService'
 import PlantsAddView from './PlantsAddView'
 import PlantsDetailView from './PlantsDetailView'
 
+/** Maps region types to human-readable plant type labels. */
 const REGION_TYPE_TO_PLANT_TYPE = {
     Aggregate: 'Aggregate Location',
     Concrete: 'Concrete Plant',
@@ -41,6 +42,11 @@ const SELECT_STYLE = {
     padding: '12px 40px 12px 16px'
 }
 
+/**
+ * List view for all plants. Builds a plant-to-region map on load to display
+ * each plant's type (Concrete/Aggregate/Office). Supports search by code/name,
+ * region filter, plant type filter, and drill-down into PlantsDetailView.
+ */
 function PlantsView({ title = 'Plants' }) {
     const [plants, setPlants] = useState([])
     const [regions, setRegions] = useState([])

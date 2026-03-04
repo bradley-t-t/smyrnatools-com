@@ -3,6 +3,14 @@ import React, { useEffect, useState } from 'react'
 const GITHUB_URL = 'https://github.com/bradley-t-t'
 const TURL_URL = 'https://taylorurl.com'
 
+/**
+ * Displays a timeline of application releases parsed from `/changelog.txt`.
+ * Optionally overlays AI-generated summaries from `/changelog_ai.txt` when
+ * available. Gaps between version numbers are filled with synthetic "patch"
+ * entries. The latest release is auto-expanded on load.
+ *
+ * @param {Function} onBack - Callback to return to the login screen.
+ */
 function ChangelogView({ onBack }) {
     const [entries, setEntries] = useState([])
     const [loading, setLoading] = useState(true)
@@ -47,6 +55,10 @@ function ChangelogView({ onBack }) {
         return summaries
     }
 
+    /**
+     * Parses markdown changelog into version entries, then fills numeric gaps
+     * between versions with synthetic "Bug fixes and performance improvements" patches.
+     */
     const parseMarkdown = (text) => {
         const versions = []
         let currentVersion = null

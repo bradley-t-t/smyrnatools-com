@@ -8,6 +8,15 @@ import { AuthService } from '../../services/AuthService'
 import { MixerService } from '../../services/MixerService'
 import { RegionService } from '../../services/RegionService'
 
+/**
+ * Slide-in form for creating a new mixer (concrete truck) record.
+ * Requires truck number and assigned plant. Defaults cleanliness to 5
+ * and operator to unassigned ("0").
+ *
+ * @param {Object[]} plants - Available plant records for the plant picker.
+ * @param {Function} onClose - Callback to dismiss the add view.
+ * @param {Function} onMixerAdded - Callback with the newly created mixer record.
+ */
 function MixerAddView({ plants, onClose, onMixerAdded }) {
     const { preferences } = usePreferences()
     const [truckNumber, setTruckNumber] = useState('')

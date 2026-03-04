@@ -6,6 +6,11 @@ import RegionsDetailView from '../../app/components/regions/RegionsDetailView'
 import TopSection from '../../app/components/sections/TopSection'
 import { RegionService } from '../../services/RegionService'
 
+/**
+ * List view for all regions. Supports search by name/code/type, type filter
+ * (Concrete/Aggregate/Office), and drill-down into RegionsDetailView for
+ * editing region properties and managing assigned plants.
+ */
 function RegionsView({ title = 'Regions' }) {
     const [regions, setRegions] = useState([])
     const [isLoading, setIsLoading] = useState(true)

@@ -11,6 +11,17 @@ import PickupTruckCommentModal from './PickupTruckCommentModal'
 import PickupTruckHistoryView from './PickupTruckHistoryView'
 import PickupTruckIssueModal from './PickupTruckIssueModal'
 
+/**
+ * Full detail/edit view for a single pickup truck. Supports editing VIN,
+ * make, model, year, assigned person, mileage, comments, plant (region-scoped),
+ * and status. Tracks unsaved changes and auto-saves on back navigation.
+ * Also provides cross-region transfer and sub-modals for comments, issues,
+ * and history.
+ *
+ * @param {string} pickupId - ID of the pickup truck record to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ * @param {Function} [onSaved] - Optional callback after successful save.
+ */
 function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
     const { preferences } = usePreferences()
     const [pickup, setPickup] = useState(null)
@@ -181,6 +192,7 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         }
     }, [pickup?.assignedPlant])
 
+    /** Transfers the pickup truck to a different region/plant, persists via PickupTruckService, then updates local state. */
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!pickup?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid pickup truck, region, or plant')

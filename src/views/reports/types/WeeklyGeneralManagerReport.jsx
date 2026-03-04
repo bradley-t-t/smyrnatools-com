@@ -70,6 +70,7 @@ const gmReportStyles = `
 `
 
 /* eslint-disable no-undef */
+/** Submit-mode plugin for the General Manager report — collects per-plant metrics (operators, trucks, yardage, hours) with AI summary generation. */
 export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnly, weekIso, userId }) {
     const [effIdx, setEffIdx] = React.useState(0)
     const [effReports, setEffReports] = React.useState([])
@@ -1168,6 +1169,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
     )
 }
 
+/** Review-mode plugin for the General Manager report — displays submitted data and embeds the corresponding RMI report if available. */
 export function GeneralManagerReviewPlugin({ form: _form, plants = [], weekIso }) {
     const { report: rmiReport, loading } = useReportForWeek(weekIso, 'ready_mix_instructor')
 

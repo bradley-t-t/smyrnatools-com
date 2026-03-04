@@ -2,6 +2,12 @@ import React from 'react'
 
 import CardSection from '../../app/components/sections/CardSection'
 
+/**
+ * Grid-mode card for a single pickup truck. Displays VIN (with duplicate
+ * warning), make, model, year, and mileage (with high-mileage warning).
+ * Status-based accent color supports Active, Stationary, Spare, In Shop,
+ * Retired, and Sold.
+ */
 function PickupTrucksCard({ pickup, onSelect, isDuplicateVin, isHighMileage }) {
     let statusColor = 'var(--accent)'
     if (pickup.status === 'Active') statusColor = 'var(--status-active)'

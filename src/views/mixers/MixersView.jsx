@@ -27,6 +27,20 @@ import MixerCommentModal from './MixerCommentModal'
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
 
+/**
+ * Main list/grid view for the mixer (concrete truck) fleet. Handles data
+ * fetching, Supabase realtime subscriptions for live updates, region-scoped
+ * plant filtering, search, status filtering (including In Shop sub-statuses),
+ * sorting, inline verification, issue export, and drill-down into
+ * MixerDetailView. Tracks unassigned active operator count for fleet awareness.
+ *
+ * @param {string} [title] - Page heading (defaults to "Mixer Fleet").
+ * @param {Function} [onSelectMixer] - Optional external callback when a mixer is selected.
+ * @param {Function} [setSelectedView] - Optional parent view-switching callback.
+ * @param {boolean} [embedded] - When true, disables filter persistence and forces list mode.
+ * @param {string} [initialSearch] - Pre-populates the search field on mount.
+ * @param {boolean} [exactMatch] - When true, search matches truck number exactly.
+ */
 function MixersView({
     title = 'Mixer Fleet',
     onSelectMixer,
@@ -131,6 +145,7 @@ function MixersView({
         [operators, mixers, selectedPlant, searchText, regionPlantCodes]
     )
 
+    /** Attaches a bound `isVerified` method to a mixer object so cards can call it with history context. */
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
         obj.isVerified = function (latestHistoryDate) {
@@ -144,6 +159,7 @@ function MixersView({
         return obj
     }, [])
 
+    /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep both mixers and allMixers in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
             if (eventType === 'UPDATE' && data.new) {

@@ -20,6 +20,7 @@ const getPermissionCount = (role) => (Array.isArray(role?.permissions) ? role.pe
 const getSortedPermissions = (permissions) =>
     Array.isArray(permissions) ? [...permissions].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) : []
 
+/** Sticky header with title, IT access badge, and create/bulk-add actions (visible only to IT users). */
 function PageHeader({ hasITAccess, onBulkAdd, onCreate }) {
     return (
         <div
@@ -574,6 +575,12 @@ function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFr
     )
 }
 
+/**
+ * Admin view for managing roles and their permission nodes. IT users can
+ * create, edit, clone, delete roles, and bulk-add permission nodes via a
+ * comma-separated input. Non-IT users see a read-only view. Includes a
+ * full-screen permission search modal and inline permission editing per role.
+ */
 function RolesView() {
     const {
         bulkAddPermissions,

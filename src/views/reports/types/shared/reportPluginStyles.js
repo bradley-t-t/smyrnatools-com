@@ -1,3 +1,4 @@
+/** Shared CSS styles injected via <style> tags by all report type plugins. */
 export const reportPluginStyles = `
 .rpt-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
 .rpt-card-accent { border-left: 4px solid #1e3a5f; }

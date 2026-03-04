@@ -3,6 +3,11 @@ import React from 'react'
 import CardSection from '../../app/components/sections/CardSection'
 import MixerUtility from '../../utils/MixerUtility'
 
+/**
+ * Grid-mode card for a single mixer. Displays plant, operator, status
+ * (with In Shop sub-statuses), service/chip overdue warnings, cleanliness
+ * rating with a "DOWNED" badge when below 3 stars, and verification state.
+ */
 function MixerCard({
     mixer,
     operatorName,

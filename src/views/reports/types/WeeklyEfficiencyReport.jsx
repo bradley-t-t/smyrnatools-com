@@ -346,10 +346,12 @@ function EfficiencyPluginBody({ form, operatorOptions }) {
     )
 }
 
+/** Submit-mode wrapper for the Plant Production (Efficiency) report plugin. */
 export function EfficiencySubmitPlugin({ form, operatorOptions }) {
     return <EfficiencyPluginBody form={form} operatorOptions={operatorOptions} />
 }
 
+/** Review-mode wrapper for the Plant Production (Efficiency) report plugin (read-only). */
 export function EfficiencyReviewPlugin({ form, operatorOptions }) {
     return <EfficiencyPluginBody form={form} operatorOptions={operatorOptions} />
 }

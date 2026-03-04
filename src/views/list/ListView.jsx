@@ -10,6 +10,7 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import ListAddView from './ListAddView'
 
+/** Maps internal status keys to their user-facing display labels. */
 const STATUS_MAP = {
     blocked: 'Blocked',
     completed: 'Completed',
@@ -22,6 +23,7 @@ const STATUS_MAP = {
 
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Ordered Materials', 'Blocked', 'Waiting', 'Overdue', 'Completed']
 
+/** Maps internal role keys to their user-facing display labels. */
 const ROLE_MAP = {
     district_manager: 'District Manager',
     maintenance: 'Maintenance',
@@ -31,6 +33,7 @@ const ROLE_MAP = {
 
 const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
 
+/** Available grouping modes for the task list with icons for the toggle bar. */
 const VIEW_MODES = [
     { icon: 'fa-layer-group', id: 'status', label: 'Status' },
     { icon: 'fa-calendar-alt', id: 'date', label: 'Date' },
@@ -66,6 +69,16 @@ const normalizeToUpperCase = (str) =>
         .trim()
         .toUpperCase()
 
+/**
+ * Task list view with multiple grouping modes (by status, date, role, or
+ * weekly planner). Supports region-scoped plant filtering, bulk selection
+ * with complete/delete actions, keyboard shortcuts (Cmd+K search, Cmd+N add),
+ * and a sticky filter bar with status/role chip filters.
+ *
+ * @param {string} [title] - Page heading (defaults to "Tasks List").
+ * @param {Function} onSelectItem - Callback when a task row is clicked.
+ * @param {Function} [onStatusFilterChange] - Optional external callback for status filter sync.
+ */
 function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -104,6 +117,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         [filteredItems, roleFilter]
     )
 
+    /** Buckets tasks into time-relative groups: Overdue, Today, Tomorrow, This Week, Later, Completed. */
     const groupedByDate = useMemo(() => {
         const groups = {
             completed: { color: 'success', icon: 'fa-check-circle', items: [], label: 'Completed', priority: 6 },
@@ -141,6 +155,11 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         return groups
     }, [roleFilteredItems])
 
+    /**
+     * Groups tasks by workflow status. Items past deadline that are not in an
+     * active-work status (in_progress, blocked, waiting, ordered_materials)
+     * are promoted to the Overdue group instead.
+     */
     const groupedByStatus = useMemo(() => {
         const groups = {
             blocked: { color: 'danger', icon: 'fa-ban', items: [], label: 'Blocked', priority: 3 },
@@ -181,6 +200,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         return groups
     }, [roleFilteredItems])
 
+    /** Groups open (non-completed) tasks by responsible role. */
     const groupedByRole = useMemo(() => {
         const groups = {
             district_manager: {
@@ -216,6 +236,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         [roleFilteredItems, groupedByDate]
     )
 
+    /** Clips planner items that scroll behind the sticky header so they don't peek through. */
     const handleScroll = useCallback(() => {
         if (!headerRef.current || !plannerGroupsRef.current) return
         const clipTop = headerRef.current.getBoundingClientRect().bottom
@@ -317,6 +338,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             return next
         })
 
+    /** Marks all selected items as complete (or incomplete) in sequence, then clears the selection. */
     const bulkToggleCompletion = async (markComplete) => {
         if (!selectedIds.size) return
         const user = await UserService.getCurrentUser()

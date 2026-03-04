@@ -74,6 +74,7 @@ export function ComparisonTableRow({
     )
 }
 
+/** Styled table wrapper for week-over-week comparison grids used by report plugins. */
 export function ComparisonTable({ headers, children }) {
     return (
         <table className="rpt-plant-summary-table">
@@ -89,6 +90,7 @@ export function ComparisonTable({ headers, children }) {
     )
 }
 
+/** Styled card container used as a section wrapper in report plugins. Supports accent border and header actions. */
 export function ReportCard({ title, accent, badge, actions, children, className = '' }) {
     return (
         <div className={`rpt-card ${accent ? 'rpt-card-accent' : ''} ${className}`}>
@@ -140,6 +142,7 @@ export function LoadingSpinner({ text = 'Loading...' }) {
     )
 }
 
+/** Card displaying an AI-generated analysis summary with loading state, error handling, and regenerate action. */
 export function AIAnalysisCard({ analysis, loading, error, onRegenerate, plantCount }) {
     if (loading) {
         return (

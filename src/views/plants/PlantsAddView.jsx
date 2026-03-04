@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import { PlantService } from '../../services/PlantService'
 
+/** Slide-in form for creating a new plant record with a unique plant code and name. */
 function PlantsAddView({ onClose, onPlantAdded }) {
     const [plantCode, setPlantCode] = useState('')
     const [plantName, setPlantName] = useState('')

@@ -3,6 +3,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 
+/**
+ * Real-time yardage production rate calculator. Supports two modes:
+ * - Live: auto-updates current time every 60s to track in-progress pours.
+ * - Completed: manual entry of start/end times for finished pours.
+ * Computes yards/hr, loads/hr (assuming 10 yd/load), and elapsed time,
+ * with a performance grade (Excellent / Good / Average / Below Avg / Slow).
+ */
 const YardagePerHourCalculator = () => {
     const { preferences } = usePreferences()
     const isMobile = useIsMobile()
@@ -27,6 +34,7 @@ const YardagePerHourCalculator = () => {
         }
     }, [])
 
+    // In live mode, refresh the current time every 60s to keep the rate calculation current.
     useEffect(() => {
         if (isOngoing) {
             setValues((prev) => ({ ...prev, completionTime: getCurrentTimeString() }))
@@ -62,12 +70,14 @@ const YardagePerHourCalculator = () => {
         }
 
         let elapsedMins = completionMins - firstLoadMins
+        // Handle overnight pours where completion time is past midnight.
         if (elapsedMins <= 0) {
             elapsedMins += 24 * 60
         }
 
         const elapsedHours = elapsedMins / 60
         const yardsPerHour = yards / elapsedHours
+        // Standard mixer truck capacity is ~10 yards per load.
         const loadsPerHour = yardsPerHour / 10
 
         const hours = Math.floor(elapsedMins / 60)
@@ -97,6 +107,10 @@ const YardagePerHourCalculator = () => {
         setResult(null)
     }
 
+    /**
+     * Grades production rate based on typical ready-mix plant benchmarks:
+     * 40+ yd/hr Excellent, 30+ Good, 20+ Average, 10+ Below Avg, <10 Slow.
+     */
     const getPerformanceStatus = () => {
         if (!result) return null
         const yph = parseFloat(result.yardsPerHour)

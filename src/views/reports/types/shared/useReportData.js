@@ -85,6 +85,7 @@ function pickBestReport(reports) {
     return sorted.find((r) => r.completed) || sorted[0] || null
 }
 
+/** Fetches the report from the week prior to the given weekIso for week-over-week comparison. */
 export function usePreviousWeekReport(weekIso, reportName, extraFilters = {}) {
     const [previousReport, setPreviousReport] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -129,6 +130,7 @@ export function usePreviousWeekReport(weekIso, reportName, extraFilters = {}) {
     return { loading, previousReport }
 }
 
+/** Fetches all reports for the given week and report type, optionally filtered by an array of plant codes. */
 export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_ARRAY) {
     const [reports, setReports] = useState(EMPTY_ARRAY)
     const [loading, setLoading] = useState(false)
@@ -223,6 +225,7 @@ export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_AR
     return { loading, reports }
 }
 
+/** Fetches a single report matching the given week and report type, with optional extra Supabase filters. */
 export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
     const [report, setReport] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -267,6 +270,7 @@ export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
     return { loading, report }
 }
 
+/** Resolves the set of plant codes the current user's region is allowed to access. */
 export function useAllowedPlantCodes(regionCode, RegionService) {
     const [allowedCodes, setAllowedCodes] = useState(null)
 
@@ -291,6 +295,7 @@ export function useAllowedPlantCodes(regionCode, RegionService) {
     return allowedCodes
 }
 
+/** Filters maintenance items to only those belonging to plants within the allowed plant code set. */
 export function filterMaintenanceItemsByPlant(maintenanceItems, plants, allowedCodes) {
     const plantCodes = plants ? new Set(plants.map((p) => p.plant_code || p.code).filter(Boolean)) : null
     const baseFiltered =
