@@ -2,6 +2,15 @@ import React from 'react'
 
 import { CATEGORY_GROUPS, LEADERBOARD_CATEGORIES } from '../../constants/leaderboardConstants'
 
+/**
+ * Individual category tab button with light/dark variant styling.
+ * @param {Object} props
+ * @param {Object} props.category - Category definition with id, icon, and label.
+ * @param {boolean} props.isSelected - Whether this tab is currently active.
+ * @param {Function} props.onSelect - Called with the category ID on click.
+ * @param {'light'|'dark'} props.variant - Visual variant controlling unselected colors.
+ * @param {string} props.accentColor - Theme accent color for the selected state.
+ */
 function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
     const isDark = variant === 'dark'
     const baseClasses =
@@ -29,6 +38,16 @@ function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
     )
 }
 
+/**
+ * Labeled group of category tabs under a section header.
+ * @param {Object} props
+ * @param {string} props.group - Group label text (e.g. "Production", "Labor").
+ * @param {Array} props.categories - Category definitions belonging to this group.
+ * @param {string} props.selectedId - Currently selected category ID.
+ * @param {Function} props.onSelect - Called with the selected category ID.
+ * @param {'light'|'dark'} props.variant - Visual variant.
+ * @param {string} props.accentColor - Theme accent color.
+ */
 function CategoryGroup({ group, categories, selectedId, onSelect, variant, accentColor }) {
     const isDark = variant === 'dark'
     return (
@@ -54,6 +73,16 @@ function CategoryGroup({ group, categories, selectedId, onSelect, variant, accen
     )
 }
 
+/**
+ * Category selector for leaderboard metrics.
+ * Supports grouped mode (categories organized by group headers) or flat mode.
+ * @param {Object} props
+ * @param {string} props.selectedId - Currently selected category ID.
+ * @param {Function} props.onSelect - Called with the selected category ID.
+ * @param {boolean} [props.showGroups=true] - When true, renders categories under group headers.
+ * @param {'light'|'dark'} [props.variant='light'] - Visual variant for the tabs.
+ * @param {string} [props.accentColor='#1e3a5f'] - Theme accent color for selected state.
+ */
 export default function LeaderboardCategorySelector({
     selectedId,
     onSelect,

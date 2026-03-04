@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom'
 import { ListService } from '../../../services/ListService'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
+/** Monday-through-Saturday day configuration for the planner grid. */
 const DAYS = [
     { fullLabel: 'Monday', key: 'monday', label: 'Mon' },
     { fullLabel: 'Tuesday', key: 'tuesday', label: 'Tue' },
@@ -13,6 +14,7 @@ const DAYS = [
     { fullLabel: 'Saturday', key: 'saturday', label: 'Sat' }
 ]
 
+/** Color, icon, and border styling per task status. */
 const STATUS_COLORS = {
     blocked: { bg: '#fef2f2', border: '#fecaca', icon: 'fa-ban', text: '#dc2626' },
     completed: { bg: '#f0fdf4', border: '#bbf7d0', icon: 'fa-check', text: '#16a34a' },
@@ -23,6 +25,10 @@ const STATUS_COLORS = {
     waiting: { bg: '#fefce8', border: '#fef08a', icon: 'fa-hourglass-half', text: '#ca8a04' }
 }
 
+/**
+ * Computes an array of day objects for the Mon-Sat week at the given offset.
+ * @param {number} [weekOffset=0] - Number of weeks relative to the current week.
+ */
 const getWeekDates = (weekOffset = 0) => {
     const today = new Date()
     const dayOfWeek = today.getDay()
@@ -43,6 +49,7 @@ const getWeekDates = (weekOffset = 0) => {
     })
 }
 
+/** Draggable task card showing description, plant code, status, and completed/overdue overlays. */
 function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
     const statusColor = STATUS_COLORS[item.status] || STATUS_COLORS.pending
     const isCompleted = item.status === 'completed' || item.completed
@@ -187,6 +194,7 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
     )
 }
 
+/** Portal-rendered modal for selecting an available list item to add to a day's plan. */
 function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
     const [search, setSearch] = useState('')
 
@@ -445,6 +453,7 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
     )
 }
 
+/** Single day column in the planner grid with task list, add button, and task selector modal. */
 function DayColumn({
     day,
     items,
@@ -638,6 +647,14 @@ function DayColumn({
     )
 }
 
+/**
+ * Shared team weekly planner grid (Mon-Sat) for scheduling list items.
+ * Supports week navigation, task add/remove, and bulk clear.
+ * @param {Object} props
+ * @param {Array} props.items - All available list items.
+ * @param {Function} props.onSelectItem - Callback when a task card is clicked.
+ * @param {string} [props.accentColor='#1e3a5f'] - Theme accent color.
+ */
 export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3a5f' }) {
     const [weekOffset, setWeekOffset] = useState(0)
     const [plannedItems, setPlannedItems] = useState([])

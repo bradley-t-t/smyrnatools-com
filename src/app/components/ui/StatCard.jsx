@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Compact stat card with uppercase label, bold value, and optional sublabel. */
 export default function StatCard({ label, value, sublabel, className = '' }) {
     return (
         <div className={`bg-slate-50 border border-gray-200 rounded-md px-2.5 py-2 text-center ${className}`}>

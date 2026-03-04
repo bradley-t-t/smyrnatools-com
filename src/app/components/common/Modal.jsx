@@ -1,5 +1,13 @@
 import React from 'react'
 
+/**
+ * Reusable modal dialog with header, backdrop-close, and scrollable content area.
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - Modal body content (use ModalBody, ModalSummary, etc.).
+ * @param {Function} props.onClose - Callback invoked when the backdrop or close button is clicked.
+ * @param {string} props.title - Header title text.
+ * @param {string} [props.titleIcon] - Optional FontAwesome class for the header icon.
+ */
 export default function Modal({ children, onClose, title, titleIcon }) {
     return (
         <div
@@ -28,10 +36,22 @@ export default function Modal({ children, onClose, title, titleIcon }) {
     )
 }
 
+/**
+ * Summary strip rendered below the modal header, displaying key metrics in a grid.
+ * @param {Object} props
+ * @param {React.ReactNode} props.children - ModalSummaryItem elements.
+ */
 export function ModalSummary({ children }) {
     return <div className="grid grid-cols-3 gap-4 border-b border-gray-200 bg-gray-50 px-8 py-6">{children}</div>
 }
 
+/**
+ * Individual metric card used inside ModalSummary.
+ * @param {Object} props
+ * @param {string} props.label - Uppercase label text.
+ * @param {string|number} props.value - Primary display value.
+ * @param {string} [props.valueClassName] - Additional Tailwind classes for the value text.
+ */
 export function ModalSummaryItem({ label, value, valueClassName = '' }) {
     return (
         <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-4">
@@ -41,6 +61,11 @@ export function ModalSummaryItem({ label, value, valueClassName = '' }) {
     )
 }
 
+/**
+ * Scrollable content wrapper for modal body sections.
+ * @param {Object} props
+ * @param {React.ReactNode} props.children
+ */
 export function ModalBody({ children }) {
     return <div className="flex-1 overflow-y-auto p-6 md:px-8">{children}</div>
 }

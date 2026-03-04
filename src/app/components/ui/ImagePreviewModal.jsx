@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Full-screen overlay modal for viewing an attached image at full resolution. */
 export default function ImagePreviewModal({ imageUrl, onClose }) {
     if (!imageUrl) return null
 

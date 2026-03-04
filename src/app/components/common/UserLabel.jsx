@@ -3,18 +3,33 @@ import React, { useEffect, useState } from 'react'
 import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/** Size-variant Tailwind class mappings for the label and initials badge. */
 const SIZE_CONFIG = {
     large: { fontSize: 'text-base', initialsFontSize: 'text-[13px]', initialsSize: 'h-8 w-8' },
     medium: { fontSize: 'text-sm', initialsFontSize: 'text-[11px]', initialsSize: 'h-[26px] w-[26px]' },
     small: { fontSize: 'text-xs', initialsFontSize: 'text-[10px]', initialsSize: 'h-5 w-5' }
 }
 
+/**
+ * Extracts up to two-letter initials from a display name.
+ * @param {string} displayName
+ * @returns {string} Uppercase initials (e.g. "JD" for "John Doe").
+ */
 function getInitials(displayName) {
     const parts = displayName.trim().split(' ').filter(Boolean)
     if (parts.length > 1) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
     return displayName.substring(0, 2).toUpperCase()
 }
 
+/**
+ * Inline label that asynchronously resolves and displays a user's name by ID.
+ * Optionally shows a colored initials badge or user icon, with loading/error states.
+ * @param {Object} props
+ * @param {string} props.userId - Supabase user ID to resolve.
+ * @param {boolean} [props.showInitials=false] - Show a circular initials badge.
+ * @param {boolean} [props.showIcon=false] - Show a generic user icon instead of initials.
+ * @param {'small'|'medium'|'large'} [props.size='medium'] - Controls font and badge sizing.
+ */
 function UserLabel({ userId, showInitials = false, showIcon = false, size = 'medium' }) {
     const [userName, setUserName] = useState('')
     const [initials, setInitials] = useState('')

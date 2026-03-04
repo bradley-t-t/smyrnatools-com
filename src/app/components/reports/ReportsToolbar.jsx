@@ -44,6 +44,7 @@ const TabButton = ({ isActive, accentColor, label, onClick }) => (
     </button>
 )
 
+/** Toolbar with refresh, report type filter, plant selector, and My Reports / Review tabs. */
 function ReportsToolbar({
     tab,
     onTabChange,

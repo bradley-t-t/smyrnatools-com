@@ -9,11 +9,19 @@ import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
 
+/** Menu items visible only for Office-type regions. */
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
+
+/** Items hidden for Aggregate-type regions. */
 const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards', 'Calculators', 'Maintenance']
+
+/** Items hidden by default for standard regions. */
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
+
+/** Items exclusively available to Office regions. */
 const OFFICE_ONLY_ITEMS = ['Roles']
 
+/** FontAwesome icon class mapping for each navigation item ID. */
 const ICONS = {
     Archive: 'fa-archive',
     Assets: 'fa-truck',
@@ -40,6 +48,7 @@ const ICONS = {
     Trailers: 'fa-trailer'
 }
 
+/** Permission-gated menu item definitions for the primary navigation. */
 const menuItems = [
     { id: 'Dashboard', permission: 'dashboard.view', text: 'Dashboard' },
     { id: 'Mixers', permission: 'mixers.view', text: 'Mixers' },
@@ -59,10 +68,26 @@ const menuItems = [
     { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' }
 ]
 
+/** Navigation item IDs grouped under the "Assets" dropdown. */
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
+
+/** Navigation item IDs grouped under the "People" dropdown. */
 const PEOPLE_ITEMS = ['Operators', 'Managers']
+
+/** Navigation item IDs grouped under the "Productivity" dropdown. */
 const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards']
 
+/**
+ * Primary app navigation bar with responsive mobile/tablet/desktop layouts.
+ * Handles permission-based menu filtering, region switching, notifications,
+ * and online user presence display.
+ * @param {Object} props
+ * @param {string} props.selectedView - Currently active view ID.
+ * @param {Function} props.onSelectView - Callback to switch the active view.
+ * @param {React.ReactNode} props.children - Main content rendered below the nav bar.
+ * @param {string} [props.userName] - Current user's display name for the account button tooltip.
+ * @param {string|null} [props.userId] - Current user's ID for permission and notification lookups.
+ */
 export default function Navigation({ selectedView, onSelectView, children, userName = '', userId = null, ..._rest }) {
     const { preferences, updatePreferences } = usePreferences()
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
@@ -782,6 +807,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     )
 }
 
+/** Labeled section divider used in the mobile navigation drawer. */
 function MobileSection({ title, children }) {
     return (
         <div style={{ marginBottom: '16px' }}>
@@ -803,6 +829,7 @@ function MobileSection({ title, children }) {
     )
 }
 
+/** Single tappable row in the mobile navigation drawer. */
 function MobileMenuItem({ item, isActive, onClick }) {
     return (
         <div

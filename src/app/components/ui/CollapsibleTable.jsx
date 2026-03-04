@@ -1,5 +1,18 @@
 import React from 'react'
 
+/**
+ * Expandable/collapsible table with a toggle header.
+ * Shows "None" placeholder when rows are empty and expanded.
+ * @param {Object} props
+ * @param {string} props.title - Header label with optional count.
+ * @param {boolean} props.collapsed - Controls the collapsed state.
+ * @param {Function} props.onToggle - Toggles collapse.
+ * @param {boolean} props.disabled - Disables the toggle button.
+ * @param {string[]} props.headers - Column header labels.
+ * @param {Array} props.rows - Data rows to render.
+ * @param {Function} props.renderRow - Returns an array of cell values for a row.
+ * @param {string} [props.accentColor='#1e3a5f'] - Toggle button text color.
+ */
 export function CollapsibleTable({
     title,
     collapsed,

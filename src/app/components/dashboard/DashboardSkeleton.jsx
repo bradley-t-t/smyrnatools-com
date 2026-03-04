@@ -2,6 +2,13 @@ import React from 'react'
 
 import { DashboardCard, SkeletonMetricCard } from '../ui/DashboardCards'
 
+/**
+ * Placeholder skeleton UI rendered while dashboard data is loading.
+ * Mimics the layout of Fleet Overview, Maintenance, and People sections
+ * with shimmer rectangles.
+ * @param {Object} props
+ * @param {boolean} props.isMobile - Uses single-column grid on mobile.
+ */
 export default function DashboardSkeleton({ isMobile }) {
     return (
         <div className="grid gap-6">

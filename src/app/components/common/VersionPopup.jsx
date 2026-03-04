@@ -2,6 +2,12 @@ import React from 'react'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Fixed-position toast at the bottom of the viewport displaying the current app version.
+ * Renders nothing when no version string is provided.
+ * @param {Object} props
+ * @param {string} [props.version] - Semantic version string to display.
+ */
 function VersionPopup({ version }) {
     const accentColor = useAccentColor()
 

@@ -55,6 +55,7 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
     </div>
 )
 
+/** Reviewed/Pending status indicator badge. */
 const ReviewStatus = ({ isReviewed }) =>
     isReviewed ? (
         <span className="inline-flex items-center gap-1 text-emerald-600 font-medium text-xs sm:text-sm">
@@ -68,6 +69,7 @@ const ReviewStatus = ({ isReviewed }) =>
         </span>
     )
 
+/** Mobile card layout for a single report in the review list. */
 const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onReview }) => {
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
@@ -109,6 +111,7 @@ const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onRevi
     )
 }
 
+/** Desktop table row for a single report in the review list. */
 const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onReview }) => {
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
@@ -156,6 +159,7 @@ const EmptyState = () => (
     </div>
 )
 
+/** Paginated list of submitted reports awaiting review, with responsive mobile/desktop layouts. */
 function ReviewReportsList({
     isLoading,
     items,

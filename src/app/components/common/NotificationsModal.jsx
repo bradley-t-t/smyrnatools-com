@@ -6,6 +6,15 @@ import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import { useNotifications } from '../../hooks/useNotifications'
 
+/**
+ * Anchored dropdown panel (portal) displaying categorized notifications.
+ * Groups notifications by type (mixer/tractor/equipment verifications, overdue tasks, reports)
+ * with collapsible sections and severity-based color coding.
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls portal visibility.
+ * @param {Function} props.onClose - Callback invoked on backdrop click or close button.
+ * @param {DOMRect} [props.anchorRect] - Bounding rect of the trigger element for positioning.
+ */
 function NotificationsModal({ isOpen, onClose, anchorRect }) {
     const { preferences } = usePreferences()
     const accentColor = useAccentColor()

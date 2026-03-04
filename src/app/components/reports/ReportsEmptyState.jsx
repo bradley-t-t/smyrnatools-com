@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Circular icon container used in empty state illustrations. */
 const IconWrapper = ({ icon, iconColorClass = 'text-slate-400' }) => (
     <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-100 rounded-full flex items-center justify-center mb-5 sm:mb-6">
         <i className={`fas ${icon} text-4xl sm:text-5xl ${iconColorClass}`} />
@@ -70,6 +71,11 @@ const ReviewEmptyState = () => (
     </div>
 )
 
+/**
+ * Contextual empty state for the reports view.
+ * Shows "No Reports Assigned", "All Caught Up", or "No Reports to Review"
+ * based on the active tab and assignment status.
+ */
 function ReportsEmptyState({ tab, hasAssigned }) {
     if (tab !== 'all') return <ReviewEmptyState />
     const hasAnyAssignment = Object.values(hasAssigned || {}).some(Boolean)

@@ -4,8 +4,14 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import { STATUS_COLORS } from '../../constants/dashboardConstants'
 import { DashboardCard, MetricCard, SectionTitle, StatusPill } from '../ui/DashboardCards'
 
+/** Status types tracked in historical distribution charts. */
 const STATUSES = ['Active', 'Spare', 'In Shop', 'Stationary']
 
+/**
+ * Computes active/spare/in-shop percentages from raw status-days data.
+ * @param {Array<{status: string, days: number}>} data
+ * @returns {{active: number, spare: number, inShop: number}} Percentage values.
+ */
 const calcMetrics = (data) => {
     const total = data.reduce((sum, d) => sum + d.days, 0)
     const findDays = (status) => data.find((d) => d.status === status)?.days || 0
@@ -16,6 +22,12 @@ const calcMetrics = (data) => {
     }
 }
 
+/**
+ * Converts raw status history data into a chart-ready entry.
+ * @param {Array} data - Status history records with `percentage` and `status`.
+ * @param {string} name - Display label for the chart axis.
+ * @returns {Object|null} Chart data point or null if no data.
+ */
 const buildChartEntry = (data, name) => {
     if (!data?.length) return null
     const entry = { name }
@@ -26,6 +38,7 @@ const buildChartEntry = (data, name) => {
     return entry
 }
 
+/** Per-asset-type configuration for building status history summaries. */
 const ASSET_CONFIG = [
     { dataKey: 'mixers', isConcreteOnly: true, name: 'Mixers' },
     { dataKey: 'tractors', isConcreteOnly: false, name: 'Tractors' },
@@ -34,6 +47,7 @@ const ASSET_CONFIG = [
     { dataKey: 'pickups', isConcreteOnly: false, name: 'Pickups' }
 ]
 
+/** Custom tooltip for the historical status distribution bar chart. */
 function HistoryTooltip({ active, payload, label }) {
     if (!active || !payload?.length) return null
     return (
@@ -50,14 +64,30 @@ function HistoryTooltip({ active, payload, label }) {
     )
 }
 
+/** Available quick date-range filter labels for status history. */
 const DATE_FILTER_LABELS = ['last-week', 'this-month', 'this-quarter', 'this-year', 'all']
 
+/**
+ * Converts a kebab-case filter key to a title-case label.
+ * @param {string} filter
+ * @returns {string}
+ */
 const formatFilterLabel = (filter) =>
     filter
         .split('-')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ')
 
+/**
+ * Dashboard section showing service overdue counts, open issue counts,
+ * and a historical status distribution chart with quick date filters.
+ * @param {Object} props
+ * @param {Object} props.displayStats - Aggregated stats with overdue/issue counts per asset type.
+ * @param {boolean} props.isAggregate - Hides mixer-specific data when true.
+ * @param {Object} props.statusHistoryData - Per-asset-type status history arrays.
+ * @param {Function} props.handleQuickDateFilter - Callback to apply a date range filter to status history.
+ * @param {boolean} props.isMobile - Adjusts grid layout for mobile viewports.
+ */
 export default function MaintenanceQualitySection({
     displayStats,
     isAggregate,

@@ -2,6 +2,13 @@ import React from 'react'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Full-screen overlay that embeds external content in a sandboxed iframe.
+ * Includes a branded header bar with a close button and the current URL.
+ * @param {Object} props
+ * @param {string} props.url - URL to load inside the iframe.
+ * @param {Function} props.onClose - Callback invoked when the close button is clicked.
+ */
 function WebOverlay({ url, onClose }) {
     const accentColor = useAccentColor()
 

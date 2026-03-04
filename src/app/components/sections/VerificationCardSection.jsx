@@ -3,6 +3,11 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../../../services/DatabaseService'
 import { usePreferences } from '../../context/PreferencesContext'
 
+/**
+ * Verification status card shown in asset detail views.
+ * Displays verification checklist items, verify/unverify button,
+ * last verified/changed dates, and a recent history timeline.
+ */
 function VerificationCardSection({
     isVerified,
     verificationLabel,

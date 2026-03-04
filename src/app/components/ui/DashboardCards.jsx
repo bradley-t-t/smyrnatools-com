@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Allocation percentage tier styling (high/medium/low). */
 const ALLOCATION_STYLES = {
     high: { background: '#dcfce7', color: '#16a34a' },
     low: { background: '#fee2e2', color: '#dc2626' },
@@ -12,6 +13,7 @@ const getAllocationStyle = (percent) => {
     return ALLOCATION_STYLES.low
 }
 
+/** Small gray pill displaying an inline status label (e.g. "Active 5"). */
 export function StatusPill({ children, className = '' }) {
     return (
         <span
@@ -22,6 +24,7 @@ export function StatusPill({ children, className = '' }) {
     )
 }
 
+/** Color-coded pill showing allocation percentage (green >= 80, yellow >= 50, red < 50). */
 export function AllocationPill({ percent }) {
     const style = getAllocationStyle(percent)
     return (
@@ -31,6 +34,7 @@ export function AllocationPill({ percent }) {
     )
 }
 
+/** Dashboard metric card with icon, label, value, optional subtitle, and child pills. */
 export function MetricCard({
     label,
     value,
@@ -67,6 +71,7 @@ export function MetricCard({
     )
 }
 
+/** Shimmer skeleton placeholder for chart/card loading states. */
 export function SkeletonCard() {
     return (
         <div className="rounded-xl p-6 shadow animate-pulse bg-white">
@@ -77,6 +82,7 @@ export function SkeletonCard() {
     )
 }
 
+/** Shimmer skeleton placeholder for metric card loading states. */
 export function SkeletonMetricCard() {
     return (
         <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200">
@@ -87,6 +93,7 @@ export function SkeletonMetricCard() {
     )
 }
 
+/** Rounded white card container for dashboard sections. */
 export function DashboardCard({ children, className = '' }) {
     return (
         <div className={`bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm ${className}`}>
@@ -95,10 +102,12 @@ export function DashboardCard({ children, className = '' }) {
     )
 }
 
+/** Section heading used inside dashboard cards. */
 export function SectionTitle({ children }) {
     return <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 md:mb-5">{children}</h3>
 }
 
+/** Grid of active/spare/shop counts per freight type (Cement, Aggregate, Dump Truck). */
 export function FreightTypeBreakdown({ freightData, isMobile }) {
     const types = ['Cement', 'Aggregate', 'Dump Truck'].filter(
         (type) => freightData[type] && freightData[type].total > 0
@@ -144,6 +153,7 @@ export function FreightTypeBreakdown({ freightData, isMobile }) {
     )
 }
 
+/** Grid of active/spare/shop counts per trailer type (Cement, End Dump). */
 export function TrailerTypeBreakdown({ trailerTypeData, isMobile }) {
     const types = ['Cement', 'End Dump'].filter((type) => trailerTypeData[type] && trailerTypeData[type].total > 0)
 

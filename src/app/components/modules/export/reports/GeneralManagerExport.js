@@ -29,6 +29,12 @@ import {
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExport } from '../ExportModule'
 
+/**
+ * Generates a multi-sheet General Manager Report Excel workbook.
+ * Fetches asset data, efficiency reports, RMI snapshots, and aggregate production
+ * data for each week found in the monthly history, then builds styled sheets
+ * with an AI-generated executive summary on the current week.
+ */
 export async function exportGeneralManagerReport({ form, plants, weekIso, filename }) {
     if (typeof window === 'undefined') return
 
@@ -215,6 +221,7 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
     await exportWorkbook(wb, finalFilename)
 }
 
+/** Builds a single week's GM report sheet with production, efficiency, fleet, RMI, and aggregate sections. */
 async function createWeekSheet(
     wb,
     ExcelLib,

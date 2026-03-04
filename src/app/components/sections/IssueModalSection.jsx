@@ -5,6 +5,11 @@ import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 import LoadingScreen from '../common/LoadingScreen'
 
+/**
+ * Portal-rendered modal for managing asset issues.
+ * Supports creating, resolving, and deleting issues with severity levels.
+ * Shows open and resolved issues in tabbed views.
+ */
 function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [issues, setIssues] = useState([])
     const [newIssue, setNewIssue] = useState('')

@@ -2,6 +2,11 @@ import React from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
 
+/**
+ * Table-based list view mode for assets.
+ * Renders rows with action buttons for comments, issues, history, and verification.
+ * Responsive layout with compact sizing on mobile.
+ */
 function ListViewModeSection({
     filteredItems,
     operators,

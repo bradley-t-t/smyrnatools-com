@@ -13,6 +13,17 @@ const PRIMARY_BUTTON_CLASSES =
 const SECONDARY_BUTTON_CLASSES =
     'px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
 
+/**
+ * Portal-rendered modal shell for role/permission management dialogs.
+ * Provides a branded header, close button, and renders children as the body.
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls modal visibility.
+ * @param {Function} props.onClose - Closes the modal.
+ * @param {string} props.title - Header title text.
+ * @param {string} [props.subtitle] - Optional subtitle below the title.
+ * @param {string} [props.titleIcon] - FontAwesome icon class for the header.
+ * @param {string} [props.maxWidth='max-w-md'] - Tailwind max-width class.
+ */
 function RoleModal({ children, isOpen, maxWidth = 'max-w-md', onClose, subtitle, title, titleIcon }) {
     if (!isOpen) return null
 
@@ -39,14 +50,17 @@ function RoleModal({ children, isOpen, maxWidth = 'max-w-md', onClose, subtitle,
     )
 }
 
+/** Padded body section for RoleModal content. */
 export function RoleModalBody({ children }) {
     return <div className={BODY_CLASSES}>{children}</div>
 }
 
+/** Scrollable body section for RoleModal with overflow handling. */
 export function RoleModalScrollBody({ children }) {
     return <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
 }
 
+/** Footer bar with primary submit and secondary cancel buttons, supporting loading state. */
 export function RoleModalFooter({
     disabled,
     isLoading,
@@ -83,6 +97,7 @@ export function RoleModalFooter({
     )
 }
 
+/** Labeled form field wrapper with optional sublabel. */
 export function RoleFormField({ children, label, sublabel }) {
     return (
         <div className="mb-4 last:mb-0">
@@ -95,6 +110,7 @@ export function RoleFormField({ children, label, sublabel }) {
     )
 }
 
+/** Styled text input for role modal forms. */
 export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
     return (
         <input
@@ -107,6 +123,7 @@ export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
     )
 }
 
+/** Styled textarea for role modal forms with monospace font. */
 export function RoleTextarea({ disabled, onChange, placeholder, value }) {
     return (
         <textarea

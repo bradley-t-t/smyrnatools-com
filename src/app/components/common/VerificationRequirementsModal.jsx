@@ -9,6 +9,39 @@ import { ValidationUtility } from '../../../utils/ValidationUtility'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import LoadingScreen from './LoadingScreen'
 
+/**
+ * Multi-section verification checklist modal for asset verification workflows.
+ * Collects and validates required fields (VIN, make, model, year, service dates),
+ * operator information (phone, rating), displays open maintenance issues and comments,
+ * and enforces business rules before allowing verification.
+ *
+ * Sections animate open sequentially based on which requirements need attention.
+ * Rendered as a portal overlay.
+ *
+ * @param {Object} props
+ * @param {boolean} props.open - Controls modal visibility.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {Function} props.onSaveAndVerify - Callback invoked when all requirements are met and user clicks verify.
+ * @param {string[]} [props.missingFields] - Field names that still need values (e.g. 'VIN', 'Make').
+ * @param {string} [props.vin] - Current VIN value.
+ * @param {string} [props.make] - Current make value.
+ * @param {string} [props.model] - Current model value.
+ * @param {string} [props.year] - Current year value.
+ * @param {string|Date} [props.lastServiceDate] - Last service date.
+ * @param {string|Date} [props.lastChipDate] - Last chip date (mixer-specific).
+ * @param {Function} [props.setVin] - Setter for VIN.
+ * @param {Function} [props.setMake] - Setter for make.
+ * @param {Function} [props.setModel] - Setter for model.
+ * @param {Function} [props.setYear] - Setter for year.
+ * @param {Function} [props.setLastServiceDate] - Setter for last service date.
+ * @param {Function} [props.setLastChipDate] - Setter for last chip date.
+ * @param {Function} [props.isServiceOverdue] - Predicate that checks if a service date is overdue.
+ * @param {string} [props.assignedOperator] - Employee ID of the assigned operator.
+ * @param {string} [props.itemType] - Asset type label (e.g. 'Mixer', 'Tractor').
+ * @param {string} [props.itemId] - Primary key of the asset being verified.
+ * @param {Object} [props.service] - Asset service instance with fetchIssues/fetchComments/completeIssue/deleteIssue/deleteComment.
+ * @param {string} [props.status] - Current asset status (used for "In Shop" mixer rule).
+ */
 export default function VerificationRequirementsModal({
     open,
     onClose,

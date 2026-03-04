@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Full-screen portal overlay shown when the app loses network connectivity.
+ * Provides a retry button with a spinning indicator during reconnection attempts.
+ * @param {Object} props
+ * @param {Function} props.onRetry - Async callback invoked when the user clicks "Retry Connection".
+ */
 function OfflineOverlay({ onRetry }) {
     const [isRetrying, setIsRetrying] = useState(false)
     const accentColor = useAccentColor()

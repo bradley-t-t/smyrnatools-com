@@ -6,6 +6,7 @@ import OperatorsView from '../../../views/operators/OperatorsView'
 import TractorsView from '../../../views/tractors/TractorsView'
 import TrailersView from '../../../views/trailers/TrailersView'
 
+/** Maps view keys to their component, icon, and display title. */
 const VIEW_CONFIG = {
     equipment: { component: EquipmentsView, icon: 'fa-snowplow', title: 'Equipment' },
     mixers: { component: MixersView, icon: 'fa-truck-moving', title: 'Mixers' },
@@ -14,6 +15,15 @@ const VIEW_CONFIG = {
     trailers: { component: TrailersView, icon: 'fa-truck', title: 'Trailers' }
 }
 
+/**
+ * Full-screen modal that embeds an asset or operator list view from the dashboard.
+ * Allows quick drill-down into a specific view with an optional pre-applied search filter.
+ * @param {Object} props
+ * @param {'equipment'|'mixers'|'operators'|'tractors'|'trailers'} props.embeddedView - Key selecting which view to render.
+ * @param {string} [props.embeddedViewSearch] - Initial search string passed to the embedded view.
+ * @param {string} props.accentColor - Theme accent color for the header bar.
+ * @param {Function} props.onClose - Callback invoked when the close button is clicked.
+ */
 export default function EmbeddedViewModal({ embeddedView, embeddedViewSearch, accentColor, onClose }) {
     const config = VIEW_CONFIG[embeddedView]
     if (!config) return null

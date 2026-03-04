@@ -8,6 +8,15 @@ import StatCard from './StatCard'
 const USABLE_WIDTH = CHART_WIDTH - CHART_PADDING * 2
 const RATING_VALUES = [5, 4, 3, 2, 1]
 
+/**
+ * SVG line chart plotting star ratings over time with stat summary cards.
+ * Shows average, total, and current rating. Falls back to an empty state when no data.
+ * @param {Object} props
+ * @param {Array<{rating: number, timestamp: string}>} props.data - Rating data points.
+ * @param {string} props.title - Chart heading.
+ * @param {string} props.emptyTitle - Empty state title.
+ * @param {string} props.emptySubtitle - Empty state subtitle.
+ */
 export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) {
     if (data.length === 0) {
         return <HistoryEmptyState title={emptyTitle} subtitle={emptySubtitle} />

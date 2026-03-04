@@ -3,6 +3,13 @@ import React, { useState } from 'react'
 import { RegionService } from '../../../services/RegionService'
 import AddViewSection from '../sections/AddViewSection'
 
+/**
+ * Modal form for creating a new region with code, name, and type fields.
+ * Validates required fields and handles duplicate key errors gracefully.
+ * @param {Object} props
+ * @param {Function} props.onClose - Closes the add view.
+ * @param {Function} props.onRegionAdded - Called with the new region after successful creation.
+ */
 function RegionsAddView({ onClose, onRegionAdded }) {
     const [regionCode, setRegionCode] = useState('')
     const [regionName, setRegionName] = useState('')

@@ -2,6 +2,12 @@ import React from 'react'
 
 import Modal, { ModalBody, ModalSummary, ModalSummaryItem } from '../common/Modal'
 
+/**
+ * Single help transaction row showing direction (sent/received), plant,
+ * date, operator count, and hours.
+ * @param {Object} props
+ * @param {Object} props.entry - Help record with type, to/from, week, operatorCount, hours.
+ */
 function HelpEntry({ entry }) {
     const isSent = entry.type === 'sent'
     const bgClass = isSent ? 'bg-emerald-50' : 'bg-rose-50'
@@ -43,6 +49,15 @@ function HelpEntry({ entry }) {
     )
 }
 
+/**
+ * Modal displaying the full breakdown of help hours exchanged by a plant.
+ * Shows a summary bar with given/received/net totals and a chronological
+ * list of individual help transactions.
+ * @param {Object} props
+ * @param {Object} props.details - Help details with hoursAdded, hoursSubtracted, and details array.
+ * @param {Object} props.plant - Plant object with plantCode for the title.
+ * @param {Function} props.onClose - Callback to close the modal.
+ */
 export default function HelpDetailsModal({ details, plant, onClose }) {
     if (!details || !plant) return null
 

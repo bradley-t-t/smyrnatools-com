@@ -2,8 +2,13 @@ import React, { memo, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
 
+/** LocalStorage key for persisting the plant summary minimized/expanded state. */
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
 
+/**
+ * Expandable alert card with icon, count badge, and a collapsible item list.
+ * Used for unverified mixers, overdue service, open issues, and long-term shop alerts.
+ */
 const AlertItem = ({
     icon,
     iconBg,
@@ -61,6 +66,7 @@ const AlertItem = ({
     )
 }
 
+/** Clickable pill button for navigating to a specific asset in an embedded view. */
 const AssetButton = ({ label, onClick, color }) => (
     <button
         onClick={onClick}
@@ -71,6 +77,7 @@ const AssetButton = ({ label, onClick, color }) => (
     </button>
 )
 
+/** Compact KPI card displaying a labeled value with optional icon and color. */
 const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
     <div
         className={`flex flex-col items-center gap-1 bg-white rounded-xl shadow-sm ${isMobile ? 'flex-[1_1_45%] min-w-[120px] px-2.5 py-3.5' : 'flex-[1_1_auto] min-w-[100px] px-5 py-4'}`}
@@ -86,6 +93,7 @@ const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
     </div>
 )
 
+/** Operator category card with icon header and clickable name buttons that open the operators embedded view. */
 const OperatorSection = ({
     iconBg,
     icon,
@@ -136,11 +144,18 @@ const OperatorSection = ({
     </div>
 )
 
+/** Maps a display asset type name to its embedded view key. */
 const getAssetViewType = (assetType) => {
     const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
     return viewMap[assetType] || 'equipment'
 }
 
+/**
+ * Collapsible plant-level summary panel on the dashboard.
+ * Shows leaderboard metrics, AI-generated analysis, asset/operator alerts,
+ * and operator status tabs. Persists minimized state to localStorage.
+ * Only renders when there are notifications or leaderboard data available.
+ */
 const DashboardPlantSummary = memo(function DashboardPlantSummary({
     dashboardPlant,
     plantNotifications,
@@ -364,6 +379,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     )
 })
 
+/** AI-powered plant performance analysis with typewriter-style display and regenerate button. */
 const AISummarySection = ({
     aiSummaryLoading,
     aiSummaryFailed,
@@ -439,6 +455,7 @@ const AISummarySection = ({
     </div>
 )
 
+/** Tab switcher between Alerts and Operators sections with badge counts. */
 const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
     <div className="flex gap-1 border-b-2 border-slate-200 mb-5">
         {[
@@ -469,6 +486,7 @@ const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
     </div>
 )
 
+/** Alerts tab content showing unverified, overdue, issue-heavy, and long-term shop assets. */
 const AlertsTab = ({
     plantNotifications,
     expandedSections,
@@ -597,6 +615,7 @@ const AlertsTab = ({
     </div>
 )
 
+/** Operators tab content showing unassigned, pending-start, and in-training operator groups. */
 const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
     const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
     const hasOperatorAlerts =

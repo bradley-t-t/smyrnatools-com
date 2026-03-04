@@ -4,6 +4,10 @@ import SmyrnaLogo from '../../../assets/images/SmyrnaLogo.png'
 import { useAuth } from '../../context/AuthContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Full-screen overlay displayed when a user's access has been revoked.
+ * Provides only a sign-out option with no way to dismiss.
+ */
 function TerminatedOverlay() {
     const { signOut } = useAuth()
     const accentColor = useAccentColor()

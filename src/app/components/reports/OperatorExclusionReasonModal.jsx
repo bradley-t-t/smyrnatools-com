@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import { OPERATOR_EXCLUSION_REASONS } from '../../constants/reportConstants'
 
+/** Modal requiring the user to select a reason when all operators are excluded from a report. */
 function OperatorExclusionReasonModal({ onConfirm, onCancel }) {
     const [selectedReason, setSelectedReason] = useState('')
 

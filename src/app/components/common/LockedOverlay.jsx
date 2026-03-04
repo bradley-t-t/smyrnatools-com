@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import VideoBackground from './VideoBackground'
 
+/** Maps lock reasons to user-facing title/message pairs. */
 const REASON_CONFIG = {
     'invalid-session': {
         message:
@@ -18,11 +19,19 @@ const REASON_CONFIG = {
     }
 }
 
+/** Fallback messaging when the lock reason is unrecognized. */
 const DEFAULT_REASON = {
     message: 'You must contact your district manager for them to approve your sign-up.',
     title: 'Access Pending'
 }
 
+/**
+ * Full-screen portal overlay shown when user access is locked.
+ * Displays contextual messaging based on the lock reason and provides
+ * options to refresh or sign out.
+ * @param {Object} props
+ * @param {'invalid-session'|'no-plant'|string} props.reason - Lock reason key used to resolve the displayed message.
+ */
 function LockedOverlay({ reason }) {
     const { signOut } = useAuth()
     const accentColor = useAccentColor()

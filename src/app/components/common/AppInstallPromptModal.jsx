@@ -4,6 +4,7 @@ import { AppInstallPromptService } from '../../../services/AppInstallPromptServi
 import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/** Step-by-step PWA install instructions for iOS Safari. */
 const IOS_STEPS = [
     {
         icon: 'fa-share',
@@ -30,6 +31,7 @@ const IOS_STEPS = [
     }
 ]
 
+/** Step-by-step PWA install instructions for Android Chrome. */
 const ANDROID_STEPS = [
     {
         icon: 'fa-ellipsis-v',
@@ -55,6 +57,7 @@ const ANDROID_STEPS = [
     }
 ]
 
+/** Desktop-targeted instructions for installing on an iPhone/iPad. */
 const DESKTOP_IOS_STEPS = [
     'Open **Safari** on your iPhone or iPad',
     'Navigate to **smyrnatools.com**',
@@ -63,6 +66,7 @@ const DESKTOP_IOS_STEPS = [
     'Tap **Add**'
 ]
 
+/** Desktop-targeted instructions for installing on Android. */
 const DESKTOP_ANDROID_STEPS = [
     'Open **Chrome** on your Android phone',
     'Navigate to **smyrnatools.com**',
@@ -71,6 +75,7 @@ const DESKTOP_ANDROID_STEPS = [
     'Tap **Add**'
 ]
 
+/** Numbered circle badge used in mobile install step lists. */
 function StepNumber({ number, accentColor }) {
     return (
         <span
@@ -82,6 +87,7 @@ function StepNumber({ number, accentColor }) {
     )
 }
 
+/** Compact numbered badge used in desktop tutorial step lists. */
 function SmallStepNumber({ number, accentColor }) {
     return (
         <span
@@ -93,10 +99,12 @@ function SmallStepNumber({ number, accentColor }) {
     )
 }
 
+/** Converts **bold** markdown segments to <strong> elements. */
 function renderBold(text) {
     return text.split(/\*\*(.+?)\*\*/).map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : part))
 }
 
+/** Shared button group for install prompt actions (primary, remind later, dismiss forever). */
 function ActionButtons({ onPrimary, primaryIcon, primaryLabel, onSecondary, onDismiss, accentColor }) {
     return (
         <div className="flex flex-col gap-3">
@@ -123,6 +131,7 @@ function ActionButtons({ onPrimary, primaryIcon, primaryLabel, onSecondary, onDi
     )
 }
 
+/** Mobile-specific install instructions panel with device-appropriate steps. */
 function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, onDismissForever }) {
     const steps = deviceType === 'ios' ? IOS_STEPS : deviceType === 'android' ? ANDROID_STEPS : []
 
@@ -167,6 +176,7 @@ function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, on
     )
 }
 
+/** Tutorial section card for a single platform (iOS or Android) shown on desktop. */
 function DesktopTutorialSection({ icon, title, steps, accentColor }) {
     return (
         <div className="rounded-xl bg-slate-50 p-5 text-left">
@@ -186,6 +196,7 @@ function DesktopTutorialSection({ icon, title, steps, accentColor }) {
     )
 }
 
+/** Desktop-specific content showing install tutorials for both iOS and Android. */
 function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissForever }) {
     return (
         <div className="px-8 pb-8 pt-10 text-center">
@@ -229,6 +240,12 @@ function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissFore
     )
 }
 
+/**
+ * Smart PWA install prompt modal that detects the user's device and shows
+ * platform-appropriate installation instructions.
+ * Respects user preferences (remind later, dismiss forever) and only appears
+ * for non-guest users after a short delay.
+ */
 function AppInstallPromptModal() {
     const [showModal, setShowModal] = useState(false)
     const [deviceType, setDeviceType] = useState('desktop')

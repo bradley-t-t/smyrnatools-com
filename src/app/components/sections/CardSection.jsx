@@ -46,6 +46,11 @@ const cardStyles = `
     }
 `
 
+/**
+ * Asset summary card used in grid view mode.
+ * Displays a colored status bar, item number, subtitle, verification flag,
+ * and detail rows passed as children. Supports click-to-select.
+ */
 function CardSection({
     item,
     itemType,

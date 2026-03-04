@@ -4,6 +4,29 @@ import { formatMaintenanceDateShort } from '../../../utils/MaintenanceUtility'
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
 import ImagePreviewModal from '../ui/ImagePreviewModal'
 
+/**
+ * Full-page review interface for submitted maintenance forms.
+ * Displays all form responses (text fields, checklists with images),
+ * and provides approve/reject controls with optional reviewer notes.
+ * @param {Object} props
+ * @param {Object} props.checklistComments - Per-field, per-item comment map for checklist fields.
+ * @param {Object} props.checklistStates - Per-field, per-item boolean map for checklist fields.
+ * @param {Object} [props.errors] - Validation/submission error messages (keyed by field).
+ * @param {Object} props.fieldImages - Map of field IDs to uploaded image data.
+ * @param {Array} props.fields - Ordered array of form field definitions.
+ * @param {Object} props.formObj - Form metadata (title, etc.).
+ * @param {string|null} props.imagePreview - URL of the currently previewed image, or null.
+ * @param {Object} props.item - Submitted form record with metadata like `submitted_at`.
+ * @param {Function} props.onBack - Navigates back from the review screen.
+ * @param {Function} props.onClosePreview - Closes the image preview modal.
+ * @param {Function} props.onOpenPreview - Opens the image preview modal for a given URL.
+ * @param {Function} props.onReview - Called with 'approved' or 'rejected' to submit the review decision.
+ * @param {Object} props.responses - Map of field IDs to submitted text responses.
+ * @param {string} props.reviewNotes - Current reviewer notes text.
+ * @param {Function} props.setReviewNotes - Setter for reviewer notes.
+ * @param {string} [props.submitterName] - Display name of the user who submitted the form.
+ * @param {boolean} props.submitting - Whether a review submission is in progress.
+ */
 export default function MaintenanceFormReview({
     checklistComments,
     checklistStates,

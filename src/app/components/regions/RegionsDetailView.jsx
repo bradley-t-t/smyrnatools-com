@@ -3,6 +3,16 @@ import React, { useEffect, useState } from 'react'
 import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
 
+/**
+ * Detail/edit view for a single region.
+ * Allows editing the region name, type, and associated plants via a searchable plant picker.
+ * Supports save, cancel, and delete actions.
+ * @param {Object} props
+ * @param {Object} props.region - Region object with region_code, region_name, and type.
+ * @param {Function} props.onClose - Navigates back to the region list.
+ * @param {Function} [props.onDelete] - Called with the region code after deletion.
+ * @param {Function} [props.onUpdate] - Called with region code and updated name after save.
+ */
 function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [regionName, setRegionName] = useState(region.region_name || region.regionName || '')
     const [regionType, setRegionType] = useState(region.type || region.region_type || '')

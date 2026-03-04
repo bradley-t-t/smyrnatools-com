@@ -10,6 +10,19 @@ import {
     TrailerTypeBreakdown
 } from '../ui/DashboardCards'
 
+/**
+ * Dashboard section displaying per-asset-type fleet metrics.
+ * Shows active/spare/in-shop counts, allocation rates, and type breakdowns
+ * for mixers, tractors, trailers, equipment, and pickup trucks.
+ * Mixers are hidden for Aggregate regions.
+ * @param {Object} props
+ * @param {Object} props.displayStats - Per-asset-type stats (active, spare, shop, allocationPercent, freight, trailerType).
+ * @param {Object} props.stats - Raw stats including pickups.
+ * @param {boolean} props.isAggregate - Hides mixers when true.
+ * @param {Object} props.selectedRegion - Region object; Concrete type highlights the mixers card.
+ * @param {string} props.accentColor - Theme accent color for highlighted cards.
+ * @param {boolean} props.isMobile - Uses single-column layout on mobile.
+ */
 export default function FleetOverviewSection({
     displayStats,
     stats,

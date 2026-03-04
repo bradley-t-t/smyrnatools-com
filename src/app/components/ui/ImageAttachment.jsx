@@ -2,6 +2,7 @@ import React from 'react'
 
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
 
+/** Spinner indicator shown while an image is being uploaded. */
 function UploadingSpinner() {
     return (
         <div className="flex items-center gap-2 p-3 text-slate-500">
@@ -11,6 +12,7 @@ function UploadingSpinner() {
     )
 }
 
+/** Take Photo and Upload buttons for attaching images. */
 function ImageButtons({ disabled, onCamera, onUpload }) {
     const baseClasses =
         'flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#1e3a5f] transition-colors'
@@ -46,6 +48,7 @@ function ImageButtons({ disabled, onCamera, onUpload }) {
     )
 }
 
+/** Thumbnail preview of an attached image with remove and uploading overlay. */
 function ImagePreview({ displayUrl, isUploading, disabled, onRemove, onPreview }) {
     return (
         <div className="relative mt-4 w-full max-w-[400px]">
@@ -76,6 +79,7 @@ function ImagePreview({ displayUrl, isUploading, disabled, onRemove, onPreview }
     )
 }
 
+/** Image attachment field with camera/upload buttons, preview, and error display. */
 export default function ImageAttachment({
     fieldId,
     checklistItem = null,

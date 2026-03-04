@@ -2,6 +2,12 @@ import React from 'react'
 
 import LeaderboardsUtility from '../../../utils/LeaderboardsUtility'
 
+/**
+ * Resolves the display value, optional suffix, and color for a given leaderboard category.
+ * @param {Object} plant - Plant leaderboard data with metric fields.
+ * @param {string} category - Active category ID (e.g. 'efficiency', 'yph', 'production').
+ * @returns {{value: string|number, suffix?: string, color?: string}}
+ */
 function formatMetricValue(plant, category) {
     switch (category) {
         case 'efficiency':
@@ -34,6 +40,14 @@ function formatMetricValue(plant, category) {
     }
 }
 
+/**
+ * Labeled stat cell displaying a metric label and value, optionally clickable.
+ * @param {Object} props
+ * @param {string} props.label - Uppercase label text.
+ * @param {string|number} props.value - Display value.
+ * @param {string} [props.valueColor] - Tailwind text color class for the value.
+ * @param {Function} [props.onClick] - Makes the cell clickable with an external-link icon.
+ */
 function StatCell({ label, value, valueColor, onClick }) {
     const isClickable = !!onClick
     return (
@@ -47,6 +61,14 @@ function StatCell({ label, value, valueColor, onClick }) {
     )
 }
 
+/**
+ * Expanded stats grid shown below efficiency leaderboard items.
+ * Displays YPH, load efficiency, help balance, missing reports,
+ * fleet cleanliness, and safety incident counts.
+ * @param {Object} props
+ * @param {Object} props.plant - Plant leaderboard data.
+ * @param {Function} [props.onHelpClick] - Opens the help details modal for this plant.
+ */
 function EfficiencyStats({ plant, onHelpClick }) {
     const hasHelp = plant.helpGiven > 0 || plant.helpReceived > 0
     const helpBalance = plant.helpGiven - plant.helpReceived
@@ -85,6 +107,16 @@ function EfficiencyStats({ plant, onHelpClick }) {
     )
 }
 
+/**
+ * Single ranked plant row in the leaderboard list.
+ * Shows rank badge, plant name/code, primary metric value,
+ * and an expanded efficiency stats grid when the efficiency category is selected.
+ * @param {Object} props
+ * @param {Object} props.plant - Plant leaderboard data.
+ * @param {number} props.rank - Numeric rank position.
+ * @param {string} props.selectedCategory - Active category ID controlling which metric to display.
+ * @param {Function} [props.onHelpClick] - Opens the help details modal for this plant.
+ */
 export default function LeaderboardItem({ plant, rank, selectedCategory, onHelpClick }) {
     const metric = formatMetricValue(plant, selectedCategory)
 
@@ -126,6 +158,10 @@ export default function LeaderboardItem({ plant, rank, selectedCategory, onHelpC
     )
 }
 
+/**
+ * Shimmer placeholder skeleton matching the LeaderboardItem layout.
+ * Rendered while leaderboard data is loading.
+ */
 export function LeaderboardSkeleton() {
     return (
         <div className="rounded-xl border border-slate-200 bg-white p-4">

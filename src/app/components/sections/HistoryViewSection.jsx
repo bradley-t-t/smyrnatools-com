@@ -43,6 +43,11 @@ import TimelineItem, {
     TimelineSectionTitle
 } from '../ui/TimelineItem'
 
+/**
+ * Full-screen history view for an asset showing AI summary, status timeline,
+ * operator history, service/maintenance records, issues, and cleanliness ratings.
+ * Uses the useHistoryData hook for data fetching and consolidation.
+ */
 function HistoryViewSection({ item, type, onClose }) {
     const [activeTab, setActiveTab] = useState('ai-summary')
 

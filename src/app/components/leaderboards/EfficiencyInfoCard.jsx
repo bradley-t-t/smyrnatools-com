@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
 
+/** Formula component definitions used to render the efficiency calculation breakdown. */
 const FORMULA_COMPONENTS = [
     { description: 'Average yards produced per hour worked', isOperator: false, label: 'YPH Score', weight: '90%' },
     { isOperator: true, symbol: '+' },
@@ -15,6 +16,11 @@ const FORMULA_COMPONENTS = [
     }
 ]
 
+/**
+ * Collapsible info card explaining the leaderboard efficiency formula.
+ * Displays a visual formula breakdown with weighted components
+ * and numbered descriptions when expanded.
+ */
 export default function EfficiencyInfoCard() {
     const isMobile = useIsMobile()
     const [isExpanded, setIsExpanded] = useState(false)

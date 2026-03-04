@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 
+/** Available time range options for the review stats filter. */
 const RANGE_OPTIONS = [
     { label: 'Last Week', value: 'week' },
     { days: 30, label: '1 Month', value: 'month' },
@@ -18,6 +19,7 @@ const getLastWeekMondayISO = () => {
     return `${yyyy}-${mm}-${dd}`
 }
 
+/** Computes completed/pending/not-started totals and completion rate for the user's reports. */
 const computeMyReportsStats = (items) => {
     const total = items.length
     const completed = items.filter((item) => item.completed).length
@@ -26,6 +28,7 @@ const computeMyReportsStats = (items) => {
     return { completed, completionRate, notStarted: total - completed - pending, pending, total }
 }
 
+/** Computes reviewed/pending totals for reports within the selected date range. */
 const computeReviewStats = (items, reviewedByCurrentUser, rangeValue) => {
     let filteredItems
 
@@ -99,6 +102,7 @@ const RangeSelector = ({ value, onChange }) => (
     </div>
 )
 
+/** Stats bar showing completion/review metrics with a progress pill, adapting to the active tab. */
 function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
     const [reviewRange, setReviewRange] = useState('week')
 

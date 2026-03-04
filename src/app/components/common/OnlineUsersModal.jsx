@@ -9,17 +9,32 @@ const MILLISECONDS_PER_MINUTE = 60000
 const MILLISECONDS_PER_HOUR = 3600000
 const MILLISECONDS_PER_DAY = 86400000
 
+/**
+ * Extracts role name strings from a mixed roles array (strings or objects with `name`).
+ * @param {Array} rolesData
+ * @returns {string[]}
+ */
 function extractRoleNames(rolesData) {
     if (!Array.isArray(rolesData)) return []
     return rolesData.map((r) => (typeof r === 'string' ? r : (r?.name ?? null))).filter(Boolean)
 }
 
+/**
+ * Resolves the primary region code from a user profile object.
+ * @param {Object|null} profile
+ * @returns {string|null}
+ */
 function extractRegionCode(profile) {
     if (!profile) return null
     if (Array.isArray(profile.regions) && profile.regions.length > 0) return profile.regions[0]
     return profile.region_code || profile.regionCode || null
 }
 
+/**
+ * Builds a presence entry for the current user by fetching their name, roles, region, and weight.
+ * @param {string} userId
+ * @returns {Promise<Object>} Presence entry with `isCurrentUser: true`.
+ */
 async function buildCurrentUserEntry(userId) {
     const [name, rolesData, profile, roleWeight] = await Promise.all([
         UserService.getUserDisplayName(userId),
@@ -38,6 +53,7 @@ async function buildCurrentUserEntry(userId) {
     }
 }
 
+/** Ensures the current user is flagged with `isCurrentUser` in the users array. */
 function ensureCurrentUser(users, currentId) {
     if (!currentId) return users
     const hasCurrentUser = users.some((u) => u.id === currentId)
@@ -45,10 +61,16 @@ function ensureCurrentUser(users, currentId) {
     return users
 }
 
+/** Sorts users descending by role weight so higher-privilege users appear first. */
 function sortByRoleWeight(users) {
     return [...users].sort((a, b) => (b.roleWeight || 0) - (a.roleWeight || 0))
 }
 
+/**
+ * Formats a last-activity timestamp into a human-readable relative string.
+ * @param {string|null} lastActivity - ISO timestamp.
+ * @returns {string} e.g. "Just now", "5m ago", "2h ago", "3d ago".
+ */
 function formatLastActivity(lastActivity) {
     if (!lastActivity) return 'Unknown'
     const diffMs = Date.now() - new Date(lastActivity).getTime()
@@ -60,6 +82,7 @@ function formatLastActivity(lastActivity) {
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
 
+/** Maps role name keywords to badge colors for visual distinction. */
 const ROLE_COLORS = [
     { color: '#dc2626', match: (r) => r.includes('admin') || r.includes('owner') },
     { color: '#a51e36', match: (r) => r.includes('manager') || r.includes('regional') },
@@ -67,12 +90,26 @@ const ROLE_COLORS = [
     { color: '#059669', match: (r) => r.includes('instructor') || r.includes('trainer') }
 ]
 
+/**
+ * Resolves a badge color based on the user's primary role name.
+ * @param {string[]} roles
+ * @returns {string} Hex color string.
+ */
 function getRoleColor(roles) {
     if (!roles?.length) return '#64748b'
     const role = roles[0].toLowerCase()
     return ROLE_COLORS.find(({ match }) => match(role))?.color ?? '#64748b'
 }
 
+/**
+ * Anchored dropdown panel (portal) displaying currently online users.
+ * Shows each user's name, primary role badge, region, and last activity timestamp.
+ * Subscribes to real-time presence updates via UserPresenceService.
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls portal visibility.
+ * @param {Function} props.onClose - Callback invoked on backdrop click or close button.
+ * @param {DOMRect} [props.anchorRect] - Bounding rect of the trigger element for positioning.
+ */
 function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
     const [onlineUsers, setOnlineUsers] = useState([])
     const [isLoading, setIsLoading] = useState(true)

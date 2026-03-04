@@ -8,6 +8,7 @@ import {
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, initExport } from '../ExportModule'
 
+/** Severity level to Excel color mapping. */
 const SEVERITY_COLORS = {
     High: COLORS.danger,
     Low: COLORS.success,
@@ -16,6 +17,7 @@ const SEVERITY_COLORS = {
 
 const MAX_COLUMN_COUNT = 10
 
+/** Groups assets by their assigned plant code, sorted numerically with Unassigned last. */
 function groupAssetsByPlant(assets, plants, identifierField) {
     const plantNameMap = {}
     plants.forEach((p) => {
@@ -41,6 +43,7 @@ function groupAssetsByPlant(assets, plants, identifierField) {
         .map(([code, group]) => ({ assets: group.assets, code, name: group.name }))
 }
 
+/** Formats a date string as "Mon DD, YYYY" for the export sheet. */
 function formatIssueDate(dateString) {
     if (!dateString) return ''
     const date = new Date(dateString)
@@ -48,6 +51,7 @@ function formatIssueDate(dateString) {
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+/** Resolves user UUIDs from issue `created_by` fields to display names. */
 async function resolveUserNames(issues) {
     const userIds = new Set()
     issues.forEach((issue) => {
@@ -65,6 +69,10 @@ async function resolveUserNames(issues) {
     return names
 }
 
+/**
+ * Generates and downloads an Excel report of open issues grouped by plant.
+ * Fetches issues per asset, resolves reporter names, and builds a styled workbook.
+ */
 export async function exportAssetIssuesSheet({ assets, plants, assetType, identifierField, service }) {
     if (!assets?.length) return
 

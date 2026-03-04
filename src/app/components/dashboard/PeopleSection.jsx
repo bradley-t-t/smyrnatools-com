@@ -3,6 +3,25 @@ import React from 'react'
 import { CollapsibleTable } from '../ui/CollapsibleTable'
 import { DashboardCard, MetricCard, SectionTitle, StatusPill } from '../ui/DashboardCards'
 
+/**
+ * Dashboard section for operator workforce metrics and collapsible detail tables.
+ * Shows total/active/assigned operator counts, plus expandable tables for
+ * training, pending-start, and light-duty operators.
+ * @param {Object} props
+ * @param {Object} props.displayStats - Aggregated operator stats (total, active, assigned, etc.).
+ * @param {boolean} props.isAggregate - Hides mixer-specific assignment count when true.
+ * @param {Array} props.filteredTrainingOperators - Operators currently in training.
+ * @param {Array} props.filteredPendingStartOperators - Operators awaiting their start date.
+ * @param {Array} props.filteredLightDutyOperators - Operators on light duty.
+ * @param {boolean} props.trainingCollapsed - Controls training table collapse state.
+ * @param {Function} props.setTrainingCollapsed - Toggles training table.
+ * @param {boolean} props.pendingCollapsed - Controls pending-start table collapse state.
+ * @param {Function} props.setPendingCollapsed - Toggles pending-start table.
+ * @param {boolean} props.lightDutyCollapsed - Controls light-duty table collapse state.
+ * @param {Function} props.setLightDutyCollapsed - Toggles light-duty table.
+ * @param {Function} props.formatPendingDate - Formats a pending start date for display.
+ * @param {string} props.accentColor - Theme accent color for table headers.
+ */
 export default function PeopleSection({
     displayStats,
     isAggregate,

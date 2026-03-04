@@ -4,12 +4,30 @@ import { formatMaintenanceDateShort } from '../../../utils/MaintenanceUtility'
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
 import ImagePreviewModal from '../ui/ImagePreviewModal'
 
+/** Status badge configuration mapping submission status to display props. */
 const STATUS_CONFIG = {
     approved: { className: 'bg-green-100 text-green-700', icon: 'fa-check-circle', label: 'Approved' },
     rejected: { className: 'bg-red-100 text-red-700', icon: 'fa-times-circle', label: 'Rejected' },
     submitted: { className: 'bg-blue-100 text-blue-700', icon: 'fa-clock', label: 'Pending Review' }
 }
 
+/**
+ * Read-only view of a submitted maintenance form.
+ * Displays the submission status badge, optional reviewer notes,
+ * all field responses (text and checklist with images), and an image preview modal.
+ * @param {Object} props
+ * @param {Object} props.checklistStates - Per-field, per-item boolean map for checklist fields.
+ * @param {Object} props.fieldImages - Map of field IDs to uploaded image data.
+ * @param {Array} props.fields - Ordered array of form field definitions.
+ * @param {Object} props.formObj - Form metadata (title, etc.).
+ * @param {string|null} props.imagePreview - URL of the currently previewed image, or null.
+ * @param {Object} props.item - Submitted form record with metadata like `due_date` and `status`.
+ * @param {Function} props.onBack - Navigates back from the view-only screen.
+ * @param {Function} props.onClosePreview - Closes the image preview modal.
+ * @param {Function} props.onOpenPreview - Opens the image preview modal for a given URL.
+ * @param {Object} props.responses - Map of field IDs to submitted text responses.
+ * @param {string} [props.reviewNotes] - Notes left by the reviewer, if any.
+ */
 export default function MaintenanceFormViewOnly({
     checklistStates,
     fieldImages,

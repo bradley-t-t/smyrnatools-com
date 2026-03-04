@@ -11,6 +11,12 @@ const DetailViewContext = createContext({
     registerSection: () => {}
 })
 
+/**
+ * Full-screen detail view shell for asset editing.
+ * Provides a sidebar with section navigation, plant-based edit restrictions,
+ * region transfer support, delete confirmation, loading/saving overlays,
+ * and responsive mobile bottom navigation.
+ */
 function DetailViewSection({
     title,
     subtitle,

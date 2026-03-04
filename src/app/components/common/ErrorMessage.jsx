@@ -1,5 +1,12 @@
 import React from 'react'
 
+/**
+ * Dismissible error banner with icon support.
+ * @param {Object} props
+ * @param {string} props.message - Error message to display. Renders nothing if falsy.
+ * @param {Function} [props.onDismiss] - Optional callback to dismiss the error; shows close button when provided.
+ * @param {string} [props.className] - Additional Tailwind classes for the container.
+ */
 function ErrorMessage({ message, onDismiss, className = '' }) {
     if (!message) return null
 

@@ -1,5 +1,15 @@
 import React from 'react'
 
+/**
+ * Year dropdown selector with light/dark variant styling.
+ * Generates options from `startYear` through the current year.
+ * @param {Object} props
+ * @param {number} props.selectedYear - Currently selected year.
+ * @param {Function} props.onYearChange - Called with the new year value.
+ * @param {number} [props.startYear=2025] - First year in the dropdown.
+ * @param {string} [props.label='YTD'] - Label shown next to the selector.
+ * @param {'light'|'dark'} [props.variant='light'] - Visual variant.
+ */
 export default function YearSelector({
     selectedYear,
     onYearChange,

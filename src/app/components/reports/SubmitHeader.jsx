@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Amber banner shown when a manager is editing another user's report. */
 const ManagerEditBanner = ({ editingUserName }) => (
     <div className="flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-800 font-medium text-sm">
         <i className="fas fa-edit" />
@@ -47,6 +48,7 @@ const MetaItem = ({ icon, label, value }) => (
     </div>
 )
 
+/** Sticky header bar for the report submission form with title, status, export, and metadata. */
 function SubmitHeader({
     report,
     weekVerbose,

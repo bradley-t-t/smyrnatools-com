@@ -4,6 +4,10 @@ import ReactDOM from 'react-dom'
 import { useTutorial } from '../../context/TutorialContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Registry of all available tutorial definitions.
+ * Each key maps to positioning, target selector, and content for the popup.
+ */
 const TUTORIALS = {
     'account-nav-hint': {
         arrowPosition: 'top-right',
@@ -21,6 +25,14 @@ const TUTORIALS = {
     }
 }
 
+/**
+ * Positioned popup overlay that highlights a target DOM element and displays
+ * contextual guidance. Uses an SVG mask to create a spotlight effect around the target,
+ * with a pulsing border and directional arrow.
+ * @param {Object} props
+ * @param {string} props.tutorialId - Key into the TUTORIALS registry.
+ * @param {Function} props.onDismiss - Callback invoked when the user clicks "Got it".
+ */
 function TutorialPopup({ tutorialId, onDismiss }) {
     const accentColor = useAccentColor()
     const [position, setPosition] = useState(null)
@@ -344,6 +356,10 @@ function TutorialPopup({ tutorialId, onDismiss }) {
     )
 }
 
+/**
+ * Context-driven manager that renders the currently active tutorial popup.
+ * Consumes TutorialContext to determine which tutorial (if any) to display.
+ */
 function TutorialManager() {
     const { activeTutorial, dismissTutorial } = useTutorial()
 

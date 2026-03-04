@@ -2,6 +2,17 @@ import React from 'react'
 
 import { DashboardCard, MetricCard, SkeletonMetricCard } from '../ui/DashboardCards'
 
+/**
+ * Top-level dashboard hero card showing region-wide KPIs.
+ * Displays fleet total, allocation rate, overdue services, and verification percentage.
+ * Shows skeleton placeholders while data is loading.
+ * @param {Object} props
+ * @param {boolean} props.showSkeleton - Renders shimmer placeholders instead of real data.
+ * @param {string} props.regionDisplayName - Human-readable region name.
+ * @param {string} props.heroRegionSub - Subtitle text (e.g. plant count or scope description).
+ * @param {Object} props.displayStats - Aggregated stats object with fleetTotal, overallAllocationPercent, etc.
+ * @param {boolean} props.isMobile - Uses 2-column grid on mobile, 4-column on desktop.
+ */
 export default function RegionOverviewCard({ showSkeleton, regionDisplayName, heroRegionSub, displayStats, isMobile }) {
     return (
         <DashboardCard className="mb-6">

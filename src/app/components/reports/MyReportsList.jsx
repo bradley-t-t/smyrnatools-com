@@ -8,6 +8,7 @@ import { ReportUtility } from '../../../utils/ReportUtility'
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
 
+/** Computes urgency label and color based on days until the Saturday deadline. */
 const getDueDateStatus = (saturday) => {
     const diffDays = Math.ceil((saturday - new Date()) / MILLISECONDS_PER_DAY)
     if (diffDays < 0) return { color: '#dc2626', label: 'Overdue', urgent: true }
@@ -74,6 +75,7 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
     </div>
 )
 
+/** Compact card layout for a single report item on mobile viewports. */
 const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     const { completed, report, title, weekIso } = item
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
@@ -129,6 +131,7 @@ const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     )
 }
 
+/** Table row layout for a single report item on desktop viewports. */
 const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
     const { weekIso, completed, report, title } = item
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
@@ -190,6 +193,7 @@ const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
     )
 }
 
+/** Paginated list of the current user's assigned reports with responsive mobile/desktop layouts. */
 function MyReportsList({
     isLoading,
     items,

@@ -3,6 +3,19 @@ import ReactDOM from 'react-dom'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/**
+ * Portal modal for selecting one or more plants from a searchable list.
+ * Supports single-select (auto-closes on pick) and multi-select (checkbox) modes.
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls portal visibility.
+ * @param {Function} props.onClose - Callback to close the modal.
+ * @param {Array<Object>} [props.plants] - Plant objects with plantCode/plant_code and plantName/plant_name.
+ * @param {Function} props.onSelect - Called with the selected plant code string.
+ * @param {string} [props.searchPlaceholder] - Placeholder text for the search input.
+ * @param {boolean} [props.showAllPlants=false] - When true in single-select mode, shows an "All Plants" option.
+ * @param {boolean} [props.allowMultiple=false] - Enables multi-select mode with checkboxes.
+ * @param {string[]} [props.selectedPlantCodes] - Pre-selected plant codes for multi-select mode.
+ */
 function PlantDropdownModal({
     isOpen,
     onClose,

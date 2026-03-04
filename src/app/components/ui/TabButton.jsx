@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Rounded tab button with active/inactive styling, used in history and filter panels. */
 export default function TabButton({ label, isActive, onClick }) {
     return (
         <button

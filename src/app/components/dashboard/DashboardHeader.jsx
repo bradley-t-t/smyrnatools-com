@@ -1,5 +1,19 @@
 import React from 'react'
 
+/**
+ * Sticky dashboard top bar with refresh button and optional plant filter.
+ * The plant selector is hidden for Office-type regions.
+ * @param {Object} props
+ * @param {string} props.accentColor - Theme accent color for the refresh button.
+ * @param {boolean} props.isMobile - Applies compact spacing when true.
+ * @param {boolean} props.refreshing - Disables the refresh button and shows a spinner.
+ * @param {Function} props.onRefresh - Callback triggered by the refresh button.
+ * @param {string} props.dashboardRegionCode - Currently selected region code.
+ * @param {Object} props.selectedRegion - Region object with `type` used to hide plant filter for Office.
+ * @param {string|null} props.dashboardPlant - Currently selected plant code, or null for "All Plants".
+ * @param {Array} props.regionPlants - Plants available in the current region for label lookup.
+ * @param {Function} props.setPlantModalOpen - Opens the plant selection modal.
+ */
 export default function DashboardHeader({
     accentColor,
     isMobile,

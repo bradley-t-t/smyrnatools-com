@@ -20,6 +20,7 @@ import {
 import { supabase } from '../../../services/DatabaseService'
 import { RegionService } from '../../../services/RegionService'
 
+/** Semantic color palette used across all dashboard chart series. */
 const COLORS = {
     active: '#22c55e',
     danger: '#ef4444',
@@ -31,14 +32,21 @@ const COLORS = {
     warning: '#f59e0b'
 }
 
+/** Allocation percentage breakpoints for color coding (green/yellow/red). */
 const ALLOCATION_THRESHOLDS = { HIGH: 80, MEDIUM: 50 }
 
+/**
+ * Returns a color based on allocation percentage relative to thresholds.
+ * @param {number} percent
+ * @returns {string} Hex color string.
+ */
 const getColorByAllocation = (percent) => {
     if (percent >= ALLOCATION_THRESHOLDS.HIGH) return '#22c55e'
     if (percent >= ALLOCATION_THRESHOLDS.MEDIUM) return '#f59e0b'
     return '#ef4444'
 }
 
+/** Shared tooltip renderer for line, area, and bar charts. */
 const ChartTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null
     return (
@@ -53,6 +61,7 @@ const ChartTooltip = ({ active, label, payload }) => {
     )
 }
 
+/** Pie chart tooltip showing value and percentage of total. */
 const PieChartTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null
     const data = payload[0]
@@ -68,6 +77,7 @@ const PieChartTooltip = ({ active, payload }) => {
     )
 }
 
+/** Reusable card wrapper for individual chart panels with icon header and optional footer. */
 const ChartCard = ({ icon, iconColor, title, children, footer }) => (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
         <h4 className="flex items-center gap-2 text-[#1e3a5f] text-[15px] font-semibold mb-4">
@@ -79,6 +89,7 @@ const ChartCard = ({ icon, iconColor, title, children, footer }) => (
     </div>
 )
 
+/** Colored inline stat label with optional icon, used in chart footers. */
 const StatLabel = ({ color, icon, children }) => (
     <span style={{ color }} className="flex items-center gap-1">
         {icon && <i className={`fa-solid ${icon} mr-1`} />}
@@ -86,6 +97,7 @@ const StatLabel = ({ color, icon, children }) => (
     </span>
 )
 
+/** Small colored dot with label, used as a custom chart legend entry. */
 const LegendDot = ({ color, label }) => (
     <span className="flex items-center gap-1 text-slate-500">
         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
@@ -93,9 +105,13 @@ const LegendDot = ({ color, label }) => (
     </span>
 )
 
+/** Computes the average of a numeric field across an array of objects. */
 const calcAverage = (data, key) => (data.length > 0 ? data.reduce((sum, item) => sum + item[key], 0) / data.length : 0)
+
+/** Computes the sum of a numeric field across an array of objects. */
 const calcTotal = (data, key) => data.reduce((sum, item) => sum + item[key], 0)
 
+/** Pie chart card with a centered total footer and optional donut (innerRadius) mode. */
 const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
     <ChartCard
         icon={icon}
@@ -128,6 +144,21 @@ const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 
     </ChartCard>
 )
 
+/**
+ * Analytics chart grid for the dashboard.
+ * Fetches weekly production/labor report data and mixer cleanliness ratings,
+ * then renders a responsive grid of Recharts visualizations including
+ * yardage trends, YPH, production vs labor, lost/resold yardage,
+ * operator hours, status pie charts, allocation bars, and cleanliness distributions.
+ * @param {Object} props
+ * @param {string|null} props.dashboardPlant - Selected plant code filter, or null for all.
+ * @param {string} props.dashboardRegionCode - Current region code for data scoping.
+ * @param {Array} props.regionPlants - Plants in the current region.
+ * @param {Array} props.allPlants - All plants across the organization (used for Office regions).
+ * @param {Object} props.statusHistoryData - Per-asset-type status history for uptime charts.
+ * @param {boolean} props.isAggregate - Hides mixer-specific charts when true.
+ * @param {Object} props.stats - Pre-computed asset/operator stats for pie and allocation charts.
+ */
 export default function DashboardCharts({
     dashboardPlant,
     dashboardRegionCode,
@@ -798,6 +829,7 @@ export default function DashboardCharts({
     )
 }
 
+/** Custom tooltip for the Production vs Labor chart, computing inline YPH. */
 const ProductionTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null
     const yards = payload.find((p) => p.dataKey === 'yardage')?.value || 0

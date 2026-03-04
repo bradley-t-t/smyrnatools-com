@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.2] - 2026-03-04
+
+- Added detailed JSDoc comments to various components for better code documentation and developer experience.
+- Enhanced the AppInstallPromptModal with platform-specific installation instructions for iOS and Android, including step-by-step guides and desktop tutorials.
+- Improved ErrorMessage component with a dismissible error banner and icon support.
+- Updated LoadingScreen to support full-page overlay, inline modes, and a customizable loading message with branded visuals.
+- Introduced contextual messaging in LockedOverlay based on lock reasons, with options to refresh or sign out.
+- Added comprehensive documentation to MaintenanceFormReview for reviewing submitted maintenance forms with approve/reject controls.
+
 ## [19.1] - 2026-03-04
 
 - Updated the styling and structure of report components across multiple weekly report types, including Aggregate Production, District Manager, Efficiency, General Manager, Plant Manager, Ready Mix Instructor, and Safety Manager reports, by removing inline CSS and plugin-specific stylesheets.

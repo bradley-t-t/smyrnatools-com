@@ -5,6 +5,16 @@ import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 import LoadingScreen from '../common/LoadingScreen'
 
+/**
+ * Portal-rendered modal for viewing, adding, and deleting comments on an asset.
+ * Resolves author UUIDs to display names and shows relative timestamps.
+ * @param {Object} props
+ * @param {string} props.itemId - ID of the asset to fetch comments for.
+ * @param {string} props.itemNumber - Display number shown in the header.
+ * @param {string} props.itemType - Asset type label (e.g. "Mixer", "Tractor").
+ * @param {Function} props.onClose - Closes the modal.
+ * @param {Object} props.service - Asset service with fetchComments, addComment, deleteComment.
+ */
 function CommentModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [comments, setComments] = useState([])
     const [newComment, setNewComment] = useState('')

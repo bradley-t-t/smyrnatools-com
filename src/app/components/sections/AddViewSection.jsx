@@ -4,6 +4,17 @@ import ReactDOM from 'react-dom'
 import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 
+/**
+ * Portal-rendered modal wrapper for add/create forms.
+ * Checks user permissions (assets.add / list.add) before rendering the form.
+ * Handles duplicate key errors with user-friendly messages.
+ * @param {Object} props
+ * @param {string} props.title - Modal header title.
+ * @param {Function} props.onClose - Closes the modal.
+ * @param {React.ReactNode} props.children - Form content.
+ * @param {string} [props.error] - External error message to display.
+ * @param {boolean} [props.isListItem=false] - When true, also checks list.add permission.
+ */
 function AddViewSection({ title, onClose, children, error, isListItem = false }) {
     const [hasPermission, setHasPermission] = useState(null)
     const [internalError, setInternalError] = useState(null)

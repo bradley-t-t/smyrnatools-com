@@ -7,8 +7,10 @@ import {
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, initExport } from '../ExportModule'
 
+/** Human-readable labels indexed by 1-5 rating value. */
 const RATING_LABELS = ['', 'Poor', 'Below Average', 'Average', 'Good', 'Excellent']
 
+/** Formats a phone number string as (XXX) XXX-XXXX. */
 function formatPhone(phone) {
     if (!phone) return ''
     const digits = String(phone).replace(/\D/g, '')
@@ -16,12 +18,14 @@ function formatPhone(phone) {
     return String(phone)
 }
 
+/** Converts a numeric rating to a display object with label, unicode stars, and value. */
 function getRatingDisplay(rating) {
     const num = Math.round(Number(rating) || 0)
     if (num <= 0 || num > 5) return { label: 'Not Rated', stars: '', value: 0 }
     return { label: RATING_LABELS[num] || '', stars: '\u2605'.repeat(num) + '\u2606'.repeat(5 - num), value: num }
 }
 
+/** Maps a rating value (1-5) to an Excel ARGB color constant. */
 function getRatingColor(value) {
     if (value >= 5) return COLORS.success
     if (value >= 4) return COLORS.brand
@@ -31,6 +35,7 @@ function getRatingColor(value) {
     return COLORS.slate500
 }
 
+/** Groups operators by plant code, sorted numerically with Unassigned last. */
 function groupByPlant(operators, plants) {
     const plantNameMap = {}
     plants.forEach((p) => {
@@ -56,6 +61,7 @@ function groupByPlant(operators, plants) {
         .map(([code, group]) => ({ code, name: group.name, operators: group.operators }))
 }
 
+/** Generates and downloads an Excel sheet of active operator ratings grouped by plant. */
 export async function exportOperatorRatingsSheet({ operators, plants }) {
     if (!operators?.length) return
 

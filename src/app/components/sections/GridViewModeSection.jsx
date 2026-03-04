@@ -1,5 +1,14 @@
 import React from 'react'
 
+/**
+ * Grid-based view mode rendering asset cards with staggered slide-in animation.
+ * Resolves operator, plant, and tractor references for each item.
+ * @param {Object} props
+ * @param {Array} props.filteredItems - Items to render as cards.
+ * @param {React.ComponentType} props.cardComponent - Card component to render for each item.
+ * @param {string} props.itemPropName - Prop name for passing the item to the card.
+ * @param {Function} [props.getCardProps] - Returns additional props for each card.
+ */
 function GridViewModeSection({
     filteredItems,
     operators,

@@ -4,9 +4,12 @@ import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import PlantDropdownModal from '../common/PlantDropdownModal'
 
+/** Default column header labels for asset list views. */
 const DEFAULT_LIST_LABELS = ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
+/** Default column widths matching DEFAULT_LIST_LABELS. */
 const DEFAULT_COL_WIDTHS = ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
 
+/** Search input with icon and optional clear button. */
 const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) => (
     <div className={`relative ${className}`} role="search">
         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]" />

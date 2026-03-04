@@ -6,8 +6,15 @@ import vid3 from '../../../assets/videos/3.mp4'
 import vid4 from '../../../assets/videos/4.mp4'
 import { useAccentColor } from '../../hooks/useAccentColor'
 
+/** Pool of background videos randomly selected on mount. */
 const BACKGROUND_VIDEOS = [vid1, vid2, vid3, vid4]
 
+/**
+ * Ambient looping video background with a gradient underlay and dark overlay.
+ * Randomly selects one video on mount; skips the first 5 seconds to avoid intro frames.
+ * @param {Object} props
+ * @param {string} [props.className] - Additional Tailwind classes for the outer container.
+ */
 const VideoBackground = memo(function VideoBackground({ className = '' }) {
     const [currentVideoIndex] = useState(() => Math.floor(Math.random() * BACKGROUND_VIDEOS.length))
     const [showVideo, setShowVideo] = useState(false)
