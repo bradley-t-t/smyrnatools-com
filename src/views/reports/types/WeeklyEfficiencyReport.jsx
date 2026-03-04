@@ -2,17 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
-import { reportPluginStyles, StatsBar } from './shared'
-
-const effReportStyles =
-    reportPluginStyles +
-    `
-.rpt-validation-alert { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; border-left: 4px solid #f59e0b; border-radius: 6px; color: #92400e; font-size: 0.8125rem; margin-top: 8px; padding: 12px; }
-.rpt-validation-header { display: flex; align-items: center; font-weight: 600; gap: 8px; margin-bottom: 8px; }
-.rpt-validation-examples { background: rgba(255,255,255,0.5); border-radius: 4px; font-size: 0.75rem; padding: 8px; }
-.rpt-example-good { color: #166534; margin-bottom: 4px; }
-.rpt-example-bad { color: #991b1b; }
-`
+import { StatsBar } from './shared'
 
 const getRows = (form) => (Array.isArray(form.rows) ? form.rows : [])
 
@@ -37,10 +27,13 @@ const STAT_ITEMS = [
 function WarningsBar({ messages }) {
     if (!messages?.length) return null
     return (
-        <div className="rpt-warnings">
+        <div className="flex flex-wrap gap-2 mb-4">
             {messages.map((msg, i) => (
-                <div key={i} className="rpt-warning-chip">
-                    <span className="rpt-warning-icon">⚠</span>
+                <div
+                    key={i}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-amber-100 px-3 py-2 text-[0.8125rem] font-medium text-amber-800"
+                >
+                    <span className="text-sm">⚠</span>
                     <span>{msg}</span>
                 </div>
             ))}
@@ -59,23 +52,36 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
     ]
 
     return (
-        <div className="rpt-toolbar">
+        <div className="flex flex-wrap items-center gap-3 mb-4 rounded-lg border border-gray-200 bg-slate-50 p-4">
             <input
                 type="text"
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
                 placeholder="Filter operators or trucks..."
-                className="rpt-filter-input"
+                className="min-w-[200px] flex-1 rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/10"
             />
-            <div className="rpt-toolbar-actions">
-                <button type="button" onClick={onExpandAll} className="rpt-btn">
+            <div className="flex flex-wrap gap-2">
+                <button
+                    type="button"
+                    onClick={onExpandAll}
+                    className="rounded-md border border-gray-200 bg-white px-3.5 py-2 text-[0.8125rem] font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                >
                     Expand All
                 </button>
-                <button type="button" onClick={onCollapseAll} className="rpt-btn">
+                <button
+                    type="button"
+                    onClick={onCollapseAll}
+                    className="rounded-md border border-gray-200 bg-white px-3.5 py-2 text-[0.8125rem] font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                >
                     Collapse All
                 </button>
                 {sortButtons.map(({ key, label }) => (
-                    <button key={key} type="button" onClick={() => toggleSort(key)} className="rpt-btn">
+                    <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleSort(key)}
+                        className="rounded-md border border-gray-200 bg-white px-3.5 py-2 text-[0.8125rem] font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                    >
                         Sort {label} {sortKey === key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                     </button>
                 ))}
@@ -87,31 +93,35 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
 function ValidationAlert({ show }) {
     if (!show) return null
     return (
-        <div className="rpt-validation-alert">
-            <div className="rpt-validation-header">
-                <i className="fas fa-robot" style={{ color: '#f59e0b', fontSize: '1rem' }}></i>
+        <div className="mt-2 rounded-md border border-amber-400 border-l-4 bg-gradient-to-br from-amber-100 to-amber-200 p-3 text-[0.8125rem] text-amber-900">
+            <div className="mb-2 flex items-center gap-2 font-semibold">
+                <i className="fas fa-robot text-base text-amber-500"></i>
                 <span>AI Validation Required</span>
             </div>
-            <div style={{ marginBottom: '8px' }}>
+            <div className="mb-2">
                 Your explanation must provide a <strong>specific reason</strong> for the timing issues. Generic or vague
                 answers will be rejected.
             </div>
-            <div className="rpt-validation-examples">
-                <div className="rpt-example-good">
-                    <i className="fas fa-check" style={{ marginRight: '4px' }}></i>
+            <div className="rounded bg-white/50 p-2 text-xs">
+                <div className="mb-1 text-green-800">
+                    <i className="fas fa-check mr-1"></i>
                     <strong>Good:</strong>{' '}
                     {
                         '"Sent to plant 402 for afternoon deliveries" or "Truck breakdown - waited for mechanic" or "Training new driver on route"'
                     }
                 </div>
-                <div className="rpt-example-bad">
-                    <i className="fas fa-times" style={{ marginRight: '4px' }}></i>
+                <div className="text-red-800">
+                    <i className="fas fa-times mr-1"></i>
                     <strong>Bad:</strong> {'"N/A" or "mixer" or "truck issues" or unrelated explanations'}
                 </div>
             </div>
         </div>
     )
 }
+
+const TH_BASE =
+    'whitespace-nowrap border-b border-gray-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'
+const TD_BASE = 'border-b border-slate-100 px-4 py-3 align-middle text-[0.9375rem] text-slate-800'
 
 function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expandAllSeq, collapseAllSeq }) {
     const [expanded, setExpanded] = useState(new Set())
@@ -172,24 +182,12 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
     const headers = ['Operator', 'Truck #', 'Punch In -> 1st Load', 'Washout -> Punch Out', 'L/H', '']
 
     return (
-        <div className="rpt-table-wrapper">
-            <table className="rpt-table">
-                <colgroup>
-                    {[
-                        'rpt-col-operator',
-                        'rpt-col-truck',
-                        'rpt-col-start',
-                        'rpt-col-end',
-                        'rpt-col-lph',
-                        'rpt-col-actions'
-                    ].map((c, i) => (
-                        <col key={i} className={c} />
-                    ))}
-                </colgroup>
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <table className="w-full min-w-[700px] border-collapse">
                 <thead>
                     <tr>
                         {headers.map((h, i) => (
-                            <th key={i} className={`rpt-th ${i >= 4 ? 'right' : ''}`}>
+                            <th key={i} className={`${TH_BASE} ${i >= 4 ? 'text-right' : ''}`}>
                                 {h}
                             </th>
                         ))}
@@ -207,28 +205,30 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
 
                         return (
                             <React.Fragment key={key}>
-                                <tr className="rpt-row">
+                                <tr className="transition-colors hover:bg-slate-50">
                                     <td
-                                        className="rpt-td emphasis"
+                                        className={`${TD_BASE} font-semibold`}
                                         title={ReportService.getOperatorName(r, operatorOptions)}
                                     >
                                         {ReportService.getOperatorName(r, operatorOptions) || 'No Name'}
                                     </td>
-                                    <td className="rpt-td secondary">{r.truck_number || '--'}</td>
-                                    <td className={`rpt-td ${warnStart ? 'warn' : ''}`}>
+                                    <td className={`${TD_BASE} text-slate-500`}>{r.truck_number || '--'}</td>
+                                    <td className={`${TD_BASE} ${warnStart ? 'font-medium text-amber-600' : ''}`}>
                                         {dStart !== null ? `${dStart} min` : '--'}
                                     </td>
-                                    <td className={`rpt-td ${warnEnd ? 'warn' : ''}`}>
+                                    <td className={`${TD_BASE} ${warnEnd ? 'font-medium text-amber-600' : ''}`}>
                                         {dEnd !== null ? `${dEnd} min` : '--'}
                                     </td>
-                                    <td className="rpt-td right">{lph !== null ? Number(lph).toFixed(2) : '--'}</td>
-                                    <td className="rpt-td right">
+                                    <td className={`${TD_BASE} text-right`}>
+                                        {lph !== null ? Number(lph).toFixed(2) : '--'}
+                                    </td>
+                                    <td className={`${TD_BASE} text-right`}>
                                         <button
                                             type="button"
                                             aria-expanded={isOpen}
                                             onClick={() => toggleExpand(key)}
                                             title={isOpen ? 'Hide details' : 'Show details'}
-                                            className="rpt-icon-btn"
+                                            className="rounded border border-gray-200 bg-transparent px-2 py-1.5 text-sm text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
                                         >
                                             {isOpen ? '▾' : '▸'}
                                         </button>
@@ -236,8 +236,8 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                 </tr>
                                 {isOpen && (
                                     <tr>
-                                        <td colSpan={6} className="rpt-detail-row">
-                                            <div className="rpt-detail-grid">
+                                        <td colSpan={6} className="!p-0 bg-slate-50">
+                                            <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 px-6 py-4">
                                                 {[
                                                     { label: 'Start', value: r.start_time },
                                                     { label: '1st Load', value: r.first_load },
@@ -245,42 +245,46 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                                                     { label: 'Punch Out', value: r.punch_out }
                                                 ].map(({ label, value }) => (
                                                     <div key={label}>
-                                                        <div className="rpt-field-label">{label}</div>
-                                                        <div className="rpt-field-value">{value || '--'}</div>
+                                                        <div className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                                                            {label}
+                                                        </div>
+                                                        <div className="text-[0.9375rem] text-slate-800">
+                                                            {value || '--'}
+                                                        </div>
                                                     </div>
                                                 ))}
                                                 <div>
-                                                    <div className="rpt-field-label">Total Loads</div>
+                                                    <div className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                                                        Total Loads
+                                                    </div>
                                                     <div
-                                                        className={`rpt-field-value emphasis ${lowLoads ? 'rpt-error-text' : ''}`}
+                                                        className={`text-[0.9375rem] font-semibold ${lowLoads ? 'text-red-600' : 'text-slate-800'}`}
                                                     >
                                                         {r.loads || '--'}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="rpt-field-label">Total Hours</div>
+                                                    <div className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                                                        Total Hours
+                                                    </div>
                                                     <div
-                                                        className={`rpt-field-value emphasis ${hours !== null && hours > 20 ? 'rpt-error-text' : ''}`}
+                                                        className={`text-[0.9375rem] font-semibold ${hours !== null && hours > 20 ? 'text-red-600' : 'text-slate-800'}`}
                                                     >
                                                         {hours !== null ? hours.toFixed(2) : '--'}
                                                     </div>
                                                 </div>
-                                                <div className="rpt-detail-grid-full">
-                                                    <div className="rpt-field-label">
+                                                <div className="col-span-full">
+                                                    <div className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                                                         Comments
                                                         {needsComment && (
-                                                            <span
-                                                                style={{
-                                                                    color: '#dc2626',
-                                                                    fontWeight: 600,
-                                                                    marginLeft: '8px'
-                                                                }}
-                                                            >
+                                                            <span className="ml-2 font-semibold text-red-600">
                                                                 * Required - Explain timing/performance issues
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <div className="rpt-comment-text">{r.comments || ''}</div>
+                                                    <div className="text-sm italic text-slate-600">
+                                                        {r.comments || ''}
+                                                    </div>
                                                     <ValidationAlert show={needsComment && !hasComment} />
                                                 </div>
                                             </div>
@@ -319,8 +323,7 @@ function EfficiencyPluginBody({ form, operatorOptions }) {
 
     return (
         <>
-            <style>{effReportStyles}</style>
-            <div className="rpt-mt-20">
+            <div className="mt-5">
                 <WarningsBar messages={insights.avgWarnings} />
                 <Toolbar
                     filterText={filterText}

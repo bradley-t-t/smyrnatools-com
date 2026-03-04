@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.1] - 2026-03-04
+
+- Updated the styling and structure of report components across multiple weekly report types, including Aggregate Production, District Manager, Efficiency, General Manager, Plant Manager, Ready Mix Instructor, and Safety Manager reports, by removing inline CSS and plugin-specific stylesheets.
+- Replaced hardcoded styles with reusable class names and standardized UI elements like input fields and table cells in report plugins for better consistency and maintainability.
+- Removed the separate `reportPluginStyles.js` file, consolidating styling into component-specific or shared class names.
+- Improved the layout of the Aggregate Production Report by introducing Tailwind CSS classes for spacing and hover effects on table rows.
+- Refined the visual presentation of review views across reports, replacing generic placeholders with formatted containers using consistent padding and background colors.
+- Adjusted the District Manager Report by removing custom CSS for daily recap sections and related elements, aligning with the broader styling overhaul.
+
 ## [19.0] - 2026-03-04
 
 - Added comprehensive documentation comments to various calculator components, including detailed explanations of functionality and logic for ProportionsCalculator (Overweight Fix), SetTimeCalculator, SlumpAdjustmentCalculator, WaterCementCalculator, and YardagePerHourCalculator.

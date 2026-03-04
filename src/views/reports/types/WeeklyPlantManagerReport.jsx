@@ -7,141 +7,11 @@ import { UserService } from '../../../services/UserService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
 
-const reportStyles = `
-.pm-report-container { }
-.pm-metrics-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
-.pm-metrics-header { margin-bottom: 1.25rem; }
-.pm-metrics-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
-.pm-metrics-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
-.pm-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
-.pm-metric-card { background: #f8fafc; border-radius: 10px; padding: 1.25rem; border: 1px solid #e5e7eb; }
-.pm-metric-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
-.pm-metric-icon { color: #1e3a5f; font-size: 1rem; }
-.pm-metric-title { font-size: 0.875rem; font-weight: 600; color: #374151; }
-.pm-metric-value { font-size: 2rem; font-weight: 700; color: #1e3a5f; margin-bottom: 0.25rem; }
-.pm-yph-dual { display: flex; align-items: baseline; gap: 0.25rem; }
-.pm-yph-raw, .pm-yph-adjusted { font-size: 1.75rem; }
-.pm-yph-separator { color: #94a3b8; font-size: 1.25rem; margin: 0 0.25rem; }
-.pm-yph-labels { display: flex; gap: 2rem; font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; }
-.pm-metric-grade { font-size: 0.875rem; font-weight: 600; color: #059669; margin-bottom: 0.5rem; }
-.pm-metric-scale { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.pm-metric-scale span { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; background: #f1f5f9; color: #64748b; }
-.pm-metric-scale span.active { background: #1e3a5f; color: white; }
-.pm-metric-scale span.active.excellent { background: #059669; }
-.pm-metric-scale span.active.good { background: #0ea5e9; }
-.pm-metric-scale span.active.average { background: #f59e0b; }
-.pm-metric-scale span.active.poor { background: #ef4444; }
-.pm-performance-text { color: #1e293b; }
-.pm-performance-text-dark { color: #f1f5f9; }
-
-.pm-trends-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
-.pm-trends-header { margin-bottom: 1.25rem; }
-.pm-trends-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
-.pm-trends-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
-
-.pm-timeline-wrapper { position: relative; margin-bottom: 2rem; }
-.pm-timeline-track { position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; }
-.pm-timeline-line-full { position: absolute; left: 0; top: 20px; bottom: 20px; width: 2px; background: #e5e7eb; }
-.pm-timeline { display: flex; flex-direction: column; gap: 0; position: relative; }
-.pm-timeline-item { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; position: relative; }
-.pm-timeline-item.pm-timeline-current { }
-.pm-timeline-item.pm-timeline-placeholder { opacity: 0.7; }
-.pm-timeline-dot-wrapper { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
-.pm-timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #1e3a5f; border: 3px solid white; box-shadow: 0 0 0 2px #1e3a5f; }
-.pm-timeline-dot.pm-timeline-dot-placeholder { background: #94a3b8; box-shadow: 0 0 0 2px #94a3b8; }
-.pm-timeline-content { flex: 1; background: #f8fafc; border-radius: 8px; padding: 1rem; border: 1px solid #e5e7eb; }
-.pm-timeline-date { font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-.pm-timeline-badge { padding: 0.125rem 0.5rem; background: #1e3a5f; color: white; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
-.pm-timeline-placeholder-content { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.875rem; }
-.pm-timeline-submitter { font-size: 0.8125rem; color: #64748b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-.pm-timeline-metrics { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-.pm-timeline-metric { display: flex; flex-direction: column; gap: 0.125rem; }
-.pm-timeline-metric-value { font-size: 1.25rem; font-weight: 700; color: #1e3a5f; }
-.pm-timeline-metric-label { font-size: 0.6875rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-.pm-timeline-variance { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; }
-.pm-timeline-variance.positive { color: #059669; }
-.pm-timeline-variance.negative { color: #ef4444; }
-.pm-timeline-yph-dual { display: flex; align-items: baseline; gap: 0.125rem; }
-.pm-timeline-yph-raw, .pm-timeline-yph-adj { font-size: 1.125rem; }
-.pm-timeline-yph-sep { color: #94a3b8; font-size: 0.875rem; margin: 0 0.125rem; }
-
-.pm-weekly-breakdown { margin-top: 1.5rem; }
-.pm-weekly-breakdown-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; }
-.pm-weekly-breakdown-table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
-.pm-weekly-breakdown-table { width: 100%; border-collapse: collapse; min-width: 700px; }
-.pm-weekly-breakdown-table th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
-.pm-weekly-breakdown-table td { padding: 0.75rem 1rem; font-size: 0.875rem; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
-.pm-weekly-breakdown-table tr:last-child td { border-bottom: none; }
-.pm-weekly-breakdown-table tr:hover { background: #f8fafc; }
-.pm-weekly-breakdown-table tr.pm-week-missing { background: #fef2f2; }
-.pm-breakdown-value { font-weight: 500; }
-.pm-breakdown-yph-dual { }
-.pm-breakdown-yph-container { display: inline-flex; align-items: baseline; gap: 0.125rem; }
-.pm-breakdown-yph-raw, .pm-breakdown-yph-adj { font-size: 0.875rem; }
-.pm-breakdown-yph-sep { color: #94a3b8; margin: 0 0.125rem; }
-.pm-week-label-cell { white-space: nowrap; }
-.pm-not-submitted-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fef3c7; color: #d97706; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-.pm-missing-badge { display: inline-flex; padding: 0.25rem 0.5rem; background: #fee2e2; color: #dc2626; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-
-.pm-missing-weeks-notice { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
-.pm-missing-weeks-notice.pm-not-submitted-notice { background: #fefce8; border-color: #fef08a; }
-.pm-missing-notice-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-.pm-missing-notice-header i { color: #dc2626; }
-.pm-not-submitted-notice .pm-missing-notice-header i { color: #d97706; }
-.pm-missing-notice-title { font-weight: 600; color: #1e293b; }
-.pm-missing-notice-body { font-size: 0.875rem; color: #64748b; }
-.pm-missing-weeks-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-.pm-missing-week-chip { padding: 0.25rem 0.75rem; background: white; border: 1px solid #e5e7eb; border-radius: 9999px; font-size: 0.8125rem; color: #1e293b; }
-
-.pm-operators-help-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
-.pm-operators-help-header { margin-bottom: 1.25rem; }
-.pm-operators-help-title { display: flex; align-items: center; gap: 0.75rem; font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
-.pm-operators-help-subtitle { font-size: 0.875rem; color: #64748b; margin: 0.5rem 0 0 0; }
-.pm-loading-container { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 2rem; color: #64748b; }
-.pm-loading-text { font-size: 0.875rem; }
-
-.pm-instructions-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-.pm-instructions-header { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #1e40af; margin-bottom: 0.75rem; font-size: 0.875rem; }
-.pm-instructions-list { margin: 0; padding-left: 1.25rem; font-size: 0.8125rem; color: #1e3a8a; line-height: 1.6; }
-.pm-instructions-list li { margin-bottom: 0.25rem; }
-
-.pm-add-entry-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
-.pm-add-entry-btn:hover { background: #15304f; }
-
-.pm-operators-help-list { display: flex; flex-direction: column; gap: 1rem; }
-.pm-no-entries { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #e5e7eb; color: #64748b; font-size: 0.875rem; }
-
-.pm-help-entry { background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; overflow: hidden; }
-.pm-help-entry-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem; border-bottom: 1px solid #e5e7eb; }
-.pm-help-entry-main { display: flex; flex-wrap: wrap; gap: 1rem; flex: 1; }
-.pm-help-entry-field { display: flex; flex-direction: column; gap: 0.375rem; min-width: 150px; }
-.pm-help-entry-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-.pm-help-entry-value { font-size: 0.9375rem; font-weight: 500; color: #1e293b; }
-.pm-help-entry-input { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; }
-.pm-help-entry-select { padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; min-width: 180px; }
-.pm-help-entry-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.pm-help-entry-remove:hover { background: #fecaca; }
-
-.pm-help-operators-section { padding: 1rem; }
-.pm-help-operators-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-.pm-help-operators-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
-.pm-add-operator-btn { display: flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: #e0f2fe; color: #0369a1; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
-.pm-add-operator-btn:hover { background: #bae6fd; }
-
-.pm-help-operators-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.pm-help-operator-row { display: grid; grid-template-columns: 1fr 120px auto; align-items: end; gap: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e7eb; }
-.pm-help-operator-field { display: flex; flex-direction: column; gap: 0.375rem; }
-.pm-help-operator-field label { font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-.pm-help-operator-select { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
-.pm-help-operator-select:hover { border-color: #cbd5e1; }
-.pm-help-operator-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.875rem; color: #1e293b; background: white; box-sizing: border-box; }
-.pm-help-operator-remove { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; width: 38px; }
-.pm-help-operator-remove:hover { background: #fecaca; }
-
-.pm-card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.25rem; }
-.pm-card-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem; }
-.pm-empty-state { text-align: center; padding: 2rem; color: #64748b; }
-`
+const GRADE_COLORS = { average: 'bg-amber-500', excellent: 'bg-emerald-600', good: 'bg-sky-500', poor: 'bg-red-500' }
+const PM_TH =
+    'bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-gray-200 whitespace-nowrap'
+const PM_TD = 'px-4 py-3 text-sm text-slate-800 border-b border-slate-100'
+const PM_INPUT = 'rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-800 box-border'
 
 const YPH_GRADES = ['excellent', 'good', 'average', 'poor']
 
@@ -152,9 +22,12 @@ function formatYphValue(v) {
 
 function GradeScale({ grade }) {
     return (
-        <div className="pm-metric-scale">
+        <div className="flex gap-2 flex-wrap">
             {YPH_GRADES.map((g) => (
-                <span key={g} className={grade === g ? `active ${g}` : ''}>
+                <span
+                    key={g}
+                    className={`rounded px-2 py-1 text-[0.6875rem] font-semibold ${grade === g ? `text-white ${GRADE_COLORS[g] || 'bg-[#1e3a5f]'}` : 'bg-slate-100 text-slate-500'}`}
+                >
                     {g.charAt(0).toUpperCase() + g.slice(1)}
                 </span>
             ))}
@@ -162,59 +35,57 @@ function GradeScale({ grade }) {
     )
 }
 
-function YphMetricCard({ yph, grade, label, isDark }) {
-    const textClass = isDark ? 'pm-performance-text-dark' : 'pm-performance-text'
+function YphMetricCard({ yph, grade, label }) {
     return (
-        <div className="pm-metric-card">
-            <div className="pm-metric-header">
-                <i className="fas fa-tachometer-alt pm-metric-icon"></i>
-                <span className="pm-metric-title">Yards per Man-Hour</span>
+        <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
+            <div className="flex items-center gap-2 mb-3">
+                <i className="fas fa-tachometer-alt text-[#1e3a5f]"></i>
+                <span className="text-sm font-semibold text-gray-700">Yards per Man-Hour</span>
             </div>
             <div
-                className={`pm-metric-value pm-yph-dual ${textClass}`}
+                className="flex items-baseline gap-1 text-2xl font-bold text-[#1e3a5f] mb-1"
                 title="Left: Raw YPH / Right: Adjusted for help sent"
             >
-                <span className="pm-yph-raw">{formatYphValue(yph?.raw ?? yph)}</span>
-                <span className="pm-yph-separator">/</span>
-                <span className="pm-yph-adjusted">{formatYphValue(yph?.adjusted ?? yph)}</span>
+                <span>{formatYphValue(yph?.raw ?? yph)}</span>
+                <span className="text-slate-400 text-xl mx-1">/</span>
+                <span>{formatYphValue(yph?.adjusted ?? yph)}</span>
             </div>
-            <div className="pm-yph-labels">
-                <span className="pm-yph-label-item">Raw</span>
-                <span className="pm-yph-label-item">Adjusted</span>
+            <div className="flex gap-8 text-xs text-slate-500 mb-2">
+                <span>Raw</span>
+                <span>Adjusted</span>
             </div>
-            <div className={`pm-metric-grade ${textClass}`}>{label?.adjusted ?? label}</div>
+            <div className="text-sm font-semibold text-emerald-600 mb-2">{label?.adjusted ?? label}</div>
             <GradeScale grade={grade?.adjusted ?? grade} />
         </div>
     )
 }
 
-function LostMetricCard({ lost, grade, label, isDark }) {
-    const textClass = isDark ? 'pm-performance-text-dark' : 'pm-performance-text'
+function LostMetricCard({ lost, grade, label }) {
     return (
-        <div className="pm-metric-card">
-            <div className="pm-metric-header">
-                <i className="fas fa-exclamation-triangle pm-metric-icon"></i>
-                <span className="pm-metric-title">Yardage Lost</span>
+        <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
+            <div className="flex items-center gap-2 mb-3">
+                <i className="fas fa-exclamation-triangle text-[#1e3a5f]"></i>
+                <span className="text-sm font-semibold text-gray-700">Yardage Lost</span>
             </div>
-            <div className={`pm-metric-value ${textClass}`}>{lost !== null ? lost : '--'}</div>
-            <div className={`pm-metric-grade ${textClass}`}>{label}</div>
+            <div className="text-3xl font-bold text-[#1e3a5f] mb-1">{lost !== null ? lost : '--'}</div>
+            <div className="text-sm font-semibold text-emerald-600 mb-2">{label}</div>
             <GradeScale grade={grade} />
         </div>
     )
 }
 
-function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel, isDark }) {
+function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel }) {
     return (
-        <div className="pm-metrics-section">
-            <div className="pm-metrics-header">
-                <h3 className="pm-metrics-title">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="mb-5">
+                <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
                     <i className="fas fa-chart-bar"></i>Weekly Performance Metrics
                 </h3>
-                <p className="pm-metrics-subtitle">Key performance indicators for this reporting period</p>
+                <p className="text-sm text-slate-500 mt-2 mb-0">Key performance indicators for this reporting period</p>
             </div>
-            <div className="pm-metrics-grid">
-                <YphMetricCard yph={yph} grade={yphGrade} label={yphLabel} isDark={isDark} />
-                <LostMetricCard lost={lost} grade={lostGrade} label={lostLabel} isDark={isDark} />
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
+                <YphMetricCard yph={yph} grade={yphGrade} label={yphLabel} />
+                <LostMetricCard lost={lost} grade={lostGrade} label={lostLabel} />
             </div>
         </div>
     )
@@ -786,16 +657,15 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
 
     if (loading) {
         return (
-            <div className="pm-trends-section">
-                <div className="pm-trends-header">
-                    <h3 className="pm-trends-title">
-                        <i className="fas fa-chart-line"></i>
-                        Monthly Performance Trends
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="mb-5">
+                    <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
+                        <i className="fas fa-chart-line"></i>Monthly Performance Trends
                     </h3>
                 </div>
-                <div className="pm-trends-loading">
+                <div className="flex items-center justify-center gap-3 p-8 text-slate-500">
                     <i className="fas fa-circle-notch fa-spin"></i>
-                    <span>Loading historical data...</span>
+                    <span className="text-sm">Loading historical data...</span>
                 </div>
             </div>
         )
@@ -810,13 +680,13 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
 
     if (historicalData.length === 0) {
         return (
-            <div className="pm-trends-section">
-                <div className="pm-trends-header">
-                    <h3 className="pm-trends-title">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="mb-5">
+                    <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
                         <i className="fas fa-calendar-alt"></i>
                         {monthName} - Weekly Performance
                     </h3>
-                    <p className="pm-trends-subtitle">No reports found for this month</p>
+                    <p className="text-sm text-slate-500 mt-2 mb-0">No reports found for this month</p>
                 </div>
             </div>
         )
@@ -830,23 +700,23 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     const weeksWithData = historicalData.filter((r) => !r.isPlaceholder).length
 
     return (
-        <div className="pm-trends-section">
-            <div className="pm-trends-header">
-                <h3 className="pm-trends-title">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="mb-5">
+                <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
                     <i className="fas fa-chart-line"></i>
                     {monthName} Performance Timeline
                 </h3>
-                <p className="pm-trends-subtitle">
+                <p className="text-sm text-slate-500 mt-2 mb-0">
                     {weeksWithData} of {historicalData.length} {historicalData.length === 1 ? 'week' : 'weeks'} with
                     data
                 </p>
             </div>
 
-            <div className="pm-timeline-wrapper">
-                <div className="pm-timeline-track">
-                    <div className="pm-timeline-line-full"></div>
+            <div className="relative mb-8">
+                <div className="absolute left-3 top-0 bottom-0 w-0.5">
+                    <div className="absolute left-0 top-5 bottom-5 w-0.5 bg-gray-200"></div>
                 </div>
-                <div className="pm-timeline">
+                <div className="flex flex-col relative">
                     {historicalData.map((report, idx) => {
                         const [year, month, day] = report.weekIso.split('-').map(Number)
                         const weekDate = new Date(year, month - 1, day)
@@ -867,46 +737,48 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         return (
                             <div
                                 key={idx}
-                                className={`pm-timeline-item ${report.isCurrentWeek ? 'pm-timeline-current' : ''} ${report.isPlaceholder ? 'pm-timeline-placeholder' : ''}`}
+                                className={`flex items-start gap-4 py-4 relative ${report.isPlaceholder ? 'opacity-70' : ''}`}
                             >
-                                <div className="pm-timeline-dot-wrapper">
+                                <div className="flex items-center justify-center w-[26px] h-[26px] relative z-[1]">
                                     <div
-                                        className={`pm-timeline-dot ${report.isPlaceholder ? 'pm-timeline-dot-placeholder' : ''}`}
+                                        className={`w-3 h-3 rounded-full border-[3px] border-white ${report.isPlaceholder ? 'bg-slate-400 shadow-[0_0_0_2px_#94a3b8]' : 'bg-[#1e3a5f] shadow-[0_0_0_2px_#1e3a5f]'}`}
                                     ></div>
                                 </div>
-                                <div className="pm-timeline-content">
-                                    <div className="pm-timeline-date">
+                                <div className="flex-1 rounded-lg border border-gray-200 bg-slate-50 p-4">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-2">
                                         {weekLabel}
-                                        {report.isCurrentWeek && <span className="pm-timeline-badge">Current</span>}
+                                        {report.isCurrentWeek && (
+                                            <span className="rounded bg-[#1e3a5f] px-2 py-0.5 text-[0.6875rem] font-semibold uppercase text-white">
+                                                Current
+                                            </span>
+                                        )}
                                     </div>
                                     {report.isPlaceholder ? (
-                                        <div className="pm-timeline-placeholder-content">
+                                        <div className="flex items-center gap-2 text-sm text-slate-400">
                                             <i className="fas fa-clock"></i>
                                             <span>Pending</span>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="pm-timeline-submitter">
+                                            <div className="flex items-center gap-2 text-[0.8125rem] text-slate-500 mb-3">
                                                 <i className="fas fa-user"></i> {userName || 'Unknown'}
                                             </div>
-                                            <div className="pm-timeline-metrics">
-                                                <div className="pm-timeline-metric">
+                                            <div className="flex gap-6 flex-wrap">
+                                                <div className="flex flex-col gap-0.5">
                                                     <span
-                                                        className="pm-timeline-metric-value pm-timeline-yph-dual"
+                                                        className="flex items-baseline gap-0.5 text-xl font-bold text-[#1e3a5f]"
                                                         title="Raw / Adjusted YPH"
                                                     >
-                                                        <span className="pm-timeline-yph-raw">
-                                                            {(report.rawYph ?? report.yph).toFixed(2)}
-                                                        </span>
-                                                        <span className="pm-timeline-yph-sep">/</span>
-                                                        <span className="pm-timeline-yph-adj">
-                                                            {(report.adjustedYph ?? report.yph).toFixed(2)}
-                                                        </span>
+                                                        <span>{(report.rawYph ?? report.yph).toFixed(2)}</span>
+                                                        <span className="text-slate-400 text-sm mx-0.5">/</span>
+                                                        <span>{(report.adjustedYph ?? report.yph).toFixed(2)}</span>
                                                     </span>
-                                                    <span className="pm-timeline-metric-label">YPH</span>
+                                                    <span className="text-[0.6875rem] uppercase tracking-wide text-slate-500">
+                                                        YPH
+                                                    </span>
                                                     {yphVariance !== null && (
                                                         <span
-                                                            className={`pm-timeline-variance ${yphVariance >= 0 ? 'positive' : 'negative'}`}
+                                                            className={`flex items-center gap-1 text-xs font-semibold ${yphVariance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}
                                                         >
                                                             <i
                                                                 className={`fas fa-arrow-${yphVariance >= 0 ? 'up' : 'down'}`}
@@ -915,14 +787,16 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="pm-timeline-metric">
-                                                    <span className="pm-timeline-metric-value">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-xl font-bold text-[#1e3a5f]">
                                                         {report.lost.toFixed(0)}
                                                     </span>
-                                                    <span className="pm-timeline-metric-label">Lost</span>
+                                                    <span className="text-[0.6875rem] uppercase tracking-wide text-slate-500">
+                                                        Lost
+                                                    </span>
                                                     {lostVariance !== null && (
                                                         <span
-                                                            className={`pm-timeline-variance ${lostVariance <= 0 ? 'positive' : 'negative'}`}
+                                                            className={`flex items-center gap-1 text-xs font-semibold ${lostVariance <= 0 ? 'text-emerald-600' : 'text-red-500'}`}
                                                         >
                                                             <i
                                                                 className={`fas fa-arrow-${lostVariance <= 0 ? 'down' : 'up'}`}
@@ -942,20 +816,26 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
             </div>
 
             {yearlyTotals && yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
-                <div className="pm-weekly-breakdown">
-                    <h5 className="pm-weekly-breakdown-title">Weekly Breakdown</h5>
-                    <div className="pm-weekly-breakdown-table-wrapper">
-                        <table className="pm-weekly-breakdown-table">
+                <div className="mt-6">
+                    <h5 className="text-base font-semibold text-slate-800 mb-4 mt-0">Weekly Breakdown</h5>
+                    <div className="overflow-x-auto rounded-lg border border-gray-200">
+                        <table className="w-full min-w-[700px] border-collapse">
                             <thead>
                                 <tr>
-                                    <th>Submitted By</th>
-                                    <th>Week Starting</th>
-                                    <th>Yardage</th>
-                                    <th>Hours</th>
-                                    <th>YPH</th>
-                                    <th>Daily Avg</th>
-                                    <th>Lost</th>
-                                    <th>Efficiency</th>
+                                    {[
+                                        'Submitted By',
+                                        'Week Starting',
+                                        'Yardage',
+                                        'Hours',
+                                        'YPH',
+                                        'Daily Avg',
+                                        'Lost',
+                                        'Efficiency'
+                                    ].map((h) => (
+                                        <th key={h} className={PM_TH}>
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
                             <tbody>
@@ -972,61 +852,54 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                     const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
                                     const overallEfficiency =
                                         week.hours > 0 ? Math.max(baseEfficiency - week.lost, 0) : 0
+                                    const isMissingRow = week.isMissing || week.isNotSubmitted
                                     return (
                                         <tr
                                             key={idx}
-                                            className={week.isMissing || week.isNotSubmitted ? 'pm-week-missing' : ''}
+                                            className={`hover:bg-slate-50 ${isMissingRow ? 'bg-red-50' : ''}`}
                                         >
-                                            <td className="pm-breakdown-value">
+                                            <td className={`${PM_TD} font-medium`}>
                                                 {week.isNotSubmitted && (
-                                                    <span className="pm-not-submitted-badge">Not Submitted</span>
+                                                    <span className="inline-flex rounded bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-600">
+                                                        Not Submitted
+                                                    </span>
                                                 )}
-                                                {week.isMissing && <span className="pm-missing-badge">Missing</span>}
+                                                {week.isMissing && (
+                                                    <span className="inline-flex rounded bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+                                                        Missing
+                                                    </span>
+                                                )}
                                                 {!week.isMissing && !week.isNotSubmitted && userName}
                                             </td>
-                                            <td className="pm-week-label-cell">{weekLabel}</td>
-                                            <td className="pm-breakdown-value">
-                                                {week.isMissing || week.isNotSubmitted
-                                                    ? '--'
-                                                    : week.yardage.toLocaleString()}
+                                            <td className={`${PM_TD} whitespace-nowrap`}>{weekLabel}</td>
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? '--' : week.yardage.toLocaleString()}
                                             </td>
-                                            <td className="pm-breakdown-value">
-                                                {week.isMissing || week.isNotSubmitted
-                                                    ? '--'
-                                                    : week.hours.toLocaleString()}
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? '--' : week.hours.toLocaleString()}
                                             </td>
-                                            <td className="pm-breakdown-value pm-breakdown-yph-dual">
-                                                {week.isMissing || week.isNotSubmitted ? (
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? (
                                                     '--'
                                                 ) : (
                                                     <span
-                                                        className="pm-breakdown-yph-container"
+                                                        className="inline-flex items-baseline gap-0.5"
                                                         title="Raw / Adjusted YPH"
                                                     >
-                                                        <span className="pm-breakdown-yph-raw">
-                                                            {(week.rawYph ?? week.yph).toFixed(2)}
-                                                        </span>
-                                                        <span className="pm-breakdown-yph-sep">/</span>
-                                                        <span className="pm-breakdown-yph-adj">
-                                                            {(week.adjustedYph ?? week.yph).toFixed(2)}
-                                                        </span>
+                                                        <span>{(week.rawYph ?? week.yph).toFixed(2)}</span>
+                                                        <span className="text-slate-400 mx-0.5">/</span>
+                                                        <span>{(week.adjustedYph ?? week.yph).toFixed(2)}</span>
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="pm-breakdown-value">
-                                                {week.isMissing || week.isNotSubmitted
-                                                    ? '--'
-                                                    : dailyAvg.toLocaleString()}
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? '--' : dailyAvg.toLocaleString()}
                                             </td>
-                                            <td className="pm-breakdown-value">
-                                                {week.isMissing || week.isNotSubmitted
-                                                    ? '--'
-                                                    : week.lost.toLocaleString()}
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? '--' : week.lost.toLocaleString()}
                                             </td>
-                                            <td className="pm-breakdown-value">
-                                                {week.isMissing || week.isNotSubmitted
-                                                    ? '--'
-                                                    : `${overallEfficiency.toFixed(1)}%`}
+                                            <td className={`${PM_TD} font-medium`}>
+                                                {isMissingRow ? '--' : `${overallEfficiency.toFixed(1)}%`}
                                             </td>
                                         </tr>
                                     )
@@ -1035,53 +908,51 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         </table>
                     </div>
 
-                    {yearlyTotals.notSubmittedWeeks && yearlyTotals.notSubmittedWeeks.length > 0 && (
-                        <div className="pm-missing-weeks-notice pm-not-submitted-notice">
-                            <div className="pm-missing-notice-header">
-                                <i className="fas fa-exclamation-circle"></i>
-                                <span className="pm-missing-notice-title">
+                    {yearlyTotals.notSubmittedWeeks?.length > 0 && (
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 mt-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <i className="fas fa-exclamation-circle text-amber-600"></i>
+                                <span className="font-semibold text-slate-800">
                                     {yearlyTotals.notSubmittedWeeks.length} Draft{' '}
                                     {yearlyTotals.notSubmittedWeeks.length === 1 ? 'Report' : 'Reports'}
                                 </span>
                             </div>
-                            <div className="pm-missing-notice-body">
+                            <div className="text-sm text-slate-500">
                                 The following weeks have saved drafts that need to be submitted:
-                                <div className="pm-missing-weeks-list">
-                                    {yearlyTotals.notSubmittedWeeks.map((week, idx) => {
-                                        const weekDate = new Date(week.week + 'T12:00:00')
-                                        const weekLabel = ReportUtility.formatDate(weekDate)
-                                        return (
-                                            <span key={idx} className="pm-missing-week-chip">
-                                                {weekLabel}
-                                            </span>
-                                        )
-                                    })}
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {yearlyTotals.notSubmittedWeeks.map((week, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[0.8125rem] text-slate-800"
+                                        >
+                                            {ReportUtility.formatDate(new Date(week.week + 'T12:00:00'))}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {yearlyTotals.missingWeeks && yearlyTotals.missingWeeks.length > 0 && (
-                        <div className="pm-missing-weeks-notice">
-                            <div className="pm-missing-notice-header">
-                                <i className="fas fa-exclamation-triangle"></i>
-                                <span className="pm-missing-notice-title">
+                    {yearlyTotals.missingWeeks?.length > 0 && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 p-4 mt-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <i className="fas fa-exclamation-triangle text-red-600"></i>
+                                <span className="font-semibold text-slate-800">
                                     {yearlyTotals.missingWeeks.length} Missing{' '}
                                     {yearlyTotals.missingWeeks.length === 1 ? 'Report' : 'Reports'}
                                 </span>
                             </div>
-                            <div className="pm-missing-notice-body">
+                            <div className="text-sm text-slate-500">
                                 The following weeks need reports to be created and submitted:
-                                <div className="pm-missing-weeks-list">
-                                    {yearlyTotals.missingWeeks.map((week, idx) => {
-                                        const weekDate = new Date(week.week + 'T12:00:00')
-                                        const weekLabel = ReportUtility.formatDate(weekDate)
-                                        return (
-                                            <span key={idx} className="pm-missing-week-chip">
-                                                {weekLabel}
-                                            </span>
-                                        )
-                                    })}
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {yearlyTotals.missingWeeks.map((week, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[0.8125rem] text-slate-800"
+                                        >
+                                            {ReportUtility.formatDate(new Date(week.week + 'T12:00:00'))}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -1263,37 +1134,36 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
 
     if (loading) {
         return (
-            <div className="pm-operators-help-section">
-                <div className="pm-operators-help-header">
-                    <h4 className="pm-operators-help-title">
-                        <i className="fas fa-hands-helping"></i>
-                        Operators Sent to Other Plants
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="mb-5">
+                    <h4 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
+                        <i className="fas fa-hands-helping"></i>Operators Sent to Other Plants
                     </h4>
                 </div>
-                <div className="pm-loading-container">
+                <div className="flex items-center justify-center gap-3 p-8 text-slate-500">
                     <i className="fas fa-circle-notch fa-spin"></i>
-                    <span className="pm-loading-text">Loading...</span>
+                    <span className="text-sm">Loading...</span>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="pm-operators-help-section">
-            <div className="pm-operators-help-header">
-                <h4 className="pm-operators-help-title">
-                    <i className="fas fa-hands-helping"></i>
-                    Operators Sent to Other Plants
+        <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="mb-5">
+                <h4 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
+                    <i className="fas fa-hands-helping"></i>Operators Sent to Other Plants
                 </h4>
-                <p className="pm-operators-help-subtitle">Track operators sent to help other plants during this week</p>
+                <p className="text-sm text-slate-500 mt-2 mb-0">
+                    Track operators sent to help other plants during this week
+                </p>
             </div>
 
-            <div className="pm-instructions-box">
-                <div className="pm-instructions-header">
-                    <i className="fas fa-info-circle"></i>
-                    Instructions for Tracking Operator Assistance
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-blue-800 mb-3">
+                    <i className="fas fa-info-circle"></i>Instructions for Tracking Operator Assistance
                 </div>
-                <ul className="pm-instructions-list">
+                <ul className="m-0 pl-5 text-[0.8125rem] text-blue-900 leading-relaxed [&>li]:mb-1">
                     <li>
                         Record each operator who assisted another plant, including total hours worked (including travel
                         time)
@@ -1306,44 +1176,53 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             </div>
 
             {!readOnly && (
-                <button type="button" className="pm-add-entry-btn" onClick={addEntry}>
-                    <i className="fas fa-plus"></i>
-                    Add Entry
+                <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-lg border-none bg-[#1e3a5f] px-4 py-3 text-sm font-semibold text-white cursor-pointer mb-4 hover:bg-[#15304f]"
+                    onClick={addEntry}
+                >
+                    <i className="fas fa-plus"></i>Add Entry
                 </button>
             )}
 
-            <div className="pm-operators-help-list">
+            <div className="flex flex-col gap-4">
                 {(!entries || entries.length === 0) && (
-                    <div className="pm-no-entries">
+                    <div className="flex items-center gap-3 rounded-lg border border-dashed border-gray-200 bg-slate-50 p-6 text-sm text-slate-500">
                         <i className="fas fa-info-circle"></i>
                         <span>No operators were sent to other plants this week</span>
                     </div>
                 )}
 
                 {(entries || []).map((entry) => (
-                    <div key={entry.id} className="pm-help-entry">
-                        <div className="pm-help-entry-header">
-                            <div className="pm-help-entry-main">
-                                <div className="pm-help-entry-field">
-                                    <label>Date</label>
+                    <div key={entry.id} className="rounded-lg border border-gray-200 bg-slate-50 overflow-hidden">
+                        <div className="flex items-start justify-between gap-4 p-4 border-b border-gray-200">
+                            <div className="flex flex-wrap gap-4 flex-1">
+                                <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        Date
+                                    </label>
                                     {readOnly ? (
-                                        <div className="pm-help-entry-value">{getDayName(entry.date)}</div>
+                                        <div className="text-[0.9375rem] font-medium text-slate-800">
+                                            {getDayName(entry.date)}
+                                        </div>
                                     ) : (
                                         <input
                                             type="date"
                                             value={entry.date || ''}
                                             onChange={(e) => updateEntry(entry.id, 'date', e.target.value)}
-                                            className="pm-help-entry-input"
+                                            className={PM_INPUT}
                                             min={minDate}
                                             max={maxDate}
                                         />
                                     )}
                                 </div>
 
-                                <div className="pm-help-entry-field">
-                                    <label>Destination Plant</label>
+                                <div className="flex flex-col gap-1.5 min-w-[150px]">
+                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        Destination Plant
+                                    </label>
                                     {readOnly ? (
-                                        <div className="pm-help-entry-value">
+                                        <div className="text-[0.9375rem] font-medium text-slate-800">
                                             {entry.destination_plant
                                                 ? (() => {
                                                       if (entry.destination_plant === 'OTHER_REGION')
@@ -1361,7 +1240,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                     ) : (
                                         <button
                                             type="button"
-                                            className="pm-help-entry-select"
+                                            className="min-w-[180px] rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-800 text-left cursor-pointer"
                                             onClick={() => {
                                                 setSelectedEntryIdForPlant(entry.id)
                                                 setShowPlantModal(true)
@@ -1388,7 +1267,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                             {!readOnly && (
                                 <button
                                     type="button"
-                                    className="pm-help-entry-remove"
+                                    className="flex items-center justify-center rounded-md border-none bg-red-100 p-2 text-red-600 cursor-pointer hover:bg-red-200"
                                     onClick={() => removeEntry(entry.id)}
                                     title="Remove entry"
                                 >
@@ -1397,40 +1276,42 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                             )}
                         </div>
 
-                        <div className="pm-help-operators-section">
-                            <div className="pm-help-operators-header">
-                                <span className="pm-help-operators-label">
-                                    <i className="fas fa-users"></i>
-                                    Operators
+                        <div className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <i className="fas fa-users"></i>Operators
                                 </span>
                                 {!readOnly && (
                                     <button
                                         type="button"
-                                        className="pm-add-operator-btn"
+                                        className="flex items-center gap-1.5 rounded-md border-none bg-sky-100 px-3 py-1.5 text-xs font-semibold text-sky-700 cursor-pointer hover:bg-sky-200"
                                         onClick={() => addOperator(entry.id)}
                                     >
-                                        <i className="fas fa-plus"></i>
-                                        Add Operator
+                                        <i className="fas fa-plus"></i>Add Operator
                                     </button>
                                 )}
                             </div>
 
-                            <div className="pm-help-operators-list">
+                            <div className="flex flex-col gap-3">
                                 {entry.operators.map((op, opIdx) => {
                                     const selectedOperator = operators.find((o) => o.employeeId === op.operator_id)
-
                                     return (
-                                        <div key={opIdx} className="pm-help-operator-row">
-                                            <div className="pm-help-operator-field">
-                                                <label>Operator</label>
+                                        <div
+                                            key={opIdx}
+                                            className="grid grid-cols-[1fr_120px_auto] items-end gap-4 rounded-lg border border-gray-200 bg-white p-4"
+                                        >
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                    Operator
+                                                </label>
                                                 {readOnly ? (
-                                                    <div className="pm-help-entry-value">
+                                                    <div className="text-[0.9375rem] font-medium text-slate-800">
                                                         {selectedOperator ? selectedOperator.name : 'Unknown'}
                                                     </div>
                                                 ) : (
                                                     <button
                                                         type="button"
-                                                        className="pm-help-operator-select"
+                                                        className="w-full rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 text-left cursor-pointer hover:border-slate-300"
                                                         onClick={() => {
                                                             setSelectedEntryIdForOperator(entry.id)
                                                             setSelectedOperatorIndex(opIdx)
@@ -1442,10 +1323,14 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                 )}
                                             </div>
 
-                                            <div className="pm-help-operator-field">
-                                                <label>Hours</label>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                    Hours
+                                                </label>
                                                 {readOnly ? (
-                                                    <div className="pm-help-entry-value">{op.hours || '0'} hrs</div>
+                                                    <div className="text-[0.9375rem] font-medium text-slate-800">
+                                                        {op.hours || '0'} hrs
+                                                    </div>
                                                 ) : (
                                                     <input
                                                         type="number"
@@ -1456,7 +1341,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                         onChange={(e) =>
                                                             updateOperator(entry.id, opIdx, 'hours', e.target.value)
                                                         }
-                                                        className="pm-help-operator-input"
+                                                        className="w-full rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 box-border"
                                                         placeholder="0"
                                                     />
                                                 )}
@@ -1465,7 +1350,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                             {!readOnly && (
                                                 <button
                                                     type="button"
-                                                    className="pm-help-operator-remove"
+                                                    className="flex items-center justify-center h-[38px] w-[38px] rounded-md border-none bg-red-100 text-red-600 cursor-pointer hover:bg-red-200"
                                                     onClick={() => removeOperator(entry.id, opIdx)}
                                                     title="Remove operator"
                                                 >
@@ -1591,7 +1476,6 @@ export function PlantManagerSubmitPlugin({
     userPlantCode: propUserPlantCode
 }) {
     const { preferences: _preferences } = usePreferences()
-    const isDark = false
     const userPlantCode = propUserPlantCode || user?.plant_code || ''
     const plantCode = form?.plant || userPlantCode
 
@@ -1602,34 +1486,30 @@ export function PlantManagerSubmitPlugin({
     }
 
     return (
-        <>
-            <style>{reportStyles}</style>
-            <div className="pm-report-container">
-                <OperatorsSentToHelp
-                    entries={form?.operators_sent_to_help || []}
-                    onUpdate={handleOperatorsUpdate}
-                    weekIso={weekIso}
-                    readOnly={false}
-                    user={user}
-                    plantCode={plantCode}
-                    regionalPlants={propPlants}
-                />
-                <MetricsSection
-                    yph={propYph ?? yph}
-                    yphGrade={propYphGrade ?? yphGrade}
-                    yphLabel={propYphLabel ?? yphLabel}
-                    lost={lost}
-                    lostGrade={lostGrade}
-                    lostLabel={lostLabel}
-                    isDark={isDark}
-                />
-                <WeeklyTrendsSection
-                    currentWeekIso={weekIso}
-                    plantCode={plantCode || userPlantCode || ''}
-                    user={{ ...user, plant_code: userPlantCode }}
-                />
-            </div>
-        </>
+        <div>
+            <OperatorsSentToHelp
+                entries={form?.operators_sent_to_help || []}
+                onUpdate={handleOperatorsUpdate}
+                weekIso={weekIso}
+                readOnly={false}
+                user={user}
+                plantCode={plantCode}
+                regionalPlants={propPlants}
+            />
+            <MetricsSection
+                yph={propYph ?? yph}
+                yphGrade={propYphGrade ?? yphGrade}
+                yphLabel={propYphLabel ?? yphLabel}
+                lost={lost}
+                lostGrade={lostGrade}
+                lostLabel={lostLabel}
+            />
+            <WeeklyTrendsSection
+                currentWeekIso={weekIso}
+                plantCode={plantCode || userPlantCode || ''}
+                user={{ ...user, plant_code: userPlantCode }}
+            />
+        </div>
     )
 }
 
@@ -1649,40 +1529,35 @@ export function PlantManagerReviewPlugin({
     plants: propPlants
 }) {
     const { preferences: _preferences } = usePreferences()
-    const isDark = false
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
 
     const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)
 
     return (
-        <>
-            <style>{reportStyles}</style>
-            <div className="pm-report-container">
-                <OperatorsSentToHelp
-                    entries={form?.operators_sent_to_help || []}
-                    onUpdate={() => {}}
-                    weekIso={weekIso}
-                    readOnly={true}
-                    user={user}
-                    plantCode={plantCode}
-                    regionalPlants={propPlants}
-                />
-                <MetricsSection
-                    yph={yph}
-                    yphGrade={yphGrade}
-                    yphLabel={yphLabel}
-                    lost={lost}
-                    lostGrade={lostGrade}
-                    lostLabel={lostLabel}
-                    isDark={isDark}
-                />
-                <WeeklyTrendsSection
-                    currentWeekIso={weekIso}
-                    plantCode={timelinePlantCode || user?.plant_code || ''}
-                    user={user}
-                />
-            </div>
-        </>
+        <div>
+            <OperatorsSentToHelp
+                entries={form?.operators_sent_to_help || []}
+                onUpdate={() => {}}
+                weekIso={weekIso}
+                readOnly={true}
+                user={user}
+                plantCode={plantCode}
+                regionalPlants={propPlants}
+            />
+            <MetricsSection
+                yph={yph}
+                yphGrade={yphGrade}
+                yphLabel={yphLabel}
+                lost={lost}
+                lostGrade={lostGrade}
+                lostLabel={lostLabel}
+            />
+            <WeeklyTrendsSection
+                currentWeekIso={weekIso}
+                plantCode={timelinePlantCode || user?.plant_code || ''}
+                user={user}
+            />
+        </div>
     )
 }

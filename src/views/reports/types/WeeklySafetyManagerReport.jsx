@@ -4,70 +4,9 @@ import ReactDOM from 'react-dom'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { ReportUtility } from '../../../utils/ReportUtility'
 
-const safetyReportStyles = `
-.safety-report-section { background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; }
-.safety-section-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem; }
-.safety-section-title { display: flex; align-items: flex-start; gap: 0.75rem; }
-.safety-section-title h3 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
-.safety-section-title p { font-size: 0.875rem; color: #64748b; margin: 0.25rem 0 0 0; }
-.safety-section-icon { width: 40px; height: 40px; border-radius: 10px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
-.safety-section-icon-success { background: #d1fae5; color: #059669; }
-.safety-add-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; }
-.safety-add-btn:hover { background: #15304f; }
-.safety-issues-grid { display: flex; flex-direction: column; gap: 1rem; }
-.safety-issue-card { background: #f8fafc; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden; }
-.safety-issue-card-review { }
-.safety-issue-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; background: #f1f5f9; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; }
-.safety-issue-number { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #1e3a5f; color: white; border-radius: 50%; font-size: 0.8125rem; font-weight: 600; }
-.safety-issue-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; flex: 1; }
-.safety-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500; }
-.safety-badge-plant { background: #eff6ff; color: #1e40af; }
-.safety-badge-date { background: #f0fdf4; color: #166534; }
-.safety-remove-btn { padding: 0.5rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.safety-remove-btn:hover { background: #fecaca; }
-.safety-issue-content { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
-.safety-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-.safety-field { display: flex; flex-direction: column; gap: 0.5rem; }
-.safety-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 600; color: #374151; }
-.safety-label i { color: #64748b; font-size: 0.8125rem; }
-.safety-required { color: #ef4444; margin-left: 0.25rem; }
-.safety-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; }
-.safety-input:disabled { background: #f8fafc; color: #64748b; }
-.safety-textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; min-height: 120px; resize: vertical; }
-.safety-textarea:disabled { background: #f8fafc; color: #64748b; }
-.safety-select-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
-.safety-select-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
-.safety-select-btn i { color: #64748b; font-size: 0.75rem; }
-.safety-tag-picker { position: relative; width: 100%; }
-.safety-tag-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9375rem; color: #1e293b; background: white; cursor: pointer; text-align: left; }
-.safety-tag-btn:disabled { background: #f8fafc; color: #64748b; cursor: not-allowed; }
-.safety-tag-placeholder { display: flex; align-items: center; }
-.safety-tags-display { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-.safety-tag-chip { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.625rem; border-radius: 6px; font-size: 0.8125rem; font-weight: 500; }
-.safety-chip-remove { background: none; border: none; padding: 0; margin-left: 0.25rem; cursor: pointer; opacity: 0.7; font-size: 0.6875rem; }
-.safety-chip-remove:hover { opacity: 1; }
-.safety-empty-state { text-align: center; padding: 3rem 2rem; color: #64748b; }
-.safety-empty-state h4 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0 0 0.5rem 0; }
-.safety-empty-state p { font-size: 0.875rem; color: #94a3b8; margin: 0; }
-.safety-empty-state-success { background: #f0fdf4; border-radius: 8px; }
-.safety-empty-state-success h4 { color: #166534; }
-.safety-empty-icon { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
-.safety-empty-state-success .safety-empty-icon { color: #22c55e; }
-.safety-summary-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #fee2e2; color: #dc2626; border-radius: 8px; font-size: 0.875rem; font-weight: 600; }
-.safety-description-box { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; }
-.safety-description-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
-.safety-description-text { font-size: 0.9375rem; color: #1e293b; line-height: 1.6; }
-.down-in-yard-toggle { margin-top: 0.5rem; }
-.toggle-label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-.toggle-label.disabled { opacity: 0.5; cursor: not-allowed; }
-.toggle-checkbox { display: none; }
-.toggle-switch { width: 44px; height: 24px; background: #e5e7eb; border-radius: 12px; position: relative; transition: background 0.2s; }
-.toggle-switch.active { background: #1e3a5f; }
-.toggle-switch.disabled { opacity: 0.5; }
-.toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-.toggle-switch.active .toggle-slider { transform: translateX(20px); }
-.toggle-text { font-size: 0.875rem; color: #374151; }
-`
+const SAFETY_INPUT =
+    'w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[0.9375rem] text-slate-800 box-border disabled:bg-slate-50 disabled:text-slate-500'
+const SAFETY_TEXTAREA = `${SAFETY_INPUT} min-h-[120px] resize-y`
 
 const TAG_OPTIONS = ['Accident', 'Injury', 'Non-DOT', 'DOT', 'Compliance', 'Environmental', 'Reprimand', 'Safety']
 
@@ -313,17 +252,17 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
     ) : null
 
     return (
-        <div className="safety-tag-picker">
+        <div className="relative w-full">
             <button
                 type="button"
-                className="safety-tag-btn"
+                className="flex items-center justify-between w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[0.9375rem] text-slate-800 text-left cursor-pointer disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                 ref={btnRef}
                 disabled={disabled}
                 aria-expanded={open}
                 onClick={() => setOpen(true)}
             >
-                <span className="safety-tag-placeholder">
-                    <i className="fas fa-tags" style={{ marginRight: '8px', opacity: 0.6 }}></i>
+                <span className="flex items-center">
+                    <i className="fas fa-tags mr-2 opacity-60"></i>
                     {value.length
                         ? `${value.length} tag${value.length > 1 ? 's' : ''} selected`
                         : placeholder || 'Select tags'}
@@ -458,20 +397,25 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
 
     return (
         <>
-            <style>{safetyReportStyles}</style>
-            <div className="safety-report-section">
-                <div className="safety-section-header">
-                    <div className="safety-section-title">
-                        <div className="safety-section-icon">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-red-100 text-red-600 text-base">
                             <i className="fas fa-exclamation-circle"></i>
                         </div>
                         <div>
-                            <h3>Safety Issues & Incidents</h3>
-                            <p>Document any safety-related issues that occurred during this reporting period</p>
+                            <h3 className="text-lg font-semibold text-slate-800 m-0">Safety Issues & Incidents</h3>
+                            <p className="text-sm text-slate-500 mt-1 mb-0">
+                                Document any safety-related issues that occurred during this reporting period
+                            </p>
                         </div>
                     </div>
                     {!readOnly && (
-                        <button type="button" onClick={addIssue} className="safety-add-btn">
+                        <button
+                            type="button"
+                            onClick={addIssue}
+                            className="flex items-center gap-2 rounded-lg border-none bg-[#1e3a5f] px-4 py-2.5 text-sm font-semibold text-white cursor-pointer hover:bg-[#15304f]"
+                        >
                             <i className="fas fa-plus"></i>
                             <span>Add Issue</span>
                         </button>
@@ -479,38 +423,34 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                 </div>
 
                 {issues.length === 0 ? (
-                    <div className="safety-empty-state">
-                        <div className="safety-empty-icon">
+                    <div className="text-center py-12 px-8 text-slate-500">
+                        <div className="text-5xl text-slate-300 mb-4 block">
                             <i className="fas fa-shield-alt"></i>
                         </div>
-                        <h4>No Issues Reported</h4>
-                        <p>Click Add Issue to document any safety incidents</p>
+                        <h4 className="text-lg font-semibold text-slate-800 mb-2 mt-0">No Issues Reported</h4>
+                        <p className="text-sm text-slate-400 m-0">Click Add Issue to document any safety incidents</p>
                     </div>
                 ) : (
-                    <div className="safety-issues-grid">
+                    <div className="flex flex-col gap-4">
                         {issues.map((issue, idx) => {
-                            const tagColors = (issue.tags || []).map((t) => TAG_COLORS[t]).filter(Boolean)
-                            const primaryColor = tagColors[0]?.color || 'var(--accent)'
-
                             return (
                                 <div
                                     key={issue.id}
-                                    className="safety-issue-card"
-                                    style={{ '--issue-accent': primaryColor }}
+                                    className="rounded-xl border border-gray-200 bg-slate-50 overflow-hidden"
                                 >
-                                    <div className="safety-issue-header">
-                                        <div className="safety-issue-number">
+                                    <div className="flex items-center justify-between gap-4 p-4 bg-slate-100 border-b border-gray-200 flex-wrap">
+                                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-[#1e3a5f] text-white text-[0.8125rem] font-semibold">
                                             <span>{idx + 1}</span>
                                         </div>
-                                        <div className="safety-issue-badges">
+                                        <div className="flex flex-wrap gap-2 flex-1">
                                             {issue.plant && (
-                                                <span className="safety-badge safety-badge-plant">
+                                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-800">
                                                     <i className="fas fa-industry"></i>
                                                     {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
                                                 </span>
                                             )}
                                             {issue.date && (
-                                                <span className="safety-badge safety-badge-date">
+                                                <span className="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-800">
                                                     <i className="fas fa-calendar"></i>
                                                     {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
                                                         day: 'numeric',
@@ -523,7 +463,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                             <button
                                                 type="button"
                                                 onClick={() => removeIssue(issue.id)}
-                                                className="safety-remove-btn"
+                                                className="flex items-center justify-center rounded-md border-none bg-red-100 p-2 text-red-600 cursor-pointer hover:bg-red-200"
                                                 title="Remove Issue"
                                             >
                                                 <i className="fas fa-trash-alt"></i>
@@ -531,12 +471,12 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                         )}
                                     </div>
 
-                                    <div className="safety-issue-content">
-                                        <div className="safety-form-row">
-                                            <div className="safety-field">
-                                                <label className="safety-label">
-                                                    <i className="fas fa-industry"></i>
-                                                    Plant Location<span className="safety-required">*</span>
+                                    <div className="flex flex-col gap-4 p-5">
+                                        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                                    <i className="text-slate-500 text-[0.8125rem] fas fa-industry"></i>
+                                                    Plant Location<span className="text-red-500 ml-1">*</span>
                                                 </label>
                                                 <button
                                                     type="button"
@@ -545,7 +485,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                         setSelectedIssueIdForPlant(issue.id)
                                                         setShowPlantModal(true)
                                                     }}
-                                                    className="safety-select-btn"
+                                                    className="flex items-center justify-between w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[0.9375rem] text-slate-800 text-left cursor-pointer disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                                                 >
                                                     <span>
                                                         {issue.plant
@@ -557,9 +497,9 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                     <i className="fas fa-chevron-down"></i>
                                                 </button>
                                             </div>
-                                            <div className="safety-field">
-                                                <label className="safety-label">
-                                                    <i className="fas fa-calendar-alt"></i>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                                    <i className="text-slate-500 text-[0.8125rem] fas fa-calendar-alt"></i>
                                                     Date of Incident
                                                 </label>
                                                 <input
@@ -567,15 +507,15 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                     disabled={readOnly}
                                                     value={issue.date || ''}
                                                     onChange={(e) => updateIssue(issue.id, { date: e.target.value })}
-                                                    className="safety-input"
+                                                    className={SAFETY_INPUT}
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="safety-field">
-                                            <label className="safety-label">
-                                                <i className="fas fa-tags"></i>
-                                                Issue Categories<span className="safety-required">*</span>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                                <i className="text-slate-500 text-[0.8125rem] fas fa-tags"></i>
+                                                Issue Categories<span className="text-red-500 ml-1">*</span>
                                             </label>
                                             <TagPicker
                                                 value={issue.tags || []}
@@ -585,7 +525,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                 onChange={(vals) => updateIssueTagsArray(issue.id, vals)}
                                             />
                                             {issue.tags && issue.tags.length > 0 && (
-                                                <div className="safety-tags-display">
+                                                <div className="flex flex-wrap gap-2 mt-2">
                                                     {issue.tags.map((t) => {
                                                         const tagStyle = TAG_COLORS[t] || {
                                                             bg: 'var(--background)',
@@ -595,7 +535,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                         return (
                                                             <span
                                                                 key={t}
-                                                                className="safety-tag-chip"
+                                                                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[0.8125rem] font-medium"
                                                                 style={{
                                                                     background: tagStyle.bg,
                                                                     color: tagStyle.color
@@ -606,7 +546,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                                 {!readOnly && (
                                                                     <button
                                                                         type="button"
-                                                                        className="safety-chip-remove"
+                                                                        className="ml-1 border-none bg-transparent p-0 cursor-pointer opacity-70 text-[0.6875rem] hover:opacity-100"
                                                                         onClick={() => removeIssueTag(issue.id, t)}
                                                                     >
                                                                         <i className="fas fa-times"></i>
@@ -619,27 +559,27 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                             )}
                                         </div>
 
-                                        <div className="safety-field">
-                                            <label className="safety-label">
-                                                <i className="fas fa-align-left"></i>
-                                                Issue Description<span className="safety-required">*</span>
+                                        <div className="flex flex-col gap-2">
+                                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                                <i className="text-slate-500 text-[0.8125rem] fas fa-align-left"></i>
+                                                Issue Description<span className="text-red-500 ml-1">*</span>
                                             </label>
                                             <textarea
                                                 disabled={readOnly}
                                                 value={issue.description}
                                                 onChange={(e) => updateIssue(issue.id, { description: e.target.value })}
-                                                className="safety-textarea"
+                                                className={SAFETY_TEXTAREA}
                                                 placeholder="Describe the incident in detail including what happened, who was involved, and any actions taken..."
                                             />
                                         </div>
 
-                                        <div className="down-in-yard-toggle">
+                                        <div className="mt-2">
                                             <label
-                                                className={`toggle-label ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}
+                                                className={`flex items-center gap-3 cursor-pointer ${readOnly || !issue.plant || issue.plant === 'All' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 <input
                                                     type="checkbox"
-                                                    className="toggle-checkbox"
+                                                    className="hidden"
                                                     checked={issue.affectsEfficiency || false}
                                                     disabled={readOnly || !issue.plant || issue.plant === 'All'}
                                                     onChange={(e) =>
@@ -647,11 +587,13 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                     }
                                                 />
                                                 <span
-                                                    className={`toggle-switch ${issue.affectsEfficiency ? 'active' : ''} ${readOnly || !issue.plant || issue.plant === 'All' ? 'disabled' : ''}`}
+                                                    className={`relative w-11 h-6 rounded-full transition-colors ${issue.affectsEfficiency ? 'bg-[#1e3a5f]' : 'bg-gray-200'} ${readOnly || !issue.plant || issue.plant === 'All' ? 'opacity-50' : ''}`}
                                                 >
-                                                    <span className="toggle-slider"></span>
+                                                    <span
+                                                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${issue.affectsEfficiency ? 'translate-x-5' : ''}`}
+                                                    ></span>
                                                 </span>
-                                                <span className="toggle-text">
+                                                <span className="text-sm text-gray-700">
                                                     Should Affect Plant&apos;s Efficiency
                                                     {(!issue.plant || issue.plant === 'All') &&
                                                         ' (Select specific plant first)'}
@@ -700,19 +642,19 @@ function getIssueTags(issue) {
 
 function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
     return (
-        <div className="safety-issue-header">
-            <div className="safety-issue-number">
+        <div className="flex items-center justify-between gap-4 p-4 bg-slate-100 border-b border-gray-200 flex-wrap">
+            <div className="flex items-center justify-center h-7 w-7 rounded-full bg-[#1e3a5f] text-white text-[0.8125rem] font-semibold">
                 <span>{idx + 1}</span>
             </div>
-            <div className="safety-issue-badges">
+            <div className="flex flex-wrap gap-2 flex-1">
                 {issue.plant && (
-                    <span className="safety-badge safety-badge-plant">
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-800">
                         <i className="fas fa-industry"></i>
                         {issue.plant === 'All' ? 'All Plants' : `Plant ${issue.plant}`}
                     </span>
                 )}
                 {issue.date && (
-                    <span className="safety-badge safety-badge-date">
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-800">
                         <i className="fas fa-calendar"></i>
                         {new Date(issue.date + 'T00:00:00').toLocaleDateString('en-US', {
                             day: 'numeric',
@@ -722,13 +664,21 @@ function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
                     </span>
                 )}
                 {readOnly && issue.affectsEfficiency && (
-                    <span className="safety-badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+                    <span
+                        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium"
+                        style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
+                    >
                         <i className="fas fa-chart-line"></i>Affects Efficiency
                     </span>
                 )}
             </div>
             {!readOnly && onRemove && (
-                <button type="button" onClick={onRemove} className="safety-remove-btn" title="Remove Issue">
+                <button
+                    type="button"
+                    onClick={onRemove}
+                    className="flex items-center justify-center rounded-md border-none bg-red-100 p-2 text-red-600 cursor-pointer hover:bg-red-200"
+                    title="Remove Issue"
+                >
                     <i className="fas fa-trash-alt"></i>
                 </button>
             )}
@@ -739,7 +689,7 @@ function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
 function TagsDisplay({ tags, onRemoveTag, readOnly }) {
     if (!tags?.length) return null
     return (
-        <div className="safety-tags-display">
+        <div className="flex flex-wrap gap-2 mt-2">
             {tags.map((t) => {
                 const tagStyle = TAG_COLORS[t] || {
                     bg: 'var(--background)',
@@ -749,13 +699,17 @@ function TagsDisplay({ tags, onRemoveTag, readOnly }) {
                 return (
                     <span
                         key={t}
-                        className="safety-tag-chip"
+                        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[0.8125rem] font-medium"
                         style={{ background: tagStyle.bg, color: tagStyle.color }}
                     >
                         <i className={tagStyle.icon}></i>
                         {t}
                         {!readOnly && onRemoveTag && (
-                            <button type="button" className="safety-chip-remove" onClick={() => onRemoveTag(t)}>
+                            <button
+                                type="button"
+                                className="ml-1 border-none bg-transparent p-0 cursor-pointer opacity-70 text-[0.6875rem] hover:opacity-100"
+                                onClick={() => onRemoveTag(t)}
+                            >
                                 <i className="fas fa-times"></i>
                             </button>
                         )}
@@ -768,12 +722,14 @@ function TagsDisplay({ tags, onRemoveTag, readOnly }) {
 
 function SafetyEmptyState({ success }) {
     return (
-        <div className={`safety-empty-state ${success ? 'safety-empty-state-success' : ''}`}>
-            <div className="safety-empty-icon">
+        <div className={`text-center py-12 px-8 text-slate-500 ${success ? 'bg-green-50 rounded-lg' : ''}`}>
+            <div className={`text-5xl mb-4 block ${success ? 'text-green-500' : 'text-slate-300'}`}>
                 <i className={`fas ${success ? 'fa-check-circle' : 'fa-shield-alt'}`}></i>
             </div>
-            <h4>{success ? 'All Clear' : 'No Issues Reported'}</h4>
-            <p>
+            <h4 className={`text-lg font-semibold mb-2 mt-0 ${success ? 'text-green-800' : 'text-slate-800'}`}>
+                {success ? 'All Clear' : 'No Issues Reported'}
+            </h4>
+            <p className="text-sm text-slate-400 m-0">
                 {success
                     ? 'No safety issues were reported during this reporting period'
                     : 'Click Add Issue to document any safety incidents'}
@@ -788,77 +744,70 @@ export function SafetyManagerReviewPlugin({ form }) {
 
     if (issues.length === 0) {
         return (
-            <>
-                <style>{safetyReportStyles}</style>
-                <div className="safety-report-section">
-                    <div className="safety-section-header">
-                        <div className="safety-section-title">
-                            <div className="safety-section-icon safety-section-icon-success">
-                                <i className="fas fa-shield-alt"></i>
-                            </div>
-                            <div>
-                                <h3>Safety Issues & Incidents</h3>
-                                <p>No safety incidents reported for this period</p>
-                            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+                <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-emerald-100 text-emerald-600 text-base">
+                            <i className="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-slate-800 m-0">Safety Issues & Incidents</h3>
+                            <p className="text-sm text-slate-500 mt-1 mb-0">
+                                No safety incidents reported for this period
+                            </p>
                         </div>
                     </div>
-                    <SafetyEmptyState success />
                 </div>
-            </>
+                <SafetyEmptyState success />
+            </div>
         )
     }
 
     return (
-        <>
-            <style>{safetyReportStyles}</style>
-            <div className="safety-report-section">
-                <div className="safety-section-header">
-                    <div className="safety-section-title">
-                        <div className="safety-section-icon">
-                            <i className="fas fa-exclamation-circle"></i>
-                        </div>
-                        <div>
-                            <h3>Safety Issues & Incidents</h3>
-                            <p>
-                                {issues.length} issue{issues.length > 1 ? 's' : ''} reported for this period
-                            </p>
-                        </div>
+        <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
+                <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-red-100 text-red-600 text-base">
+                        <i className="fas fa-exclamation-circle"></i>
                     </div>
-                    <div className="safety-summary-badge">
-                        <i className="fas fa-clipboard-list"></i>
-                        {issues.length} Incident{issues.length > 1 ? 's' : ''}
+                    <div>
+                        <h3 className="text-lg font-semibold text-slate-800 m-0">Safety Issues & Incidents</h3>
+                        <p className="text-sm text-slate-500 mt-1 mb-0">
+                            {issues.length} issue{issues.length > 1 ? 's' : ''} reported for this period
+                        </p>
                     </div>
                 </div>
+                <div className="inline-flex items-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-600">
+                    <i className="fas fa-clipboard-list"></i>
+                    {issues.length} Incident{issues.length > 1 ? 's' : ''}
+                </div>
+            </div>
 
-                <div className="safety-issues-grid">
-                    {issues.map((issue, idx) => {
-                        const tags = getIssueTags(issue)
-                        const tagColors = tags.map((t) => TAG_COLORS[t]).filter(Boolean)
-                        const primaryColor = tagColors[0]?.color || 'var(--accent)'
+            <div className="flex flex-col gap-4">
+                {issues.map((issue, idx) => {
+                    const tags = getIssueTags(issue)
 
-                        return (
-                            <div
-                                key={issue.id || idx}
-                                className="safety-issue-card safety-issue-card-review"
-                                style={{ '--issue-accent': primaryColor }}
-                            >
-                                <IssueCardHeader issue={issue} idx={idx} readOnly />
-                                <div className="safety-issue-content">
-                                    <TagsDisplay tags={tags} readOnly />
-                                    <div className="safety-description-box">
-                                        <div className="safety-description-label">
-                                            <i className="fas fa-file-alt"></i>Description
-                                        </div>
-                                        <div className="safety-description-text">
-                                            {issue.description || 'No description provided'}
-                                        </div>
+                    return (
+                        <div
+                            key={issue.id || idx}
+                            className="rounded-xl border border-gray-200 bg-slate-50 overflow-hidden"
+                        >
+                            <IssueCardHeader issue={issue} idx={idx} readOnly />
+                            <div className="flex flex-col gap-4 p-5">
+                                <TagsDisplay tags={tags} readOnly />
+                                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                                        <i className="fas fa-file-alt"></i>Description
+                                    </div>
+                                    <div className="text-[0.9375rem] text-slate-800 leading-relaxed">
+                                        {issue.description || 'No description provided'}
                                     </div>
                                 </div>
                             </div>
-                        )
-                    })}
-                </div>
+                        </div>
+                    )
+                })}
             </div>
-        </>
+        </div>
     )
 }
