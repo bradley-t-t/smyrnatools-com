@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 
+import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
-import { AuthService } from '../../services/AuthService'
+import { getBrowserName, getDeviceType, getOSName } from '../../app/utils/BrowserDetection'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 
@@ -44,6 +45,7 @@ const clampColorToMaxBrightness = (hex) => {
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
     const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
+    const { signOut: authSignOut, verifyPassword, updatePassword: authUpdatePassword } = useAuth()
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -64,31 +66,6 @@ function MyAccountView({ userId }) {
     const [regionsLoaded, setRegionsLoaded] = useState(false)
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
-
-    const getBrowserInfo = (userAgent) => {
-        if (userAgent.includes('Firefox')) return 'Firefox'
-        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
-        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
-        if (userAgent.includes('Edg')) return 'Edge'
-        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
-        return 'Unknown Browser'
-    }
-
-    const getOSInfo = (userAgent) => {
-        if (userAgent.includes('Windows')) return 'Windows'
-        if (userAgent.includes('Mac')) return 'macOS'
-        if (userAgent.includes('Linux')) return 'Linux'
-        if (userAgent.includes('Android')) return 'Android'
-        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
-        return 'Unknown OS'
-    }
-
-    const getDeviceInfo = (userAgent) => {
-        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone'))
-            return 'Mobile'
-        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
-        return 'Desktop'
-    }
 
     const formatSessionTime = (timestamp) => {
         const date = new Date(timestamp)
@@ -198,9 +175,9 @@ function MyAccountView({ userId }) {
 
                 if (uid) {
                     const userAgent = navigator.userAgent
-                    const currentBrowser = getBrowserInfo(userAgent)
-                    const currentOS = getOSInfo(userAgent)
-                    const currentDevice = getDeviceInfo(userAgent)
+                    const currentBrowser = getBrowserName(userAgent)
+                    const currentOS = getOSName(userAgent)
+                    const currentDevice = getDeviceType(userAgent)
 
                     const { data: existingSessions } = await supabase
                         .from('users_sessions')
@@ -361,7 +338,7 @@ function MyAccountView({ userId }) {
         }
     }
 
-    /** Verifies the current password, hashes the new one with a fresh salt, then forces sign-out so the user re-authenticates. */
+    /** Verifies the current password server-side, updates to the new one, then forces sign-out so the user re-authenticates. */
     const updatePassword = async (e) => {
         e.preventDefault()
         setLoading(true)
@@ -371,37 +348,18 @@ function MyAccountView({ userId }) {
             if (!currentPassword) throw new Error('Current password is required')
             if (newPassword !== confirmPassword) throw new Error('New passwords do not match')
             if (newPassword.length < 8) throw new Error('Password must be at least 8 characters')
-            const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select('id, email, password_hash, salt')
-                .eq('email', email)
-                .single()
-            if (userError || !userData) throw new Error('Could not verify current password')
-            const { AuthUtility } = await import('../../utils/AuthUtility')
-            const computedHash = await AuthUtility.hashPassword(currentPassword, userData.salt)
-            if (computedHash !== userData.password_hash) throw new Error('Current password is incorrect')
-            const salt = await AuthUtility.generateSalt()
-            if (typeof salt !== 'string' || salt.length !== 32 || !/^[0-9a-f]{32}$/i.test(salt))
-                throw new Error('Failed to generate valid salt')
-            const newPasswordHash = await AuthUtility.hashPassword(newPassword, salt)
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                    password_hash: newPasswordHash,
-                    salt,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userData.id)
-            if (updateError) throw updateError
+
+            const uid = userId || sessionStorage.getItem('userId')
+            if (!uid) throw new Error('No active session')
+
+            await verifyPassword(uid, currentPassword)
+            await authUpdatePassword(uid, newPassword)
+
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
             setShowPasswordModal(false)
-            await AuthService.signOut()
-            try {
-                await supabase.auth.signOut()
-            } catch {}
-            sessionStorage.removeItem('userId')
+            await authSignOut()
             window.location.href = '/login'
         } catch (err) {
             setPasswordError(err.message)
@@ -410,23 +368,11 @@ function MyAccountView({ userId }) {
         }
     }
 
-    /** Deletes the current session record, signs out of both custom auth and Supabase auth, then redirects to root. */
+    /** Signs out via AuthContext (which handles session cleanup) and redirects to root. */
     const handleSignOut = async () => {
         setLoading(true)
         try {
-            const sessionId = sessionStorage.getItem('sessionId')
-            if (sessionId) {
-                try {
-                    await supabase.from('users_sessions').delete().eq('id', sessionId)
-                } catch (err) {
-                    console.error('Failed to delete session:', err)
-                }
-            }
-
-            await AuthService.signOut()
-            await supabase.auth.signOut()
-            sessionStorage.removeItem('userId')
-            sessionStorage.removeItem('sessionId')
+            await authSignOut()
             window.location.href = '/'
         } catch (err) {
             setMessage(`Error signing out: ${err.message}`)

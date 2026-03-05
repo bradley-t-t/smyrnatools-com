@@ -6,7 +6,7 @@ import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import { supabase } from '../../services/DatabaseService'
-import { AuthUtility } from '../../utils/AuthUtility'
+import AuthUtility from '../../utils/AuthUtility'
 
 const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
@@ -207,56 +207,6 @@ function LoginView() {
         }
     }, [error])
 
-    const getBrowserInfo = useCallback((userAgent) => {
-        if (userAgent.includes('Firefox')) return 'Firefox'
-        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) return 'Chrome'
-        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari'
-        if (userAgent.includes('Edg')) return 'Edge'
-        if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera'
-        return 'Unknown Browser'
-    }, [])
-
-    const getOSInfo = useCallback((userAgent) => {
-        if (userAgent.includes('Windows')) return 'Windows'
-        if (userAgent.includes('Mac')) return 'macOS'
-        if (userAgent.includes('Linux')) return 'Linux'
-        if (userAgent.includes('Android')) return 'Android'
-        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS'
-        return 'Unknown OS'
-    }, [])
-
-    const getDeviceInfo = useCallback((userAgent) => {
-        if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone'))
-            return 'Mobile'
-        if (userAgent.includes('iPad') || userAgent.includes('Tablet')) return 'Tablet'
-        return 'Desktop'
-    }, [])
-
-    /** Records a browser session in `users_sessions` for presence tracking and audit. */
-    const createSession = useCallback(
-        async (userId) => {
-            try {
-                const userAgent = navigator.userAgent
-                const sessionId = `${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                sessionStorage.setItem('sessionId', sessionId)
-                await supabase.from('users_sessions').upsert(
-                    {
-                        browser: getBrowserInfo(userAgent),
-                        created_at: new Date().toISOString(),
-                        device: getDeviceInfo(userAgent),
-                        id: sessionId,
-                        last_active: new Date().toISOString(),
-                        os: getOSInfo(userAgent),
-                        user_agent: userAgent,
-                        user_id: userId
-                    },
-                    { onConflict: 'id' }
-                )
-            } catch {}
-        },
-        [getBrowserInfo, getOSInfo, getDeviceInfo]
-    )
-
     /** Handles sign-in or sign-up with a 10s safety timeout to prevent infinite loading state. */
     const handleSubmit = useCallback(
         async (e) => {
@@ -287,8 +237,6 @@ function LoginView() {
                     const normFirst = await AuthUtility.normalizeName(firstName)
                     const normLast = await AuthUtility.normalizeName(lastName)
                     await signUp(email, password, normFirst, normLast)
-                    const userId = sessionStorage.getItem('userId')
-                    if (userId) await createSession(userId)
                     if (timeoutRef.current) clearTimeout(timeoutRef.current)
                     setSuccessMessage('Account created successfully. Redirecting...')
                     setTimeout(() => (window.location.href = '/'), 1000)
@@ -300,10 +248,7 @@ function LoginView() {
                         return
                     }
                     const result = await signIn(email, password)
-                    if (!result || !result.id) throw new Error('Sign in failed - no user data returned')
-                    const userId = sessionStorage.getItem('userId')
-                    if (!userId) throw new Error('Sign in failed - session not created')
-                    await createSession(userId)
+                    if (!result?.id) throw new Error('Sign in failed - no user data returned')
                     if (timeoutRef.current) clearTimeout(timeoutRef.current)
                     setSuccessMessage('Signed in successfully. Redirecting...')
                     setTimeout(() => (window.location.href = '/'), 1000)
@@ -314,19 +259,7 @@ function LoginView() {
                 setIsSubmitting(false)
             }
         },
-        [
-            isSubmitting,
-            loading,
-            isSignUp,
-            email,
-            password,
-            confirmPassword,
-            firstName,
-            lastName,
-            signIn,
-            signUp,
-            createSession
-        ]
+        [isSubmitting, loading, isSignUp, email, password, confirmPassword, firstName, lastName, signIn, signUp]
     )
 
     const toggleSignUp = useCallback(() => setIsSignUp((prev) => !prev), [])

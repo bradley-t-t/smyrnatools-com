@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../app/components/sections/AddViewSection'
-import { AuthService } from '../../services/AuthService'
 import { EquipmentService } from '../../services/EquipmentService'
 
 /**
@@ -48,7 +47,7 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
 
         setIsSaving(true)
         try {
-            const userId = AuthService.currentUser?.id || sessionStorage.getItem('userId')
+            const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
 
             const newEquipment = {

@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { AuthService } from '../../services/AuthService'
 import { PickupTruckService } from '../../services/PickupTruckService'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
@@ -112,7 +111,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
         }
         setIsSaving(true)
         try {
-            const userId = AuthService.currentUser?.id || sessionStorage.getItem('userId')
+            const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
             const payload = {
                 assigned: assigned || null,

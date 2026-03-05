@@ -1,14 +1,16 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import APIUtility from '../../utils/APIUtility'
+import { SESSION_STORAGE_KEYS } from '../constants/auth'
+import { getBrowserMetadata } from '../utils/BrowserDetection'
 
-const AUTH_CONTEXT_FUNCTION = '/auth-context'
-const SESSION_KEY = 'smyrna_session'
+const AUTH_FUNCTION = '/auth-service'
+const SESSION_EXPIRY_DAYS = 7
 
 /**
  * Authentication context providing sign-in, sign-up, sign-out, session restoration,
- * and profile management to the entire component tree.
+ * credential updates, and profile management to the entire component tree.
  */
 const AuthContext = createContext()
 
@@ -17,128 +19,209 @@ export function useAuth() {
     return useContext(AuthContext)
 }
 
+// ── Private session helpers ───────────────────────────────────────────
+
+function generateSessionId() {
+    const array = new Uint8Array(32)
+    crypto.getRandomValues(array)
+    return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+function storeUserId(userId) {
+    sessionStorage.setItem(SESSION_STORAGE_KEYS.USER_ID, userId)
+    localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_KEY, userId)
+}
+
+function clearAllSessionData() {
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.USER_ID)
+    localStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_KEY)
+    localStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_ID)
+    localStorage.removeItem(SESSION_STORAGE_KEYS.CACHED_PLANTS)
+    localStorage.removeItem(SESSION_STORAGE_KEYS.USER_ROLE)
+}
+
+function getStoredUserId() {
+    return (
+        sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
+        localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY) ||
+        null
+    )
+}
+
+/** Creates a database-tracked session record with browser metadata. */
+async function createDbSession(userId) {
+    const sessionId = generateSessionId()
+    const { browser, os, device, userAgent } = getBrowserMetadata()
+    const now = new Date().toISOString()
+
+    try {
+        const { error } = await supabase
+            .from('users_sessions')
+            .upsert(
+                {
+                    browser,
+                    created_at: now,
+                    device,
+                    id: sessionId,
+                    last_active: now,
+                    os,
+                    user_agent: userAgent,
+                    user_id: userId
+                },
+                { onConflict: 'id' }
+            )
+
+        if (!error) {
+            localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)
+        }
+    } catch {}
+
+    storeUserId(userId)
+}
+
+/**
+ * Validates the current session against the database.
+ * Expires sessions older than the configured threshold and refreshes the last_active timestamp.
+ */
+async function validateDbSession() {
+    const userId = getStoredUserId()
+    if (!userId) return { userId: null, valid: false }
+
+    const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+    if (!sessionId) return { userId, valid: true }
+
+    try {
+        const { data, error } = await supabase
+            .from('users_sessions')
+            .select('id, last_active')
+            .eq('id', sessionId)
+            .eq('user_id', userId)
+            .maybeSingle()
+
+        if (error || !data) return { userId, valid: true }
+
+        const lastActive = new Date(data.last_active)
+        const expiryThreshold = new Date()
+        expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
+
+        if (lastActive < expiryThreshold) {
+            clearAllSessionData()
+            return { userId: null, valid: false }
+        }
+
+        // Fire-and-forget last_active refresh
+        supabase
+            .from('users_sessions')
+            .update({ last_active: new Date().toISOString() })
+            .eq('id', sessionId)
+            .then(() => {})
+            .catch(() => {})
+        return { userId, valid: true }
+    } catch {
+        return { userId, valid: true }
+    }
+}
+
+// ── Provider ──────────────────────────────────────────────────────────
+
 /**
  * Authentication provider that wraps the app and supplies auth state and methods.
- * Restores sessions on mount and lazy-loads user profiles after sign-in.
+ * Restores sessions on mount, manages DB session records, and lazy-loads user profiles after sign-in.
  */
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
+    const restoreSession = useCallback(async () => {
+        setLoading(true)
+        setError(null)
+
+        const { valid, userId } = await validateDbSession()
+        if (!valid || !userId) {
+            clearAllSessionData()
+            setUser(null)
+            setLoading(false)
+            return false
+        }
+
+        try {
+            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/restore-session`, { userId })
+            if (json.success && json.user) {
+                setUser(json.user)
+                storeUserId(userId)
+                setLoading(false)
+                return true
+            }
+            clearAllSessionData()
+            setUser(null)
+            setLoading(false)
+            return false
+        } catch {
+            clearAllSessionData()
+            setUser(null)
+            setLoading(false)
+            return false
+        }
+    }, [])
+
     useEffect(() => {
         setLoading(true)
         restoreSession().finally(() => setLoading(false))
-    }, [])
+    }, [restoreSession])
 
-    async function restoreSession() {
-        setLoading(true)
-        setError(null)
-        const userId = sessionStorage.getItem('userId') || localStorage.getItem(SESSION_KEY)
-        if (!userId) {
-            setUser(null)
-            setLoading(false)
-            return false
-        }
-        try {
-            const { json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/restore-session`, { userId })
-            if (json.success && json.user) {
-                setUser(json.user)
-                sessionStorage.setItem('userId', userId)
-                localStorage.setItem(SESSION_KEY, userId)
-                setLoading(false)
-                return true
-            } else {
-                sessionStorage.removeItem('userId')
-                localStorage.removeItem(SESSION_KEY)
-                setUser(null)
-                setLoading(false)
-                return false
-            }
-        } catch (e) {
-            sessionStorage.removeItem('userId')
-            localStorage.removeItem(SESSION_KEY)
-            setUser(null)
-            setLoading(false)
-            return false
-        }
-    }
-
-    async function signIn(email, password) {
-        setError(null)
-        setLoading(true)
-        try {
-            const { res, json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-in`, { email, password })
-
-            if (!res.ok) {
-                const errorMsg = json?.error || json?.message || 'Invalid email or password'
-                setError(errorMsg)
-                setLoading(false)
-                throw new Error(errorMsg)
-            }
-
-            if (!json || !json.id) {
-                const errorMsg = 'Sign in failed - invalid response from server'
-                setError(errorMsg)
-                setLoading(false)
-                throw new Error(errorMsg)
-            }
-
-            setUser(json)
-            sessionStorage.setItem('userId', json.id)
-            localStorage.setItem(SESSION_KEY, json.id)
-            setLoading(false)
-
-            setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
-            return json
-        } catch (e) {
-            const errorMsg = e.message || 'An unknown error occurred during sign in'
-            setError(errorMsg)
-            setLoading(false)
-            throw new Error(errorMsg)
-        }
-    }
-
-    async function loadUserProfile(userId) {
+    const loadUserProfile = useCallback(async (userId) => {
         if (!userId) return
         try {
-            const { json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/load-profile`, { userId })
+            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/load-profile`, { userId })
             if (json.profile) {
                 setUser((cu) => ({ ...cu, profile: json.profile }))
             }
         } catch {}
-    }
+    }, [])
 
-    async function createDefaultPreferencesRow(userId) {
-        if (!userId) return
-        try {
-            const now = new Date().toISOString()
-            const baseFilters = { searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'list' }
-            const roleFilters = { roleFilter: '', searchText: '', selectedPlant: '', viewMode: 'list' }
-            await supabase.from('users_preferences').upsert(
-                {
-                    created_at: now,
-                    default_view_mode: null,
-                    equipment_filters: baseFilters,
-                    last_viewed_filters: null,
-                    manager_filters: roleFilters,
-                    mixer_filters: baseFilters,
-                    operator_filters: baseFilters,
-                    tractor_filters: baseFilters,
-                    trailer_filters: baseFilters,
-                    updated_at: now,
-                    user_id: userId
-                },
-                { onConflict: 'user_id' }
-            )
-        } catch {}
-    }
+    const signIn = useCallback(
+        async (email, password) => {
+            setError(null)
+            setLoading(true)
+            try {
+                const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/sign-in`, { email, password })
 
-    async function signUp(email, password, firstName, lastName) {
+                if (!res.ok) {
+                    const errorMsg = json?.error || json?.message || 'Invalid email or password'
+                    setError(errorMsg)
+                    setLoading(false)
+                    throw new Error(errorMsg)
+                }
+
+                if (!json?.id) {
+                    const errorMsg = 'Sign in failed - invalid response from server'
+                    setError(errorMsg)
+                    setLoading(false)
+                    throw new Error(errorMsg)
+                }
+
+                setUser(json)
+                await createDbSession(json.id)
+                setLoading(false)
+
+                setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
+                return json
+            } catch (e) {
+                const errorMsg = e.message || 'An unknown error occurred during sign in'
+                setError(errorMsg)
+                setLoading(false)
+                throw new Error(errorMsg)
+            }
+        },
+        [loadUserProfile]
+    )
+
+    const signUp = useCallback(async (email, password, firstName, lastName) => {
         setError(null)
         setLoading(true)
         try {
-            const { res, json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-up`, {
+            const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/sign-up`, {
                 email,
                 firstName,
                 lastName,
@@ -150,9 +233,7 @@ export function AuthProvider({ children }) {
                 throw new Error(json.error || 'Sign up failed')
             }
             setUser(json)
-            sessionStorage.setItem('userId', json.id)
-            localStorage.setItem(SESSION_KEY, json.id)
-            await createDefaultPreferencesRow(json.id)
+            await createDbSession(json.id)
             setLoading(false)
             return json
         } catch (e) {
@@ -160,24 +241,28 @@ export function AuthProvider({ children }) {
             setLoading(false)
             throw e
         }
-    }
+    }, [])
 
-    async function signOut() {
-        await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-out`)
-        sessionStorage.removeItem('userId')
-        localStorage.removeItem(SESSION_KEY)
-        localStorage.removeItem('cachedPlants')
-        localStorage.removeItem('userRole')
+    const signOut = useCallback(async () => {
+        const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+        if (sessionId) {
+            try {
+                await supabase.from('users_sessions').delete().eq('id', sessionId)
+            } catch {}
+        }
+
+        await APIUtility.post(`${AUTH_FUNCTION}/sign-out`).catch(() => {})
+        clearAllSessionData()
         setUser(null)
         window.dispatchEvent(new CustomEvent('authSignOut'))
         return true
-    }
+    }, [])
 
-    async function updateProfile(userId, firstName, lastName, plantCode) {
+    const updateProfile = useCallback(async (userId, firstName, lastName, plantCode) => {
         setError(null)
         setLoading(true)
         try {
-            const { res, json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/update-profile`, {
+            const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/update-profile`, {
                 firstName,
                 lastName,
                 plantCode,
@@ -196,7 +281,30 @@ export function AuthProvider({ children }) {
             setLoading(false)
             throw e
         }
-    }
+    }, [])
+
+    const updateEmail = useCallback(async (userId, newEmail) => {
+        const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/update-email`, { email: newEmail, userId })
+        if (!res.ok) throw new Error(json.error || 'Update email failed')
+        setUser((cu) => ({ ...cu, email: newEmail.trim().toLowerCase() }))
+        return true
+    }, [])
+
+    const updatePassword = useCallback(async (userId, newPassword) => {
+        const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/update-password`, {
+            password: newPassword,
+            userId
+        })
+        if (!res.ok) throw new Error(json.error || 'Update password failed')
+        return true
+    }, [])
+
+    /** Server-side current-password verification — keeps hashes off the client. */
+    const verifyPassword = useCallback(async (userId, currentPassword) => {
+        const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/verify-password`, { currentPassword, userId })
+        if (!res.ok) throw new Error(json.error || 'Password verification failed')
+        return true
+    }, [])
 
     return (
         <AuthContext.Provider
@@ -209,8 +317,11 @@ export function AuthProvider({ children }) {
                 signIn,
                 signOut,
                 signUp,
+                updateEmail,
+                updatePassword,
                 updateProfile,
-                user
+                user,
+                verifyPassword
             }}
         >
             {children}

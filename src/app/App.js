@@ -16,7 +16,7 @@ import TerminatedOverlay from './components/common/TerminatedOverlay'
 import TutorialManager from './components/common/TutorialPopup'
 import WebOverlay from './components/common/WebOverlay'
 import { useTutorial } from './context/TutorialContext'
-import { useAuth } from './hooks/useAuth'
+import { useAuthSession } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
 
 const CHUNK_RELOAD_KEY = 'chunk_reload_attempted'
@@ -110,7 +110,7 @@ function AppContent() {
     const [sessionChecked, setSessionChecked] = useState(false)
 
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
-    useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
+    useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
     const { triggerTutorial } = useTutorial()
 
     useEffect(() => {

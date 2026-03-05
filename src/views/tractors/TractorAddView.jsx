@@ -4,7 +4,6 @@ import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { Tractor } from '../../models/tractors/Tractor'
-import { AuthService } from '../../services/AuthService'
 import { RegionService } from '../../services/RegionService'
 import { TractorService } from '../../services/TractorService'
 
@@ -89,7 +88,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
 
         setIsSaving(true)
         try {
-            const userId = AuthService.currentUser?.id || sessionStorage.getItem('userId')
+            const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
 
             const formatDateForDb = (date) => {

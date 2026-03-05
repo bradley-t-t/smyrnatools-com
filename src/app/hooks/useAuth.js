@@ -1,27 +1,28 @@
 import { useEffect } from 'react'
 
+import { SESSION_STORAGE_KEYS } from '../constants/auth'
+
 /**
  * Manages authentication session lifecycle on app mount.
- * Restores sessions from storage, loads user roles, handles sign-in/sign-out events,
+ * Listens for sign-in/sign-out events dispatched by AuthContext
  * and gates guest-only users to a restricted view.
  * @param {Function} setSessionChecked - Called with `true` once the initial session restore attempt finishes.
  */
-export function useAuth(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked) {
+export function useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked) {
     useEffect(() => {
-        const initSession = async () => {
-            const { AuthService } = await import('../../services/AuthService')
-            if (AuthService.hasStoredSession()) {
-                const restored = await AuthService.restoreSession()
-                if (restored && AuthService.currentUser?.userId) {
-                    setUserId(AuthService.currentUser.userId)
-                }
-            }
+        const initSession = () => {
+            const userId =
+                sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
+                localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
+            if (userId) setUserId(userId)
             setSessionChecked(true)
         }
 
         const handleAuthSuccess = (event) => {
             const userId =
-                event.detail?.userId || localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId')
+                event.detail?.userId ||
+                sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
+                localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
             if (userId) setUserId(userId)
         }
 

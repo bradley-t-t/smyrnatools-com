@@ -2,6 +2,9 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.6] - 2026-03-05
+
+- SmyrnaTools Release v19.6
 ## [19.5] - 2026-03-05
 
 - SmyrnaTools Release v19.5

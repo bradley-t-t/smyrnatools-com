@@ -28,7 +28,7 @@ function PasswordRecoveryView({ onBackToLogin }) {
         }
         setSubmitting(true)
         try {
-            const { res } = await APIUtility.post('/auth-context/reset-password', { email })
+            const { res } = await APIUtility.post('/auth-service/reset-password', { email })
             if (res.ok) {
                 setMessage('If an account exists for this email, a new password has been sent.')
             } else {
