@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.2] - 2026-03-05
+
+- Improved the loading experience in TopSection by introducing a more refined reveal animation logic. Now, the component ensures content is hidden during loading or while awaiting the reveal animation, preventing flickering or premature display of real content.
+- Added a skeleton loading state in TopSection that is displayed during loading or before the reveal animation starts, providing a smoother visual transition for users.
+- Adjusted the reveal animation timeout in TopSection from 1000ms to 1200ms to allow a slightly longer duration for the effect, enhancing the user experience.
+
 ## [20.1] - 2026-03-05
 
 - Adjusted the mobile view width in ListViewModeSection to increase the minimum width from 700px to 1100px for better readability on smaller screens.

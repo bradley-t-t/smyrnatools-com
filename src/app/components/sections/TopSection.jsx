@@ -314,61 +314,65 @@ function TopSection({
     }
 
     const wasLoadingRef = useRef(isLoading)
+    const hasRevealedRef = useRef(false)
     const [revealControls, setRevealControls] = useState(false)
+    const needsRevealRef = useRef(false)
 
     useEffect(() => {
-        if (wasLoadingRef.current && !isLoading) {
+        if (wasLoadingRef.current && !isLoading && !hasRevealedRef.current) {
+            hasRevealedRef.current = true
+            needsRevealRef.current = false
             setRevealControls(true)
-            const timer = setTimeout(() => setRevealControls(false), 1000)
+            const timer = setTimeout(() => setRevealControls(false), 1200)
             return () => clearTimeout(timer)
+        }
+        if (isLoading && !hasRevealedRef.current) {
+            needsRevealRef.current = true
         }
         wasLoadingRef.current = isLoading
     }, [isLoading])
 
-    if (isLoading) {
-        return (
-            <div ref={forwardedRef} className={sectionClasses} style={sectionStyle} data-section="top">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-3">
-                        <div
-                            className={`${isMobile ? 'h-6 w-36' : 'h-8 w-48'} rounded-lg bg-slate-200 animate-pulse`}
-                        />
-                        <div className="flex items-center gap-2.5">
-                            <div
-                                className={`${isMobile ? 'w-11 h-11' : 'w-[88px] h-[46px]'} rounded-xl bg-slate-200 animate-pulse`}
-                            />
-                        </div>
-                    </div>
-                    <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-3.5 justify-between'}`}>
-                        <div
-                            className={`${isMobile ? 'flex-1 h-[46px]' : 'h-[46px] min-w-[220px] max-w-[420px] flex-[0_1_auto]'} rounded-xl bg-slate-100 animate-pulse`}
-                        />
-                        {isMobile ? (
-                            <div className="w-[50px] h-[50px] rounded-xl bg-slate-100 animate-pulse" />
-                        ) : (
-                            <div className="flex items-center gap-3 ml-auto">
-                                <div className="w-[88px] h-[44px] rounded-lg bg-slate-100 animate-pulse" />
-                                <div className="w-[120px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
-                                <div className="w-[140px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
-                            </div>
-                        )}
-                    </div>
-                    {!isMobile && viewMode === 'list' && (
-                        <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7 py-3">
-                            {safeColWidths.map((w, i) => (
-                                <div key={i} className="px-2" style={{ flexShrink: 0, width: w }}>
-                                    <div
-                                        className="h-3 rounded bg-slate-200 animate-pulse"
-                                        style={{ width: `${50 + ((i * 13) % 40)}%` }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
+    // While loading or awaiting reveal animation start, hide real content completely
+    const hideRealContent = isLoading || (needsRevealRef.current && !revealControls)
+
+    const skeletonContent = (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3">
+                <div className={`${isMobile ? 'h-6 w-36' : 'h-8 w-48'} rounded-lg bg-slate-200 animate-pulse`} />
+                <div className="flex items-center gap-2.5">
+                    <div
+                        className={`${isMobile ? 'w-11 h-11' : 'w-[88px] h-[46px]'} rounded-xl bg-slate-200 animate-pulse`}
+                    />
                 </div>
             </div>
-        )
-    }
+            <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-3.5 justify-between'}`}>
+                <div
+                    className={`${isMobile ? 'flex-1 h-[46px]' : 'h-[46px] min-w-[220px] max-w-[420px] flex-[0_1_auto]'} rounded-xl bg-slate-100 animate-pulse`}
+                />
+                {isMobile ? (
+                    <div className="w-[50px] h-[50px] rounded-xl bg-slate-100 animate-pulse" />
+                ) : (
+                    <div className="flex items-center gap-3 ml-auto">
+                        <div className="w-[88px] h-[44px] rounded-lg bg-slate-100 animate-pulse" />
+                        <div className="w-[120px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
+                        <div className="w-[140px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
+                    </div>
+                )}
+            </div>
+            {!isMobile && viewMode === 'list' && (
+                <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7 py-3">
+                    {safeColWidths.map((w, i) => (
+                        <div key={i} className="px-2" style={{ flexShrink: 0, width: w }}>
+                            <div
+                                className="h-3 rounded bg-slate-200 animate-pulse"
+                                style={{ width: `${50 + ((i * 13) % 40)}%` }}
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
 
     if (isMobile) {
         return (
@@ -396,7 +400,8 @@ function TopSection({
                     data-section="top"
                     aria-label="Page controls"
                 >
-                    <div className="flex flex-col gap-4">
+                    {hideRealContent && skeletonContent}
+                    <div className="flex flex-col gap-4" style={hideRealContent ? { display: 'none' } : undefined}>
                         <div className="flex items-center justify-between gap-3">
                             <div
                                 className={`flex items-center gap-3${revealControls ? ' top-reveal-left' : ''}`}
@@ -608,7 +613,8 @@ function TopSection({
                 data-section="top"
                 aria-label="Page controls"
             >
-                <div className="flex flex-col gap-4">
+                {hideRealContent && skeletonContent}
+                <div className="flex flex-col gap-4" style={hideRealContent ? { display: 'none' } : undefined}>
                     <div className="flex items-center gap-4 justify-between">
                         <div
                             className={`flex items-center gap-4${revealControls ? ' top-reveal-left' : ''}`}
