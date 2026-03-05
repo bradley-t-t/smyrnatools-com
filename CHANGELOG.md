@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.1] - 2026-03-05
+
+- Adjusted the mobile view width in ListViewModeSection to increase the minimum width from 700px to 1100px for better readability on smaller screens.
+- Updated the AssetListSkeleton component for improved mobile display by changing the minimum width from 600px to 1100px and tweaking the margin spacing (mx-2 to mx-1 and mt-4 to mt-3) for a tighter layout.
+- Refined the skeleton loading UI in AssetListSkeleton by adjusting the compact mode padding (px-2 to px-4 and py-2.5 to py-3) and setting a minimum width of 40px for the animated placeholder elements, along with a smaller height (h-3 instead of h-3.5) in compact mode for a more polished look.
+
 ## [20.0] - 2026-03-05
 
 - Enhanced the list view animation in ListViewModeSection by replacing the fade-in effect with a slide-in effect, where rows now slide in from the left instead of fading in from below.

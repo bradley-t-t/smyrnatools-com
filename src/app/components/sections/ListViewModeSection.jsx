@@ -86,7 +86,7 @@ function ListViewModeSection({
             border: '1px solid #e2e8f0',
             borderRadius: isMobile ? '8px 8px 0 0' : '12px 12px 0 0',
             boxSizing: 'border-box',
-            minWidth: isMobile ? '700px' : 'auto',
+            minWidth: isMobile ? '1100px' : 'auto',
             overflow: 'hidden',
             width: '100%'
         },

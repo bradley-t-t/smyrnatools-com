@@ -41,11 +41,11 @@ function SkeletonAssetRow({ columnCount, isEven, compact }) {
             {Array.from({ length: columnCount }, (_, i) => (
                 <td
                     key={i}
-                    className={compact ? 'px-2 py-2.5 border-b border-gray-200' : 'px-5 py-4 border-b border-gray-200'}
+                    className={compact ? 'px-4 py-3 border-b border-gray-200' : 'px-5 py-4 border-b border-gray-200'}
                 >
                     <div
-                        className="h-3.5 rounded bg-slate-200 animate-pulse"
-                        style={{ width: `${45 + ((i * 17) % 40)}%` }}
+                        className={`${compact ? 'h-3' : 'h-3.5'} rounded bg-slate-200 animate-pulse`}
+                        style={{ minWidth: '40px', width: `${45 + ((i * 17) % 40)}%` }}
                     />
                 </td>
             ))}
@@ -210,11 +210,11 @@ export default function AssetListSkeleton({ viewMode, count, columnCount = 8 }) 
         const rowCount = count ?? DEFAULT_LIST_COUNT
         return (
             <div
-                className={`${isMobile ? 'mx-2 mt-4' : 'mx-6 mt-[30px]'} mb-6 overflow-x-auto`}
+                className={`${isMobile ? 'mx-1 mt-3' : 'mx-6 mt-[30px]'} mb-6 overflow-x-auto`}
                 style={{ WebkitOverflowScrolling: 'touch' }}
             >
                 <div
-                    className={`overflow-hidden rounded-xl border border-gray-200 bg-white ${isMobile ? 'min-w-[600px]' : 'w-full'}`}
+                    className={`overflow-hidden rounded-xl border border-gray-200 bg-white ${isMobile ? 'min-w-[1100px]' : 'w-full'}`}
                 >
                     <table className="w-full border-collapse">
                         <tbody>
