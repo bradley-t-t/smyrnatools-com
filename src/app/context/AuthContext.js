@@ -4,6 +4,7 @@ import { supabase } from '../../services/DatabaseService'
 import APIUtility from '../../utils/APIUtility'
 
 const AUTH_CONTEXT_FUNCTION = '/auth-context'
+const SESSION_KEY = 'smyrna_session'
 
 /**
  * Authentication context providing sign-in, sign-up, sign-out, session restoration,
@@ -33,7 +34,7 @@ export function AuthProvider({ children }) {
     async function restoreSession() {
         setLoading(true)
         setError(null)
-        const userId = sessionStorage.getItem('userId') || localStorage.getItem('smyrna_session')
+        const userId = sessionStorage.getItem('userId') || localStorage.getItem(SESSION_KEY)
         if (!userId) {
             setUser(null)
             setLoading(false)
@@ -43,16 +44,20 @@ export function AuthProvider({ children }) {
             const { json } = await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/restore-session`, { userId })
             if (json.success && json.user) {
                 setUser(json.user)
+                sessionStorage.setItem('userId', userId)
+                localStorage.setItem(SESSION_KEY, userId)
                 setLoading(false)
                 return true
             } else {
                 sessionStorage.removeItem('userId')
+                localStorage.removeItem(SESSION_KEY)
                 setUser(null)
                 setLoading(false)
                 return false
             }
         } catch (e) {
             sessionStorage.removeItem('userId')
+            localStorage.removeItem(SESSION_KEY)
             setUser(null)
             setLoading(false)
             return false
@@ -81,6 +86,7 @@ export function AuthProvider({ children }) {
 
             setUser(json)
             sessionStorage.setItem('userId', json.id)
+            localStorage.setItem(SESSION_KEY, json.id)
             setLoading(false)
 
             setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
@@ -145,6 +151,7 @@ export function AuthProvider({ children }) {
             }
             setUser(json)
             sessionStorage.setItem('userId', json.id)
+            localStorage.setItem(SESSION_KEY, json.id)
             await createDefaultPreferencesRow(json.id)
             setLoading(false)
             return json
@@ -158,6 +165,7 @@ export function AuthProvider({ children }) {
     async function signOut() {
         await APIUtility.post(`${AUTH_CONTEXT_FUNCTION}/sign-out`)
         sessionStorage.removeItem('userId')
+        localStorage.removeItem(SESSION_KEY)
         localStorage.removeItem('cachedPlants')
         localStorage.removeItem('userRole')
         setUser(null)
