@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.4] - 2026-03-05
+
+- Added a TODO comment in MyAccountView.jsx to remind the team to improve the styling of the version display at the bottom of the page.
+
+## [20.4] - 2026-03-05
+
+- Added a TODO comment in MyAccountView.jsx to improve the styling of the version display at the bottom of the page.
+
 ## [20.3] - 2026-03-05
 
 - Added loading state support to the ReportsToolbar component by introducing an `isLoading` prop and passing it to the TopSection component.

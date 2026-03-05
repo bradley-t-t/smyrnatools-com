@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+// TODO: Make version at bottom better styled.
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
