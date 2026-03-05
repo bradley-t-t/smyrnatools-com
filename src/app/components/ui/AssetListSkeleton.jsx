@@ -39,10 +39,7 @@ function SkeletonAssetRow({ columnCount, isEven, compact }) {
     return (
         <tr className={isEven ? 'bg-white' : 'bg-slate-50'}>
             {Array.from({ length: columnCount }, (_, i) => (
-                <td
-                    key={i}
-                    className={compact ? 'px-4 py-3 border-b border-gray-200' : 'px-5 py-4 border-b border-gray-200'}
-                >
+                <td key={i} className={`border-b border-gray-200 ${compact ? 'px-2 py-2.5' : 'py-5 px-4'}`}>
                     <div
                         className={`${compact ? 'h-3' : 'h-3.5'} rounded bg-slate-200 animate-pulse`}
                         style={{ minWidth: '40px', width: `${45 + ((i * 17) % 40)}%` }}
@@ -145,7 +142,7 @@ function SkeletonReportRow({ columnWidths }) {
  * @param {number} [rowCount=6] - Number of skeleton rows to render.
  * @param {number} [columnCount=5] - Number of columns in the header.
  */
-export function ReportsListSkeleton({ rowCount = 6, columnCount = 5 }) {
+export function ReportsListSkeleton({ rowCount = 25, columnCount = 5 }) {
     const columnWidths = Array.from({ length: columnCount }, (_, i) =>
         i < 2 ? 'flex' : i === columnCount - 1 ? '96px' : '112px'
     )

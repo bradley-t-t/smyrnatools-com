@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.3] - 2026-03-05
+
+- Added loading state support to the ReportsToolbar component by introducing an `isLoading` prop and passing it to the TopSection component.
+- Updated the ReportsView to pass the appropriate loading state to ReportsToolbar based on the current tab (loading state for "all" tab uses `isMyReportsLoading`, and for other tabs uses `isReviewLoading`).
+- Added loading state support to the TopSection component in ListView by passing the `isLoading` prop.
+- Adjusted the default row count in ReportsListSkeleton from 6 to 25 to better simulate loading a larger dataset.
+- Modified the padding in AssetListSkeleton's SkeletonAssetRow component for compact mode to use smaller values (`px-2 py-2.5`) and non-compact mode to use `py-5 px-4` for a more consistent look.
+
 ## [20.2] - 2026-03-05
 
 - Improved the loading experience in TopSection by introducing a more refined reveal animation logic. Now, the component ensures content is hidden during loading or while awaiting the reveal animation, preventing flickering or premature display of real content.

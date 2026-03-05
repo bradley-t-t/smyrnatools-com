@@ -439,6 +439,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             style={{ background: '#f1f5f9', minHeight: '100%', position: 'relative', width: '100%' }}
         >
             <TopSection
+                isLoading={isLoading}
                 title={title}
                 addButtonLabel="Add Item"
                 onAddClick={() => setShowAddSheet(true)}

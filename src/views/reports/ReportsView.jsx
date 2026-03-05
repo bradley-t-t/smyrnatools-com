@@ -223,6 +223,7 @@ function ReportsView() {
                 </div>
             )}
             <ReportsToolbar
+                isLoading={tab === 'all' ? isMyReportsLoading : isReviewLoading}
                 tab={tab}
                 onTabChange={setTab}
                 filterReportType={filterReportType}

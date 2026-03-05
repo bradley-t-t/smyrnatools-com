@@ -57,7 +57,8 @@ function ReportsToolbar({
     hasAssigned,
     hasReviewPermission,
     hasAnyReviewPermission,
-    regionType
+    regionType,
+    isLoading = false
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -70,6 +71,7 @@ function ReportsToolbar({
 
     return (
         <TopSection
+            isLoading={isLoading}
             title="Reports"
             hideViewModeToggle
             hidePlantFilter
