@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.6] - 2026-03-05
+
+- No functional changes or updates to dependencies were made in this release as per the provided diff.
+
 ## [1.1] - 2026-03-05
 
 - Removed the turl.json configuration file from the public directory, which previously contained project metadata like version and branch information.
