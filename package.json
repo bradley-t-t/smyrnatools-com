@@ -1,6 +1,6 @@
 {
   "name": "smyrnatools",
-  "version": "20.4.0",
+  "version": "1.1.0",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
@@ -38,7 +38,7 @@
     "test": "react-app-rewired test",
     "lint": "eslint src/",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\"",
-    "release": "turl-release",
+    "release": "nit",
     "eject": "react-scripts eject",
     "mail:send": "node scripts/send-mailersend.js",
     "password-reset:server": "node scripts/password-reset-server.js",
@@ -98,7 +98,7 @@
     "prettier": "^3.2.5",
     "react-app-rewired": "^2.2.1",
     "sharp": "^0.33.4",
-    "turl-release": "github:bradley-t-t/turl-release#main",
+    "nit": "github:bradley-t-t/nit#main",
     "typescript": "^4.9.5"
   },
   "browserslist": {
