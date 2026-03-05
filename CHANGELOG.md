@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.9] - 2026-03-05
+
+- Improved responsiveness in GridViewModeSection by adjusting grid layout for mobile devices, including smaller gaps, reduced card sizes, and padding based on screen size.
+- Enhanced mobile display in ListViewModeSection by tweaking border radius, adjusting minimum width, and reducing margins for better fit on smaller screens.
+- Refined AssetListSkeleton component for better mobile experience by introducing compact layouts for skeleton cards, rows, and task rows, with adjusted padding, spacing, and element sizes, as well as limiting detail rows in mobile view.
+- Updated MyAccountView to include minor adjustments for better usability (specific details visible in the diff).
+
 ## [19.8] - 2026-03-05
 
 - Added a new `AssetListSkeleton` component to display loading skeletons for asset lists, replacing previous loading spinners in components like `MyReportsList` and `ReviewReportsList` for a more polished loading experience.

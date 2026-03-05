@@ -68,9 +68,9 @@ function ListViewModeSection({
         container: {
             backgroundColor: 'white',
             border: '1px solid #e2e8f0',
-            borderRadius: '12px 12px 0 0',
+            borderRadius: isMobile ? '8px 8px 0 0' : '12px 12px 0 0',
             boxSizing: 'border-box',
-            minWidth: isMobile ? '600px' : 'auto',
+            minWidth: isMobile ? '700px' : 'auto',
             overflow: 'hidden',
             width: '100%'
         },
@@ -187,9 +187,9 @@ function ListViewModeSection({
             WebkitOverflowScrolling: 'touch',
             boxSizing: 'border-box',
             marginBottom: '24px',
-            marginLeft: isMobile ? '8px' : '24px',
-            marginRight: isMobile ? '8px' : '24px',
-            marginTop: isMobile ? '16px' : '30px',
+            marginLeft: isMobile ? '4px' : '24px',
+            marginRight: isMobile ? '4px' : '24px',
+            marginTop: isMobile ? '12px' : '30px',
             overflowX: 'auto'
         }
     }

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
+import { useVersion } from '../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../app/utils/BrowserDetection'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
@@ -46,6 +47,7 @@ function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
     const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
     const { signOut: authSignOut, verifyPassword, updatePassword: authUpdatePassword } = useAuth()
+    const version = useVersion()
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -999,6 +1001,8 @@ function MyAccountView({ userId }) {
                     </div>
                 </div>
             </div>
+
+            {version && <div className="pb-8 pt-2 text-center text-xs text-slate-400">v{version} by TaylorURL.com</div>}
 
             {showPasswordModal && (
                 <div
