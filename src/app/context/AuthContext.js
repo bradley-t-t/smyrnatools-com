@@ -55,21 +55,19 @@ async function createDbSession(userId) {
     const now = new Date().toISOString()
 
     try {
-        const { error } = await supabase
-            .from('users_sessions')
-            .upsert(
-                {
-                    browser,
-                    created_at: now,
-                    device,
-                    id: sessionId,
-                    last_active: now,
-                    os,
-                    user_agent: userAgent,
-                    user_id: userId
-                },
-                { onConflict: 'id' }
-            )
+        const { error } = await supabase.from('users_sessions').upsert(
+            {
+                browser,
+                created_at: now,
+                device,
+                id: sessionId,
+                last_active: now,
+                os,
+                user_agent: userAgent,
+                user_id: userId
+            },
+            { onConflict: 'id' }
+        )
 
         if (!error) {
             localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)

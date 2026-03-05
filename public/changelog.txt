@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.7] - 2026-03-05
+
+- Simplified the session creation logic in AuthContext.js by reformatting the Supabase upsert operation for better readability and maintainability, while keeping the functionality unchanged.
+
 ## [19.6] - 2026-03-05
 
 - SmyrnaTools Release v19.6
