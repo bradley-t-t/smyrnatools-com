@@ -214,6 +214,39 @@ function ReportsView() {
         )
     }
 
+    const isCurrentTabLoading = tab === 'all' ? isMyReportsLoading : isReviewLoading
+
+    const statsContent = (() => {
+        if (isCurrentTabLoading) return null
+        if (tab === 'all') return <ReportsStatsCards items={allMyItems} tab={tab} />
+        return (
+            <ReportsStatsCards items={visibleReviewReports} tab={tab} reviewedByCurrentUser={reviewedByCurrentUser} />
+        )
+    })()
+
+    const statsSkeleton = (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-2">
+            <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-slate-100 rounded-xl px-4 sm:px-5 py-3 animate-pulse">
+                {[1, 2, 3].map((i) => (
+                    <React.Fragment key={i}>
+                        {i > 1 && <div className="w-px h-6 sm:h-8 bg-slate-200 hidden sm:block" />}
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-200" />
+                            <div>
+                                <div className="h-5 sm:h-6 w-6 rounded bg-slate-200 mb-1" />
+                                <div className="h-2.5 sm:h-3 w-14 rounded bg-slate-200" />
+                            </div>
+                        </div>
+                    </React.Fragment>
+                ))}
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3 bg-slate-100 rounded-xl px-3 sm:px-4 py-2 sm:py-3 animate-pulse">
+                <div className="w-16 sm:w-24 h-1.5 sm:h-2 rounded-full bg-slate-200" />
+                <div className="h-5 sm:h-6 w-10 rounded bg-slate-200" />
+            </div>
+        </div>
+    )
+
     return (
         <div className="bg-slate-50 min-h-screen w-full pb-16">
             {loadError && (
@@ -223,7 +256,7 @@ function ReportsView() {
                 </div>
             )}
             <ReportsToolbar
-                isLoading={tab === 'all' ? isMyReportsLoading : isReviewLoading}
+                isLoading={isCurrentTabLoading}
                 tab={tab}
                 onTabChange={setTab}
                 filterReportType={filterReportType}
@@ -236,17 +269,10 @@ function ReportsView() {
                 hasReviewPermission={hasReviewPermission}
                 hasAnyReviewPermission={hasAnyReviewPermission}
                 regionType={regionType}
+                statsContent={statsContent}
+                statsSkeleton={statsSkeleton}
             />
             <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
-                {tab === 'all' && !isMyReportsLoading && <ReportsStatsCards items={allMyItems} tab={tab} />}
-                {tab === 'review' && !isReviewLoading && (
-                    <ReportsStatsCards
-                        items={visibleReviewReports}
-                        tab={tab}
-                        reviewedByCurrentUser={reviewedByCurrentUser}
-                    />
-                )}
-
                 {tab === 'all' &&
                     (allMyItems.length === 0 && !isMyReportsLoading ? (
                         <ReportsEmptyState tab={tab} hasAssigned={hasAssigned} />

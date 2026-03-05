@@ -58,7 +58,9 @@ function ReportsToolbar({
     hasReviewPermission,
     hasAnyReviewPermission,
     regionType,
-    isLoading = false
+    isLoading = false,
+    statsContent = null,
+    statsSkeleton = null
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -111,6 +113,8 @@ function ReportsToolbar({
                     </div>
                 </div>
             }
+            customBottomContent={statsContent}
+            customBottomSkeleton={statsSkeleton}
         />
     )
 }

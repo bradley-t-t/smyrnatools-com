@@ -257,6 +257,7 @@ function TopSection({
     isOfficeRegion = false,
     customActions = null,
     customBottomContent = null,
+    customBottomSkeleton = null,
     isLoading = false
 }) {
     const { preferences } = usePreferences()
@@ -371,6 +372,7 @@ function TopSection({
                     ))}
                 </div>
             )}
+            {customBottomSkeleton}
         </div>
     )
 
@@ -571,7 +573,14 @@ function TopSection({
                             </div>
                         )}
 
-                        {customBottomContent}
+                        {customBottomContent && (
+                            <div
+                                className={revealControls ? 'top-reveal-left' : ''}
+                                style={revealControls ? { animationDelay: '200ms' } : undefined}
+                            >
+                                {customBottomContent}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -725,12 +734,19 @@ function TopSection({
                         </div>
                     </div>
 
-                    {customBottomContent}
+                    {customBottomContent && (
+                        <div
+                            className={revealControls ? 'top-reveal-left' : ''}
+                            style={revealControls ? { animationDelay: '200ms' } : undefined}
+                        >
+                            {customBottomContent}
+                        </div>
+                    )}
 
                     {viewMode === 'list' && safeListLabels.length > 0 && (
                         <div
                             className={revealControls ? 'top-reveal-left' : ''}
-                            style={revealControls ? { animationDelay: '200ms' } : undefined}
+                            style={revealControls ? { animationDelay: '260ms' } : undefined}
                         >
                             <ListHeader
                                 labels={safeListLabels}

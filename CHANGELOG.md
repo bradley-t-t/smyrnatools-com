@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.7] - 2026-03-05
+
+- Added new stats cards display to the Reports View, showing relevant statistics for both "All" and "Review" tabs with tailored content based on the selected tab.
+- Introduced a loading skeleton for the stats section in the Reports View to improve user experience during data loading.
+- Enhanced the ReportsToolbar component to support custom bottom content and skeleton UI elements for displaying stats.
+- Updated the TopSection component to better handle custom bottom content with conditional rendering and added animation effects for a smoother reveal.
+- Added support for a custom bottom skeleton in the TopSection component to display during loading states.
+
 ## [20.6] - 2026-03-05
 
 - No functional changes or updates to dependencies were made in this release as per the provided diff.
