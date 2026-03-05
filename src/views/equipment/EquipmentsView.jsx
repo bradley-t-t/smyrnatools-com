@@ -1050,6 +1050,7 @@ function EquipmentsView({
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading}
                             title={title}
                             addButtonLabel="Add Equipment"
                             onAddClick={() => setShowAddSheet(true)}

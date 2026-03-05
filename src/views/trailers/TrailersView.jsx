@@ -925,6 +925,7 @@ function TrailersView({
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading}
                             title={title}
                             addButtonLabel="Add Trailer"
                             onAddClick={() => setShowAddSheet(true)}

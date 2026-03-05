@@ -768,6 +768,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading}
                             title={title}
                             addButtonLabel="Add Pickup"
                             onAddClick={() => setShowAddSheet(true)}

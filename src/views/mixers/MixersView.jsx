@@ -1273,6 +1273,7 @@ function MixersView({
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading || isRegionLoading}
                             title={title}
                             badge={
                                 canShowUnassignedOverlay

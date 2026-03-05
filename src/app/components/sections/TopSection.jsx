@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
@@ -256,7 +256,8 @@ function TopSection({
     sortDirection,
     isOfficeRegion = false,
     customActions = null,
-    customBottomContent = null
+    customBottomContent = null,
+    isLoading = false
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -312,9 +313,82 @@ function TopSection({
         backgroundSize: '20px 20px, 20px 20px, 40px 40px'
     }
 
+    const wasLoadingRef = useRef(isLoading)
+    const [revealControls, setRevealControls] = useState(false)
+
+    useEffect(() => {
+        if (wasLoadingRef.current && !isLoading) {
+            setRevealControls(true)
+            const timer = setTimeout(() => setRevealControls(false), 1000)
+            return () => clearTimeout(timer)
+        }
+        wasLoadingRef.current = isLoading
+    }, [isLoading])
+
+    if (isLoading) {
+        return (
+            <div ref={forwardedRef} className={sectionClasses} style={sectionStyle} data-section="top">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <div
+                            className={`${isMobile ? 'h-6 w-36' : 'h-8 w-48'} rounded-lg bg-slate-200 animate-pulse`}
+                        />
+                        <div className="flex items-center gap-2.5">
+                            <div
+                                className={`${isMobile ? 'w-11 h-11' : 'w-[88px] h-[46px]'} rounded-xl bg-slate-200 animate-pulse`}
+                            />
+                        </div>
+                    </div>
+                    <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-3.5 justify-between'}`}>
+                        <div
+                            className={`${isMobile ? 'flex-1 h-[46px]' : 'h-[46px] min-w-[220px] max-w-[420px] flex-[0_1_auto]'} rounded-xl bg-slate-100 animate-pulse`}
+                        />
+                        {isMobile ? (
+                            <div className="w-[50px] h-[50px] rounded-xl bg-slate-100 animate-pulse" />
+                        ) : (
+                            <div className="flex items-center gap-3 ml-auto">
+                                <div className="w-[88px] h-[44px] rounded-lg bg-slate-100 animate-pulse" />
+                                <div className="w-[120px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
+                                <div className="w-[140px] h-[46px] rounded-xl bg-slate-100 animate-pulse" />
+                            </div>
+                        )}
+                    </div>
+                    {!isMobile && viewMode === 'list' && (
+                        <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7 py-3">
+                            {safeColWidths.map((w, i) => (
+                                <div key={i} className="px-2" style={{ flexShrink: 0, width: w }}>
+                                    <div
+                                        className="h-3 rounded bg-slate-200 animate-pulse"
+                                        style={{ width: `${50 + ((i * 13) % 40)}%` }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     if (isMobile) {
         return (
             <>
+                <style>{`
+                    @keyframes revealFromLeft {
+                        from { opacity: 0; transform: translateX(-18px); }
+                        to { opacity: 1; transform: translateX(0); }
+                    }
+                    @keyframes revealFromRight {
+                        from { opacity: 0; transform: translateX(18px); }
+                        to { opacity: 1; transform: translateX(0); }
+                    }
+                    .top-reveal-left {
+                        animation: revealFromLeft 0.5s ease-out both;
+                    }
+                    .top-reveal-right {
+                        animation: revealFromRight 0.5s ease-out both;
+                    }
+                `}</style>
                 <div
                     ref={forwardedRef}
                     className={sectionClasses}
@@ -324,7 +398,10 @@ function TopSection({
                 >
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
+                            <div
+                                className={`flex items-center gap-3${revealControls ? ' top-reveal-left' : ''}`}
+                                style={revealControls ? { animationDelay: '0ms' } : undefined}
+                            >
                                 <h1 className="text-[22px] font-bold text-slate-900 m-0">{title}</h1>
                                 {badge && (
                                     <Badge onClick={onBadgeClick} accentColor={accentColor}>
@@ -332,7 +409,10 @@ function TopSection({
                                     </Badge>
                                 )}
                             </div>
-                            <div className="flex items-center gap-2.5">
+                            <div
+                                className={`flex items-center gap-2.5${revealControls ? ' top-reveal-right' : ''}`}
+                                style={revealControls ? { animationDelay: '60ms' } : undefined}
+                            >
                                 {customActions}
                                 {onAddClick && (
                                     <button
@@ -359,26 +439,36 @@ function TopSection({
                         </div>
 
                         <div className="flex items-center gap-3 mt-0.5">
-                            <SearchInput
-                                value={searchInput}
-                                onChange={onSearchInputChange}
-                                onClear={onClearSearch}
-                                placeholder={searchPlaceholder}
-                                className="flex-1"
-                            />
-                            <button
-                                className="flex items-center justify-center w-[50px] h-[50px] rounded-xl text-lg border-2 cursor-pointer"
-                                style={{
-                                    backgroundColor: showMobileFilters ? `${accentColor}15` : '#f8fafc',
-                                    borderColor: showMobileFilters ? accentColor : '#e5e7eb',
-                                    color: showMobileFilters ? accentColor : '#64748b'
-                                }}
-                                onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                type="button"
-                                aria-label="Toggle filters"
+                            <div
+                                className={`flex-1${revealControls ? ' top-reveal-left' : ''}`}
+                                style={revealControls ? { animationDelay: '120ms' } : undefined}
                             >
-                                <i className="fas fa-filter" />
-                            </button>
+                                <SearchInput
+                                    value={searchInput}
+                                    onChange={onSearchInputChange}
+                                    onClear={onClearSearch}
+                                    placeholder={searchPlaceholder}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div
+                                className={revealControls ? 'top-reveal-right' : ''}
+                                style={revealControls ? { animationDelay: '140ms' } : undefined}
+                            >
+                                <button
+                                    className="flex items-center justify-center w-[50px] h-[50px] rounded-xl text-lg border-2 cursor-pointer"
+                                    style={{
+                                        backgroundColor: showMobileFilters ? `${accentColor}15` : '#f8fafc',
+                                        borderColor: showMobileFilters ? accentColor : '#e5e7eb',
+                                        color: showMobileFilters ? accentColor : '#64748b'
+                                    }}
+                                    onClick={() => setShowMobileFilters(!showMobileFilters)}
+                                    type="button"
+                                    aria-label="Toggle filters"
+                                >
+                                    <i className="fas fa-filter" />
+                                </button>
+                            </div>
                         </div>
 
                         {showMobileFilters && (
@@ -495,6 +585,22 @@ function TopSection({
 
     return (
         <>
+            <style>{`
+                @keyframes revealFromLeft {
+                    from { opacity: 0; transform: translateX(-18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes revealFromRight {
+                    from { opacity: 0; transform: translateX(18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .top-reveal-left {
+                    animation: revealFromLeft 0.5s ease-out both;
+                }
+                .top-reveal-right {
+                    animation: revealFromRight 0.5s ease-out both;
+                }
+            `}</style>
             <div
                 ref={forwardedRef}
                 className={sectionClasses}
@@ -504,15 +610,25 @@ function TopSection({
             >
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-4 justify-between">
-                        <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
-                        {badge && (
-                            <div className="ml-4">
-                                <Badge onClick={onBadgeClick} accentColor={accentColor}>
-                                    {badge}
-                                </Badge>
-                            </div>
-                        )}
-                        <div className="flex items-center gap-3 ml-auto" role="group" aria-label="Primary actions">
+                        <div
+                            className={`flex items-center gap-4${revealControls ? ' top-reveal-left' : ''}`}
+                            style={revealControls ? { animationDelay: '0ms' } : undefined}
+                        >
+                            <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
+                            {badge && (
+                                <div className="ml-4">
+                                    <Badge onClick={onBadgeClick} accentColor={accentColor}>
+                                        {badge}
+                                    </Badge>
+                                </div>
+                            )}
+                        </div>
+                        <div
+                            className={`flex items-center gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
+                            role="group"
+                            aria-label="Primary actions"
+                            style={revealControls ? { animationDelay: '60ms' } : undefined}
+                        >
                             {customActions}
                             {onToggleSidebar && (
                                 <ActionButton
@@ -540,18 +656,24 @@ function TopSection({
                         role="region"
                         aria-label="Search and filters"
                     >
-                        <SearchInput
-                            value={searchInput}
-                            onChange={onSearchInputChange}
-                            onClear={onClearSearch}
-                            placeholder={searchPlaceholder}
-                            className="flex-[0_1_auto] min-w-[220px] max-w-[420px]"
-                        />
+                        <div
+                            className={revealControls ? 'top-reveal-left' : ''}
+                            style={revealControls ? { animationDelay: '120ms' } : undefined}
+                        >
+                            <SearchInput
+                                value={searchInput}
+                                onChange={onSearchInputChange}
+                                onClear={onClearSearch}
+                                placeholder={searchPlaceholder}
+                                className="min-w-[220px] max-w-[420px]"
+                            />
+                        </div>
 
                         <div
-                            className="flex items-center flex-wrap gap-3 ml-auto"
+                            className={`flex items-center flex-wrap gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
                             role="group"
                             aria-label="Filters and view options"
+                            style={revealControls ? { animationDelay: '140ms' } : undefined}
                         >
                             {viewMode && !hideViewModeToggle && (
                                 <ViewToggle viewMode={viewMode} onChange={onViewModeChange} accentColor={accentColor} />
@@ -600,14 +722,19 @@ function TopSection({
                     {customBottomContent}
 
                     {viewMode === 'list' && safeListLabels.length > 0 && (
-                        <ListHeader
-                            labels={safeListLabels}
-                            colWidths={safeColWidths}
-                            sortKey={sortKey}
-                            sortDirection={sortDirection}
-                            onHeaderClick={onHeaderClick}
-                            accentColor={accentColor}
-                        />
+                        <div
+                            className={revealControls ? 'top-reveal-left' : ''}
+                            style={revealControls ? { animationDelay: '200ms' } : undefined}
+                        >
+                            <ListHeader
+                                labels={safeListLabels}
+                                colWidths={safeColWidths}
+                                sortKey={sortKey}
+                                sortDirection={sortDirection}
+                                onHeaderClick={onHeaderClick}
+                                accentColor={accentColor}
+                            />
+                        </div>
                     )}
                 </div>
             </div>

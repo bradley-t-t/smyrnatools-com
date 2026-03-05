@@ -590,6 +590,7 @@ function OperatorsView({
                 {!showDetailView && (
                     <>
                         <TopSection
+                            isLoading={isLoading}
                             title={title}
                             flushTop={true}
                             showCoverOverlay={true}

@@ -1168,6 +1168,7 @@ function TractorsView({
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading || isRegionLoading}
                             title={title}
                             badge={
                                 canShowUnassignedOverlay

@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.0] - 2026-03-05
+
+- Enhanced the list view animation in ListViewModeSection by replacing the fade-in effect with a slide-in effect, where rows now slide in from the left instead of fading in from below.
+- Introduced a dynamic animation delay for list rows using an exponential decay formula, making early rows animate more slowly and later rows appear almost simultaneously for a smoother cascading effect.
+- Added a loading state to the TopSection component, displaying animated placeholder elements (skeleton UI) while content is loading, improving the user experience during data fetching.
+- Implemented a subtle reveal animation for controls in TopSection after loading completes, with a brief delay before resetting.
+
 ## [19.9] - 2026-03-05
 
 - Improved responsiveness in GridViewModeSection by adjusting grid layout for mobile devices, including smaller gaps, reduced card sizes, and padding based on screen size.

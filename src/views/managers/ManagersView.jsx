@@ -261,6 +261,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                 ) : (
                     <>
                         <TopSection
+                            isLoading={isLoading}
                             title={title}
                             addButtonLabel={null}
                             onAddClick={null}

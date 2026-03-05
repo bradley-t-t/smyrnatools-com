@@ -2,6 +2,22 @@ import React from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
 
+const BASE_ROW_DELAY_MS = 160
+const MIN_ROW_DELAY_MS = 12
+const DECAY_FACTOR = 0.9
+
+/**
+ * Computes cumulative animation delay for a row index using exponential decay.
+ * Early rows cascade slowly; later rows arrive almost simultaneously.
+ */
+function getRowDelay(index) {
+    let total = 0
+    for (let i = 0; i < index; i++) {
+        total += Math.max(MIN_ROW_DELAY_MS, BASE_ROW_DELAY_MS * Math.pow(DECAY_FACTOR, i))
+    }
+    return Math.round(total)
+}
+
 /**
  * Table-based list view mode for assets.
  * Renders rows with action buttons for comments, issues, history, and verification.
@@ -211,12 +227,12 @@ function ListViewModeSection({
         return (
             <div style={styles.wrapper}>
                 <style>{`
-                    @keyframes fadeInRow {
-                        from { opacity: 0; transform: translateY(8px); }
-                        to { opacity: 1; transform: translateY(0); }
+                    @keyframes slideInRow {
+                        from { opacity: 0; transform: translateX(-20px); }
+                        to { opacity: 1; transform: translateX(0); }
                     }
                     .list-row-animated {
-                        animation: fadeInRow 0.35s ease-out both;
+                        animation: slideInRow 0.4s ease-out both;
                     }
                 `}</style>
                 <div style={styles.container}>
@@ -239,7 +255,7 @@ function ListViewModeSection({
                                     className: `list-row-animated ${row.props.className || ''}`.trim(),
                                     style: {
                                         ...styles.row,
-                                        animationDelay: `${index * 30}ms`,
+                                        animationDelay: `${getRowDelay(index)}ms`,
                                         backgroundColor: alternatingBg,
                                         ...row.props.style
                                     }
@@ -266,12 +282,12 @@ function ListViewModeSection({
     return (
         <div style={styles.wrapper}>
             <style>{`
-                @keyframes fadeInRow {
-                    from { opacity: 0; transform: translateY(8px); }
-                    to { opacity: 1; transform: translateY(0); }
+                @keyframes slideInRow {
+                    from { opacity: 0; transform: translateX(-20px); }
+                    to { opacity: 1; transform: translateX(0); }
                 }
                 .list-row-animated {
-                    animation: fadeInRow 0.35s ease-out both;
+                    animation: slideInRow 0.4s ease-out both;
                 }
             `}</style>
             <div style={styles.container}>
@@ -290,7 +306,7 @@ function ListViewModeSection({
                                     className="list-row-animated"
                                     style={{
                                         ...styles.row,
-                                        animationDelay: `${index * 30}ms`,
+                                        animationDelay: `${getRowDelay(index)}ms`,
                                         backgroundColor: alternatingBg
                                     }}
                                     onClick={() => handleSelectItem(item.id)}
