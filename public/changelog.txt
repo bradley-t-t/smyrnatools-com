@@ -4,6 +4,10 @@ All notable changes to SmyrnaTools will be documented in this file.
 
 ## [1.1] - 2026-03-05
 
+- Removed the turl.json configuration file from the public directory, which previously contained project metadata like version and branch information.
+
+## [1.1] - 2026-03-05
+
 - Replaced the `turl-release` tool with `nit` for handling releases, updating the release script in package.json to use `nit` instead.
 - Updated the dependency in package.json to include `nit` from GitHub and removed the `turl-release` dependency.
 
