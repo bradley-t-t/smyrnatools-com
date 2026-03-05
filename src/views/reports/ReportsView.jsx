@@ -67,8 +67,17 @@ function ReportsView() {
     const [filterPlant, setFilterPlant] = useState('')
     const [managerEditUser, setManagerEditUser] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
+    const [searchInput, setSearchInput] = useState('')
 
-    const allMyItems = useMemo(() => Object.values(myReportsByWeek).flat(), [myReportsByWeek])
+    const searchLower = searchInput.trim().toLowerCase()
+
+    const allMyItems = useMemo(() => {
+        const items = Object.values(myReportsByWeek).flat()
+        if (!searchLower) return items
+        return items.filter(
+            (item) => item.title?.toLowerCase().includes(searchLower) || item.name?.toLowerCase().includes(searchLower)
+        )
+    }, [myReportsByWeek, searchLower])
 
     const visibleReviewReports = useMemo(
         () =>
@@ -80,7 +89,14 @@ function ReportsView() {
                     !regionPlantCodes ||
                     regionPlantCodes.has(reporterPlant) ||
                     report.name === 'general_manager'
-                return (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion
+                const matchSearch =
+                    !searchLower ||
+                    report.title?.toLowerCase().includes(searchLower) ||
+                    report.name?.toLowerCase().includes(searchLower) ||
+                    getUserName(report.userId)?.toLowerCase().includes(searchLower)
+                return (
+                    (!filterReportType || report.name === filterReportType) && matchPlant && matchRegion && matchSearch
+                )
             }),
         [
             reviewableReports,
@@ -88,19 +104,21 @@ function ReportsView() {
             filterPlant,
             preferences.selectedRegion?.code,
             regionPlantCodes,
-            reporterPlantMap
+            reporterPlantMap,
+            searchLower,
+            getUserName
         ]
     )
 
     const myPagination = usePagination({
         initialPageSize: 25,
         items: allMyItems,
-        resetDependencies: [filterReportType, filterPlant]
+        resetDependencies: [filterReportType, filterPlant, searchInput]
     })
     const reviewPagination = usePagination({
         initialPageSize: 25,
         items: visibleReviewReports,
-        resetDependencies: [filterReportType, filterPlant]
+        resetDependencies: [filterReportType, filterPlant, searchInput]
     })
 
     const regionalPlants = useMemo(
@@ -271,6 +289,9 @@ function ReportsView() {
                 regionType={regionType}
                 statsContent={statsContent}
                 statsSkeleton={statsSkeleton}
+                searchInput={searchInput}
+                onSearchInputChange={setSearchInput}
+                onClearSearch={() => setSearchInput('')}
             />
             <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
                 {tab === 'all' &&

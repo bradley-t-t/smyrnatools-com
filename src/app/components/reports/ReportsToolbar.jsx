@@ -60,7 +60,10 @@ function ReportsToolbar({
     regionType,
     isLoading = false,
     statsContent = null,
-    statsSkeleton = null
+    statsSkeleton = null,
+    searchInput,
+    onSearchInputChange,
+    onClearSearch
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -80,6 +83,9 @@ function ReportsToolbar({
             sticky
             listLabels={[]}
             searchPlaceholder="Search by name or report type"
+            searchInput={searchInput}
+            onSearchInputChange={onSearchInputChange}
+            onClearSearch={onClearSearch}
             customFilters={
                 <div className="flex items-center flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
                     <RefreshButton accentColor={accentColor} isRefreshing={isRefreshing} onClick={onRefresh} />

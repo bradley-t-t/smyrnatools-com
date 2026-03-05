@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.8] - 2026-03-05
+
+- Added search functionality to the Reports view, allowing users to filter reports by name, title, or user name.
+- Updated the ReportsToolbar component to include search input, along with handlers for updating the search text and clearing the search.
+- Implemented filtering logic in ReportsView to filter both personal and reviewable reports based on the search input.
+- Adjusted pagination in ReportsView to reset when the search input changes, ensuring accurate results across pages.
+
 ## [20.7] - 2026-03-05
 
 - Added new stats cards display to the Reports View, showing relevant statistics for both "All" and "Review" tabs with tailored content based on the selected tab.
