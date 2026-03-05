@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import LoadingScreen from '../../app/components/common/LoadingScreen'
 import WeeklyPlanner from '../../app/components/list/WeeklyPlanner'
 import TopSection from '../../app/components/sections/TopSection'
+import { TaskListSkeleton } from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { ListService } from '../../services/ListService'
@@ -653,7 +653,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     style={{ padding: isMobile ? '1rem' : '1.5rem 2rem', paddingBottom: isMobile ? '2rem' : '2rem' }}
                 >
                     {isLoading ? (
-                        <LoadingScreen message="Loading list items..." inline={true} />
+                        <TaskListSkeleton />
                     ) : filteredItems.length === 0 ? (
                         <div
                             style={{

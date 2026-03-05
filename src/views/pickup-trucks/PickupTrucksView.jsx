@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
 import TopSection from '../../app/components/sections/TopSection'
+import AssetListSkeleton from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { PickupTruckService } from '../../services/PickupTruckService'
@@ -361,12 +361,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
     }, [pickups])
 
     const content = useMemo(() => {
-        if (isLoading)
-            return (
-                <div className="global-loading-container loading-container">
-                    <LoadingScreen message="Loading pickup trucks..." inline={true} />
-                </div>
-            )
+        if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
         if (filtered.length === 0)
             return (
                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">

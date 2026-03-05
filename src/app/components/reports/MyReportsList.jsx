@@ -1,9 +1,9 @@
 import React from 'react'
 
-import LoadingScreen from '../../../app/components/common/LoadingScreen'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
+import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
 
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
@@ -213,9 +213,7 @@ function MyReportsList({
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <LoadingScreen message="Loading your reports..." inline />
-                </div>
+                <ReportsListSkeleton columnCount={5} />
             ) : (
                 <>
                     <div className="hidden md:block">

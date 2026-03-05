@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import LoadingScreen from '../../app/components/common/LoadingScreen'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
 import TopSection from '../../app/components/sections/TopSection'
+import AssetListSkeleton from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
@@ -309,9 +309,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                         />
                         <div className="global-content-container content-container">
                             {isLoading ? (
-                                <div className="global-loading-container loading-container">
-                                    <LoadingScreen message="Loading managers..." inline={true} />
-                                </div>
+                                <AssetListSkeleton viewMode={viewMode} columnCount={5} />
                             ) : filteredManagers.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                                     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">

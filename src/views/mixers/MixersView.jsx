@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
@@ -9,6 +8,7 @@ import HistoryViewSection from '../../app/components/sections/HistoryViewSection
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
 import RecapModalSection from '../../app/components/sections/RecapModalSection'
 import TopSection from '../../app/components/sections/TopSection'
+import AssetListSkeleton from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { MixerService } from '../../services/MixerService'
@@ -739,11 +739,7 @@ function MixersView({
 
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
-            return (
-                <div className="global-loading-container loading-container">
-                    <LoadingScreen message="Loading mixers..." inline={true} />
-                </div>
-            )
+            return <AssetListSkeleton viewMode={viewMode} />
         }
         if (filteredMixers.length === 0) {
             return (

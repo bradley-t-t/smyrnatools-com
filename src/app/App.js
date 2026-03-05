@@ -3,7 +3,7 @@ import './index.css'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
-import React, { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
@@ -61,33 +61,6 @@ const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plant
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
 /** Views hidden by default (non-Office, non-Aggregate). */
 const DEFAULT_HIDDEN_VIEWS = new Set(['Plants', 'Regions'])
-
-/** Suspense fallback spinner shown while lazy-loaded views resolve. */
-const LoadingFallback = memo(function LoadingFallback() {
-    return (
-        <div
-            style={{
-                alignItems: 'center',
-                display: 'flex',
-                height: '100%',
-                justifyContent: 'center',
-                minHeight: '200px',
-                width: '100%'
-            }}
-        >
-            <div
-                style={{
-                    animation: 'spin 1s linear infinite',
-                    border: '3px solid #e5e7eb',
-                    borderRadius: '50%',
-                    borderTopColor: '#3b82f6',
-                    height: '40px',
-                    width: '40px'
-                }}
-            />
-        </div>
-    )
-})
 
 /**
  * Main application shell managing authentication state, view routing,
@@ -361,7 +334,7 @@ function AppContent() {
                 userDisplayName={userDisplayName}
                 userId={userId}
             >
-                <Suspense fallback={<LoadingFallback />}>
+                <Suspense fallback={null}>
                     <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
                 </Suspense>
             </Navigation>

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import LoadingScreen from '../../app/components/common/LoadingScreen'
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import { exportOperatorRatingsSheet } from '../../app/components/modules/export/operators/OperatorRatingsExport'
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
 import TopSection from '../../app/components/sections/TopSection'
+import AssetListSkeleton from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { MixerService } from '../../services/MixerService'
@@ -652,9 +652,7 @@ function OperatorsView({
                         />
                         <div className="global-content-container content-container">
                             {isLoading ? (
-                                <div className="global-loading-container loading-container">
-                                    <LoadingScreen message="Loading operators..." inline={true} />
-                                </div>
+                                <AssetListSkeleton viewMode={viewMode} />
                             ) : filteredOperators.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                                     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">

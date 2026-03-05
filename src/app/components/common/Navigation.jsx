@@ -5,6 +5,7 @@ import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
+import { useMagneticHover } from '../../hooks/useMagneticHover'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
@@ -107,6 +108,11 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
     const { count: notificationsCount } = useNotifications(userId, preferences?.selectedRegion)
+    const {
+        handleMouseLeave: magneticLeave,
+        handleMouseMove: magneticMove,
+        registerElement: registerMagnetic
+    } = useMagneticHover()
 
     useEffect(() => {
         const setupAndFetch = async () => {
@@ -278,6 +284,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         return (
             <div style={{ position: 'relative' }} ref={isOpen ? dropdownRef : null}>
                 <div
+                    ref={registerMagnetic}
                     style={{ ...navItemStyle(isActive), gap: isTablet ? '4px' : '6px' }}
                     onClick={() => setOpenDropdown(isOpen ? null : dropdownId)}
                 >
@@ -643,20 +650,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 gap: isTablet ? '2px' : '6px',
                                 minWidth: 0
                             }}
+                            onMouseMove={magneticMove}
+                            onMouseLeave={magneticLeave}
                         >
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div
+                                    ref={registerMagnetic}
                                     style={navItemStyle(selectedView === 'Dashboard')}
                                     onClick={() => handleMenuClick('Dashboard')}
                                     title="Dashboard"
-                                    onMouseEnter={(e) => {
-                                        if (selectedView !== 'Dashboard')
-                                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (selectedView !== 'Dashboard')
-                                            e.currentTarget.style.backgroundColor = 'transparent'
-                                    }}
                                 >
                                     <i
                                         className={`fas ${ICONS.Dashboard}`}
@@ -688,6 +690,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 .map((item) => (
                                     <div
                                         key={item.id}
+                                        ref={registerMagnetic}
                                         style={navItemStyle(selectedView === item.id)}
                                         onClick={() => handleMenuClick(item.id)}
                                         title={item.text}

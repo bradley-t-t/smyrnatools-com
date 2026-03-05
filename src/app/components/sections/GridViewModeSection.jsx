@@ -54,18 +54,18 @@ function GridViewModeSection({
     return (
         <div style={styles.container}>
             <style>{`
-                @keyframes slideInFromLeft {
+                @keyframes fadeInUp {
                     from {
                         opacity: 0;
-                        transform: translateX(-30px);
+                        transform: translateY(16px);
                     }
                     to {
                         opacity: 1;
-                        transform: translateX(0);
+                        transform: translateY(0);
                     }
                 }
                 .grid-card-animated {
-                    animation: slideInFromLeft 0.4s ease-out;
+                    animation: fadeInUp 0.45s ease-out;
                     animation-fill-mode: both;
                 }
             `}</style>

@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [19.8] - 2026-03-05
+
+- Added a new `AssetListSkeleton` component to display loading skeletons for asset lists, replacing previous loading spinners in components like `MyReportsList` and `ReviewReportsList` for a more polished loading experience.
+- Introduced a `useMagneticHover` custom hook to enhance navigation interactions with magnetic hover effects, applied to navigation items in the `Navigation` component for a more dynamic user interface.
+- Removed the inline `LoadingFallback` spinner component from `App.js` and set the Suspense fallback to `null`, streamlining the loading behavior for lazy-loaded views.
+- Updated various view components (`EquipmentsView`, `MixersView`, `PickupTrucksView`, `TractorsView`, `TrailersView`, etc.) to integrate with the new skeleton loading approach or minor UI adjustments as seen in the diff.
+
 ## [19.7] - 2026-03-05
 
 - Simplified the session creation logic in AuthContext.js by reformatting the Supabase upsert operation for better readability and maintainability, while keeping the functionality unchanged.

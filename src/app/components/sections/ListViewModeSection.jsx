@@ -210,6 +210,15 @@ function ListViewModeSection({
     if (renderRow) {
         return (
             <div style={styles.wrapper}>
+                <style>{`
+                    @keyframes fadeInRow {
+                        from { opacity: 0; transform: translateY(8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    .list-row-animated {
+                        animation: fadeInRow 0.35s ease-out both;
+                    }
+                `}</style>
                 <div style={styles.container}>
                     <table style={styles.table}>
                         <tbody>
@@ -227,8 +236,10 @@ function ListViewModeSection({
                                 )
                                 return React.cloneElement(row, {
                                     key: row.key || item.id,
+                                    className: `list-row-animated ${row.props.className || ''}`.trim(),
                                     style: {
                                         ...styles.row,
+                                        animationDelay: `${index * 30}ms`,
                                         backgroundColor: alternatingBg,
                                         ...row.props.style
                                     }
@@ -254,6 +265,15 @@ function ListViewModeSection({
 
     return (
         <div style={styles.wrapper}>
+            <style>{`
+                @keyframes fadeInRow {
+                    from { opacity: 0; transform: translateY(8px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .list-row-animated {
+                    animation: fadeInRow 0.35s ease-out both;
+                }
+            `}</style>
             <div style={styles.container}>
                 <table style={styles.table}>
                     <tbody>
@@ -267,7 +287,12 @@ function ListViewModeSection({
                             return (
                                 <tr
                                     key={item.id}
-                                    style={{ ...styles.row, backgroundColor: alternatingBg }}
+                                    className="list-row-animated"
+                                    style={{
+                                        ...styles.row,
+                                        animationDelay: `${index * 30}ms`,
+                                        backgroundColor: alternatingBg
+                                    }}
                                     onClick={() => handleSelectItem(item.id)}
                                     onMouseEnter={(e) => {
                                         const cells = e.currentTarget.querySelectorAll('td')
