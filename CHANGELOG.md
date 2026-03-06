@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.2] - 2026-03-06
+
+- Added session-level caching to the OnlineUsersModal component for faster re-opening of the modal. Now, data like role color mappings, online users, region names, and the current user ID are stored in a session cache to make subsequent opens instant.
+- Optimized data fetching in OnlineUsersModal to avoid redundant calls. For instance, role color mappings are only fetched if not already cached, and region name resolution now updates the cache when new data is retrieved.
+- Improved state management in OnlineUsersModal by ensuring the cached current user ID is used consistently when updating the list of online users, preventing potential mismatches.
+
 ## [22.1] - 2026-03-06
 
 - Revamped the role badge coloring system in the Online Users Modal to dynamically assign unique colors based on role weights. Now, colors are generated using HSL color space, with higher-weight roles starting at red (hue 0) and lower-weight roles transitioning to green (hue 120).

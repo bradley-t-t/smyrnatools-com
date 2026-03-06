@@ -100,6 +100,14 @@ function buildRoleColorMap(roles) {
     )
 }
 
+/** Session-level cache so re-opens are instant. */
+const _sessionCache = {
+    roleColorMap: null,
+    onlineUsers: null,
+    regionNames: {},
+    currentUserId: null
+}
+
 /**
  * Anchored dropdown panel (portal) displaying currently online users.
  * Shows each user's name, primary role badge, region, and last activity timestamp.
@@ -110,46 +118,55 @@ function buildRoleColorMap(roles) {
  * @param {DOMRect} [props.anchorRect] - Bounding rect of the trigger element for positioning.
  */
 function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
-    const [onlineUsers, setOnlineUsers] = useState([])
-    const [isLoading, setIsLoading] = useState(true)
-    const [regionNames, setRegionNames] = useState({})
-    const [currentUserId, setCurrentUserId] = useState(null)
-    const [roleColorMap, setRoleColorMap] = useState({})
+    const [onlineUsers, setOnlineUsers] = useState(_sessionCache.onlineUsers ?? [])
+    const [isLoading, setIsLoading] = useState(_sessionCache.onlineUsers === null)
+    const [regionNames, setRegionNames] = useState(_sessionCache.regionNames)
+    const [currentUserId, setCurrentUserId] = useState(_sessionCache.currentUserId)
+    const [roleColorMap, setRoleColorMap] = useState(_sessionCache.roleColorMap ?? {})
 
-    const resolveRegionNames = useCallback(
-        async (users) => {
-            const codes = [...new Set(users.map((u) => u.regionCode).filter(Boolean))]
-            const names = { ...regionNames }
-            let changed = false
-            for (const code of codes) {
-                if (names[code]) continue
-                try {
-                    const region = await RegionService.fetchRegionByCode(code)
-                    names[code] = region?.regionName || region?.region_name || code
-                } catch {
-                    names[code] = code
-                }
-                changed = true
+    const resolveRegionNames = useCallback(async (users, existingNames) => {
+        const codes = [...new Set(users.map((u) => u.regionCode).filter(Boolean))]
+        const names = { ...existingNames }
+        let changed = false
+        for (const code of codes) {
+            if (names[code]) continue
+            try {
+                const region = await RegionService.fetchRegionByCode(code)
+                names[code] = region?.regionName || region?.region_name || code
+            } catch {
+                names[code] = code
             }
-            if (changed) setRegionNames(names)
-        },
-        [regionNames]
-    )
+            changed = true
+        }
+        if (changed) {
+            _sessionCache.regionNames = names
+            setRegionNames(names)
+        }
+    }, [])
 
     useEffect(() => {
         if (!isOpen) return
 
-        const fetchUsers = async () => {
-            setIsLoading(true)
+        const refresh = async (isInitial) => {
+            if (isInitial && _sessionCache.onlineUsers === null) setIsLoading(true)
             try {
                 const [currentUser, allRoles, presenceUsers] = await Promise.all([
                     UserService.getCurrentUser(),
-                    UserService.getAllRoles().catch(() => []),
+                    _sessionCache.roleColorMap ? Promise.resolve(null) : UserService.getAllRoles().catch(() => []),
                     UserPresenceService.getOnlineUsers()
                 ])
+
                 const currentId = currentUser?.id || null
-                setCurrentUserId(currentId)
-                setRoleColorMap(buildRoleColorMap(allRoles))
+                if (currentId !== _sessionCache.currentUserId) {
+                    _sessionCache.currentUserId = currentId
+                    setCurrentUserId(currentId)
+                }
+
+                if (allRoles !== null) {
+                    const colorMap = buildRoleColorMap(allRoles)
+                    _sessionCache.roleColorMap = colorMap
+                    setRoleColorMap(colorMap)
+                }
 
                 let users = presenceUsers || []
                 users = ensureCurrentUser(users, currentId)
@@ -160,34 +177,38 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                 }
 
                 users = sortByRoleWeight(users)
+                _sessionCache.onlineUsers = users
                 setOnlineUsers(users)
-                await resolveRegionNames(users)
+                await resolveRegionNames(users, _sessionCache.regionNames)
             } catch {
-                setOnlineUsers([])
+                if (_sessionCache.onlineUsers === null) setOnlineUsers([])
             } finally {
                 setIsLoading(false)
             }
         }
 
-        fetchUsers()
+        refresh(true)
 
         const handleUpdate = async (incoming) => {
             let users = [...(incoming || [])]
-            users = ensureCurrentUser(users, currentUserId)
+            const cachedId = _sessionCache.currentUserId
+            users = ensureCurrentUser(users, cachedId)
 
-            if (currentUserId && !users.some((u) => u.id === currentUserId)) {
+            if (cachedId && !users.some((u) => u.id === cachedId)) {
                 try {
-                    const entry = await buildCurrentUserEntry(currentUserId)
+                    const entry = await buildCurrentUserEntry(cachedId)
                     users = [...users, entry]
                 } catch {}
             }
 
-            setOnlineUsers(sortByRoleWeight(users))
+            users = sortByRoleWeight(users)
+            _sessionCache.onlineUsers = users
+            setOnlineUsers(users)
         }
 
         UserPresenceService.addListener(handleUpdate)
         return () => UserPresenceService.removeListener(handleUpdate)
-    }, [isOpen, currentUserId])
+    }, [isOpen, resolveRegionNames])
 
     if (!isOpen) return null
 
