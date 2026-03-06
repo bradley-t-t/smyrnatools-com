@@ -152,6 +152,9 @@ Deno.serve(async (req) => {
             case "update-profile": {
                 const {userId, firstName, lastName, plantCode} = await req.json();
                 if (!userId || !firstName || !lastName) return errorResponse("User ID, first name, and last name required", headers, 400);
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
                 const normFirst = normalizeName(firstName);
                 const normLast = normalizeName(lastName);
                 if (!normFirst || !normLast) return errorResponse("Invalid name format", headers, 400);
@@ -167,6 +170,9 @@ Deno.serve(async (req) => {
             case "update-email": {
                 const {email, userId} = await req.json();
                 if (!userId) return errorResponse("No authenticated user", headers, 401);
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
                 if (!isValidEmail(email)) return errorResponse("Invalid email", headers, 400);
                 const trimmedEmail = sanitizeEmail(email);
                 const {data: existingUser} = await supabase.from(USERS_TABLE).select("id").eq("email", trimmedEmail).neq("id", userId).single();
@@ -179,6 +185,9 @@ Deno.serve(async (req) => {
             case "update-password": {
                 const {password, userId} = await req.json();
                 if (!userId) return errorResponse("No authenticated user", headers, 401);
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
                 if (validatePasswordStrength(password).value === "weak") return errorResponse("Weak password", headers, 400);
                 const salt = generateSalt();
                 const passwordHash = await hashPassword(password, salt);
@@ -190,6 +199,9 @@ Deno.serve(async (req) => {
             case "verify-password": {
                 const {userId, currentPassword} = await req.json();
                 if (!userId || !currentPassword) return errorResponse("User ID and current password are required", headers, 400);
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
                 const {data, error} = await supabase.from(USERS_TABLE).select("id, password_hash, salt").eq("id", userId).single();
                 if (error || !data) return errorResponse("User not found", headers, 404);
                 const {valid} = await verifyPassword(currentPassword, data.salt, data.password_hash);

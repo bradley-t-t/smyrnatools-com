@@ -173,10 +173,10 @@ Deno.serve(async (req) => {
             case "restore-session": {
                 const {userId} = await req.json();
                 if (!userId) return errorResponse("User ID required", headers, 400);
-                const {data: user, error} = await supabase.from(USERS_TABLE).select("*").eq("id", userId).single();
+                const {data: user, error} = await supabase.from(USERS_TABLE).select("id, email").eq("id", userId).single();
                 if (error || !user) return errorResponse("User not found", headers, 404);
                 const {data: profile} = await supabase.from(PROFILES_TABLE).select(PROFILE_SELECT).eq("id", userId).single();
-                return jsonResponse({success: true, user: {...user, profile: profile ?? {}}}, headers);
+                return jsonResponse({success: true, user: {id: user.id, email: user.email, profile: profile ?? {}}}, headers);
             }
             case "load-profile": {
                 const {userId} = await req.json();
@@ -188,6 +188,9 @@ Deno.serve(async (req) => {
             case "update-profile": {
                 const {userId, firstName, lastName, plantCode} = await req.json();
                 if (!userId || !firstName || !lastName) return errorResponse("User ID, first name, and last name required", headers, 400);
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
                 const normFirst = normalizeName(firstName);
                 const normLast = normalizeName(lastName);
                 if (!normFirst || !normLast) return errorResponse("Invalid name format", headers, 400);

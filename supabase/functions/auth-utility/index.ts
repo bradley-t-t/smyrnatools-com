@@ -78,6 +78,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({salt: bytesToHex(randomBytes)}, headers);
             }
             case "hash-password": {
+                const {data: authData, error: authError} = await supabase.auth.getUser();
+                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
                 let body;
                 try {
                     body = await req.json();

@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.9] - 2026-03-06
+
+- Enhanced security in auth-context by limiting the data returned during session restoration to only include user ID and email, instead of all user data.
+- Added authentication checks across multiple auth functions including update-profile, update-email, update-password, and verify-password in auth-service, ensuring that only the authenticated user can perform actions on their own account with proper authorization and forbidden responses for unauthorized access.
+- Implemented similar authentication checks in auth-context for the update-profile action to prevent unauthorized updates.
+- Added an authentication check in auth-utility for the hash-password action to ensure only authorized users can perform this operation.
+
 ## [22.8] - 2026-03-06
 
 - Added table name sanitization in the database-service to prevent unauthorized access to tables. Only a predefined set of tables is now allowed for operations like fetching, inserting, updating, and deleting records.
