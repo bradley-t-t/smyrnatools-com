@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.7] - 2026-03-06
+
+- Removed the reference to the "TURL Release Management System" from the ChangelogView component for a cleaner display.
+
 ## [21.6] - 2026-03-06
 
 - Updated the position of the VersionPopup component to display on the right side of the screen instead of the left.

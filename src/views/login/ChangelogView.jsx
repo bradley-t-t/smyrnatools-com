@@ -150,8 +150,6 @@ function ChangelogView({ onBack }) {
                             >
                                 TaylorURL.com
                             </a>
-                            {' using the '}
-                            <span className="text-[#1e3a5f] font-semibold">TURL Release Management System</span>
                         </p>
                     </div>
                     <a
