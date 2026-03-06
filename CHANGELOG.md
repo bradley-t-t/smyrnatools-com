@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.5] - 2023-05-01
+
+- Updated the changelog view header and various UI elements to use the `accent` color instead of hardcoded color values for better theme consistency.
+- Improved the date display logic in the changelog view to conditionally show both relative and formatted dates only when they differ, enhancing readability.
+- Changed the styling of the latest changelog entry to use `accent` color for the ring and background of the version icon, making it visually distinct.
+
 ## [23.4] - 2023-03-06
 
 - Redesigned the ChangelogView header with a new dark theme background and updated styling for better visual appeal.

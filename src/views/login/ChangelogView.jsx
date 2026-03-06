@@ -152,7 +152,7 @@ function ChangelogView({ onBack }) {
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
             {/* Header */}
-            <div className="shrink-0 bg-[#0f2340] px-5 pt-4 pb-5">
+            <div className="shrink-0 bg-accent px-5 pt-4 pb-5">
                 <div className="flex items-center justify-between mb-5">
                     <button
                         onClick={onBack}
@@ -200,7 +200,7 @@ function ChangelogView({ onBack }) {
             <div className="flex-1 overflow-y-auto px-4 py-4">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-20">
-                        <i className="fas fa-circle-notch fa-spin text-[#1e3a5f] text-2xl" />
+                        <i className="fas fa-circle-notch fa-spin text-accent text-2xl" />
                         <span className="text-slate-400 text-[13px]">Loading releases...</span>
                     </div>
                 ) : (
@@ -213,13 +213,24 @@ function ChangelogView({ onBack }) {
                                 <div key={group.date}>
                                     {/* Sticky date header */}
                                     <div className="sticky top-0 z-10 flex items-center gap-2.5 py-2 bg-slate-50">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
-                                            {getRelativeTime(group.date)}
-                                        </span>
-                                        <div className="flex-1 h-px bg-slate-200" />
-                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                                            {formatDate(group.date)}
-                                        </span>
+                                        {(() => {
+                                            const relative = getRelativeTime(group.date)
+                                            const formatted = formatDate(group.date)
+                                            const showBoth = relative !== formatted
+                                            return (
+                                                <>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                                        {relative}
+                                                    </span>
+                                                    <div className="flex-1 h-px bg-slate-200" />
+                                                    {showBoth && (
+                                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                                            {formatted}
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )
+                                        })()}
                                     </div>
 
                                     <div className="flex flex-col gap-2 mt-1">
@@ -235,7 +246,7 @@ function ChangelogView({ onBack }) {
                                                     key={entry.version}
                                                     className={`bg-white rounded-2xl overflow-hidden ${
                                                         isLatest
-                                                            ? 'ring-2 ring-[#1e3a5f] shadow-sm'
+                                                            ? 'ring-2 ring-accent shadow-sm'
                                                             : 'border border-slate-200'
                                                     }`}
                                                 >
@@ -248,7 +259,7 @@ function ChangelogView({ onBack }) {
                                                         {/* Version icon */}
                                                         <div
                                                             className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
-                                                                isLatest ? 'bg-[#1e3a5f]' : 'bg-slate-100'
+                                                                isLatest ? 'bg-accent' : 'bg-slate-100'
                                                             }`}
                                                         >
                                                             <span
