@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import APIUtility from '../../utils/APIUtility'
@@ -130,6 +130,7 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const profileTimerRef = useRef(null)
 
     const restoreSession = useCallback(async () => {
         setLoading(true)
@@ -206,7 +207,7 @@ export function AuthProvider({ children }) {
                 setLoading(false)
 
                 window.dispatchEvent(new CustomEvent('authSuccess', { detail: { userId: json.id } }))
-                setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
+                profileTimerRef.current = setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
                 return json
             } catch (e) {
                 const errorMsg = e.message || 'An unknown error occurred during sign in'
@@ -247,6 +248,7 @@ export function AuthProvider({ children }) {
     }, [])
 
     const signOut = useCallback(async () => {
+        clearTimeout(profileTimerRef.current)
         const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
         if (sessionId) {
             try {

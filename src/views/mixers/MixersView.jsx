@@ -117,7 +117,7 @@ function MixersView({
         Operator: 'assignedOperator',
         Plant: 'assignedPlant',
         Status: 'status',
-        'Truck #': 'status',
+        'Truck #': 'truckNumber',
         VIN: 'vinNumber',
         Verified: null
     }

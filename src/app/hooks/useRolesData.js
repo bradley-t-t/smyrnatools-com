@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
@@ -30,9 +30,11 @@ export function useRolesData() {
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
 
+    const messageTimerRef = useRef(null)
     const showMessage = useCallback((text, duration = SUCCESS_MESSAGE_DURATION_MS) => {
         setMessage(text)
-        setTimeout(() => setMessage(''), duration)
+        if (messageTimerRef.current) clearTimeout(messageTimerRef.current)
+        messageTimerRef.current = setTimeout(() => setMessage(''), duration)
     }, [])
 
     const loadData = useCallback(async () => {

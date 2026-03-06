@@ -407,6 +407,7 @@ export function useAISummary({
         }
 
         let cancelled = false
+        let failResetTimerId
 
         async function generateAISummary() {
             setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false, aiSummaryLoading: true }))
@@ -466,14 +467,14 @@ export function useAISummary({
                     updateAISummaryState(setPlantNotifications, summary, false)
                 } else {
                     updateAISummaryState(setPlantNotifications, null, true)
-                    setTimeout(() => {
+                    failResetTimerId = setTimeout(() => {
                         if (!cancelled) setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false }))
                     }, 3000)
                 }
             } catch {
                 if (!cancelled) {
                     updateAISummaryState(setPlantNotifications, null, true)
-                    setTimeout(() => {
+                    failResetTimerId = setTimeout(() => {
                         if (!cancelled) setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false }))
                     }, 3000)
                 }
@@ -483,6 +484,7 @@ export function useAISummary({
         generateAISummary()
         return () => {
             cancelled = true
+            clearTimeout(failResetTimerId)
         }
     }, [
         dashboardPlant,

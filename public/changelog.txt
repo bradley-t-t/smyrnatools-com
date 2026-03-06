@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.3] - 2024-03-06
+
+- Improved session management in AuthContext by adding a reference to track and clear the profile loading timeout during sign-out.
+- Enhanced data loading in useHistoryData hook to prevent state updates after component unmount by using a cancellation flag.
+- Refined AI summary handling in usePlantNotifications hook by properly managing timeout cleanup for failure state resets.
+- Added timeout management in useRolesData hook to ensure old message dismissal timers are cleared before starting new ones.
+- Fixed column mapping in MixersView to correctly associate 'Truck #' with 'truckNumber' instead of 'status'.
+
 ## [24.2] - 2026-03-06
 
 - Improved timer management in AppInstallPromptModal by adding a cleanup function to clear the timeout when the component unmounts, preventing potential memory leaks.

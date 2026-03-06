@@ -129,13 +129,17 @@ export default function useHistoryData(item, type) {
     }, [type, assetId])
 
     useEffect(() => {
+        let cancelled = false
         const loadData = async () => {
             setIsLoading(true)
             await Promise.all([fetchHistory(), fetchOperators(), fetchUsers(), fetchIssues()])
-            setIsLoading(false)
+            if (!cancelled) setIsLoading(false)
         }
         loadData()
-    }, [item.id])
+        return () => {
+            cancelled = true
+        }
+    }, [item.id, fetchHistory, fetchOperators, fetchUsers, fetchIssues])
 
     const getOperatorName = useCallback(
         (operatorId) => {
