@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.7] - 2026-03-06
+
+- Corrected the release date for version 23.4 in the changelog from 2023-03-06 to 2026-03-06 for accuracy.
+
 ## [23.6] - 2026-03-06
 
 - Redesigned the ChangelogView layout to group entries by date into collapsible cards, showing version ranges for each group instead of individual version expansions, improving navigation and readability.
@@ -16,7 +20,7 @@ All notable changes to SmyrnaTools will be documented in this file.
 - Improved the date display logic in the changelog view to conditionally show both relative and formatted dates only when they differ, enhancing readability.
 - Changed the styling of the latest changelog entry to use `accent` color for the ring and background of the version icon, making it visually distinct.
 
-## [23.4] - 2023-03-06
+## [23.4] - 2026-03-06
 
 - Redesigned the ChangelogView header with a new dark theme background and updated styling for better visual appeal.
 - Moved the version number to the right side of the header with a prominent display and added a "Latest" indicator dot.
