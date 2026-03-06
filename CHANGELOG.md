@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.2] - 2026-03-06
+
+- Updated the efficiency score calculation explanation in AIInsightsServiceClass to include detailed breakdowns: adjusted YPH now clearly targets 3.0 for 100% (90% of score), added loads per operator per day targeting 3.0 (10% of score), and introduced report compliance penalties for missing or incomplete reports (10 points deduction each).
+- Removed the impact of fleet cleanliness and safety incidents on efficiency scores in AIInsightsServiceClass; both are now tracked for informational purposes only, with explicit notes stating they do not affect the efficiency score.
+- Simplified the fleet cleanliness analysis by removing ranking impact tiers and associated point adjustments, focusing solely on operational awareness.
+- Removed Supabase authentication check and client initialization from the ai-service function, streamlining the server-side logic to focus on the Grok API interaction.
+
 ## [23.1] - 2026-03-06
 
 - Updated the AIInsightsServiceClass in AIService.js to route API calls through an edge function (/ai-service/generate) to avoid CORS restrictions, replacing the direct call to the Grok API.

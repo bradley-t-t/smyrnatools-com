@@ -1,6 +1,4 @@
 // @ts-ignore
-import {createClient} from "npm:@supabase/supabase-js@2.55.0";
-// @ts-ignore
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 
 const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
@@ -13,15 +11,6 @@ Deno.serve(async (req) => {
     const headers = getCorsHeaders(origin);
 
     try {
-        const supabase = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-            {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}}
-        );
-
-        const {data: authData, error: authError} = await supabase.auth.getUser();
-        if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-
         const grokApiKey = Deno.env.get("GROK_API_KEY");
         if (!grokApiKey) return errorResponse("AI service not configured", headers, 503);
 

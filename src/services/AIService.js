@@ -7,19 +7,6 @@ const MAX_SUGGESTIONS = 5
 const MAX_RECENT_CHANGES = 10
 const EXCLUDED_AGGREGATE_KEYS = ['report_date', 'notes']
 
-const CLEANLINESS_THRESHOLDS = [
-    { min: 4.5, points: '+10', label: 'Excellent - top tier', impact: 'boosting' },
-    { min: 4, points: '+5', label: 'Good - above average', impact: 'boosting' },
-    { min: 3, points: '-5', label: 'Average - hurting rankings', impact: 'hurting' },
-    { min: 0, points: '-10', label: 'Poor - significantly hurting rankings', impact: 'significantly hurting' }
-]
-
-/** Maps a cleanliness score to its threshold tier for ranking impact assessment. */
-const getCleanlinessImpact = (score) => {
-    if (score <= 0) return null
-    return CLEANLINESS_THRESHOLDS.find((t) => score >= t.min) ?? null
-}
-
 /** Formats fleet statistics (active/spare/in-shop counts) into readable summary lines. */
 const formatFleetStatLine = (label, stats) => {
     if (!stats) return []
@@ -485,27 +472,42 @@ class AIInsightsServiceClass {
         parts.push(
             `Efficiency Rank: #${m.rank} of ${m.totalPlants} in region`,
             `Efficiency Score: ${m.efficiency?.toFixed(1)}%`,
-            `ADJUSTED YPH: ${m.adjustedYPH?.toFixed(2)} (THIS IS THE KEY METRIC - accounts for help given/received)`,
-            `Raw YPH: ${m.rawYPH?.toFixed(2)} (for context only - does not reflect true performance)`,
+            `ADJUSTED YPH: ${m.adjustedYPH?.toFixed(2)} (target: 3.0 YPH = 100% — accounts for help given/received — 90% of efficiency score)`,
+            `Raw YPH: ${m.rawYPH?.toFixed(2)} (unadjusted, for context only)`,
             `Help Given: ${Math.round(m.helpGiven || 0)} hours`,
             `Help Received: ${Math.round(m.helpReceived || 0)} hours`,
             `Net Help: ${Math.round(m.netHelp || 0)} hours (positive = gave more, negative = received more)`
         )
 
+        if (m.loadsPerOperatorPerDay !== undefined)
+            parts.push(
+                `Loads Per Operator Per Day: ${m.loadsPerOperatorPerDay?.toFixed(2)} (target: 3.0, 10% of efficiency score)`
+            )
+
+        const missingReports = m.missingReports ?? 0
+        const incompleteReports = m.incompleteReports ?? 0
+        if (missingReports > 0 || incompleteReports > 0) {
+            const deduction = (missingReports + incompleteReports) * 10
+            parts.push(
+                `Report Compliance: ${missingReports} missing + ${incompleteReports} incomplete = -${deduction} points deducted from efficiency`
+            )
+        }
+
+        parts.push(
+            'Efficiency Formula: (adjustedYPH/3.0 × 90%) + (loadsPerOperatorPerDay/3 × 10%) − (missing+incomplete reports × 10 pts each), capped 0–100'
+        )
+
         if (m.avgCleanliness !== undefined) {
             const cs = m.avgCleanliness || 0
-            parts.push(`Fleet Avg Cleanliness: ${cs > 0 ? cs.toFixed(1) : 'N/A'}/5`)
-            const impact = getCleanlinessImpact(cs)
-            if (impact) parts.push(`Cleanliness Ranking Impact: ${impact.points} points (${impact.label})`)
+            parts.push(
+                `Fleet Avg Cleanliness: ${cs > 0 ? cs.toFixed(1) : 'N/A'}/5 (informational only — does NOT affect efficiency score)`
+            )
         }
 
         if (m.safetyIncidents !== undefined) {
             const sc = m.safetyIncidents || 0
-            parts.push(`Safety Incidents: ${sc} reported this period`)
             parts.push(
-                sc > 0
-                    ? `Safety Ranking Impact: -${sc} point${sc > 1 ? 's' : ''} (incidents hurt efficiency score)`
-                    : 'Safety Status: Clean record - no incidents'
+                `Safety Incidents: ${sc} reported this period (tracked for awareness — does NOT affect efficiency score)`
             )
         }
     }
@@ -580,11 +582,9 @@ class AIInsightsServiceClass {
             )
         }
 
-        const impact = getCleanlinessImpact(fc.average)
-        if (impact)
-            parts.push(
-                `Cleanliness Impact: ${impact.label.split(' - ')[0]} fleet cleanliness is ${impact.impact} efficiency score (${impact.points} points)`
-            )
+        parts.push(
+            'Note: Fleet cleanliness does not affect the efficiency score — it is tracked for operational awareness only.'
+        )
     }
 
     /** Formats asset history data (status changes, cleanliness trends, service records) for AI analysis. */
