@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.1] - 2026-03-06
+
+- Revamped the role badge coloring system in the Online Users Modal to dynamically assign unique colors based on role weights. Now, colors are generated using HSL color space, with higher-weight roles starting at red (hue 0) and lower-weight roles transitioning to green (hue 120).
+- Improved data fetching in the Online Users Modal by loading current user data, all available roles, and online users concurrently using Promise.all for better performance.
+- Updated the role color assignment to use the primary role of a user from a dynamically built color map instead of static weight thresholds.
+
 ## [22.0] - 2026-03-06
 
 - Adjusted the role weight thresholds in the OnlineUsersModal component to display badge colors at lower values. The new thresholds are set at 15, 10, 6, and 3 for the respective colors, making the color progression more sensitive to smaller weight differences.

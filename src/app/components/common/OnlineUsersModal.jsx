@@ -82,23 +82,22 @@ function formatLastActivity(lastActivity) {
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
 
-/** Maps role weight thresholds to badge colors — higher weight = redder, lower weight = greener. */
-const ROLE_WEIGHT_COLORS = [
-    { min: 15, color: '#dc2626' },
-    { min: 10, color: '#ea580c' },
-    { min: 6, color: '#d97706' },
-    { min: 3, color: '#65a30d' },
-    { min: 1, color: '#16a34a' }
-]
-
 /**
- * Resolves a badge color based on the user's role weight.
- * Higher weight → red end of spectrum; lower weight → green end.
- * @param {number} roleWeight
- * @returns {string} Hex color string.
+ * Builds a map of role name (lowercase) → unique HSL color.
+ * Roles are sorted descending by weight; highest weight gets hue 0 (red),
+ * lowest gets hue 120 (green). Every role receives a distinct color.
+ * @param {Array<{name: string, weight: number}>} roles
+ * @returns {Object} e.g. { "admin": "hsl(0, 72%, 42%)", "operator": "hsl(120, 72%, 38%)" }
  */
-function getRoleColor(roleWeight) {
-    return ROLE_WEIGHT_COLORS.find(({ min }) => roleWeight >= min)?.color ?? '#64748b'
+function buildRoleColorMap(roles) {
+    if (!roles?.length) return {}
+    const sorted = [...roles].sort((a, b) => (b.weight || 0) - (a.weight || 0))
+    return Object.fromEntries(
+        sorted.map((role, index) => {
+            const hue = sorted.length === 1 ? 0 : Math.round((index / (sorted.length - 1)) * 120)
+            return [role.name.toLowerCase(), `hsl(${hue}, 72%, 42%)`]
+        })
+    )
 }
 
 /**
@@ -115,6 +114,7 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
     const [isLoading, setIsLoading] = useState(true)
     const [regionNames, setRegionNames] = useState({})
     const [currentUserId, setCurrentUserId] = useState(null)
+    const [roleColorMap, setRoleColorMap] = useState({})
 
     const resolveRegionNames = useCallback(
         async (users) => {
@@ -142,11 +142,16 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
         const fetchUsers = async () => {
             setIsLoading(true)
             try {
-                const currentUser = await UserService.getCurrentUser()
+                const [currentUser, allRoles, presenceUsers] = await Promise.all([
+                    UserService.getCurrentUser(),
+                    UserService.getAllRoles().catch(() => []),
+                    UserPresenceService.getOnlineUsers()
+                ])
                 const currentId = currentUser?.id || null
                 setCurrentUserId(currentId)
+                setRoleColorMap(buildRoleColorMap(allRoles))
 
-                let users = (await UserPresenceService.getOnlineUsers()) || []
+                let users = presenceUsers || []
                 users = ensureCurrentUser(users, currentId)
 
                 if (currentId && !users.some((u) => u.id === currentId)) {
@@ -230,7 +235,8 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                     ) : (
                         <div className="divide-y divide-slate-100">
                             {onlineUsers.map((user) => {
-                                const roleColor = getRoleColor(user.roleWeight || 0)
+                                const roleColor =
+                                    (user.roles?.[0] && roleColorMap[user.roles[0].toLowerCase()]) ?? '#64748b'
                                 return (
                                     <div key={user.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                                         <div className="flex items-start gap-3">
@@ -252,7 +258,11 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                                                         <span
                                                             className="text-xs font-medium px-1.5 py-0.5 rounded"
                                                             style={{
-                                                                backgroundColor: `${roleColor}15`,
+                                                                backgroundColor: roleColor.startsWith('hsl')
+                                                                    ? roleColor
+                                                                          .replace('hsl(', 'hsla(')
+                                                                          .replace(')', ', 0.12)')
+                                                                    : `${roleColor}1f`,
                                                                 color: roleColor
                                                             }}
                                                         >
