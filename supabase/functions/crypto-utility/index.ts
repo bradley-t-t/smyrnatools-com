@@ -41,6 +41,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

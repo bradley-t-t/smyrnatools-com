@@ -8,7 +8,8 @@
       "Bash(npx supabase secrets list)",
       "Bash(node scripts/supabase.js secrets list)",
       "Bash(echo \"run: npm run supabase:secrets:set GROK_API_KEY=<value>\")",
-      "Bash(npx supabase functions deploy ai-service)"
+      "Bash(npx supabase functions deploy ai-service)",
+      "Bash(git status -u)"
     ]
   }
 }

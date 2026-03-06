@@ -113,7 +113,7 @@ export async function handleFetchComments(supabase: any, body: any, tables: Asse
     if (!entityId) return errorResponse(`${tables.idKey} is required`, headers, 400);
     const fkCol = tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
     const {data, error} = await supabase.from(tables.comments!).select("*").eq(fkCol, entityId).order("created_at", {ascending: false});
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
@@ -126,7 +126,7 @@ export async function handleAddComment(supabase: any, body: any, tables: AssetTa
     if (!author) return errorResponse("Author is required", headers, 400);
     const fkCol = tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
     const {data, error} = await supabase.from(tables.comments!).insert([{[fkCol]: entityId, text, author, created_at: nowIso()}]).select().maybeSingle();
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data}, headers);
 }
 
@@ -134,7 +134,7 @@ export async function handleDeleteComment(supabase: any, body: any, table: strin
     const commentId = typeof body?.commentId === "string" ? body.commentId : null;
     if (!commentId) return errorResponse("Comment ID is required", headers, 400);
     const {error} = await supabase.from(table).delete().eq("id", commentId);
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({success: true}, headers);
 }
 
@@ -145,7 +145,7 @@ export async function handleFetchHistory(supabase: any, body: any, table: string
     let query = supabase.from(table).select("*").eq(idKey, entityId).order("changed_at", {ascending: false});
     if (limit && limit > 0) query = query.limit(limit);
     const {data, error} = await query;
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
@@ -165,7 +165,7 @@ export async function handleAddHistory(supabase: any, body: any, req: Request, t
         old_value: b != null ? String(b) : null, new_value: a != null ? String(a) : null,
         changed_at: nowIso(), changed_by: userId
     }).select().maybeSingle();
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data}, headers);
 }
 
@@ -173,7 +173,7 @@ export async function handleFetchIssues(supabase: any, body: any, table: string,
     const entityId = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     if (!entityId) return errorResponse(`${bodyKey} is required`, headers, 400);
     const {data, error} = await supabase.from(table).select("*").eq(idKey, entityId).order("time_created", {ascending: false});
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
@@ -189,7 +189,7 @@ export async function handleAddIssue(supabase: any, body: any, table: string, id
     const {data, error} = await supabase.from(table).insert({
         id: crypto.randomUUID(), [idKey]: entityId, issue, severity, time_created: nowIso(), created_by: userId
     }).select().maybeSingle();
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data}, headers);
 }
 
@@ -197,7 +197,7 @@ export async function handleCompleteIssue(supabase: any, body: any, table: strin
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {error} = await supabase.from(table).update({time_completed: nowIso()}).eq("id", issueId);
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({success: true}, headers);
 }
 
@@ -205,7 +205,7 @@ export async function handleDeleteIssue(supabase: any, body: any, table: string,
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {error, count} = await supabase.from(table).delete({count: "exact"}).eq("id", issueId);
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     if (!count) return errorResponse("Issue not found or already deleted", headers, 404);
     return jsonResponse({success: true}, headers);
 }
@@ -214,9 +214,9 @@ export async function handleDelete(supabase: any, body: any, mainTable: string, 
     const id = typeof body?.id === "string" ? body.id : null;
     if (!id) return errorResponse(`${entityLabel} ID is required`, headers, 400);
     const {error: hErr} = await supabase.from(historyTable).delete().eq(historyIdKey, id);
-    if (hErr) return errorResponse(hErr.message, headers, 400);
+    if (hErr) return errorResponse("Operation failed", headers, 400);
     const {error} = await supabase.from(mainTable).delete().eq("id", id);
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({success: true}, headers);
 }
 
@@ -224,7 +224,7 @@ export async function handleFetchByField(supabase: any, body: any, table: string
     const value = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     if (!value) return errorResponse(`${bodyKey} is required`, headers, 400);
     const {data, error} = await supabase.from(table).select("*").eq(field, value).order(orderBy, {ascending: true});
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
@@ -232,14 +232,14 @@ export async function handleSearchByField(supabase: any, body: any, table: strin
     const query = typeof body?.query === "string" ? body.query.trim() : "";
     if (!query) return errorResponse("Search query is required", headers, 400);
     const {data, error} = await supabase.from(table).select("*").ilike(field, `%${query}%`).order(orderBy, {ascending: true});
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
 export async function handleFetchNeedingService(supabase: any, body: any, table: string, orderBy: string, headers: Record<string, string>): Promise<Response> {
     const dayThreshold = Number.isInteger(body?.dayThreshold) ? body.dayThreshold : DEFAULT_SERVICE_THRESHOLD_DAYS;
     const {data, error} = await supabase.from(table).select("*").order(orderBy, {ascending: true});
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     const thresholdDate = new Date();
     thresholdDate.setDate(thresholdDate.getDate() - dayThreshold);
     return jsonResponse({data: (data || []).filter((m: any) => !m.last_service_date || new Date(m.last_service_date) < thresholdDate)}, headers);
@@ -253,7 +253,7 @@ export async function handleFetchCleanlinessHistory(supabase: any, body: any, ta
     let query = supabase.from(table).select("*").eq("field_name", "cleanliness_rating").gte("changed_at", threshold.toISOString()).order("changed_at", {ascending: true}).limit(DEFAULT_HISTORY_LIMIT);
     if (entityId) query = query.eq(idKey, entityId);
     const {data, error} = await query;
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
 }
 
@@ -266,7 +266,7 @@ export async function handleVerify(supabase: any, body: any, req: Request, table
     const y = normalizeYear(body?.year ?? body?.data?.year);
     if (y != null) patch.year = y;
     const {data, error} = await supabase.from(table).update(patch).eq("id", id).select().maybeSingle();
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data}, headers);
 }
 

@@ -9,10 +9,10 @@ const USERS_PERMISSIONS_TABLE = "users_permissions";
 const GUEST_ROLE_NAME = "Guest";
 const GUEST_ROLE_WEIGHT = 10;
 const GUEST_ROLE_PERMISSIONS = ["my_account.view"];
-const MIN_PASSWORD_LENGTH = 8;
-const WEAK_THRESHOLD = 3;
+const MIN_PASSWORD_LENGTH = 10;
+const WEAK_THRESHOLD = 4;
 const MEDIUM_THRESHOLD = 5;
-const RANDOM_PASSWORD_LENGTH = 12;
+const RANDOM_PASSWORD_LENGTH = 16;
 const RANDOM_PASSWORD_CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
@@ -43,12 +43,13 @@ export function envOrDefault(key: string, fallback: string): string {
     return Deno.env.get(key) || fallback;
 }
 
-/** Scores password complexity on a 0–6 scale. */
+/** Scores password complexity on a 0–7 scale. */
 export function scorePassword(password: string): number {
     if (!password || password.length < MIN_PASSWORD_LENGTH) return 0;
     let score = 0;
-    if (password.length >= 8) score++;
+    if (password.length >= 10) score++;
     if (password.length >= 12) score++;
+    if (password.length >= 16) score++;
     if (/[A-Z]/.test(password)) score++;
     if (/[a-z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
@@ -66,9 +67,19 @@ export function validatePasswordStrength(password: string): { value: string; sco
 }
 
 export function generateRandomPassword(): string {
-    const randomBytes = new Uint8Array(RANDOM_PASSWORD_LENGTH);
-    crypto.getRandomValues(randomBytes);
-    return Array.from(randomBytes, (byte) => RANDOM_PASSWORD_CHARSET[byte % RANDOM_PASSWORD_CHARSET.length]).join("");
+    const charsetLen = RANDOM_PASSWORD_CHARSET.length;
+    const limit = 256 - (256 % charsetLen);
+    const result: string[] = [];
+    while (result.length < RANDOM_PASSWORD_LENGTH) {
+        const randomBytes = new Uint8Array(RANDOM_PASSWORD_LENGTH * 2);
+        crypto.getRandomValues(randomBytes);
+        for (const byte of randomBytes) {
+            if (byte < limit && result.length < RANDOM_PASSWORD_LENGTH) {
+                result.push(RANDOM_PASSWORD_CHARSET[byte % charsetLen]);
+            }
+        }
+    }
+    return result.join("");
 }
 
 async function createGuestRole(supabase: any, now: string): Promise<string | null> {

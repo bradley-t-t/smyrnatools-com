@@ -238,8 +238,7 @@ function LoginView() {
                     const normLast = await AuthUtility.normalizeName(lastName)
                     await signUp(email, password, normFirst, normLast)
                     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                    setSuccessMessage('Account created successfully. Redirecting...')
-                    setTimeout(() => (window.location.href = '/'), 1000)
+                    setSuccessMessage('Account created successfully.')
                 } else {
                     if (!email || !password) {
                         setErrorMessage('Please enter your email and password.')
@@ -250,8 +249,7 @@ function LoginView() {
                     const result = await signIn(email, password)
                     if (!result?.id) throw new Error('Sign in failed - no user data returned')
                     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-                    setSuccessMessage('Signed in successfully. Redirecting...')
-                    setTimeout(() => (window.location.href = '/'), 1000)
+                    setSuccessMessage('Signed in successfully.')
                 }
             } catch (err) {
                 if (timeoutRef.current) clearTimeout(timeoutRef.current)

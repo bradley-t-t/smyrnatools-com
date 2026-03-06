@@ -26,7 +26,7 @@ function getUserFriendlyError(error: string): string {
         return `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
     }
     if (lower.includes("permission denied") || lower.includes("insufficient privilege")) return "You don't have permission to perform this action";
-    return error;
+    return "An unknown error occurred";
 }
 
 async function enrichEquipment(supabase: any, data: any, id: string): Promise<Record<string, any>> {
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const {data: hist} = await supabase.from(HISTORY_TABLE).select("equipment_id, changed_at").order("changed_at", {ascending: false});
                 const {data: openIssues} = await supabase.from(MAINTENANCE_TABLE).select("equipment_id, time_completed").is("time_completed", null);
                 const {data: comments} = await supabase.from(COMMENTS_TABLE).select("equipment_id");
@@ -62,15 +62,15 @@ Deno.serve(async (req) => {
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Equipment ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data) return jsonResponse({data: null}, headers);
                 const {data: hist, error: histErr} = await supabase.from(HISTORY_TABLE).select("changed_at").eq(ID_KEY, id).order("changed_at", {ascending: false}).limit(1).maybeSingle();
-                if (histErr) return errorResponse(histErr.message, headers, 400);
+                if (histErr) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-history":
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Equipment ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (currentErr) return errorResponse(currentErr.message, headers, 400);
+                if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Equipment not found", headers, 404);
                 const apiData: Record<string, any> = {
                     identifying_number: "identifyingNumber" in equipment ? equipment.identifyingNumber : current.identifying_number,
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse(getUserFriendlyError(error.message), headers, 400);
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from(HISTORY_TABLE).insert(diffs);
-                    if (histErr) return errorResponse(histErr.message, headers, 400);
+                    if (histErr) return errorResponse("Operation failed", headers, 400);
                 }
                 return jsonResponse({data: await enrichEquipment(supabase, data, id)}, headers);
             }
@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
                 let query = supabase.from(HISTORY_TABLE).select("*").eq("field_name", "condition_rating").gte("changed_at", threshold.toISOString()).order("changed_at", {ascending: true}).limit(200);
                 if (equipmentId) query = query.eq(ID_KEY, equipmentId);
                 const {data, error} = await query;
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-history":
@@ -184,13 +184,13 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Equipment ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).update({updated_last: nowIso(), updated_by: userId}).eq("id", id).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: await enrichEquipment(supabase, data, id)}, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

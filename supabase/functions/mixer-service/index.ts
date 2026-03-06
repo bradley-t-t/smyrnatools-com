@@ -37,9 +37,9 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const {data: hist, error: histErr} = await supabase.from(HISTORY_TABLE).select("mixer_id, changed_at").order("changed_at", {ascending: false});
-                if (histErr) return errorResponse(histErr.message, headers, 400);
+                if (histErr) return errorResponse("Operation failed", headers, 400);
                 const latestMap = buildLatestMap(hist, ID_KEY);
                 return jsonResponse({data: (data || []).map((m: any) => ({...m, latestHistoryDate: latestMap[m.id] ?? null}))}, headers);
             }
@@ -48,15 +48,15 @@ Deno.serve(async (req) => {
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Mixer ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data) return jsonResponse({data: null}, headers);
                 const {data: hist, error: histErr} = await supabase.from(HISTORY_TABLE).select("changed_at").eq(ID_KEY, id).order("changed_at", {ascending: false}).limit(1).maybeSingle();
-                if (histErr) return errorResponse(histErr.message, headers, 400);
+                if (histErr) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-history":
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
                     created_at: now, updated_at: now, updated_by: userId
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).insert([apiData]).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (data?.id) await supabase.from(HISTORY_TABLE).insert({[ID_KEY]: data.id, field_name: "created", old_value: null, new_value: "Mixer created", changed_at: now, changed_by: userId});
                 return jsonResponse({data}, headers);
             }
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Mixer ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (currentErr) return errorResponse(currentErr.message, headers, 400);
+                if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Mixer not found", headers, 404);
                 const rawOp = "assignedOperator" in mixer ? mixer.assignedOperator : current.assigned_operator;
                 const rawStatus = "status" in mixer ? mixer.status : current.status;
@@ -116,10 +116,10 @@ Deno.serve(async (req) => {
                 const diffs = computeDiffs(current, apiData, DIFF_FIELDS, ID_KEY, id, userId);
                 if (diffs.length) { apiData.updated_at = nowIso(); apiData.updated_by = userId; } else { apiData.updated_at = current.updated_at; apiData.updated_by = current.updated_by; }
                 const {data, error} = await supabase.from(MAIN_TABLE).update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from(HISTORY_TABLE).insert(diffs);
-                    if (histErr) return errorResponse(histErr.message, headers, 400);
+                    if (histErr) return errorResponse("Operation failed", headers, 400);
                 }
                 return jsonResponse({data}, headers);
             }
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
                 const mixerId = typeof body?.mixerId === "string" ? body.mixerId : null;
                 if (!mixerId) return errorResponse("Mixer ID is required", headers, 400);
                 const {data, error} = await supabase.from(IMAGES_TABLE).select("*").eq(ID_KEY, mixerId);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "upload-image": {
@@ -149,9 +149,9 @@ Deno.serve(async (req) => {
                 if (!fileName || !fileBase64) return errorResponse("File name and base64 content are required", headers, 400);
                 const pathInBucket = `mixer_images/${fileName}`;
                 const {error: uploadError} = await supabase.storage.from("smyrna").upload(pathInBucket, decodeBase64ToUint8Array(fileBase64), {contentType});
-                if (uploadError) return errorResponse(uploadError.message, headers, 400);
+                if (uploadError) return errorResponse("Operation failed", headers, 400);
                 const {data, error} = await supabase.from(IMAGES_TABLE).insert({mixer_id: mixerId, image_url: `smyrna/${pathInBucket}`, created_at: nowIso()}).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data}, headers);
             }
             case "delete-image": {
@@ -159,14 +159,14 @@ Deno.serve(async (req) => {
                 const imageId = typeof body?.imageId === "string" ? body.imageId : null;
                 if (!imageId) return errorResponse("Image ID is required", headers, 400);
                 const {data: imageData, error: fetchError} = await supabase.from(IMAGES_TABLE).select("image_url").eq("id", imageId).maybeSingle();
-                if (fetchError) return errorResponse(fetchError.message, headers, 400);
+                if (fetchError) return errorResponse("Operation failed", headers, 400);
                 if (imageData?.image_url) {
                     const relPath = imageData.image_url.startsWith("smyrna/") ? imageData.image_url.substring("smyrna/".length) : imageData.image_url;
                     const {error: deleteFileError} = await supabase.storage.from("smyrna").remove([relPath]);
-                    if (deleteFileError) return errorResponse(deleteFileError.message, headers, 400);
+                    if (deleteFileError) return errorResponse("Operation failed", headers, 400);
                 }
                 const {error} = await supabase.from(IMAGES_TABLE).delete().eq("id", imageId);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-issues":
@@ -197,6 +197,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

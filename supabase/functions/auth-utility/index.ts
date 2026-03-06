@@ -102,13 +102,13 @@ Deno.serve(async (req) => {
                     const {data} = await supabase.auth.getSession();
                     return jsonResponse({userId: data?.session?.user?.id ?? null}, headers);
                 } catch (error) {
-                    return jsonResponse({userId: null, error: (error as Error).message}, headers);
+                    return jsonResponse({userId: null, error: "Failed to get user ID"}, headers);
                 }
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

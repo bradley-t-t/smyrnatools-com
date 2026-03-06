@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(PLANTS_TABLE).select("*").order("plant_code");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-by-code": {
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
                 const {data, error} = await supabase.from(PLANTS_TABLE).select("*").eq("plant_code", plantCode).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
                 if (!plantCode || !plantName) return errorResponse("Plant code and name are required", headers, 400);
                 const now = nowISO();
                 const {error} = await supabase.from(PLANTS_TABLE).insert({plant_code: plantCode, plant_name: plantName, created_at: now, updated_at: now});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "update": {
@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
                 const plantName = trimString(body?.plantName);
                 if (!plantCode || !plantName) return errorResponse("Plant code and name are required", headers, 400);
                 const {error} = await supabase.from(PLANTS_TABLE).update({plant_name: plantName, updated_at: nowISO()}).eq("plant_code", plantCode);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
                     supabase.from(PROFILES_TABLE).update({plant_code: "", updated_at: nowISO()}).eq("plant_code", plantCode),
                     supabase.from(PLANTS_TABLE).delete().eq("plant_code", plantCode)
                 ]);
-                if (profilesError || error) return errorResponse((profilesError || error)?.message ?? "Unknown error", headers, 400);
+                if (profilesError || error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "get-with-regions": {
@@ -89,18 +89,18 @@ Deno.serve(async (req) => {
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
                 const {data: plant, error: plantError} = await supabase.from(PLANTS_TABLE).select("*").eq("plant_code", plantCode).maybeSingle();
-                if (plantError) return errorResponse(plantError.message, headers, 400);
+                if (plantError) return errorResponse("Operation failed", headers, 400);
                 if (!plant) return jsonResponse({plant: null, regions: []}, headers);
                 const regionIds = await fetchRegionIds(supabase, plantCode);
                 if (!regionIds.length) return jsonResponse({plant, regions: []}, headers);
                 const {data: regions, error: regionsError} = await supabase.from("regions").select("*").in("id", regionIds);
-                if (regionsError) return errorResponse(regionsError.message, headers, 400);
+                if (regionsError) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({plant, regions: regions ?? []}, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

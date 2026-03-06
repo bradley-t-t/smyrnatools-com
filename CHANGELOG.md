@@ -2,6 +2,18 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.8] - 2023-08-01
+
+- Reduced session expiry duration from 7 days to 2 days for improved security.
+- Updated the VerificationCardSection component to render notice text directly as plain text instead of using dangerouslySetInnerHTML for better security.
+- Enhanced session restoration and profile loading in AuthContext by including sessionId from local storage in API requests.
+- Added a custom event 'authSuccess' dispatch after successful sign-in or sign-up to notify other parts of the application.
+- Removed automatic redirection after successful sign-in or sign-up in LoginView, now only displaying success messages.
+- Implemented a new API-based password update mechanism in ManagerDetailView using a dedicated endpoint instead of direct database updates.
+- Improved authentication and session handling in backend functions with updated logic in auth-helpers.ts and auth-service/index.ts for better security and session management.
+- Optimized database interactions across multiple service functions (e.g., database-service, equipment-service, user-service) with refined query structures and error handling.
+- Updated asset-helpers.ts to improve comment fetching and other asset-related operations for consistency across different entity types.
+
 ## [23.7] - 2026-03-06
 
 - Corrected the release date for version 23.4 in the changelog from 2023-03-06 to 2026-03-06 for accuracy.

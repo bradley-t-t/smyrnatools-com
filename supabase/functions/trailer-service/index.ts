@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const {data: hist} = await supabase.from(HISTORY_TABLE).select("trailer_id, changed_at").order("changed_at", {ascending: false});
                 const {data: openIssues} = await supabase.from(MAINTENANCE_TABLE).select("trailer_id, time_completed").is("time_completed", null);
                 const {data: comments} = await supabase.from(COMMENTS_TABLE).select("trailer_id");
@@ -50,14 +50,14 @@ Deno.serve(async (req) => {
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Trailer ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data) return jsonResponse({data: null}, headers);
                 const {data: hist} = await supabase.from(HISTORY_TABLE).select("changed_at").eq(ID_KEY, id).order("changed_at", {ascending: false}).limit(1).maybeSingle();
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-history":
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
                     created_at: now, updated_at: now, updated_last: trailer?.updatedLast ?? null, updated_by: userId
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).insert([apiData]).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (data?.id) await supabase.from(HISTORY_TABLE).insert({[ID_KEY]: data.id, field_name: "created", old_value: null, new_value: "Trailer created", changed_at: now, changed_by: userId});
                 return jsonResponse({data}, headers);
             }
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Trailer ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (currentErr) return errorResponse(currentErr.message, headers, 400);
+                if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Trailer not found", headers, 404);
                 const apiData: Record<string, any> = {
                     trailer_number: trailer?.trailerNumber ?? current.trailer_number,
@@ -103,14 +103,14 @@ Deno.serve(async (req) => {
                     updated_last: typeof trailer?.updatedLast === "string" ? trailer.updatedLast : current.updated_last
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const diffs: Array<Record<string, any>> = [];
                 for (const field of DIFF_FIELDS) {
                     if (trailerChanged(current[field], apiData[field], field)) diffs.push({[ID_KEY]: id, field_name: field, old_value: current[field]?.toString?.() ?? null, new_value: apiData[field]?.toString?.() ?? null, changed_at: nowIso(), changed_by: userId});
                 }
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from(HISTORY_TABLE).insert(diffs);
-                    if (histErr) return errorResponse(histErr.message, headers, 400);
+                    if (histErr) return errorResponse("Operation failed", headers, 400);
                 }
                 return jsonResponse({data}, headers);
             }
@@ -142,6 +142,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

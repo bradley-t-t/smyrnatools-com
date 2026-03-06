@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order("assigned_plant", {ascending: true}).order("assigned", {ascending: true}).order("make", {ascending: true}).order("model", {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-by-id": {
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Pickup Truck ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
                     created_at: now, updated_at: now, updated_by: userId, updated_last: null
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).insert([apiData]).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (data?.id) await supabase.from(HISTORY_TABLE).insert({pickup_truck_id: data.id, field_name: "created", old_value: null, new_value: "Pickup Truck created", changed_at: now, changed_by: userId});
                 return jsonResponse({data}, headers);
             }
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Pickup Truck ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: curErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (curErr) return errorResponse(curErr.message, headers, 400);
+                if (curErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Pickup Truck not found", headers, 404);
                 const has = (key: string) => Object.prototype.hasOwnProperty.call(pickup, key);
                 const normalizedAssigned = has('assigned') ? (pickup.assigned == null || (typeof pickup.assigned === 'string' && pickup.assigned.trim() === '') ? null : String(pickup.assigned)) : current.assigned;
@@ -97,11 +97,11 @@ Deno.serve(async (req) => {
                     updated_at: nowIso(), updated_by: userId, updated_last: current.updated_last
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const diffs = computeDiffs(current, apiData, DIFF_FIELDS, HISTORY_ID_KEY, id, userId);
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from(HISTORY_TABLE).insert(diffs);
-                    if (histErr) return errorResponse(histErr.message, headers, 400);
+                    if (histErr) return errorResponse("Operation failed", headers, 400);
                 }
                 return jsonResponse({data}, headers);
             }
@@ -131,6 +131,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

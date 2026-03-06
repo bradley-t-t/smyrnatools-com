@@ -24,7 +24,7 @@ async function upsertPreference(supabase: any, userId: string, field: string, va
         {user_id: userId, [field]: value, updated_at: now, created_at: now},
         {onConflict: "user_id"}
     );
-    if (error) return errorResponse(error.message, headers, 400);
+    if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({success: true}, headers);
 }
 
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data, error} = await supabase.from(PREFERENCES_TABLE).select("*").eq("user_id", userId).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "save-mixer-filters": {
@@ -68,6 +68,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

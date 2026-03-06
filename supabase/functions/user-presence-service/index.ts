@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
                 const {error} = isUpsert
                     ? await supabase.from(PRESENCE_TABLE).upsert({user_id: userId, ...updateMap[endpoint]}, {onConflict: "user_id"})
                     : await supabase.from(PRESENCE_TABLE).update(updateMap[endpoint]).eq("user_id", userId);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "cleanup": {
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
                     .update({is_online: false, updated_at: nowISO()})
                     .eq("is_online", true)
                     .lt("last_seen", staleTime);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-online-users": {
@@ -76,13 +76,13 @@ Deno.serve(async (req) => {
                     .select("user_id, last_seen, last_activity")
                     .eq("is_online", true)
                     .order("last_activity", {ascending: false});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

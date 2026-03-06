@@ -41,12 +41,12 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "list": {
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").order("name");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-active": {
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("status", "Active").order("name");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-by-plant": {
@@ -54,17 +54,17 @@ Deno.serve(async (req) => {
                 const plantCode = typeof body?.plantCode === "string" ? body.plantCode : null;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("plant_code", plantCode).eq("position", "Mixer Operator").order("name");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-tractor": {
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("position", "Tractor Operator").order("name");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-trainers": {
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("is_trainer", true).order("name");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-operators": {
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
                     supabase.from(OPERATORS_TABLE).select("*").eq("status", "Active").order("name"),
                     supabase.from(OPERATORS_TABLE).select("*").not("status", "eq", "Active").order("name")
                 ]);
-                if (activeError || otherError) return errorResponse((activeError ?? otherError)?.message ?? "Failed to fetch operators", headers, 400);
+                if (activeError || otherError) return errorResponse("Failed to fetch operators", headers, 400);
                 return jsonResponse({data: [...(activeData ?? []), ...(otherData ?? [])]}, headers);
             }
             case "get-by-employee-id": {
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
                     phone: input?.phone ?? null
                 };
                 const {data, error} = await supabase.from(OPERATORS_TABLE).insert(row).select("*").single();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (data?.employee_id) {
                     await supabase.from(HISTORY_TABLE).insert({
                         operator_id: data.employee_id, field_name: "created", old_value: null, new_value: "Operator created", changed_at: now, changed_by: SYSTEM_USER_ID
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
                 };
                 Object.keys(updateObj).forEach((k) => updateObj[k] === undefined && delete updateObj[k]);
                 const {data, error} = await supabase.from(OPERATORS_TABLE).update(updateObj).eq("employee_id", employeeId).select("*").maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data) return errorResponse("Operator not found", headers, 404);
                 return jsonResponse({data}, headers);
             }
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
                 const employeeId = typeof body?.employeeId === "string" ? body.employeeId : null;
                 if (!employeeId) return errorResponse("Invalid Employee ID", headers, 400);
                 const {data, error} = await supabase.from(OPERATORS_TABLE).delete().eq("employee_id", employeeId).select("*");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data?.length) return errorResponse("Operator was not deleted", headers, 404);
                 return jsonResponse({success: true}, headers);
             }
@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
                 let query = supabase.from(HISTORY_TABLE).select("*").eq("operator_id", operatorId).order("changed_at", {ascending: false});
                 if (limit && limit > 0) query = query.limit(limit);
                 const {data, error} = await query;
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-history": {
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
                 const {data, error} = await supabase.from(HISTORY_TABLE).insert({
                     operator_id: operatorId, field_name: fieldName, old_value: oldValue, new_value: newValue, changed_at: new Date().toISOString(), changed_by: userId
                 }).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data}, headers);
             }
             case "fetch-comments": {
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
                 const operatorId = requireOperatorId(body);
                 if (!operatorId) return errorResponse("Operator ID is required", headers, 400);
                 const {data, error} = await supabase.from(COMMENTS_TABLE).select("*").eq("operator_id", operatorId).order("created_at", {ascending: false});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-comment": {
@@ -195,7 +195,7 @@ Deno.serve(async (req) => {
                 const {data, error} = await supabase.from(COMMENTS_TABLE).insert({
                     id: crypto.randomUUID(), operator_id: operatorId, text, author: userId, created_at: new Date().toISOString()
                 }).select().single();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data}, headers);
             }
             case "delete-comment": {
@@ -203,7 +203,7 @@ Deno.serve(async (req) => {
                 const commentId = typeof body?.commentId === "string" && body.commentId !== "undefined" ? body.commentId : null;
                 if (!commentId) return errorResponse("Comment ID is required", headers, 400);
                 const {data, error} = await supabase.from(COMMENTS_TABLE).delete().eq("id", commentId).select("*");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data?.length) return errorResponse("Comment not found", headers, 404);
                 return jsonResponse({success: true}, headers);
             }
@@ -211,6 +211,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

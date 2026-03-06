@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-travel-times": {
                 const {data, error} = await supabase.from(TRAVEL_TIMES_TABLE).select("*").order("from_plant_code");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "upsert-travel-time": {
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
                 const {error} = await supabase.from(TRAVEL_TIMES_TABLE).upsert({
                     from_plant_code: fromPlantCode, to_plant_code: toPlantCode, travel_minutes: travelMinutes, updated_at: nowISO()
                 }, {onConflict: "from_plant_code,to_plant_code"});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "delete-travel-time": {
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
                 const {fromPlantCode, toPlantCode} = body;
                 if (!fromPlantCode || !toPlantCode) return errorResponse("fromPlantCode and toPlantCode are required", headers, 400);
                 const {error} = await supabase.from(TRAVEL_TIMES_TABLE).delete().eq("from_plant_code", fromPlantCode).eq("to_plant_code", toPlantCode);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-user-plan": {
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
                 const {userId, planDate} = body;
                 if (!userId || !planDate) return errorResponse("userId and planDate are required", headers, 400);
                 const {data, error} = await supabase.from(PLANS_TABLE).select("*").eq("user_id", userId).eq("plan_date", planDate).single();
-                if (error && error.code !== "PGRST116") return errorResponse(error.message, headers, 400);
+                if (error && error.code !== "PGRST116") return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "save-user-plan": {
@@ -66,13 +66,13 @@ Deno.serve(async (req) => {
                 const {error} = await supabase.from(PLANS_TABLE).upsert({
                     user_id: userId, plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "", updated_at: nowISO()
                 }, {onConflict: "user_id,plan_date"});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             default:
                 return errorResponse("Unknown endpoint", headers, 404);
         }
     } catch (error) {
-        return errorResponse((error as Error).message ?? "Internal server error", headers, 500);
+        return errorResponse("Internal server error", headers, 500);
     }
 });

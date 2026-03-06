@@ -22,7 +22,7 @@ function nowISO(): string {
 
 async function fetchRegionId(supabase: any, regionCode: string, headers: Record<string, string>): Promise<{ id: string } | Response> {
     const {data, error} = await supabase.from(REGIONS_TABLE).select("id").eq("region_code", regionCode).maybeSingle();
-    if (error || !data) return errorResponse(error?.message ?? "Region not found", headers, 400);
+    if (error || !data) return errorResponse("Region not found", headers, 400);
     return {id: data.id as string};
 }
 
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-regions": {
                 const {data, error} = await supabase.from(REGIONS_TABLE).select("*").order("region_code");
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-region-by-code": {
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
                 const regionCode = requireString(body, "regionCode");
                 if (!regionCode) return errorResponse("Region code is required", headers, 400);
                 const {data, error} = await supabase.from(REGIONS_TABLE).select("*").eq("region_code", regionCode).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
                 if (typeof type !== "string" || !ALLOWED_TYPES.has(type)) return errorResponse("Region type must be one of Concrete, Aggregate, Office", headers, 400);
                 const now = nowISO();
                 const {error} = await supabase.from(REGIONS_TABLE).insert({region_code: regionCode, region_name: regionName, type, created_at: now, updated_at: now});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "update": {
@@ -79,16 +79,16 @@ Deno.serve(async (req) => {
                     updatePayload.type = body.type;
                 }
                 const {error: updateError} = await supabase.from(REGIONS_TABLE).update(updatePayload).eq("region_code", regionCode);
-                if (updateError) return errorResponse(updateError.message, headers, 400);
+                if (updateError) return errorResponse("Operation failed", headers, 400);
                 const {error: deleteError} = await supabase.from(REGIONS_PLANTS_TABLE).delete().eq("region_id", regionId);
-                if (deleteError) return errorResponse(deleteError.message, headers, 400);
+                if (deleteError) return errorResponse("Operation failed", headers, 400);
                 const plantCodes = body?.plantCodes;
                 if (Array.isArray(plantCodes) && plantCodes.length) {
                     const now = nowISO();
                     const rows = plantCodes.filter((v: any) => typeof v === "string" && v.trim()).map((v: string) => ({region_id: regionId, plant_code: v.trim(), created_at: now}));
                     if (rows.length) {
                         const {error: insertError} = await supabase.from(REGIONS_PLANTS_TABLE).insert(rows);
-                        if (insertError) return errorResponse(insertError.message, headers, 400);
+                        if (insertError) return errorResponse("Operation failed", headers, 400);
                     }
                 }
                 return jsonResponse({success: true}, headers);
@@ -100,9 +100,9 @@ Deno.serve(async (req) => {
                 const result = await fetchRegionId(supabase, regionCode, headers);
                 if (result instanceof Response) return result;
                 const {error: plantsErr} = await supabase.from(REGIONS_PLANTS_TABLE).delete().eq("region_id", result.id);
-                if (plantsErr) return errorResponse(plantsErr.message, headers, 400);
+                if (plantsErr) return errorResponse("Operation failed", headers, 400);
                 const {error} = await supabase.from(REGIONS_TABLE).delete().eq("region_code", regionCode);
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-region-plants": {
@@ -112,11 +112,11 @@ Deno.serve(async (req) => {
                 const result = await fetchRegionId(supabase, regionCode, headers);
                 if (result instanceof Response) return result;
                 const {data: rp, error: rpErr} = await supabase.from(REGIONS_PLANTS_TABLE).select("plant_code").eq("region_id", result.id);
-                if (rpErr) return errorResponse(rpErr.message, headers, 400);
+                if (rpErr) return errorResponse("Operation failed", headers, 400);
                 if (!rp?.length) return jsonResponse({data: []}, headers);
                 const codes = rp.map((r: any) => r.plant_code);
                 const {data: plants, error: plantsErr} = await supabase.from("plants").select("plant_code, plant_name").in("plant_code", codes);
-                if (plantsErr) return errorResponse(plantsErr.message, headers, 400);
+                if (plantsErr) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: (plants ?? []).map((p: any) => ({plant_code: p.plant_code, plant_name: p.plant_name}))}, headers);
             }
             case "fetch-regions-by-plant-code": {
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
                 let rows: any[] = [];
                 for (const table of tables) {
                     const {data, error} = await supabase.from(table).select("plant_code, regions!inner(region_code, region_name, type)").eq("plant_code", plantCode);
-                    if (error) return errorResponse(error.message, headers, 400);
+                    if (error) return errorResponse("Operation failed", headers, 400);
                     rows = data ?? [];
                     if (rows.length) break;
                 }
@@ -137,6 +137,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

@@ -45,6 +45,13 @@ function fallbackUserName(userId: string): string {
     return `User ${userId.slice(0, 8)}`;
 }
 
+/** Returns an error Response if the caller is not authenticated, null otherwise. */
+async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return null;
+}
+
 /** Returns an error Response if the caller is not authenticated and elevated, null otherwise. */
 async function requireElevatedCaller(supabase: any, headers: any): Promise<Response | null> {
     const {data, error} = await supabase.auth.getUser();
@@ -84,6 +91,8 @@ Deno.serve(async (req) => {
                 }
             }
             case "user-by-id": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const {userId} = body;
                 if (!userId) return jsonResponse({id: 'unknown', name: 'Unknown User'}, headers);
                 const {data} = await supabase.from(USERS_TABLE).select('id, name, email').eq('id', userId).single();
@@ -95,6 +104,8 @@ Deno.serve(async (req) => {
                 }, headers);
             }
             case "display-name": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const {userId} = body;
                 if (!userId) return jsonResponse('System', headers);
                 if (userId === 'anonymous') return jsonResponse('Anonymous', headers);
@@ -109,6 +120,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(userId.slice(0, 8), headers);
             }
             case "all-roles": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const {data} = await supabase.from(ROLES_TABLE).select('*').order('weight', {ascending: false});
                 return jsonResponse(data ?? [], headers);
             }
@@ -196,7 +209,7 @@ Deno.serve(async (req) => {
                 if (existing?.length) return jsonResponse(true, headers);
                 const now = nowISO();
                 const {error} = await supabase.from(PERMISSIONS_TABLE).insert({user_id: id, role_id: roleId, created_at: now, updated_at: now});
-                if (error) return errorResponse(error.message || "Failed to assign role", headers, 500);
+                if (error) return errorResponse("Failed to assign role", headers, 500);
                 return jsonResponse(true, headers);
             }
             case "remove-role": {
@@ -205,7 +218,7 @@ Deno.serve(async (req) => {
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
                 const {error} = await supabase.from(PERMISSIONS_TABLE).delete().eq('user_id', resolveUserId(userId)).eq('role_id', roleId);
-                if (error) return errorResponse(error.message || "Failed to remove role", headers, 500);
+                if (error) return errorResponse("Failed to remove role", headers, 500);
                 return jsonResponse(true, headers);
             }
             case "create-role": {
@@ -215,7 +228,7 @@ Deno.serve(async (req) => {
                 if (!name) return errorResponse("Role name is required", headers);
                 const now = nowISO();
                 const {data, error} = await supabase.from(ROLES_TABLE).insert({name, permissions, weight, created_at: now, updated_at: now}).select().single();
-                if (error) return errorResponse(error.message || "Failed to create role", headers, 500);
+                if (error) return errorResponse("Failed to create role", headers, 500);
                 return jsonResponse(data, headers);
             }
             case "update-role": {
@@ -224,7 +237,7 @@ Deno.serve(async (req) => {
                 const {roleId, updates} = body;
                 if (!roleId || !updates) return errorResponse("Role ID and updates are required", headers);
                 const {error} = await supabase.from(ROLES_TABLE).update({...updates, updated_at: nowISO()}).eq('id', roleId);
-                if (error) return errorResponse(error.message || "Failed to update role", headers, 500);
+                if (error) return errorResponse("Failed to update role", headers, 500);
                 return jsonResponse(true, headers);
             }
             case "delete-role": {
@@ -233,7 +246,7 @@ Deno.serve(async (req) => {
                 const {roleId} = body;
                 if (!roleId) return errorResponse("Role ID is required", headers);
                 const {error} = await supabase.from(ROLES_TABLE).delete().eq('id', roleId);
-                if (error) return errorResponse(error.message || "Failed to delete role", headers, 500);
+                if (error) return errorResponse("Failed to delete role", headers, 500);
                 return jsonResponse(true, headers);
             }
             case "user-plant": {
@@ -246,6 +259,6 @@ Deno.serve(async (req) => {
                 return jsonResponse({error: "Invalid endpoint", path: url.pathname}, headers, 404);
         }
     } catch (error) {
-        return jsonResponse({error: "Internal server error", message: (error as Error).message}, headers, 500);
+        return jsonResponse({error: "Internal server error"}, headers, 500);
     }
 });

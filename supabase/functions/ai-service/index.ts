@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
                 if (response.status === 429) return errorResponse("Rate limited", headers, 429);
                 if (!response.ok) {
                     const errorText = await response.text().catch(() => "Unknown error");
-                    return errorResponse(errorText, headers, response.status);
+                    return errorResponse("AI request failed", headers, response.status);
                 }
 
                 const data = await response.json();
@@ -54,6 +54,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-all": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 const latestMap: Record<string, string> = {};
                 const issuesMap: Record<string, number> = {};
                 const commentsMap: Record<string, number> = {};
@@ -50,15 +50,15 @@ Deno.serve(async (req) => {
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Tractor ID is required", headers, 400);
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (!data) return jsonResponse({data: null}, headers);
                 const {data: hist, error: histErr} = await supabase.from(HISTORY_TABLE).select("changed_at").eq(ID_KEY, id).order("changed_at", {ascending: false}).limit(1).maybeSingle();
-                if (histErr) return errorResponse(histErr.message, headers, 400);
+                if (histErr) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-history":
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
                     created_at: now, updated_at: now, updated_by: userId
                 };
                 const {data, error} = await supabase.from(MAIN_TABLE).insert([apiData]).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (data?.id) await supabase.from(HISTORY_TABLE).insert({[ID_KEY]: data.id, field_name: "created", old_value: null, new_value: "Tractor created", changed_at: now, changed_by: userId});
                 return jsonResponse({data}, headers);
             }
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
                 if (!id) return errorResponse("Tractor ID is required", headers, 400);
                 if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
-                if (currentErr) return errorResponse(currentErr.message, headers, 400);
+                if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Tractor not found", headers, 404);
                 const rawOp = "assignedOperator" in tractor ? tractor.assignedOperator : current.assigned_operator;
                 const rawStatus = "status" in tractor ? tractor.status : current.status;
@@ -118,12 +118,11 @@ Deno.serve(async (req) => {
                 const diffs = computeDiffs(current, apiData, DIFF_FIELDS, ID_KEY, id, userId);
                 if (diffs.length) { apiData.updated_at = nowIso(); apiData.updated_by = userId; } else { apiData.updated_at = current.updated_at; apiData.updated_by = current.updated_by; }
                 const {data, error} = await supabase.from(MAIN_TABLE).update(apiData).eq("id", id).select().maybeSingle();
-                if (error) return errorResponse(error.message, headers, 400);
+                if (error) return errorResponse("Operation failed", headers, 400);
                 if (diffs.length) {
                     const {error: histErr} = await supabase.from(HISTORY_TABLE).insert(diffs);
                     if (histErr) {
-                        const failedField = diffs.length === 1 ? diffs[0].field_name + ':' + diffs[0].new_value : null;
-                        return errorResponse(histErr.message, headers, 400, failedField ? {failedField} : undefined);
+                        return errorResponse("Operation failed", headers, 400);
                     }
                 }
                 return jsonResponse({data}, headers);
@@ -162,6 +161,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Unknown endpoint", headers, 404);
         }
     } catch (e) {
-        return errorResponse((e as Error).message, headers, 500);
+        return errorResponse("Internal server error", headers, 500);
     }
 });

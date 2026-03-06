@@ -7,7 +7,7 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { DatabaseService, supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
-import { AuthUtility } from '../../utils/AuthUtility'
+import APIUtility from '../../utils/APIUtility'
 
 /**
  * Detail/edit view for a single manager. Provides name, email, plant,
@@ -317,21 +317,11 @@ function ManagerDetailView({ managerId, onClose }) {
             if (permError) throw permError
 
             if (showPasswordField && password) {
-                const { data: userData, error: userFetchError } = await supabase
-                    .from('users')
-                    .select('salt')
-                    .eq('id', managerId)
-                    .single()
-                if (userFetchError) throw userFetchError
-                const passwordHash = await AuthUtility.hashPassword(password, userData.salt)
-                const { error: passwordError } = await supabase
-                    .from('users')
-                    .update({
-                        password_hash: passwordHash,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', managerId)
-                if (passwordError) throw passwordError
+                const { res: pwRes, json: pwJson } = await APIUtility.post('/auth-service/admin-update-password', {
+                    userId: managerId,
+                    password
+                })
+                if (!pwRes.ok) throw new Error(pwJson?.error || 'Failed to update password')
             }
 
             setMessage('Changes saved successfully!')

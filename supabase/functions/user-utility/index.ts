@@ -45,6 +45,6 @@ Deno.serve(async (req) => {
                 return jsonResponse({available_endpoints: AVAILABLE_ENDPOINTS}, headers);
         }
     } catch (error) {
-        return errorResponse((error as Error).message, headers, 500);
+        return errorResponse("Internal server error", headers, 500);
     }
 });

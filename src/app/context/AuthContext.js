@@ -6,7 +6,7 @@ import { SESSION_STORAGE_KEYS } from '../constants/auth'
 import { getBrowserMetadata } from '../utils/BrowserDetection'
 
 const AUTH_FUNCTION = '/auth-service'
-const SESSION_EXPIRY_DAYS = 7
+const SESSION_EXPIRY_DAYS = 2
 
 /**
  * Authentication context providing sign-in, sign-up, sign-out, session restoration,
@@ -144,7 +144,8 @@ export function AuthProvider({ children }) {
         }
 
         try {
-            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/restore-session`, { userId })
+            const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/restore-session`, { userId, sessionId })
             if (json.success && json.user) {
                 setUser(json.user)
                 storeUserId(userId)
@@ -171,7 +172,8 @@ export function AuthProvider({ children }) {
     const loadUserProfile = useCallback(async (userId) => {
         if (!userId) return
         try {
-            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/load-profile`, { userId })
+            const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+            const { json } = await APIUtility.post(`${AUTH_FUNCTION}/load-profile`, { userId, sessionId })
             if (json.profile) {
                 setUser((cu) => ({ ...cu, profile: json.profile }))
             }
@@ -203,6 +205,7 @@ export function AuthProvider({ children }) {
                 await createDbSession(json.id)
                 setLoading(false)
 
+                window.dispatchEvent(new CustomEvent('authSuccess', { detail: { userId: json.id } }))
                 setTimeout(() => loadUserProfile(json.id).catch(() => {}), 2000)
                 return json
             } catch (e) {
@@ -233,6 +236,8 @@ export function AuthProvider({ children }) {
             setUser(json)
             await createDbSession(json.id)
             setLoading(false)
+
+            window.dispatchEvent(new CustomEvent('authSuccess', { detail: { userId: json.id } }))
             return json
         } catch (e) {
             setError(e.message)

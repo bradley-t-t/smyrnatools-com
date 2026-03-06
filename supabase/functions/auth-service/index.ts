@@ -22,6 +22,40 @@ const RESET_PASSWORD_MESSAGE = "If an account exists for this email, a new passw
 const DEFAULT_BASE_FILTERS = {searchText: "", selectedPlant: "", statusFilter: "", viewMode: "grid"};
 const DEFAULT_ROLE_FILTERS = {roleFilter: "", searchText: "", selectedPlant: "", viewMode: "grid"};
 
+// ── In-memory rate limiting ──────────────────────────────────────────
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_ATTEMPTS = 5;
+const rateLimitMap = new Map<string, {count: number; resetAt: number}>();
+
+function isRateLimited(key: string): boolean {
+    const now = Date.now();
+    const entry = rateLimitMap.get(key);
+    if (!entry || now >= entry.resetAt) {
+        rateLimitMap.set(key, {count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS});
+        return false;
+    }
+    entry.count++;
+    return entry.count > RATE_LIMIT_MAX_ATTEMPTS;
+}
+
+function getRateLimitKey(req: Request, identifier: string): string {
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
+    return `${ip}:${identifier}`;
+}
+
+// ── Elevated caller check for admin operations ────────────────────────
+const ELEVATED_WEIGHT_THRESHOLD = 75;
+
+async function requireElevatedCaller(supabase: any, headers: Record<string, string>): Promise<Response | null> {
+    const {data: authResult, error: authErr} = await supabase.auth.getUser();
+    if (authErr || !authResult?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    const {data: permissions} = await supabase.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", authResult.user.id);
+    const isElevated = permissions?.some((p: any) => (p.users_roles?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD);
+    if (!isElevated) return errorResponse("Forbidden: insufficient privileges", headers, 403);
+    return null;
+}
+
 function createSupabaseClient(req: Request) {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY");
@@ -49,6 +83,7 @@ Deno.serve(async (req) => {
                 if (!email?.trim() || !password) return errorResponse("Email and password are required", headers, 400);
                 const trimmedEmail = sanitizeEmail(email);
                 if (!isValidEmail(trimmedEmail)) return errorResponse("Invalid email format", headers, 400);
+                if (isRateLimited(getRateLimitKey(req, `sign-in:${trimmedEmail}`))) return errorResponse("Too many login attempts. Please try again later.", headers, 429);
 
                 const {data, error} = await supabase.from(USERS_TABLE).select("id, email, password_hash, salt").eq("email", trimmedEmail).single();
                 if (error || !data) return errorResponse("Invalid credentials", headers, 401);
@@ -119,8 +154,14 @@ Deno.serve(async (req) => {
             // ── Session Management ────────────────────────────────────
 
             case "restore-session": {
-                const {userId} = await req.json();
+                const {userId, sessionId} = await req.json();
                 if (!userId) return jsonResponse({success: false}, headers);
+
+                // Verify the session ID matches the user in the database to prevent IDOR
+                if (sessionId) {
+                    const {data: sessionData} = await supabase.from("users_sessions").select("id").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+                    if (!sessionData) return jsonResponse({success: false}, headers);
+                }
 
                 const timeoutPromise = new Promise((_, reject) =>
                     setTimeout(() => reject(new Error("Session restore timed out")), SESSION_RESTORE_TIMEOUT)
@@ -142,8 +183,15 @@ Deno.serve(async (req) => {
             // ── Profile ───────────────────────────────────────────────
 
             case "load-profile": {
-                const {userId} = await req.json();
+                const {userId, sessionId} = await req.json();
                 if (!userId) return errorResponse("User ID required", headers, 400);
+
+                // Verify the session ID matches the user to prevent IDOR
+                if (sessionId) {
+                    const {data: sessionData} = await supabase.from("users_sessions").select("id").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+                    if (!sessionData) return errorResponse("Unauthorized", headers, 401);
+                }
+
                 const {data: profileData, error} = await supabase.from(PROFILES_TABLE).select(PROFILE_SELECT_FIELDS).eq("id", userId).single();
                 if (error) return errorResponse("Failed to load profile", headers, 500);
                 return jsonResponse({profile: profileData ?? {}}, headers);
@@ -178,7 +226,7 @@ Deno.serve(async (req) => {
                 const {data: existingUser} = await supabase.from(USERS_TABLE).select("id").eq("email", trimmedEmail).neq("id", userId).single();
                 if (existingUser) return errorResponse("Email already registered", headers, 409);
                 const {error} = await supabase.from(USERS_TABLE).update({email: trimmedEmail, updated_at: nowISO()}).eq("id", userId);
-                if (error) return errorResponse(error.message, headers, 500);
+                if (error) return errorResponse("Failed to update email", headers, 500);
                 return jsonResponse({success: true}, headers);
             }
 
@@ -192,7 +240,7 @@ Deno.serve(async (req) => {
                 const salt = generateSalt();
                 const passwordHash = await hashPassword(password, salt);
                 const {error} = await supabase.from(USERS_TABLE).update({password_hash: passwordHash, salt, updated_at: nowISO()}).eq("id", userId);
-                if (error) return errorResponse(error.message, headers, 500);
+                if (error) return errorResponse("Failed to update password", headers, 500);
                 return jsonResponse({success: true}, headers);
             }
 
@@ -216,6 +264,7 @@ Deno.serve(async (req) => {
                 const genericResponse = jsonResponse({message: RESET_PASSWORD_MESSAGE}, headers);
                 if (!isValidEmail(email)) return genericResponse;
                 const trimmedEmail = sanitizeEmail(email);
+                if (isRateLimited(getRateLimitKey(req, `reset:${trimmedEmail}`))) return genericResponse;
                 const {data: user, error: userErr} = await supabase.from(USERS_TABLE).select("id").eq("email", trimmedEmail).single();
                 if (userErr || !user) return genericResponse;
 
@@ -257,7 +306,7 @@ Deno.serve(async (req) => {
 
             case "password-strength": {
                 const {password} = await req.json();
-                if (!password || password.length < 8) return jsonResponse({value: "weak"}, headers);
+                if (!password || password.length < 10) return jsonResponse({value: "weak"}, headers);
                 return jsonResponse({value: strengthLabel(scorePassword(password))}, headers);
             }
 
@@ -273,10 +322,25 @@ Deno.serve(async (req) => {
                 return jsonResponse({normalizedName: normalizeName(name)}, headers);
             }
 
+            // ── Admin Operations ─────────────────────────────────────
+
+            case "admin-update-password": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
+                const {userId, password} = await req.json();
+                if (!userId || !password) return errorResponse("User ID and password are required", headers, 400);
+                if (validatePasswordStrength(password).value === "weak") return errorResponse("Password is too weak", headers, 400);
+                const salt = generateSalt();
+                const passwordHash = await hashPassword(password, salt);
+                const {error} = await supabase.from(USERS_TABLE).update({password_hash: passwordHash, salt, updated_at: nowISO()}).eq("id", userId);
+                if (error) return errorResponse("Failed to update password", headers, 500);
+                return jsonResponse({success: true}, headers);
+            }
+
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
                     .select("id, report_name, user_id, report_date_range_end, completed, week")
                     .eq("user_id", userId).eq("completed", false).lt("report_date_range_end", beforeIso)
                     .order("report_date_range_end", {ascending: true});
-                if (error) return errorResponse(error.message, headers, 500);
+                if (error) return errorResponse("Operation failed", headers, 500);
                 return jsonResponse({data: Array.isArray(data) ? data : []}, headers);
             }
             case "compute-yardage-metrics": {
@@ -188,6 +188,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

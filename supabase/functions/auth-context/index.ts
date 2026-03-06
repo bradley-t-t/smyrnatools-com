@@ -12,10 +12,10 @@ const PROFILE_SELECT = "first_name, last_name, plant_code";
 const GUEST_ROLE_NAME = "Guest";
 const GUEST_ROLE_WEIGHT = 10;
 const GUEST_ROLE_PERMISSIONS = ["my_account.view"];
-const RANDOM_PASSWORD_LENGTH = 12;
+const RANDOM_PASSWORD_LENGTH = 16;
 const RANDOM_PASSWORD_CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-const MIN_PASSWORD_LENGTH = 8;
-const WEAK_THRESHOLD = 3;
+const MIN_PASSWORD_LENGTH = 10;
+const WEAK_THRESHOLD = 4;
 const MEDIUM_THRESHOLD = 5;
 const MAILERSEND_API_URL = "https://api.mailersend.com/v1/email";
 const DEFAULT_FRONTEND_URL = "https://smyrnatools.com";
@@ -34,8 +34,9 @@ function isValidEmail(email: string): boolean {
 function validatePasswordStrength(password: string): { value: string; score: number } {
     if (!password || password.length < MIN_PASSWORD_LENGTH) return {value: "weak", score: 0};
     let score = 0;
-    if (password.length >= 8) score++;
+    if (password.length >= 10) score++;
     if (password.length >= 12) score++;
+    if (password.length >= 16) score++;
     if (/[A-Z]/.test(password)) score++;
     if (/[a-z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
@@ -44,9 +45,19 @@ function validatePasswordStrength(password: string): { value: string; score: num
 }
 
 function generateRandomPassword(): string {
-    const randomBytes = new Uint8Array(RANDOM_PASSWORD_LENGTH);
-    crypto.getRandomValues(randomBytes);
-    return Array.from(randomBytes, (byte) => RANDOM_PASSWORD_CHARSET[byte % RANDOM_PASSWORD_CHARSET.length]).join("");
+    const charsetLen = RANDOM_PASSWORD_CHARSET.length;
+    const limit = 256 - (256 % charsetLen);
+    const result: string[] = [];
+    while (result.length < RANDOM_PASSWORD_LENGTH) {
+        const randomBytes = new Uint8Array(RANDOM_PASSWORD_LENGTH * 2);
+        crypto.getRandomValues(randomBytes);
+        for (const byte of randomBytes) {
+            if (byte < limit && result.length < RANDOM_PASSWORD_LENGTH) {
+                result.push(RANDOM_PASSWORD_CHARSET[byte % charsetLen]);
+            }
+        }
+    }
+    return result.join("");
 }
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -171,16 +182,24 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "restore-session": {
-                const {userId} = await req.json();
+                const {userId, sessionId} = await req.json();
                 if (!userId) return errorResponse("User ID required", headers, 400);
+                if (sessionId) {
+                    const {data: sessionData} = await supabase.from("users_sessions").select("id").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+                    if (!sessionData) return errorResponse("Invalid session", headers, 401);
+                }
                 const {data: user, error} = await supabase.from(USERS_TABLE).select("id, email").eq("id", userId).single();
                 if (error || !user) return errorResponse("User not found", headers, 404);
                 const {data: profile} = await supabase.from(PROFILES_TABLE).select(PROFILE_SELECT).eq("id", userId).single();
                 return jsonResponse({success: true, user: {id: user.id, email: user.email, profile: profile ?? {}}}, headers);
             }
             case "load-profile": {
-                const {userId} = await req.json();
+                const {userId, sessionId} = await req.json();
                 if (!userId) return errorResponse("User ID required", headers, 400);
+                if (sessionId) {
+                    const {data: sessionData} = await supabase.from("users_sessions").select("id").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+                    if (!sessionData) return errorResponse("Unauthorized", headers, 401);
+                }
                 const {data: profileData, error} = await supabase.from(PROFILES_TABLE).select(PROFILE_SELECT).eq("id", userId).single();
                 if (error) return errorResponse("Failed to load profile", headers, 500);
                 return jsonResponse({profile: profileData ?? {}}, headers);
@@ -242,6 +261,6 @@ Deno.serve(async (req) => {
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }
     } catch (error) {
-        return errorResponse("Internal server error", headers, 500, {message: (error as Error).message});
+        return errorResponse("Internal server error", headers, 500);
     }
 });

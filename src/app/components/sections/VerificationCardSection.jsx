@@ -284,10 +284,7 @@ function VerificationCardSection({
                             className="fas fa-info-circle"
                             style={{ color: accentColor, fontSize: 12, marginTop: 2 }}
                         ></i>
-                        <p
-                            style={{ color: '#64748b', fontSize: 12, lineHeight: 1.5, margin: 0 }}
-                            dangerouslySetInnerHTML={{ __html: noticeText }}
-                        ></p>
+                        <p style={{ color: '#64748b', fontSize: 12, lineHeight: 1.5, margin: 0 }}>{noticeText}</p>
                     </div>
                 </>
             )}
