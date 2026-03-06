@@ -411,184 +411,199 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 forwardedRef={headerRef}
                 sticky={true}
                 hideViewModeToggle={true}
-            />
-            <div style={{ position: 'relative' }}>
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: '#ffffff',
-                        borderBottom: '1px solid #e5e7eb',
-                        display: 'flex',
-                        flexShrink: 0,
-                        flexWrap: 'wrap',
-                        gap: '8px',
-                        padding: '12px 16px',
-                        position: 'sticky',
-                        top: 'var(--top-section-height, 120px)',
-                        zIndex: 40
-                    }}
-                >
-                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                        {VIEW_MODES.map((mode) => (
+                customBottomSkeleton={
+                    <div className="flex items-center gap-2 bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7 py-3">
+                        {[72, 56, 64, 80].map((w, i) => (
+                            <div
+                                key={i}
+                                className="h-[30px] rounded-md bg-slate-200 animate-pulse"
+                                style={{ width: `${w}px` }}
+                            />
+                        ))}
+                        <div className="h-5 w-px bg-slate-200 mx-1" />
+                        <div className="h-[30px] w-[80px] rounded-md bg-slate-100 animate-pulse" />
+                        <div className="h-[30px] w-[80px] rounded-md bg-slate-100 animate-pulse" />
+                        {!isMobile && <div style={{ flex: 1 }} />}
+                        <div className="h-[24px] w-[60px] rounded-md bg-slate-100 animate-pulse ml-auto" />
+                    </div>
+                }
+                customBottomContent={
+                    <div
+                        style={{
+                            alignItems: 'center',
+                            background: '#f8fafc',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '8px',
+                            padding: '10px 14px'
+                        }}
+                    >
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                            {VIEW_MODES.map((mode) => (
+                                <button
+                                    key={mode.id}
+                                    onClick={() => setViewMode(mode.id)}
+                                    style={{
+                                        alignItems: 'center',
+                                        background: viewMode === mode.id ? '#111827' : 'transparent',
+                                        border: viewMode === mode.id ? 'none' : '1px solid #e5e7eb',
+                                        borderRadius: '6px',
+                                        color: viewMode === mode.id ? '#ffffff' : '#6b7280',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        fontSize: '12px',
+                                        fontWeight: '500',
+                                        gap: '6px',
+                                        padding: '6px 12px'
+                                    }}
+                                >
+                                    <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }} />
+                                    {mode.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }} />
+                        {statusFilter ? (
                             <button
-                                key={mode.id}
-                                onClick={() => setViewMode(mode.id)}
+                                onClick={clearStatusFilter}
                                 style={{
                                     alignItems: 'center',
-                                    background: viewMode === mode.id ? '#111827' : 'transparent',
-                                    border: viewMode === mode.id ? 'none' : '1px solid #e5e7eb',
+                                    background: `${accentColor}10`,
+                                    border: `1px solid ${accentColor}30`,
                                     borderRadius: '6px',
-                                    color: viewMode === mode.id ? '#ffffff' : '#6b7280',
+                                    color: accentColor,
                                     cursor: 'pointer',
                                     display: 'flex',
                                     fontSize: '12px',
                                     fontWeight: '500',
                                     gap: '6px',
-                                    padding: '6px 12px'
+                                    padding: '6px 10px'
                                 }}
                             >
-                                <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }} />
-                                {mode.label}
+                                {statusDisplayValue}
+                                <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
                             </button>
-                        ))}
-                    </div>
-                    <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }} />
-                    {statusFilter ? (
-                        <button
-                            onClick={clearStatusFilter}
-                            style={{
-                                alignItems: 'center',
-                                background: `${accentColor}10`,
-                                border: `1px solid ${accentColor}30`,
-                                borderRadius: '6px',
-                                color: accentColor,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                gap: '6px',
-                                padding: '6px 10px'
-                            }}
-                        >
-                            {statusDisplayValue}
-                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
-                        </button>
-                    ) : (
-                        <select
-                            value=""
-                            onChange={(e) => handleStatusFilterChange(e.target.value)}
-                            style={{
-                                appearance: 'none',
-                                background: '#f9fafb',
-                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: 'right 6px center',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundSize: isMobile ? '12px' : '14px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px',
-                                color: '#6b7280',
-                                cursor: 'pointer',
-                                fontSize: isMobile ? '11px' : '12px',
-                                fontWeight: '500',
-                                outline: 'none',
-                                padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
-                            }}
-                        >
-                            <option value="">{isMobile ? '+Status' : '+ Status'}</option>
-                            {STATUS_OPTIONS.map((opt) => (
-                                <option key={opt} value={opt}>
-                                    {opt}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    {roleFilter ? (
-                        <button
-                            onClick={() => setRoleFilter('')}
-                            style={{
-                                alignItems: 'center',
-                                background: `${accentColor}10`,
-                                border: `1px solid ${accentColor}30`,
-                                borderRadius: '6px',
-                                color: accentColor,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                gap: '6px',
-                                padding: '6px 10px'
-                            }}
-                        >
-                            {roleDisplayValue}
-                            <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
-                        </button>
-                    ) : (
-                        <select
-                            value=""
-                            onChange={(e) => handleRoleFilterChange(e.target.value)}
-                            style={{
-                                appearance: 'none',
-                                background: '#f9fafb',
-                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: 'right 6px center',
-                                backgroundRepeat: 'no-repeat',
-                                backgroundSize: isMobile ? '12px' : '14px',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '6px',
-                                color: '#6b7280',
-                                cursor: 'pointer',
-                                fontSize: isMobile ? '11px' : '12px',
-                                fontWeight: '500',
-                                outline: 'none',
-                                padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
-                            }}
-                        >
-                            <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
-                            {ROLE_OPTIONS.map((opt) => (
-                                <option key={opt} value={opt}>
-                                    {opt}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                    {!isMobile && <div style={{ flex: 1 }} />}
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            gap: isMobile ? '8px' : '12px',
-                            marginLeft: isMobile ? 'auto' : 0
-                        }}
-                    >
-                        {summaryStats.overdue > 0 && (
-                            <div
+                        ) : (
+                            <select
+                                value=""
+                                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                                style={{
+                                    appearance: 'none',
+                                    background: '#ffffff',
+                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                    backgroundPosition: 'right 6px center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: isMobile ? '12px' : '14px',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    color: '#6b7280',
+                                    cursor: 'pointer',
+                                    fontSize: isMobile ? '11px' : '12px',
+                                    fontWeight: '500',
+                                    outline: 'none',
+                                    padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
+                                }}
+                            >
+                                <option value="">{isMobile ? '+Status' : '+ Status'}</option>
+                                {STATUS_OPTIONS.map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                        {roleFilter ? (
+                            <button
+                                onClick={() => setRoleFilter('')}
                                 style={{
                                     alignItems: 'center',
-                                    animation: 'pulse 2s infinite',
-                                    background: '#fef2f2',
+                                    background: `${accentColor}10`,
+                                    border: `1px solid ${accentColor}30`,
                                     borderRadius: '6px',
-                                    color: '#dc2626',
+                                    color: accentColor,
+                                    cursor: 'pointer',
                                     display: 'flex',
-                                    fontSize: isMobile ? '10px' : '12px',
-                                    fontWeight: '600',
-                                    gap: isMobile ? '4px' : '6px',
-                                    padding: isMobile ? '4px 6px' : '6px 10px'
+                                    fontSize: '12px',
+                                    fontWeight: '500',
+                                    gap: '6px',
+                                    padding: '6px 10px'
                                 }}
                             >
-                                <i
-                                    className="fas fa-exclamation-circle"
-                                    style={{ fontSize: isMobile ? '9px' : '11px' }}
-                                />
-                                {summaryStats.overdue}
-                                {isMobile ? '' : ' overdue'}
-                            </div>
+                                {roleDisplayValue}
+                                <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
+                            </button>
+                        ) : (
+                            <select
+                                value=""
+                                onChange={(e) => handleRoleFilterChange(e.target.value)}
+                                style={{
+                                    appearance: 'none',
+                                    background: '#ffffff',
+                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                    backgroundPosition: 'right 6px center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: isMobile ? '12px' : '14px',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '6px',
+                                    color: '#6b7280',
+                                    cursor: 'pointer',
+                                    fontSize: isMobile ? '11px' : '12px',
+                                    fontWeight: '500',
+                                    outline: 'none',
+                                    padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
+                                }}
+                            >
+                                <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
+                                {ROLE_OPTIONS.map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
                         )}
-                        <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px' }}>
-                            <span style={{ color: '#111827', fontWeight: '600' }}>{summaryStats.total}</span>{' '}
-                            {isMobile ? '' : 'tasks'}
-                        </span>
+                        {!isMobile && <div style={{ flex: 1 }} />}
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                display: 'flex',
+                                gap: isMobile ? '8px' : '12px',
+                                marginLeft: isMobile ? 'auto' : 0
+                            }}
+                        >
+                            {summaryStats.overdue > 0 && (
+                                <div
+                                    style={{
+                                        alignItems: 'center',
+                                        animation: 'pulse 2s infinite',
+                                        background: '#fef2f2',
+                                        borderRadius: '6px',
+                                        color: '#dc2626',
+                                        display: 'flex',
+                                        fontSize: isMobile ? '10px' : '12px',
+                                        fontWeight: '600',
+                                        gap: isMobile ? '4px' : '6px',
+                                        padding: isMobile ? '4px 6px' : '6px 10px'
+                                    }}
+                                >
+                                    <i
+                                        className="fas fa-exclamation-circle"
+                                        style={{ fontSize: isMobile ? '9px' : '11px' }}
+                                    />
+                                    {summaryStats.overdue}
+                                    {isMobile ? '' : ' overdue'}
+                                </div>
+                            )}
+                            <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px' }}>
+                                <span style={{ color: '#111827', fontWeight: '600' }}>{summaryStats.total}</span>{' '}
+                                {isMobile ? '' : 'tasks'}
+                            </span>
+                        </div>
                     </div>
-                </div>
+                }
+            />
+            <div style={{ position: 'relative' }}>
                 <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } } .list-content-area { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }`}</style>
                 <div
                     className="content-area list-content-area"

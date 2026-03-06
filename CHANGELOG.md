@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [24.9] - 2026-03-06
+
+- Updated the ListView component to improve rendering performance by optimizing state updates.
+- Added new filtering functionality in ListView to allow users to sort items dynamically.
+
 ## [24.8] - 2026-03-06
 
 - Updated the navigation component to improve user experience with better link organization.
