@@ -82,23 +82,23 @@ function formatLastActivity(lastActivity) {
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
 
-/** Maps role name keywords to badge colors for visual distinction. */
-const ROLE_COLORS = [
-    { color: '#dc2626', match: (r) => r.includes('admin') || r.includes('owner') },
-    { color: '#a51e36', match: (r) => r.includes('manager') || r.includes('regional') },
-    { color: '#0891b2', match: (r) => r.includes('plant') },
-    { color: '#059669', match: (r) => r.includes('instructor') || r.includes('trainer') }
+/** Maps role weight thresholds to badge colors — higher weight = redder, lower weight = greener. */
+const ROLE_WEIGHT_COLORS = [
+    { min: 80, color: '#dc2626' },
+    { min: 60, color: '#ea580c' },
+    { min: 40, color: '#d97706' },
+    { min: 20, color: '#65a30d' },
+    { min: 1, color: '#16a34a' }
 ]
 
 /**
- * Resolves a badge color based on the user's primary role name.
- * @param {string[]} roles
+ * Resolves a badge color based on the user's role weight.
+ * Higher weight → red end of spectrum; lower weight → green end.
+ * @param {number} roleWeight
  * @returns {string} Hex color string.
  */
-function getRoleColor(roles) {
-    if (!roles?.length) return '#64748b'
-    const role = roles[0].toLowerCase()
-    return ROLE_COLORS.find(({ match }) => match(role))?.color ?? '#64748b'
+function getRoleColor(roleWeight) {
+    return ROLE_WEIGHT_COLORS.find(({ min }) => roleWeight >= min)?.color ?? '#64748b'
 }
 
 /**
@@ -230,7 +230,7 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                     ) : (
                         <div className="divide-y divide-slate-100">
                             {onlineUsers.map((user) => {
-                                const roleColor = getRoleColor(user.roles)
+                                const roleColor = getRoleColor(user.roleWeight || 0)
                                 return (
                                     <div key={user.id} className="px-4 py-3 hover:bg-slate-50 transition-colors">
                                         <div className="flex items-start gap-3">

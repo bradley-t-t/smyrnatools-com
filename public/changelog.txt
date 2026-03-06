@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.9] - 2026-03-06
+
+- Updated the role color system in the Online Users Modal to use role weights instead of role name keywords. Colors now reflect a spectrum from red (higher weight) to green (lower weight) based on defined weight thresholds.
+- Changed the `getRoleColor` function to accept a `roleWeight` parameter instead of a roles array, and updated the logic to determine badge colors based on weight ranges.
+
 ## [21.8] - 2026-03-06
 
 - Improved the APIUtility's HTTP client for Supabase Edge Functions by fetching a fresh authentication token on every retry attempt to handle cases where a token might expire mid-session.
