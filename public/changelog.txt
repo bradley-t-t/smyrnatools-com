@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.0] - 2026-03-06
+
+- Updated the VersionUpdateBanner component to use the "bg-accent" class instead of "bg-slate-800" for the header background, aligning it with the app's accent color scheme.
+- Changed the hover effect on the Refresh button in VersionUpdateBanner from "hover:bg-slate-700" to "hover:opacity-90" with a "transition-opacity" effect for a smoother visual feedback.
+
 ## [22.9] - 2026-03-06
 
 - Enhanced security in auth-context by limiting the data returned during session restoration to only include user ID and email, instead of all user data.
