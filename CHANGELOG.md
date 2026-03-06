@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.6] - 2026-03-06
+
+- Updated the layout of the SkeletonTaskRow component in AssetListSkeleton to improve responsiveness and alignment. Specifically, adjusted the container to use flex-start for compact mode, refined spacing with custom gap values, and restructured the inner layout for better alignment of elements.
+- Modified the task row's status badge and metadata display to ensure consistent sizing and visibility across different screen sizes, including making the third metadata item always visible instead of hidden on smaller screens.
+
 ## [22.5] - 2026-03-06
 
 - Improved the `useNotifications` hook by refactoring the table subscription logic to use a constant `NOTIFICATION_TABLES` for better readability and maintainability.

@@ -54,21 +54,23 @@ function SkeletonAssetRow({ columnCount, isEven, compact }) {
 function SkeletonTaskRow({ compact }) {
     return (
         <div
-            className={`flex items-center gap-3 sm:gap-4 border-b border-slate-100 ${compact ? 'px-4 py-3' : 'px-6 py-4'}`}
+            className={`flex border-b border-slate-100 ${compact ? 'items-start gap-3 px-4 py-3' : 'items-center gap-4 px-6 py-4'}`}
         >
             <div className="h-4 w-4 shrink-0 rounded bg-slate-200 animate-pulse" />
-            <div className="flex flex-1 flex-col gap-2 min-w-0">
-                <div className="flex items-start justify-between gap-3 sm:gap-4">
-                    <div className="flex flex-1 flex-col gap-1">
+            <div className="flex flex-1 flex-col min-w-0" style={{ gap: compact ? '0.375rem' : '0.5rem' }}>
+                <div className={`flex gap-2 ${compact ? 'flex-col' : 'items-start justify-between gap-4'}`}>
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
                         <div className="h-4 w-4/5 rounded bg-slate-200 animate-pulse" />
                         <div className="h-3 w-2/5 rounded bg-slate-200 animate-pulse" />
                     </div>
-                    <div className="h-5 w-16 sm:w-20 shrink-0 rounded-full bg-slate-200 animate-pulse" />
+                    <div
+                        className={`h-5 rounded-full bg-slate-200 animate-pulse ${compact ? 'w-20 shrink-0' : 'w-20 shrink-0'}`}
+                    />
                 </div>
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="h-3 w-14 sm:w-16 rounded bg-slate-200 animate-pulse" />
-                    <div className="h-3 w-12 sm:w-14 rounded bg-slate-200 animate-pulse" />
-                    <div className="h-3 w-16 sm:w-20 rounded bg-slate-200 animate-pulse hidden sm:block" />
+                <div className="flex items-center flex-wrap gap-2">
+                    <div className="h-3 w-14 rounded bg-slate-200 animate-pulse" />
+                    <div className="h-3 w-12 rounded bg-slate-200 animate-pulse" />
+                    <div className="h-3 w-16 rounded bg-slate-200 animate-pulse" />
                 </div>
             </div>
             <div className="h-3.5 w-3 shrink-0 rounded bg-slate-200 animate-pulse" />
