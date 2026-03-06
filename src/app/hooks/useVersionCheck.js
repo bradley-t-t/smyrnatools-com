@@ -17,16 +17,19 @@ async function fetchDeployedVersion() {
 export function useVersionCheck() {
     const [hasUpdate, setHasUpdate] = useState(false)
     const loadedVersionRef = useRef(null)
-    const dismissedRef = useRef(false)
+    const latestVersionRef = useRef(null)
+    const dismissedVersionRef = useRef(null)
 
     const check = useCallback(async () => {
-        if (dismissedRef.current) return
         try {
             const version = await fetchDeployedVersion()
             if (loadedVersionRef.current === null) {
                 loadedVersionRef.current = version
             } else if (version && version !== loadedVersionRef.current) {
-                setHasUpdate(true)
+                latestVersionRef.current = version
+                if (version !== dismissedVersionRef.current) {
+                    setHasUpdate(true)
+                }
             }
         } catch {
             // silently ignore — network may be unavailable
@@ -40,7 +43,7 @@ export function useVersionCheck() {
     }, [check])
 
     const dismiss = useCallback(() => {
-        dismissedRef.current = true
+        dismissedVersionRef.current = latestVersionRef.current
         setHasUpdate(false)
     }, [])
 

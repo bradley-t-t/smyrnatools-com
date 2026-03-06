@@ -198,15 +198,20 @@ class UserPresenceService {
         }, 60000)
     }
 
-    /** Uses sendBeacon to mark the user offline on page unload (best-effort). */
+    /** Uses fetch with keepalive to mark the user offline on page unload (best-effort). */
     handleBeforeUnload() {
         if (this.currentUserId) {
             const now = new Date().toISOString()
-            navigator.sendBeacon &&
-                navigator.sendBeacon(
-                    `${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users_presence?user_id=eq.${this.currentUserId}`,
-                    JSON.stringify({ is_online: false, last_seen: now })
-                )
+            fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users_presence?user_id=eq.${this.currentUserId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    apikey: process.env.REACT_APP_SUPABASE_ANON_KEY,
+                    Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({ is_online: false, last_seen: now, updated_at: now }),
+                keepalive: true
+            }).catch(() => {})
         }
     }
 
@@ -257,57 +262,60 @@ class UserPresenceService {
                 ]
             }
 
-            const users = []
-            for (const presence of presenceList) {
-                try {
-                    const [name, rolesData, profile, userRoleWeight] = await Promise.all([
-                        UserService.getUserDisplayName(presence.user_id),
-                        UserService.getUserRoles(presence.user_id),
-                        UserService.getUserProfile(presence.user_id).catch(() => null),
-                        UserService.getUserWeight(presence.user_id).catch(() => 0)
-                    ])
+            const results = await Promise.all(
+                presenceList.map(async (presence) => {
+                    try {
+                        const [name, rolesData, profile, userRoleWeight] = await Promise.all([
+                            UserService.getUserDisplayName(presence.user_id),
+                            UserService.getUserRoles(presence.user_id),
+                            UserService.getUserProfile(presence.user_id).catch(() => null),
+                            UserService.getUserWeight(presence.user_id).catch(() => 0)
+                        ])
 
-                    let roleNames = []
-                    if (Array.isArray(rolesData)) {
-                        roleNames = rolesData
-                            .map((r) => {
-                                if (typeof r === 'string') return r
-                                if (r && typeof r === 'object' && r.name) return r.name
-                                return null
-                            })
-                            .filter(Boolean)
-                    }
-
-                    let regionCode = null
-                    if (profile) {
-                        if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
-                            regionCode = profile.regions[0]
-                        } else if (profile.region_code) {
-                            regionCode = profile.region_code
-                        } else if (profile.regionCode) {
-                            regionCode = profile.regionCode
-                        } else if (profile.plant_code) {
-                            try {
-                                const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
-                                if (regions && regions.length > 0) {
-                                    regionCode = regions[0].regionCode || regions[0].region_code
-                                }
-                            } catch {}
+                        let roleNames = []
+                        if (Array.isArray(rolesData)) {
+                            roleNames = rolesData
+                                .map((r) => {
+                                    if (typeof r === 'string') return r
+                                    if (r && typeof r === 'object' && r.name) return r.name
+                                    return null
+                                })
+                                .filter(Boolean)
                         }
-                    }
 
-                    users.push({
-                        id: presence.user_id,
-                        lastActivity: presence.last_activity,
-                        lastSeen: presence.last_seen,
-                        name,
-                        regionCode,
-                        roleWeight: userRoleWeight || 0,
-                        roles: roleNames
-                    })
-                } catch {}
-            }
-            return users
+                        let regionCode = null
+                        if (profile) {
+                            if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
+                                regionCode = profile.regions[0]
+                            } else if (profile.region_code) {
+                                regionCode = profile.region_code
+                            } else if (profile.regionCode) {
+                                regionCode = profile.regionCode
+                            } else if (profile.plant_code) {
+                                try {
+                                    const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
+                                    if (regions && regions.length > 0) {
+                                        regionCode = regions[0].regionCode || regions[0].region_code
+                                    }
+                                } catch {}
+                            }
+                        }
+
+                        return {
+                            id: presence.user_id,
+                            lastActivity: presence.last_activity,
+                            lastSeen: presence.last_seen,
+                            name,
+                            regionCode,
+                            roleWeight: userRoleWeight || 0,
+                            roles: roleNames
+                        }
+                    } catch {
+                        return null
+                    }
+                })
+            )
+            return results.filter(Boolean)
         } catch {
             return []
         }

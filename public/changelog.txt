@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.4] - 2026-03-06
+
+- Improved version checking logic in useVersionCheck hook to track the latest version and only show update notifications if the user hasn't dismissed that specific version.
+- Updated the user presence service to replace sendBeacon with a fetch request using keepalive for marking users offline on page unload, ensuring better reliability with proper headers and updated fields.
+- Refactored the user presence list processing to use Promise.all with mapped results for better readability and maintainability of the code that fetches user details and roles.
+
 ## [22.3] - 2026-03-06
 
 - Added a version update feature with a banner to notify users when a new version is available, implemented using the `useVersionCheck` hook and `VersionUpdateBanner` component in `App.js`.
