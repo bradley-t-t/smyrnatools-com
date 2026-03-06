@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.3] - 2026-03-06
+
+- Made the VersionPopup component clickable by adding an onClick prop and setting a pointer cursor when the prop is provided. This allows users to interact with the version display to access additional information.
+- Removed the "View Changelog" button from the LoginView and integrated its functionality into the VersionPopup component by passing the openChangelog function as an onClick handler.
+- Added changelog viewing capability to MyAccountView by introducing a showChangelog state and lazily loading the ChangelogView component with a suspense fallback for loading states. Users can now access the changelog directly from the VersionPopup in this view.
+
 ## [21.2] - 2026-03-06
 
 - Updated the funny-mcnulty worktree to reflect a dirty state, indicating local modifications in the subproject.

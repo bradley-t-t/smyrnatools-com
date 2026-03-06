@@ -361,7 +361,7 @@ function LoginView() {
             ) : (
                 <VideoFallback />
             )}
-            <VersionPopup version={version} />
+            <VersionPopup version={version} onClick={openChangelog} />
 
             <div
                 style={{
@@ -641,27 +641,6 @@ function LoginView() {
                                 }}
                             >
                                 {isSignUp ? 'Sign in' : 'Sign up'}
-                            </button>
-                        </div>
-
-                        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-                            <button
-                                type="button"
-                                onClick={openChangelog}
-                                style={{
-                                    alignItems: 'center',
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#94a3b8',
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    fontSize: '0.8rem',
-                                    gap: '0.5rem',
-                                    padding: 0
-                                }}
-                            >
-                                <i className="fas fa-history"></i>
-                                View Changelog
                             </button>
                         </div>
                     </div>

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useState } from 'react'
 
 import VersionPopup from '../../app/components/common/VersionPopup'
+
+const ChangelogView = lazy(() => import('../login/ChangelogView'))
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
@@ -69,6 +71,7 @@ function MyAccountView({ userId }) {
     const [regionsLoaded, setRegionsLoaded] = useState(false)
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
+    const [showChangelog, setShowChangelog] = useState(false)
 
     const formatSessionTime = (timestamp) => {
         const date = new Date(timestamp)
@@ -471,6 +474,20 @@ function MyAccountView({ userId }) {
                     </div>
                 </div>
             </div>
+        )
+    }
+
+    if (showChangelog) {
+        return (
+            <Suspense
+                fallback={
+                    <div className="flex h-screen items-center justify-center">
+                        <i className="fas fa-spinner fa-spin text-2xl text-[#1e3a5f]" />
+                    </div>
+                }
+            >
+                <ChangelogView onBack={() => setShowChangelog(false)} />
+            </Suspense>
         )
     }
 
@@ -1003,7 +1020,7 @@ function MyAccountView({ userId }) {
                 </div>
             </div>
 
-            <VersionPopup version={version} />
+            <VersionPopup version={version} onClick={() => setShowChangelog(true)} />
 
             {showPasswordModal && (
                 <div
