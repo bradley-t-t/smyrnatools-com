@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [20.9] - 2026-03-06
+
+- Improved the styling of the version information at the bottom of the My Account page. It now features a border-top, adjusted padding, and includes an icon next to the version number for a more polished look.
+
 ## [20.8] - 2026-03-05
 
 - Added search functionality to the Reports view, allowing users to filter reports by name, title, or user name.

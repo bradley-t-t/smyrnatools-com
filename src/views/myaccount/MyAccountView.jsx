@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 
-// TODO: Make version at bottom better styled.
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
@@ -1003,7 +1002,13 @@ function MyAccountView({ userId }) {
                 </div>
             </div>
 
-            {version && <div className="pb-8 pt-2 text-center text-xs text-slate-400">v{version} by TaylorURL.com</div>}
+            {version && (
+                <div className="mt-2 border-t border-gray-100 pb-6 pt-4 text-center">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                        <i className="fas fa-tag text-[10px]"></i>v{version} &middot; TaylorURL.com
+                    </span>
+                </div>
+            )}
 
             {showPasswordModal && (
                 <div
