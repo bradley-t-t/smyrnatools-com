@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.1] - 2026-03-06
+
+- Replaced the inline version display in the My Account view with a new VersionPopup component for a cleaner and more interactive way to show the version information.
+
 ## [21.0] - 2026-03-06
 
 - Updated the AppService to fetch version information from '/nit.json' instead of '/turl.json' to ensure we're pulling the correct configuration data.
