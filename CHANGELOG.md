@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.4] - 2026-03-06
+
+- Redesigned the changelog display in ChangelogView to show individual version entries instead of grouping by date, making it easier to focus on specific version updates.
+- Changed the state management from tracking an expanded date to tracking an expanded version, ensuring the UI reflects the correct expanded entry.
+- Simplified the UI by removing the date grouping logic and directly mapping over non-skipped entries for display.
+- Adjusted the styling and layout for version entries, including tweaks to icon sizes and container dimensions for a cleaner look.
+- Updated the header interaction to toggle expansion based on version rather than date.
+
 ## [24.3] - 2024-03-06
 
 - Improved session management in AuthContext by adding a reference to track and clear the profile loading timeout during sign-out.
