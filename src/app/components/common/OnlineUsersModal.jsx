@@ -84,10 +84,10 @@ function formatLastActivity(lastActivity) {
 
 /** Maps role weight thresholds to badge colors — higher weight = redder, lower weight = greener. */
 const ROLE_WEIGHT_COLORS = [
-    { min: 80, color: '#dc2626' },
-    { min: 60, color: '#ea580c' },
-    { min: 40, color: '#d97706' },
-    { min: 20, color: '#65a30d' },
+    { min: 15, color: '#dc2626' },
+    { min: 10, color: '#ea580c' },
+    { min: 6, color: '#d97706' },
+    { min: 3, color: '#65a30d' },
     { min: 1, color: '#16a34a' }
 ]
 

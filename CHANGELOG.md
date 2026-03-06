@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.0] - 2026-03-06
+
+- Adjusted the role weight thresholds in the OnlineUsersModal component to display badge colors at lower values. The new thresholds are set at 15, 10, 6, and 3 for the respective colors, making the color progression more sensitive to smaller weight differences.
+
 ## [21.9] - 2026-03-06
 
 - Updated the role color system in the Online Users Modal to use role weights instead of role name keywords. Colors now reflect a spectrum from red (higher weight) to green (lower weight) based on defined weight thresholds.
