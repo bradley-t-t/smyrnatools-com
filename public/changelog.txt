@@ -2,7 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
-## [23.5] - 2023-05-01
+## [23.6] - 2026-03-06
+
+- Redesigned the ChangelogView layout to group entries by date into collapsible cards, showing version ranges for each group instead of individual version expansions, improving navigation and readability.
+- Updated the header styling in ChangelogView, moving from a colored background to a white background with a border, and adjusted text and button colors for a cleaner, more neutral look.
+- Integrated dynamic accent color usage in the version number display using the `useAccentColor` hook for consistent theming across the application.
+- Changed the UI behavior to auto-expand the latest date group on load instead of a specific version, aligning with the new grouped card design.
+- Adjusted the overall container height from `h-screen` to `h-full` for better flexibility in rendering the changelog view within different contexts.
+
+## [23.5] - 2026-03-06
 
 - Updated the changelog view header and various UI elements to use the `accent` color instead of hardcoded color values for better theme consistency.
 - Improved the date display logic in the changelog view to conditionally show both relative and formatted dates only when they differ, enhancing readability.
