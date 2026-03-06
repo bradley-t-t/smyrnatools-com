@@ -10,7 +10,7 @@ const ALLOWED_TABLES = new Set([
     'mixer_comments', 'mixer_history', 'mixer_images',
     'tractor_comments', 'tractor_history', 'trailer_comments',
     'equipment_comments', 'equipment_history', 'operator_history',
-    'pickup_truck_comments', 'roles', 'users_roles', 'reports', 'notifications'
+    'pickup_truck_comments', 'roles', 'users_roles', 'reports', 'notifications', 'documents'
 ]);
 
 const ALLOWED_COLUMNS: Record<string, Set<string>> = {
@@ -29,6 +29,7 @@ const ALLOWED_COLUMNS: Record<string, Set<string>> = {
     list_items: new Set(['id', 'description', 'comments', 'status', 'priority', 'assigned_to', 'plant_code', 'category', 'planned_date', 'created_at', 'updated_at', 'created_by']),
     reports: new Set(['id', 'report_name', 'user_id', 'plant_code', 'week', 'completed', 'report_date_range_start', 'report_date_range_end', 'data', 'created_at', 'updated_at']),
     notifications: new Set(['id', 'user_id', 'title', 'message', 'read', 'type', 'created_at']),
+    documents: new Set(['id', 'name', 'file_path', 'file_type', 'file_size', 'uploaded_by', 'created_at', 'updated_at']),
 };
 
 function sanitizeTableName(name: string | null): string | null {

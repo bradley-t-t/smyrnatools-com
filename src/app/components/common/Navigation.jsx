@@ -41,6 +41,7 @@ const ICONS = {
     'Pickup Trucks': 'fa-truck-pickup',
     Plan: 'fa-calendar-alt',
     Plants: 'fa-industry',
+    Documents: 'fa-folder-open',
     Productivity: 'fa-chart-line',
     Regions: 'fa-map-marker-alt',
     Reports: 'fa-file-alt',
@@ -66,7 +67,8 @@ const menuItems = [
     { id: 'Regions', permission: 'regions.view', text: 'Regions' },
     { id: 'Roles', permission: 'roles.view', text: 'Roles' },
     { id: 'Calculators', permission: 'calculator.view', text: 'Calculators' },
-    { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' }
+    { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' },
+    { id: 'Documents', permission: 'documents.view', text: 'Documents' }
 ]
 
 /** Navigation item IDs grouped under the "Assets" dropdown. */
@@ -76,7 +78,7 @@ const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Picku
 const PEOPLE_ITEMS = ['Operators', 'Managers']
 
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
-const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards']
+const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
 
 /**
  * Primary app navigation bar with responsive mobile/tablet/desktop layouts.

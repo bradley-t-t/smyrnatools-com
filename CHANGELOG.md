@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.5] - 2026-03-06
+
+- Added a new "Documents" feature to the application, including a dedicated view for managing documents.
+- Updated the navigation menu to include a "Documents" item with an associated icon, grouped under the "Productivity" dropdown.
+- Extended database service to support the "documents" table, allowing interaction with document-related data on both client and server sides.
+
 ## [24.4] - 2026-03-06
 
 - Redesigned the changelog display in ChangelogView to show individual version entries instead of grouping by date, making it easier to focus on specific version updates.

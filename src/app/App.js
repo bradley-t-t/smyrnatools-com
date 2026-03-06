@@ -38,6 +38,7 @@ const lazyWithRetry = (importer) =>
 const AppInstallPromptModal = lazyWithRetry(() => import('./components/common/AppInstallPromptModal'))
 const CalculatorView = lazyWithRetry(() => import('../views/calculator/CalculatorView'))
 const DashboardView = lazyWithRetry(() => import('../views/dashboard/DashboardView'))
+const DocumentsView = lazyWithRetry(() => import('../views/documents/DocumentsView'))
 const EquipmentsView = lazyWithRetry(() => import('../views/equipment/EquipmentsView'))
 const LeaderboardsView = lazyWithRetry(() => import('../views/leaderboards/LeaderboardsView'))
 const ListDetailView = lazyWithRetry(() => import('../views/list/ListDetailView'))
@@ -309,6 +310,8 @@ function AppContent() {
                 const effectiveUserId = userId || sessionStorage.getItem('userId')
                 return effectiveUserId ? <MyAccountView userId={effectiveUserId} /> : <LoginView />
             }
+            case 'Documents':
+                return <DocumentsView />
             case 'Plan':
                 return <PlanView title="My Plan" />
             default:

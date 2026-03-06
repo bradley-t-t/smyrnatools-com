@@ -44,7 +44,8 @@ const ALLOWED_TABLES = new Set([
     'pickup_truck_comments',
     'roles',
     'reports',
-    'notifications'
+    'notifications',
+    'documents'
 ])
 
 /** Allowlisted SQL migrations that can be executed via the migration endpoint. */
