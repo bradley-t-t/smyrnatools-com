@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.2] - 2026-03-06
+
+- Improved timer management in AppInstallPromptModal by adding a cleanup function to clear the timeout when the component unmounts, preventing potential memory leaks.
+- Enhanced VerificationRequirementsModal by refactoring the delayed section readiness updates to use a centralized delay function and ensuring all timeouts are cleared on component unmount.
+- Added proper cleanup for the data readiness timeout in useDashboardAssets hook to avoid lingering timers when the component is unmounted.
+
 ## [24.1] - 2026-03-06
 
 - Added subtle hover effects to MetricCard with a slight lift and shadow transition for better interactivity.

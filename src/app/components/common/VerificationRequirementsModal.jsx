@@ -122,38 +122,46 @@ export default function VerificationRequirementsModal({
             return
         }
 
-        setTimeout(() => {
+        const timers = []
+        const delay = (fn, ms) => {
+            const id = setTimeout(fn, ms)
+            timers.push(id)
+        }
+
+        delay(() => {
             setSectionsReady((prev) => ({ ...prev, checklist: true }))
         }, 50)
 
         if (assignedOperator) {
             fetchOperatorData().then(() => {
-                setTimeout(() => {
+                delay(() => {
                     setSectionsReady((prev) => ({ ...prev, operator: true }))
                 }, 150)
             })
         } else {
-            setTimeout(() => {
+            delay(() => {
                 setSectionsReady((prev) => ({ ...prev, operator: true }))
             }, 150)
         }
 
         if (itemId && service) {
             fetchIssues().then(() => {
-                setTimeout(() => {
+                delay(() => {
                     setSectionsReady((prev) => ({ ...prev, issues: true }))
                 }, 250)
             })
             fetchComments().then(() => {
-                setTimeout(() => {
+                delay(() => {
                     setSectionsReady((prev) => ({ ...prev, comments: true }))
                 }, 350)
             })
         } else {
-            setTimeout(() => {
+            delay(() => {
                 setSectionsReady((prev) => ({ ...prev, comments: true, issues: true }))
             }, 250)
         }
+
+        return () => timers.forEach(clearTimeout)
     }, [open, assignedOperator, itemId])
 
     useEffect(() => {

@@ -40,6 +40,7 @@ export function useDashboardAssets({
 
     useEffect(() => {
         let cancelled = false
+        let readyTimerId
 
         async function fetchAssets() {
             setError('')
@@ -155,7 +156,7 @@ export function useDashboardAssets({
                 if (!cancelled) {
                     setLoading(false)
                     setRefreshing(false)
-                    setTimeout(() => setDataReady(true), 300)
+                    readyTimerId = setTimeout(() => setDataReady(true), 300)
                 }
             }
         }
@@ -163,6 +164,7 @@ export function useDashboardAssets({
         fetchAssets()
         return () => {
             cancelled = true
+            clearTimeout(readyTimerId)
         }
     }, [refreshKey, computeStats])
 

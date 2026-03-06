@@ -253,6 +253,7 @@ function AppInstallPromptModal() {
     const accentColor = useAccentColor()
 
     useEffect(() => {
+        let timerId
         const checkAndShowPrompt = async () => {
             const currentUser = await UserService.getCurrentUser()
             if (!currentUser?.id) return
@@ -270,9 +271,10 @@ function AppInstallPromptModal() {
             setPromptType(type)
 
             const shouldShow = await AppInstallPromptService.shouldShowPrompt(currentUser.id, type)
-            if (shouldShow) setTimeout(() => setShowModal(true), 2000)
+            if (shouldShow) timerId = setTimeout(() => setShowModal(true), 2000)
         }
         checkAndShowPrompt()
+        return () => clearTimeout(timerId)
     }, [])
 
     const withCurrentUser = async (action) => {
