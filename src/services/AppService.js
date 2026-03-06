@@ -12,7 +12,7 @@ async function getVersion() {
     if (cached) return cached
 
     try {
-        const response = await fetch('/turl.json', { cache: 'no-store' })
+        const response = await fetch('/nit.json', { cache: 'no-store' })
         if (!response.ok) throw new Error('failed')
         const { version = '' } = await response.json()
         return CacheUtility.set(VERSION_CACHE_KEY, version, VERSION_CACHE_TTL_MS)

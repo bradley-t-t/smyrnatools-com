@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.0] - 2026-03-06
+
+- Updated the AppService to fetch version information from '/nit.json' instead of '/turl.json' to ensure we're pulling the correct configuration data.
+
 ## [20.9] - 2026-03-06
 
 - Improved the styling of the version information at the bottom of the My Account page. It now features a border-top, adjusted padding, and includes an icon next to the version number for a more polished look.
