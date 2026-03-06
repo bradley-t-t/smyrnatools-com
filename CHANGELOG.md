@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.6] - 2026-03-06
+
+- Updated the position of the VersionPopup component to display on the right side of the screen instead of the left.
+
 ## [21.5] - 2026-03-06
 
 - Updated the positioning of the VersionPopup component to appear at the bottom-left of the screen instead of centered at the bottom.

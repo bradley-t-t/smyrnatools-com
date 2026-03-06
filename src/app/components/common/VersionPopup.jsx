@@ -15,7 +15,7 @@ function VersionPopup({ version, onClick }) {
 
     return (
         <div
-            className="fixed bottom-5 left-5 z-[1000] flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-white shadow-xl"
+            className="fixed bottom-5 right-5 z-[1000] flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-white shadow-xl"
             style={{ backgroundColor: accentColor, cursor: onClick ? 'pointer' : 'default' }}
             onClick={onClick}
         >
