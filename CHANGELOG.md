@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.1] - 2026-03-06
+
+- Added subtle hover effects to MetricCard with a slight lift and shadow transition for better interactivity.
+- Enhanced DashboardCard with a hover state that increases the shadow intensity for a more dynamic user experience.
+
 ## [24.0] - 2026-03-06
 
 - Updated the navigation menu to dynamically use accent colors for active menu items, replacing hardcoded colors with a customizable accent color for better visual consistency.

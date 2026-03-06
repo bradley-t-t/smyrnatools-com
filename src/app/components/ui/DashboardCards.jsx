@@ -48,7 +48,7 @@ export function MetricCard({
 }) {
     return (
         <div
-            className="rounded-xl p-4 md:p-5"
+            className="rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
             style={{
                 backgroundColor: '#f8fafc',
                 border: highlight ? `2px solid ${accentColor}` : '1px solid #e2e8f0'
@@ -96,7 +96,9 @@ export function SkeletonMetricCard() {
 /** Rounded white card container for dashboard sections. */
 export function DashboardCard({ children, className = '' }) {
     return (
-        <div className={`bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm ${className}`}>
+        <div
+            className={`bg-white border border-gray-200 rounded-2xl p-4 md:p-6 shadow-sm transition-shadow duration-200 hover:shadow-md ${className}`}
+        >
             {children}
         </div>
     )
