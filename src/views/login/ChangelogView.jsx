@@ -151,176 +151,199 @@ function ChangelogView({ onBack }) {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-slate-50">
-            <div className="shrink-0 bg-white border-b border-slate-200 px-6 py-5">
-                <div className="flex items-center gap-4">
+            {/* Header */}
+            <div className="shrink-0 bg-[#0f2340] px-5 pt-4 pb-5">
+                <div className="flex items-center justify-between mb-5">
                     <button
                         onClick={onBack}
-                        className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-[10px] text-slate-600 border-none cursor-pointer transition-colors hover:bg-slate-200"
+                        className="flex items-center justify-center w-9 h-9 bg-white/10 rounded-xl text-white border-none cursor-pointer hover:bg-white/20 transition-colors"
                     >
                         <i className="fas fa-arrow-left text-sm" />
                     </button>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2.5">
-                            <h1 className="text-xl font-bold text-slate-900 m-0">Release Notes</h1>
-                            <span className="bg-[#1e3a5f] rounded-md text-white text-[11px] font-semibold px-2 py-[3px]">
-                                v{currentVersion}
-                            </span>
-                        </div>
-                        <p className="text-slate-500 text-[13px] mt-1 mb-0">
-                            {totalUpdates} releases · Updated {getRelativeTime(entries[0]?.date)}
-                            <span className="text-slate-400"> · </span>
-                            Managed by{' '}
+                    <a
+                        href={GITHUB_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-9 h-9 bg-white/10 rounded-xl text-white no-underline hover:bg-white/20 transition-colors"
+                    >
+                        <i className="fab fa-github" />
+                    </a>
+                </div>
+                <div className="flex items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-[22px] font-bold text-white m-0 leading-tight">Release Notes</h1>
+                        <p className="text-white/40 text-[12px] mt-1.5 mb-0">
+                            {totalUpdates} releases · updated {getRelativeTime(entries[0]?.date)} · managed by{' '}
                             <a
                                 href={TURL_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[#1e3a5f] font-semibold no-underline hover:underline"
+                                className="text-white/60 font-medium no-underline hover:text-white transition-colors"
                             >
                                 TaylorURL.com
                             </a>
                         </p>
                     </div>
-                    <a
-                        href={GITHUB_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-[10px] text-slate-600 no-underline transition-colors hover:bg-slate-200"
-                    >
-                        <i className="fab fa-github text-lg" />
-                    </a>
+                    <div className="text-right shrink-0">
+                        <div className="text-[30px] font-extrabold text-white leading-none tracking-tight">
+                            v{currentVersion}
+                        </div>
+                        <div className="flex items-center justify-end gap-1 mt-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            <span className="text-[11px] text-white/50">Latest</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-4 py-4">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-16">
+                    <div className="flex flex-col items-center justify-center gap-3 py-20">
                         <i className="fas fa-circle-notch fa-spin text-[#1e3a5f] text-2xl" />
-                        <span className="text-slate-500 text-[13px]">Loading releases...</span>
+                        <span className="text-slate-400 text-[13px]">Loading releases...</span>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-4">
-                        {groupEntriesByDate(entries).map((group, groupIdx) => (
-                            <div key={group.date} className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2.5 px-1">
-                                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                                        {getRelativeTime(group.date)}
-                                    </span>
-                                    <div className="flex-1 h-px bg-slate-200" />
-                                    <span className="text-[11px] text-slate-400 whitespace-nowrap">
-                                        {formatDate(group.date)}
-                                    </span>
-                                </div>
+                    <div className="flex flex-col gap-5 pb-4">
+                        {groupEntriesByDate(entries).map((group, groupIdx) => {
+                            const realEntries = group.entries.filter((e) => !e.isSkipped)
+                            const skippedEntries = group.entries.filter((e) => e.isSkipped)
 
-                                {group.entries.map((entry) => {
-                                    const isLatest = groupIdx === 0 && group.entries[0] === entry
-                                    const summary = aiSummaries[entry.version] || null
-                                    const isExpanded = expandedVersion === entry.version
+                            return (
+                                <div key={group.date}>
+                                    {/* Sticky date header */}
+                                    <div className="sticky top-0 z-10 flex items-center gap-2.5 py-2 bg-slate-50">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                            {getRelativeTime(group.date)}
+                                        </span>
+                                        <div className="flex-1 h-px bg-slate-200" />
+                                        <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                            {formatDate(group.date)}
+                                        </span>
+                                    </div>
 
-                                    return (
-                                        <div
-                                            key={entry.version}
-                                            className={`bg-white rounded-[14px] overflow-hidden transition-shadow ${
-                                                isLatest ? 'border-2 border-[#1e3a5f]' : 'border border-slate-200'
-                                            }`}
-                                        >
-                                            <div
-                                                onClick={() => setExpandedVersion(isExpanded ? null : entry.version)}
-                                                className="flex items-center gap-3.5 px-4 py-3.5 cursor-pointer"
-                                            >
+                                    <div className="flex flex-col gap-2 mt-1">
+                                        {/* Real release entries */}
+                                        {realEntries.map((entry) => {
+                                            const isLatest = groupIdx === 0 && realEntries[0] === entry
+                                            const summary = aiSummaries[entry.version] || null
+                                            const isExpanded = expandedVersion === entry.version
+                                            const changeCount = summary ? summary.length : entry.changes.length
+
+                                            return (
                                                 <div
-                                                    className={`flex items-center justify-center flex-col w-11 h-11 rounded-[10px] ${
-                                                        entry.isSkipped
-                                                            ? 'bg-slate-100'
-                                                            : isLatest
-                                                              ? 'bg-[#1e3a5f]'
-                                                              : 'bg-sky-50'
+                                                    key={entry.version}
+                                                    className={`bg-white rounded-2xl overflow-hidden ${
+                                                        isLatest
+                                                            ? 'ring-2 ring-[#1e3a5f] shadow-sm'
+                                                            : 'border border-slate-200'
                                                     }`}
                                                 >
-                                                    {entry.isSkipped ? (
-                                                        <i className="fas fa-wrench text-slate-400 text-sm" />
-                                                    ) : (
-                                                        <span
-                                                            className={`text-[15px] font-bold ${
-                                                                isLatest ? 'text-white' : 'text-[#1e3a5f]'
+                                                    <div
+                                                        onClick={() =>
+                                                            setExpandedVersion(isExpanded ? null : entry.version)
+                                                        }
+                                                        className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-slate-50/80 transition-colors"
+                                                    >
+                                                        {/* Version icon */}
+                                                        <div
+                                                            className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center ${
+                                                                isLatest ? 'bg-[#1e3a5f]' : 'bg-slate-100'
                                                             }`}
                                                         >
-                                                            {entry.version}
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-slate-800 text-sm font-semibold">
-                                                            {entry.isSkipped
-                                                                ? `Patch ${entry.version}`
-                                                                : `Version ${entry.version}`}
-                                                        </span>
-                                                        {isLatest && (
-                                                            <span className="bg-green-100 rounded text-green-600 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5">
-                                                                Latest
+                                                            <span
+                                                                className={`text-[13px] font-bold tabular-nums ${
+                                                                    isLatest ? 'text-white' : 'text-slate-500'
+                                                                }`}
+                                                            >
+                                                                {entry.version}
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                    {!entry.isSkipped && summary && (
-                                                        <div className="flex items-center text-slate-400 text-xs gap-1.5 mt-0.5">
-                                                            <i className="fas fa-sparkles text-amber-400 text-[10px]" />
-                                                            {summary.length} improvements
                                                         </div>
-                                                    )}
-                                                </div>
 
-                                                <div
-                                                    className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all ${
-                                                        isExpanded ? 'bg-slate-100' : 'bg-transparent'
-                                                    }`}
-                                                >
-                                                    <i
-                                                        className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-400 text-[11px]`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {isExpanded && (
-                                                <div className="bg-[#fafbfc] border-t border-slate-100 py-4 pr-4 pl-[74px]">
-                                                    {entry.isSkipped ? (
-                                                        <div className="flex items-center text-slate-500 text-[13px] gap-2">
-                                                            <i className="fas fa-check-circle text-green-500 text-xs" />
-                                                            Bug fixes and performance improvements
-                                                        </div>
-                                                    ) : summary?.length > 0 ? (
-                                                        <div className="flex flex-col gap-2.5">
-                                                            {summary.map((change, i) => (
-                                                                <div key={i} className="flex items-start gap-2.5">
-                                                                    <div className="flex items-center justify-center shrink-0 w-5 h-5 bg-green-100 rounded-md mt-px">
-                                                                        <i className="fas fa-check text-green-600 text-[9px]" />
-                                                                    </div>
-                                                                    <span className="text-slate-700 text-[13px] leading-normal">
-                                                                        {change}
+                                                        {/* Info */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[14px] font-semibold text-slate-800">
+                                                                    Version {entry.version}
+                                                                </span>
+                                                                {isLatest && (
+                                                                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full">
+                                                                        Latest
                                                                     </span>
-                                                                </div>
-                                                            ))}
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                                {summary ? (
+                                                                    <>
+                                                                        <i className="fas fa-sparkles text-amber-400 text-[9px]" />
+                                                                        <span className="text-[11px] text-amber-500">
+                                                                            {changeCount} improvements
+                                                                        </span>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-[11px] text-slate-400">
+                                                                        {changeCount} change
+                                                                        {changeCount !== 1 ? 's' : ''}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    ) : (
-                                                        <div className="flex flex-col gap-2">
-                                                            {entry.changes.map((change, i) => (
-                                                                <div
-                                                                    key={i}
-                                                                    className="flex items-start text-slate-500 text-xs gap-2.5 leading-normal"
-                                                                >
-                                                                    <span className="shrink-0 w-[5px] h-[5px] bg-slate-300 rounded-full mt-1.5" />
-                                                                    {change}
-                                                                </div>
-                                                            ))}
+
+                                                        <i
+                                                            className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-300 text-[10px]`}
+                                                        />
+                                                    </div>
+
+                                                    {isExpanded && (
+                                                        <div className="border-t border-slate-100 px-4 pt-3 pb-4">
+                                                            <div className="flex flex-col gap-2">
+                                                                {(summary ?? entry.changes).map((change, i) => (
+                                                                    <div key={i} className="flex items-start gap-2.5">
+                                                                        <div
+                                                                            className={`shrink-0 w-[18px] h-[18px] rounded-md flex items-center justify-center mt-[2px] ${
+                                                                                summary
+                                                                                    ? 'bg-emerald-50'
+                                                                                    : 'bg-slate-100'
+                                                                            }`}
+                                                                        >
+                                                                            <i
+                                                                                className={`fas fa-check text-[8px] ${
+                                                                                    summary
+                                                                                        ? 'text-emerald-500'
+                                                                                        : 'text-slate-400'
+                                                                                }`}
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-[13px] text-slate-600 leading-relaxed">
+                                                                            {change}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        ))}
+                                            )
+                                        })}
+
+                                        {/* Patch/skipped entries — single compact row */}
+                                        {skippedEntries.length > 0 && (
+                                            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-slate-100/70 rounded-xl border border-slate-200/80">
+                                                <div className="w-6 h-6 rounded-lg bg-slate-200 flex items-center justify-center shrink-0">
+                                                    <i className="fas fa-wrench text-slate-400 text-[9px]" />
+                                                </div>
+                                                <span className="text-[12px] text-slate-500">
+                                                    {skippedEntries.length === 1
+                                                        ? `Patch ${skippedEntries[0].version}`
+                                                        : `${skippedEntries.length} patch releases`}{' '}
+                                                    — bug fixes &amp; performance improvements
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 )}
             </div>

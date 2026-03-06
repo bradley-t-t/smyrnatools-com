@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.4] - 2023-03-06
+
+- Redesigned the ChangelogView header with a new dark theme background and updated styling for better visual appeal.
+- Moved the version number to the right side of the header with a prominent display and added a "Latest" indicator dot.
+- Adjusted the layout of the release notes content with sticky date headers for better readability while scrolling.
+- Enhanced the loading state UI with updated colors and spacing for a more polished look.
+- Improved the GitHub link button styling and placement in the header for easier access to the repository.
+- Refined typography and spacing throughout the changelog view for a cleaner and more professional appearance.
+
 ## [23.3] - 2026-03-06
 
 - Improved date handling in the changelog view by introducing a new `parseLocalDate` function to parse dates as local midnight instead of UTC, ensuring accurate date display.
