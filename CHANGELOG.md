@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.8] - 2026-03-06
+
+- Added table name sanitization in the database-service to prevent unauthorized access to tables. Only a predefined set of tables is now allowed for operations like fetching, inserting, updating, and deleting records.
+- Removed the "execute-sql" endpoint from the database-service to enhance security by preventing direct SQL query execution.
+- Updated error messages across database-service endpoints to reflect validation issues with table names, ensuring clearer feedback when invalid or disallowed table names are provided.
+- Added a new utility function in user-service to handle user-related operations, improving the management of user data.
+
 ## [22.7] - 2026-03-06
 
 - Improved the SkeletonTaskRow component in AssetListSkeleton to use dynamic heights for title, subtitle, and metadata elements based on compact or desktop view, ensuring a more accurate loading shimmer effect that matches real content sizes.

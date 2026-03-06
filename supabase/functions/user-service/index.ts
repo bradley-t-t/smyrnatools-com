@@ -45,6 +45,16 @@ function fallbackUserName(userId: string): string {
     return `User ${userId.slice(0, 8)}`;
 }
 
+/** Returns an error Response if the caller is not authenticated and elevated, null otherwise. */
+async function requireElevatedCaller(supabase: any, headers: any): Promise<Response | null> {
+    const {data, error} = await supabase.auth.getUser();
+    const user = data?.user;
+    if (error || !user?.id) return errorResponse("Unauthorized", headers, 401);
+    const roles = await fetchUserRoles(supabase, user.id);
+    if (!isElevatedUser(roles)) return errorResponse("Forbidden: insufficient privileges", headers, 403);
+    return null;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -177,6 +187,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(roles.sort((a: any, b: any) => b.weight - a.weight)[0], headers);
             }
             case "assign-role": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
                 const id = resolveUserId(userId);
@@ -188,6 +200,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "remove-role": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
                 const {error} = await supabase.from(PERMISSIONS_TABLE).delete().eq('user_id', resolveUserId(userId)).eq('role_id', roleId);
@@ -195,6 +209,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "create-role": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
                 const {name, permissions = [], weight = 0} = body;
                 if (!name) return errorResponse("Role name is required", headers);
                 const now = nowISO();
@@ -203,6 +219,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(data, headers);
             }
             case "update-role": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
                 const {roleId, updates} = body;
                 if (!roleId || !updates) return errorResponse("Role ID and updates are required", headers);
                 const {error} = await supabase.from(ROLES_TABLE).update({...updates, updated_at: nowISO()}).eq('id', roleId);
@@ -210,6 +228,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-role": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
                 const {roleId} = body;
                 if (!roleId) return errorResponse("Role ID is required", headers);
                 const {error} = await supabase.from(ROLES_TABLE).delete().eq('id', roleId);
