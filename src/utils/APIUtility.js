@@ -1,12 +1,15 @@
 import { supabase } from '../services/DatabaseService'
 
-/**
- * Authenticated HTTP client for Supabase Edge Functions.
- * Handles token resolution, retries with backoff, and request timeouts.
- */
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
+const REQUEST_TIMEOUT_MS = 30_000
+const DEFAULT_MAX_RETRIES = 2
+const DEFAULT_RETRY_DELAY_MS = 1_000
 
+/**
+ * Resolves the current session's JWT. Falls back to the anon key if the
+ * user is unauthenticated or the session cannot be read.
+ */
 const getAuthToken = async () => {
     try {
         const { data } = await supabase.auth.getSession()
@@ -15,18 +18,40 @@ const getAuthToken = async () => {
     return SUPABASE_ANON_KEY
 }
 
+/**
+ * Builds a plain error response in the same shape as a successful response,
+ * so callers never need to handle two different return shapes.
+ */
+const errorResponse = (message) => ({
+    json: { error: message },
+    res: { ok: false, status: 0 }
+})
+
+/**
+ * Authenticated HTTP client for Supabase Edge Functions.
+ *
+ * Each attempt fetches a fresh auth token so that retries succeed even if
+ * the previous token expired mid-session. Requests are aborted after
+ * REQUEST_TIMEOUT_MS. Failed attempts are retried with linear backoff up to
+ * DEFAULT_MAX_RETRIES times (configurable via options).
+ */
 const APIUtility = {
     async post(path, data, options = {}) {
-        const token = await getAuthToken()
         const url = `${EDGE_FUNCTIONS_URL}${path}`
-        const maxRetries = options.maxRetries || 2
-        const retryDelay = options.retryDelay || 1000
+        const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES
+        const retryDelay = options.retryDelay ?? DEFAULT_RETRY_DELAY_MS
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                const controller = new AbortController()
-                const timeoutId = setTimeout(() => controller.abort(), 30000)
+            const isLastAttempt = attempt === maxRetries
 
+            // Fetch a fresh token on every attempt so an expired JWT doesn't
+            // cause all retries to fail with the same auth error.
+            const token = await getAuthToken()
+
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+            try {
                 const res = await fetch(url, {
                     body: JSON.stringify(data),
                     headers: {
@@ -44,28 +69,21 @@ const APIUtility = {
                 const json = await res.json().catch(() => ({}))
                 return { json, res }
             } catch (error) {
-                const isLastAttempt = attempt === maxRetries
+                clearTimeout(timeoutId)
 
                 if (isLastAttempt) {
-                    const res = { ok: false, status: 0 }
-                    const json = {
-                        error:
-                            error.name === 'AbortError'
-                                ? 'Request timeout. Please check your connection and try again.'
-                                : error.message || 'Network request failed. Please check your connection.'
-                    }
-                    return { json, res }
+                    const message =
+                        error.name === 'AbortError'
+                            ? 'Request timed out. Please check your connection and try again.'
+                            : error.message || 'Network request failed. Please check your connection.'
+                    return errorResponse(message)
                 }
 
-                if (!isLastAttempt) {
-                    await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
-                }
+                await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
             }
         }
 
-        const res = { ok: false, status: 0 }
-        const json = { error: 'Network request failed after multiple attempts.' }
-        return { json, res }
+        return errorResponse('Network request failed after multiple attempts.')
     }
 }
 

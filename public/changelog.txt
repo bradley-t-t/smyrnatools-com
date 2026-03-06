@@ -2,6 +2,14 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.8] - 2026-03-06
+
+- Improved the APIUtility's HTTP client for Supabase Edge Functions by fetching a fresh authentication token on every retry attempt to handle cases where a token might expire mid-session.
+- Added a standardized error response format in APIUtility to ensure consistent return shapes for both successful and failed requests, making it easier for callers to handle responses.
+- Introduced configurable constants for request timeout (30 seconds), default maximum retries (2), and retry delay (1 second) in APIUtility for better clarity and maintainability.
+- Enhanced error messaging in APIUtility to provide more specific feedback for timeouts and network failures.
+- Refined the retry logic structure in APIUtility to improve readability and ensure proper cleanup of timeout handlers.
+
 ## [21.7] - 2026-03-06
 
 - Removed the reference to the "TURL Release Management System" from the ChangelogView component for a cleaner display.
