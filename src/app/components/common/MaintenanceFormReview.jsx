@@ -3,7 +3,6 @@ import React from 'react'
 import { formatMaintenanceDateShort } from '../../../utils/MaintenanceUtility'
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
 import ImagePreviewModal from '../ui/ImagePreviewModal'
-
 /**
  * Full-page review interface for submitted maintenance forms.
  * Displays all form responses (text fields, checklists with images),
@@ -63,7 +62,6 @@ export default function MaintenanceFormReview({
                     </p>
                 </div>
             </div>
-
             <div className="mx-auto w-full max-w-3xl p-6">
                 {fields.length === 0 ? (
                     <p className="text-slate-500">No form fields found.</p>
@@ -137,7 +135,6 @@ export default function MaintenanceFormReview({
                         })}
                     </div>
                 )}
-
                 <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
                     <h3 className="mb-4 text-lg font-bold text-slate-800">Review Decision</h3>
                     <textarea
@@ -172,7 +169,6 @@ export default function MaintenanceFormReview({
                     </div>
                 </div>
             </div>
-
             <ImagePreviewModal imageUrl={imagePreview} onClose={onClosePreview} />
         </div>
     )

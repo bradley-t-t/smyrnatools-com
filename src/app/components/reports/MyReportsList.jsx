@@ -4,10 +4,8 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
-
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
-
 /** Computes urgency label and color based on days until the Saturday deadline. */
 const getDueDateStatus = (saturday) => {
     const diffDays = Math.ceil((saturday - new Date()) / MILLISECONDS_PER_DAY)
@@ -17,20 +15,17 @@ const getDueDateStatus = (saturday) => {
     if (diffDays <= 3) return { color: '#f59e0b', label: `${diffDays} days left`, urgent: false }
     return { color: '#64748b', label: saturday.toLocaleDateString(), urgent: false }
 }
-
 const BADGE_COLORS = {
     'Last Week': 'bg-amber-100 text-amber-800',
     Older: 'bg-slate-100 text-slate-600',
     'This Week': 'bg-blue-100 text-blue-800'
 }
-
 const STATUS_COLORS = {
     error: 'bg-red-100 text-red-700',
     info: 'bg-blue-100 text-blue-700',
     success: 'bg-emerald-100 text-emerald-700',
     warning: 'bg-amber-100 text-amber-700'
 }
-
 const PageSizeSelect = ({ value, onChange }) => (
     <div className="flex items-center gap-2 text-sm text-slate-500">
         <label className="hidden sm:inline">Show:</label>
@@ -47,7 +42,6 @@ const PageSizeSelect = ({ value, onChange }) => (
         </select>
     </div>
 )
-
 const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPageChange }) => (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-slate-50">
         <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
@@ -74,7 +68,6 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     </div>
 )
-
 /** Compact card layout for a single report item on mobile viewports. */
 const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     const { completed, report, title, weekIso } = item
@@ -89,7 +82,6 @@ const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-
     return (
         <div
             className={`p-4 border-b border-slate-100 last:border-b-0 ${dueDateInfo?.urgent ? 'border-l-3' : ''}`}
@@ -130,7 +122,6 @@ const MobileReportCard = ({ item, accentColor, onShowForm }) => {
         </div>
     )
 }
-
 /** Table row layout for a single report item on desktop viewports. */
 const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
     const { weekIso, completed, report, title } = item
@@ -145,7 +136,6 @@ const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-
     return (
         <div
             className={`flex items-center py-3 px-4 lg:px-7 border-b border-slate-100 hover:bg-slate-50 transition-colors ${dueDateInfo?.urgent ? 'border-l-3' : ''}`}
@@ -192,7 +182,6 @@ const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
         </div>
     )
 }
-
 /** Paginated list of the current user's assigned reports with responsive mobile/desktop layouts. */
 function MyReportsList({
     isLoading,
@@ -207,9 +196,7 @@ function MyReportsList({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-
     if (weeksToShow.length === 0 && !isLoading) return null
-
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             {isLoading ? (
@@ -257,5 +244,4 @@ function MyReportsList({
         </div>
     )
 }
-
 export default MyReportsList

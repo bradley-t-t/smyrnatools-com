@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /**
  * Portal modal for selecting one or more plants from a searchable list.
  * Supports single-select (auto-closes on pick) and multi-select (checkbox) modes.
@@ -29,14 +28,12 @@ function PlantDropdownModal({
     const [search, setSearch] = useState('')
     const [localSelectedCodes, setLocalSelectedCodes] = useState(selectedPlantCodes || [])
     const accentColor = useAccentColor()
-
     const filteredPlants = plants.filter((plant) => {
         const code = plant.plantCode || plant.plant_code || ''
         const name = plant.plantName || plant.plant_name || ''
         const term = search.toLowerCase()
         return code.toLowerCase().includes(term) || name.toLowerCase().includes(term)
     })
-
     const sortedPlants = [...filteredPlants].sort((a, b) => {
         const codeA = a.plantCode || a.plant_code || ''
         const codeB = b.plantCode || b.plant_code || ''
@@ -44,7 +41,6 @@ function PlantDropdownModal({
         if (codeB === 'OTHER_REGION') return -1
         return parseInt(codeA.replace(/\D/g, '') || '0') - parseInt(codeB.replace(/\D/g, '') || '0')
     })
-
     const handlePlantClick = (code) => {
         if (allowMultiple) {
             setLocalSelectedCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
@@ -54,9 +50,7 @@ function PlantDropdownModal({
             onClose()
         }
     }
-
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
-
     return ReactDOM.createPortal(
         <div
             className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-5"
@@ -77,7 +71,6 @@ function PlantDropdownModal({
                         <i className="fas fa-times" />
                     </button>
                 </div>
-
                 <div className="relative border-b border-gray-200 px-4 py-3">
                     <input
                         type="text"
@@ -88,7 +81,6 @@ function PlantDropdownModal({
                     />
                     <i className="fas fa-search absolute left-7 top-1/2 -translate-y-1/2 text-sm text-slate-400" />
                 </div>
-
                 <div className="flex-1 overflow-y-auto bg-white p-2">
                     {showAllPlants && !allowMultiple && (
                         <div
@@ -126,7 +118,6 @@ function PlantDropdownModal({
                         )
                     })}
                 </div>
-
                 {allowMultiple && (
                     <div className="border-t border-gray-200 bg-slate-50 px-4 py-3">
                         <button
@@ -143,5 +134,4 @@ function PlantDropdownModal({
         document.body
     )
 }
-
 export default PlantDropdownModal

@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 import { useAccentColor } from '../../app/hooks/useAccentColor'
-
 const GITHUB_URL = 'https://github.com/bradley-t-t'
 const TURL_URL = 'https://taylorurl.com'
-
 /**
  * Displays a timeline of application releases parsed from `/changelog.txt`.
  * Optionally overlays AI-generated summaries from `/changelog_ai.txt` when
@@ -20,17 +18,14 @@ function ChangelogView({ onBack }) {
     const [aiSummaries, setAiSummaries] = useState({})
     const [expandedVersion, setExpandedVersion] = useState(null)
     const accentColor = useAccentColor()
-
     useEffect(() => {
         const loadChangelogs = async () => {
             try {
                 const [changelogRes, aiRes] = await Promise.all([fetch('/changelog.txt'), fetch('/changelog_ai.txt')])
-
                 const changelogText = await changelogRes.text()
                 const parsed = parseMarkdown(changelogText)
                 setEntries(parsed)
                 if (parsed.length > 0) setExpandedVersion(parsed[0].version)
-
                 if (aiRes.ok) {
                     const aiText = await aiRes.text()
                     setAiSummaries(parseAiSummaries(aiText))
@@ -42,11 +37,9 @@ function ChangelogView({ onBack }) {
         }
         loadChangelogs()
     }, [])
-
     const parseAiSummaries = (text) => {
         const summaries = {}
         let currentVersion = null
-
         for (const line of text.split('\n')) {
             const versionMatch = line.match(/^## \[(.+?)]/)
             if (versionMatch) {
@@ -58,7 +51,6 @@ function ChangelogView({ onBack }) {
         }
         return summaries
     }
-
     /**
      * Parses markdown changelog into version entries, then fills numeric gaps
      * between versions with synthetic "Bug fixes and performance improvements" patches.
@@ -66,7 +58,6 @@ function ChangelogView({ onBack }) {
     const parseMarkdown = (text) => {
         const versions = []
         let currentVersion = null
-
         for (const line of text.split('\n')) {
             const versionMatch = line.match(/^## \[(.+?)] - (.+)$/)
             if (versionMatch) {
@@ -77,7 +68,6 @@ function ChangelogView({ onBack }) {
             }
         }
         if (currentVersion) versions.push(currentVersion)
-
         const filled = []
         for (let i = 0; i < versions.length; i++) {
             filled.push(versions[i])
@@ -100,13 +90,11 @@ function ChangelogView({ onBack }) {
         }
         return filled
     }
-
     /** Parses a YYYY-MM-DD date string as a local (not UTC) midnight date. */
     const parseLocalDate = (dateStr) => {
         const [year, month, day] = dateStr.split('-').map(Number)
         return new Date(year, month - 1, day)
     }
-
     const formatDate = (dateStr) => {
         try {
             return parseLocalDate(dateStr).toLocaleDateString('en-US', {
@@ -118,7 +106,6 @@ function ChangelogView({ onBack }) {
             return dateStr
         }
     }
-
     const getRelativeTime = (dateStr) => {
         try {
             const today = new Date()
@@ -134,10 +121,8 @@ function ChangelogView({ onBack }) {
             return dateStr
         }
     }
-
     const currentVersion = entries[0]?.version || '-'
     const totalUpdates = entries.filter((e) => !e.isSkipped).length
-
     return (
         <div className="flex flex-col h-full overflow-hidden bg-slate-50">
             {/* Header */}
@@ -187,7 +172,6 @@ function ChangelogView({ onBack }) {
                     </div>
                 </div>
             </div>
-
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-4 py-4">
                 {loading ? (
@@ -207,7 +191,6 @@ function ChangelogView({ onBack }) {
                                 const relative = getRelativeTime(entry.date)
                                 const formatted = formatDate(entry.date)
                                 const showBoth = relative !== formatted
-
                                 return (
                                     <div
                                         key={entry.version}
@@ -232,7 +215,6 @@ function ChangelogView({ onBack }) {
                                                     }`}
                                                 />
                                             </div>
-
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span
@@ -259,12 +241,10 @@ function ChangelogView({ onBack }) {
                                                     </span>
                                                 </div>
                                             </div>
-
                                             <i
                                                 className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-300 text-[10px]`}
                                             />
                                         </div>
-
                                         {isExpanded && (
                                             <div className="border-t border-slate-100 px-4 pt-3 pb-4">
                                                 <div className="flex flex-col gap-1.5">
@@ -298,5 +278,4 @@ function ChangelogView({ onBack }) {
         </div>
     )
 }
-
 export default ChangelogView

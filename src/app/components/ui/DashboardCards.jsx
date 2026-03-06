@@ -1,18 +1,15 @@
 import React from 'react'
-
 /** Allocation percentage tier styling (high/medium/low). */
 const ALLOCATION_STYLES = {
     high: { background: '#dcfce7', color: '#16a34a' },
     low: { background: '#fee2e2', color: '#dc2626' },
     medium: { background: '#fef9c3', color: '#ca8a04' }
 }
-
 const getAllocationStyle = (percent) => {
     if (percent >= 80) return ALLOCATION_STYLES.high
     if (percent >= 50) return ALLOCATION_STYLES.medium
     return ALLOCATION_STYLES.low
 }
-
 /** Small gray pill displaying an inline status label (e.g. "Active 5"). */
 export function StatusPill({ children, className = '' }) {
     return (
@@ -23,7 +20,6 @@ export function StatusPill({ children, className = '' }) {
         </span>
     )
 }
-
 /** Color-coded pill showing allocation percentage (green >= 80, yellow >= 50, red < 50). */
 export function AllocationPill({ percent }) {
     const style = getAllocationStyle(percent)
@@ -33,7 +29,6 @@ export function AllocationPill({ percent }) {
         </span>
     )
 }
-
 /** Dashboard metric card with icon, label, value, optional subtitle, and child pills. */
 export function MetricCard({
     label,
@@ -70,7 +65,6 @@ export function MetricCard({
         </div>
     )
 }
-
 /** Shimmer skeleton placeholder for chart/card loading states. */
 export function SkeletonCard() {
     return (
@@ -81,7 +75,6 @@ export function SkeletonCard() {
         </div>
     )
 }
-
 /** Shimmer skeleton placeholder for metric card loading states. */
 export function SkeletonMetricCard() {
     return (
@@ -92,7 +85,6 @@ export function SkeletonMetricCard() {
         </div>
     )
 }
-
 /** Rounded white card container for dashboard sections. */
 export function DashboardCard({ children, className = '' }) {
     return (
@@ -103,26 +95,21 @@ export function DashboardCard({ children, className = '' }) {
         </div>
     )
 }
-
 /** Section heading used inside dashboard cards. */
 export function SectionTitle({ children }) {
     return <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 md:mb-5">{children}</h3>
 }
-
 /** Grid of active/spare/shop counts per freight type (Cement, Aggregate, Dump Truck). */
 export function FreightTypeBreakdown({ freightData, isMobile }) {
     const types = ['Cement', 'Aggregate', 'Dump Truck'].filter(
         (type) => freightData[type] && freightData[type].total > 0
     )
-
     if (types.length === 0) return null
-
     const icons = {
         Aggregate: 'fa-mountain',
         Cement: 'fa-industry',
         'Dump Truck': 'fa-truck-loading'
     }
-
     return (
         <div className="border-t border-gray-200 mt-3 pt-3">
             <div className={`grid gap-1.5 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
@@ -154,18 +141,14 @@ export function FreightTypeBreakdown({ freightData, isMobile }) {
         </div>
     )
 }
-
 /** Grid of active/spare/shop counts per trailer type (Cement, End Dump). */
 export function TrailerTypeBreakdown({ trailerTypeData, isMobile }) {
     const types = ['Cement', 'End Dump'].filter((type) => trailerTypeData[type] && trailerTypeData[type].total > 0)
-
     if (types.length === 0) return null
-
     const icons = {
         Cement: 'fa-industry',
         'End Dump': 'fa-truck-loading'
     }
-
     return (
         <div className="border-t border-gray-200 mt-3 pt-3">
             <div className={`grid gap-1.5 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>

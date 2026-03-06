@@ -10,7 +10,6 @@ import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import ManagerCard from './ManagerCard'
 import ManagerDetailView from './ManagerDetailView'
-
 /**
  * List/grid view for all managers (users with profiles and roles).
  * Supports region-scoped plant filtering, role filtering, name/email
@@ -51,19 +50,16 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         Role: 'roleName'
     }
     const headerRef = useRef(null)
-
     useEffect(() => {
         async function fetchCurrentUser() {
             const user = await UserService.getCurrentUser()
             if (user) setCurrentUserId(user.id)
         }
-
         fetchCurrentUser()
     }, [])
     useEffect(() => {
         fetchAllData()
     }, [])
-
     useEffect(() => {
         if (preferences.managerFilters) {
             setSearchText(preferences.managerFilters.searchText || '')
@@ -72,7 +68,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             setViewMode(preferences.managerFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
     }, [preferences.managerFilters, preferences.defaultViewMode])
-
     useEffect(() => {
         if (preferences.managerFilters?.viewMode !== undefined && preferences.managerFilters?.viewMode !== null)
             setViewMode(preferences.managerFilters.viewMode)
@@ -83,11 +78,9 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences.managerFilters?.viewMode, preferences.defaultViewMode])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             try {
                 const codes = await RegionService.getAllowedPlantCodes(code)
@@ -104,13 +97,11 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                 setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -122,7 +113,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             localStorage.setItem('managers_last_view_mode', mode)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -131,7 +121,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             setSortDirection('asc')
         }
     }
-
     async function fetchAllData() {
         setIsLoading(true)
         try {
@@ -141,7 +130,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             setIsLoading(false)
         }
     }
-
     /** Fetches all users with profiles/roles; falls back to a 1-hour localStorage cache on failure. */
     async function fetchManagers() {
         try {
@@ -156,14 +144,12 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                 setManagers(JSON.parse(cachedData))
         }
     }
-
     async function fetchPlants() {
         try {
             const data = await PlantService.fetchPlants()
             setPlants(data)
         } catch {}
     }
-
     async function fetchRoles() {
         try {
             const data = await UserService.getAllRoles()
@@ -172,7 +158,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             setAvailableRoles([])
         }
     }
-
     // Default sort: highest role weight first, then alphabetically by last/first name.
     const filteredManagers = managers
         .filter((manager) => {
@@ -216,7 +201,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                 return 0
             }
         })
-
     const getPlantName = (plantCode) => {
         const plant = plants.find((p) => p.plantCode === plantCode)
         return plant ? plant.plantName : plantCode || 'No Plant'
@@ -225,7 +209,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         setSelectedManager(manager)
         onSelectManager ? onSelectManager(manager.id) : setShowDetailView(true)
     }
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -233,18 +216,14 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             const root = document.querySelector('.dashboard-container.managers-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchText, selectedPlant, roleFilter])
-
     const statusOptions = ['All Roles', ...availableRoles.map((r) => r.name)]
     const statusFilterValue = roleFilter ? roleFilter : 'All Roles'
     const showReset = searchText || selectedPlant || roleFilter
-
     const isOfficeRegion = preferences.selectedRegion?.type === 'Office'
-
     return (
         <>
             <div
@@ -443,5 +422,4 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         </>
     )
 }
-
 export default ManagersView

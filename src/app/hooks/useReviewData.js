@@ -4,7 +4,6 @@ import { supabase } from '../../services/DatabaseService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
-
 /**
  * Loads data for the report review view: form state, maintenance items, operator options,
  * owner name, submission metadata, and manager-edit permissions.
@@ -23,19 +22,16 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
     const [operatorExclusionReason, setOperatorExclusionReason] = useState('')
     const [loadingPlants, setLoadingPlants] = useState(true)
     const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
-
     const plantCode = useMemo(() => {
         if (form.plant) return form.plant
         if (Array.isArray(form.rows) && form.rows.length > 0) return form.rows[0].plant_code || ''
         return ''
     }, [form.plant, form.rows])
-
     const isSubmitted = !!initialData?.completed
     const weekIso = report.weekIso || initialData?.week
     const weekVerbose = ReportUtility.getWeekVerbose(weekIso)
     const reportDateVerbose = form.report_date ? ReportUtility.formatVerboseDate(form.report_date) : ''
     const formPlant = form?.plant
-
     useEffect(() => {
         let mounted = true
         async function fetchHoursReceived() {
@@ -44,15 +40,12 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                 setHoursReceivedFromOtherPlants(0)
                 return
             }
-
             try {
                 const weekStart = report.weekIso.split('T')[0]
                 const [year, month, day] = weekStart.split('-').map(Number)
                 const normalizedWeekStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
                 const { data: allReports, error } = await supabase
                     .from('reports')
                     .select('*')
@@ -60,19 +53,16 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                     .eq('completed', true)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
-
                 if (error || !mounted) {
                     if (mounted) setHoursReceivedFromOtherPlants(0)
                     return
                 }
-
                 let totalReceived = 0
                 if (allReports && Array.isArray(allReports)) {
                     allReports.forEach((otherReport) => {
                         const rawWeekStr = otherReport.week.split('T')[0]
                         const [wy, wm, wd] = rawWeekStr.split('-').map(Number)
                         const reportWeekStr = `${wy}-${String(wm).padStart(2, '0')}-${String(wd).padStart(2, '0')}`
-
                         if (reportWeekStr === normalizedWeekStr) {
                             const helpEntries = otherReport.data?.operators_sent_to_help || []
                             if (Array.isArray(helpEntries)) {
@@ -88,19 +78,16 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                         }
                     })
                 }
-
                 if (mounted) setHoursReceivedFromOtherPlants(totalReceived)
             } catch {
                 if (mounted) setHoursReceivedFromOtherPlants(0)
             }
         }
-
         fetchHoursReceived()
         return () => {
             mounted = false
         }
     }, [report.name, report.weekIso, assignedPlant, formPlant])
-
     useEffect(() => {
         if (report.name === 'plant_production' && operatorOptions.length > 0) {
             const rows = Array.isArray(form.rows) ? form.rows : []
@@ -113,7 +100,6 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             setOperatorExclusionReason('')
         }
     }, [report.name, form.rows, form.operator_exclusion_reason, operatorOptions])
-
     useEffect(() => {
         async function fetchOwnerName() {
             const ownerId = completedByUser?.id || initialData?.user_id || report?.userId || user?.id
@@ -127,10 +113,8 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                     : (await UserService.getUserDisplayName(ownerId)) || ownerId.slice(0, 8)
             setOwnerName(name)
         }
-
         fetchOwnerName()
     }, [report, user, initialData, completedByUser])
-
     useEffect(() => {
         async function fetchMaintenanceItems() {
             if (!weekIso) {
@@ -140,14 +124,11 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             const items = await ReportService.fetchMaintenanceItems(weekIso)
             setMaintenanceItems(items)
         }
-
         fetchMaintenanceItems()
     }, [weekIso])
-
     useEffect(() => {
         setSubmittedAt(initialData?.submitted_at ? ReportUtility.formatDateTime(initialData.submitted_at) : '')
     }, [initialData])
-
     useEffect(() => {
         if (initialData?.data) {
             setForm(initialData.data)
@@ -155,7 +136,6 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             setForm(initialData)
         }
     }, [initialData])
-
     useEffect(() => {
         async function fetchOperatorOptions() {
             if (report.name !== 'plant_production') {
@@ -169,10 +149,8 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             const options = await ReportService.fetchOperatorOptions(plantCode)
             setOperatorOptions(options)
         }
-
         fetchOperatorOptions()
     }, [report.name, plantCode])
-
     useEffect(() => {
         async function fetchAssignedPlant() {
             if (
@@ -186,10 +164,8 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                 setAssignedPlant(plant || '')
             }
         }
-
         fetchAssignedPlant()
     }, [report.name, completedByUser])
-
     useEffect(() => {
         async function checkPermissionAndRoleWeight() {
             if (user && user.id) {
@@ -212,10 +188,8 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                 setShowManagerEditButton(false)
             }
         }
-
         checkPermissionAndRoleWeight()
     }, [user, completedByUser, initialData, report])
-
     useEffect(() => {
         async function fetchPlants() {
             setLoadingPlants(true)
@@ -233,13 +207,10 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             }
             setLoadingPlants(false)
         }
-
         fetchPlants()
     }, [report.name, user?.id])
-
     const { yph, yphGrade, yphLabel, lost, lostGrade, lostLabel } = useMemo(() => {
         const { lost, lostGrade, lostLabel } = ReportService.getYardageMetrics(form)
-
         if (report.name === 'plant_manager') {
             const metrics = ReportUtility.getFullYphMetrics(form, hoursReceivedFromOtherPlants)
             return {
@@ -262,7 +233,6 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
             }
         }
     }, [form, report.name, hoursReceivedFromOtherPlants])
-
     return {
         assignedPlant,
         form,

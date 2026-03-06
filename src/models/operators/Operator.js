@@ -1,5 +1,4 @@
 import UserUtility from '../../utils/UserUtility'
-
 /**
  * Operator domain model. Handles dual snake_case/camelCase field resolution,
  * UUID-based employee IDs, trainer assignments, and API serialization
@@ -20,7 +19,6 @@ export class Operator {
         this.pendingStartDate = data.pending_start_date ?? data.pendingStartDate ?? null
         this.phone = data.phone ?? data.phone ?? null
     }
-
     static fromApiFormat(data) {
         if (!data) return null
         return new Operator({
@@ -39,11 +37,9 @@ export class Operator {
             updated_at: data.updated_at ?? data.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         })
     }
-
     static fromRow(row) {
         return this.fromApiFormat(row)
     }
-
     toApiFormat() {
         if (!UserUtility.isValidUUID(this.employeeId)) {
             throw new Error('Invalid employee_id: Must be a valid UUID')

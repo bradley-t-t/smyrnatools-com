@@ -1,6 +1,5 @@
 import { DateUtility } from '../../utils/DateUtility'
 import { TractorUtility } from '../../utils/TractorUtility'
-
 /**
  * Tractor domain model. Maps snake_case API data to camelCase properties,
  * provides serialization (toApiFormat), status/operator mutations,
@@ -29,21 +28,17 @@ export class Tractor {
         this.openIssuesCount = data.openIssuesCount ?? 0
         this.commentsCount = data.commentsCount ?? 0
     }
-
     static fromApiFormat(data) {
         if (!data) return null
         return new Tractor(data)
     }
-
     static fromRow(row) {
         return this.fromApiFormat(row)
     }
-
     static ensureInstance(obj) {
         if (obj instanceof Tractor) return obj
         return Tractor.fromApiFormat(obj)
     }
-
     toApiFormat() {
         const apiObject = {
             assigned_operator: this.assignedOperator || null,
@@ -63,24 +58,19 @@ export class Tractor {
             vin: (this.vin || '').toUpperCase(),
             year: this.year
         }
-
         if (this.id) apiObject.id = this.id
         return apiObject
     }
-
     toRow() {
         return this.toApiFormat()
     }
-
     getDaysSinceService() {
         if (!this.lastServiceDate) return null
         return Math.ceil((new Date() - new Date(this.lastServiceDate)) / 86400000)
     }
-
     getStatus() {
         return this.status || 'Unknown'
     }
-
     setStatus(newStatus) {
         if (!newStatus) return this
         this.status = newStatus
@@ -89,7 +79,6 @@ export class Tractor {
         }
         return this
     }
-
     assignOperator(operatorId) {
         this.assignedOperator = operatorId || null
         if (this.assignedOperator && this.status !== 'Active') {
@@ -97,11 +86,9 @@ export class Tractor {
         }
         return this
     }
-
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
-
     isVerified(latestHistoryDate) {
         return TractorUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
     }

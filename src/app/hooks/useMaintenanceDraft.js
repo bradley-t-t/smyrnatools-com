@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { MaintenanceService } from '../../services/MaintenanceService'
 import { buildResponseData } from '../../utils/MaintenanceUtility'
-
 /**
  * Manages maintenance form draft auto-saving to both localStorage and the database.
  * Saves drafts every 30 seconds while in progress and restores on remount.
@@ -23,19 +22,15 @@ export function useMaintenanceDraft({
     const autoSaveTimerRef = useRef(null)
     const pendingSaveRef = useRef(false)
     const savingRef = useRef(false)
-
     const storageKey = formId && dueDate ? `maintenance_draft_${formId}_${dueDate}_${plantCode || 'default'}` : null
-
     const saveDraftToStorage = useCallback(() => {
         if (!storageKey || isReadOnly) return
-
         const savedImages = {}
         Object.entries(fieldImages).forEach(([fieldId, imgData]) => {
             if (imgData?.uploadedUrl) {
                 savedImages[fieldId] = { uploaded: true, uploadedUrl: imgData.uploadedUrl }
             }
         })
-
         try {
             localStorage.setItem(
                 storageKey,
@@ -50,7 +45,6 @@ export function useMaintenanceDraft({
             )
         } catch (_) {}
     }, [storageKey, isReadOnly, fieldImages, checklistComments, checklistStates, currentStep, responses])
-
     const loadDraft = useCallback(() => {
         if (!storageKey) return null
         try {
@@ -60,20 +54,16 @@ export function useMaintenanceDraft({
             return null
         }
     }, [storageKey])
-
     const clearDraft = useCallback(() => {
         if (!storageKey) return
         try {
             localStorage.removeItem(storageKey)
         } catch (_) {}
     }, [storageKey])
-
     const saveToDatabase = useCallback(async () => {
         if (!formId || !dueDate || isReadOnly || fields.length === 0) return
-
         pendingSaveRef.current = false
         savingRef.current = true
-
         try {
             const responseData = buildResponseData(fields, responses, checklistStates, checklistComments, fieldImages)
             const newId = await MaintenanceService.saveDraftProgress(
@@ -104,26 +94,20 @@ export function useMaintenanceDraft({
         fieldImages,
         draftSubmissionId
     ])
-
     const triggerAutoSave = useCallback(() => {
         if (isReadOnly) return
-
         if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
-
         if (savingRef.current) {
             pendingSaveRef.current = true
             return
         }
-
         autoSaveTimerRef.current = setTimeout(() => saveToDatabase(), 1000)
     }, [isReadOnly, saveToDatabase])
-
     useEffect(() => {
         return () => {
             if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
         }
     }, [])
-
     return {
         clearDraft,
         draftSubmissionId,

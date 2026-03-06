@@ -1,5 +1,4 @@
 import { DateUtility } from './DateUtility'
-
 const HistoryUtility = {
     areEquivalent(fieldName, oldValue, newValue) {
         const toIsoDay = (date) => date.toISOString().split('T')[0]
@@ -107,6 +106,5 @@ const HistoryUtility = {
         }, [])
     }
 }
-
 export default HistoryUtility
 export { HistoryUtility }

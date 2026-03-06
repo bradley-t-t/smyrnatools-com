@@ -10,9 +10,7 @@ import {
     resolveUserIdOrAnonymous
 } from '../utils/BaseAssetUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
-
 const SERVICE_PREFIX = '/trailer-service'
-
 /**
  * Trailer CRUD, comments, issues, history, and search service.
  * Uses a plain object pattern (vs class) and delegates shared operations to BaseAssetUtility.
@@ -34,7 +32,6 @@ const TrailerService = {
         )
         return json?.data ?? null
     },
-
     /** Reports a new maintenance issue with severity classification. */
     async addIssue(trailerId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
@@ -51,13 +48,11 @@ const TrailerService = {
         )
         return json?.data ?? null
     },
-
     /** Marks an issue as completed/resolved. */
     async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     },
-
     /** Records a field-level change in the trailer history audit trail. */
     async createHistoryEntry(trailerId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(trailerId, 'Trailer ID is required')
@@ -76,52 +71,38 @@ const TrailerService = {
         )
         return json?.data
     },
-
     /** Creates a new trailer record. */
     async createTrailer(trailer, userId) {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { trailer, userId }, 'Failed to create trailer')
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     },
-
     async deleteComment(commentId) {
         ValidationUtility.requireUUID(commentId, `Invalid comment ID format: ${commentId}`)
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     },
-
     async deleteIssue(issueId) {
         ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     },
-
     async deleteTrailer(id) {
         ValidationUtility.requireUUID(id, `Invalid trailer ID format: ${id}`)
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete trailer')
     },
-
     async fetchAllCommentsCounts(trailerIds) {
         return fetchAllCountsFromTable('trailers_comments', 'trailer_id', trailerIds)
     },
-
     async fetchAllIssuesCounts(trailerIds) {
         return fetchAllOpenIssueCountsFromTable('trailers_maintenance', 'trailer_id', trailerIds)
     },
-
     async fetchComments(trailerId) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { trailerId }, 'Failed to fetch comments')
         return json?.data ?? []
     },
-
     async fetchIssues(trailerId) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { trailerId }, 'Failed to fetch issues')
         return json?.data ?? []
-    },
-
-    /** Fetches all trailers from the API. */
-    async fetchTrailers() {
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch trailers')
-        return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
 
     /** Fetches a single trailer by ID, handling both string and object ID arguments. */
@@ -133,6 +114,11 @@ const TrailerService = {
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     },
 
+    /** Fetches all trailers from the API. */
+    async fetchTrailers() {
+        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch trailers')
+        return (json?.data ?? []).map(Trailer.fromApiFormat)
+    },
     /**
      * Fetches all trailers with enriched details (comments count, issues count, status history).
      * Optionally filtered by region codes.
@@ -145,12 +131,10 @@ const TrailerService = {
             regionCodes
         })
     },
-
     async getActiveTrailers() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active trailers')
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
-
     async getCleanlinessHistory(trailerId = null, months = 6) {
         const payload = {}
         if (trailerId) {
@@ -165,7 +149,6 @@ const TrailerService = {
         )
         return json?.data ?? []
     },
-
     async getTrailerHistory(trailerId, limit = null) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
         const payload = { trailerId }
@@ -173,7 +156,6 @@ const TrailerService = {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-history`, payload, 'Failed to fetch trailer history')
         return json?.data ?? []
     },
-
     async getTrailersByStatus(status) {
         if (!status) throw new Error('Status is required')
         const json = await apiPostOrThrow(
@@ -183,7 +165,6 @@ const TrailerService = {
         )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
-
     async searchTrailersByTrailerNumber(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -193,7 +174,6 @@ const TrailerService = {
         )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
-
     async searchTrailersByVin(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -203,7 +183,6 @@ const TrailerService = {
         )
         return (json?.data ?? []).map(Trailer.fromApiFormat)
     },
-
     /** Searches trailers by VIN with defaults for missing count properties. */
     async searchTrailersByVinProcessed(query) {
         const vinTrailers = await this.searchTrailersByVin(query)
@@ -213,7 +192,6 @@ const TrailerService = {
             return t
         })
     },
-
     /** Updates a trailer record, ensuring proper model instantiation. */
     async updateTrailer(trailerId, updatedTrailer, userId, _oldTrailer) {
         const id = resolveEntityId(trailerId)
@@ -227,6 +205,5 @@ const TrailerService = {
         return json?.data ? Trailer.fromApiFormat(json.data) : null
     }
 }
-
 export { TrailerService }
 export default TrailerService

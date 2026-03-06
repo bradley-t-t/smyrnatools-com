@@ -1,6 +1,5 @@
 import { DateUtility } from '../../utils/DateUtility'
 import MixerUtility from '../../utils/MixerUtility'
-
 /**
  * Mixer domain model. Maps snake_case API data to camelCase properties,
  * provides serialization (toApiFormat), status/operator mutations,
@@ -30,21 +29,17 @@ export class Mixer {
         this.commentsCount = data.commentsCount ?? 0
         this.statusChangedAt = data.status_changed_at ?? data.statusChangedAt ?? null
     }
-
     static fromApiFormat(data) {
         if (!data) return null
         return new Mixer(data)
     }
-
     static fromRow(row) {
         return this.fromApiFormat(row)
     }
-
     static ensureInstance(obj) {
         if (obj instanceof Mixer) return obj
         return Mixer.fromApiFormat(obj)
     }
-
     toApiFormat() {
         const apiObject = {
             assigned_operator: this.assignedOperator || null,
@@ -64,29 +59,23 @@ export class Mixer {
             vin: (this.vin || '').toUpperCase(),
             year: this.year
         }
-
         if (this.id) apiObject.id = this.id
         return apiObject
     }
-
     toRow() {
         return this.toApiFormat()
     }
-
     getDaysSinceService() {
         if (!this.lastServiceDate) return null
         return Math.ceil((new Date() - new Date(this.lastServiceDate)) / 86400000)
     }
-
     getDaysSinceChip() {
         if (!this.lastChipDate) return null
         return Math.ceil((new Date() - new Date(this.lastChipDate)) / 86400000)
     }
-
     getStatus() {
         return this.status || 'Unknown'
     }
-
     setStatus(newStatus) {
         if (!newStatus) return this
         this.status = newStatus
@@ -95,7 +84,6 @@ export class Mixer {
         }
         return this
     }
-
     assignOperator(operatorId) {
         this.assignedOperator = operatorId || null
         if (this.assignedOperator && this.status !== 'Active') {
@@ -103,19 +91,15 @@ export class Mixer {
         }
         return this
     }
-
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
-
     getFormattedChipDate() {
         return this.lastChipDate ? new Date(this.lastChipDate).toLocaleDateString() : 'Not available'
     }
-
     isVerified(latestHistoryDate) {
         return MixerUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
     }
-
     verify(userId) {
         const now = new Date().toISOString()
         this.updatedLast = now

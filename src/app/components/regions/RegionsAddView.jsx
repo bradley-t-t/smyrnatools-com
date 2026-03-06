@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 
 import { RegionService } from '../../../services/RegionService'
 import AddViewSection from '../sections/AddViewSection'
-
 /**
  * Modal form for creating a new region with code, name, and type fields.
  * Validates required fields and handles duplicate key errors gracefully.
@@ -16,7 +15,6 @@ function RegionsAddView({ onClose, onRegionAdded }) {
     const [regionType, setRegionType] = useState('')
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState('')
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
@@ -54,7 +52,6 @@ function RegionsAddView({ onClose, onRegionAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <AddViewSection title="Add New Region" onClose={onClose} error={error}>
             <form onSubmit={handleSubmit} autoComplete="off">
@@ -116,5 +113,4 @@ function RegionsAddView({ onClose, onRegionAdded }) {
         </AddViewSection>
     )
 }
-
 export default RegionsAddView

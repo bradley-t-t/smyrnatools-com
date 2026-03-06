@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Fixed bottom-right toast notifying the user that a newer version is available.
  * @param {Object} props
@@ -34,5 +33,4 @@ function VersionUpdateBanner({ onDismiss }) {
         </div>
     )
 }
-
 export default VersionUpdateBanner

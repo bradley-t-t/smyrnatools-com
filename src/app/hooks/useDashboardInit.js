@@ -5,7 +5,6 @@ import { RegionService } from '../../services/RegionService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { DASHBOARD_REFRESH_INTERVAL_MS } from '../constants/dashboardConstants'
-
 /**
  * Initializes the dashboard: resolves user permissions, loads permitted regions and plants,
  * sets up auto-refresh intervals, and determines the active region/plant scope.
@@ -30,13 +29,10 @@ export function useDashboardInit({ plantSetRef, preferences }) {
     const [userRoleName, setUserRoleName] = useState('')
     const [userPlantCode, setUserPlantCode] = useState('')
     const [refreshing, setRefreshing] = useState(false)
-
     const initialLoadRef = useRef(true)
-
     useEffect(() => {
         let cancelled = false
         let intervalId
-
         async function initBase() {
             if (!initialLoadRef.current) return
             try {
@@ -44,20 +40,17 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 if (cancelled) return
                 setAllPlantsCount(Array.isArray(fetchedPlants) ? fetchedPlants.length : 0)
                 setAllPlants(fetchedPlants)
-
                 const { data: sessionData } = await supabase.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 const allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
                 if (cancelled) return
                 setHasAllRegionsPermission(!!allPerm)
-
                 const allFetched = await RegionService.fetchRegions().catch(() => [])
                 let regionsList = await UserService.getPermittedRegions(uid).catch(() => [])
                 if (!regionsList?.length && allFetched.length) regionsList = allFetched
                 if (cancelled) return
                 setPermittedRegions(regionsList)
                 setTotalRegionsExcludingOffice(allFetched.filter((r) => r.type !== 'Office').length)
-
                 const aggregateRegions = allFetched.filter((r) => r.type === 'Aggregate')
                 const aggregatePlantsArrays = await Promise.all(
                     aggregateRegions.map((r) => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
@@ -65,7 +58,6 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 const totalAggLocs = aggregatePlantsArrays.flat().length
                 setTotalAggregateLocations(totalAggLocs)
                 setTotalPlantsExcludingAggregate(fetchedPlants.length - totalAggLocs)
-
                 const selectedCode = preferences.selectedRegion?.code
                 if (selectedCode) {
                     setDashboardRegionCode(selectedCode)
@@ -79,7 +71,6 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 if (!cancelled) initialLoadRef.current = false
             }
         }
-
         initBase()
         intervalId = setInterval(() => setRefreshKey((v) => v + 1), DASHBOARD_REFRESH_INTERVAL_MS)
         return () => {
@@ -87,7 +78,6 @@ export function useDashboardInit({ plantSetRef, preferences }) {
             if (intervalId) clearInterval(intervalId)
         }
     }, [preferences.selectedRegion])
-
     useEffect(() => {
         if (preferences.selectedRegion?.code) {
             setDashboardRegionCode((prev) => {
@@ -100,7 +90,6 @@ export function useDashboardInit({ plantSetRef, preferences }) {
             })
         }
     }, [preferences.selectedRegion])
-
     useEffect(() => {
         let cancelled = false
         async function fetchPlants() {
@@ -125,7 +114,6 @@ export function useDashboardInit({ plantSetRef, preferences }) {
             cancelled = true
         }
     }, [dashboardRegionCode])
-
     useEffect(() => {
         let cancelled = false
         async function checkPlantManagerRole() {
@@ -133,21 +121,18 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 const { data: sessionData } = await supabase.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 if (!uid || cancelled) return
-
                 const [roles, weight, profileData, highestRole] = await Promise.all([
                     UserService.getUserRoles(uid),
                     UserService.getUserWeight(uid),
                     supabase.from('users_profiles').select('plant_code').eq('id', uid).maybeSingle(),
                     UserService.getHighestRole(uid).catch(() => null)
                 ])
-
                 const isPM = roles?.some(
                     (r) =>
                         r?.name?.toLowerCase().includes('plant manager') ||
                         r?.name?.toLowerCase().includes('pm') ||
                         r?.name?.toLowerCase() === 'plant_manager'
                 )
-
                 if (!cancelled) {
                     setIsPlantManager(isPM)
                     setUserRoleWeight(weight || 0)
@@ -172,13 +157,11 @@ export function useDashboardInit({ plantSetRef, preferences }) {
             cancelled = true
         }
     }, [plantSetRef])
-
     const onRefresh = useCallback(() => {
         setRefreshing(true)
         setRefreshKey((prev) => prev + 1)
         setTimeout(() => setRefreshing(false), 1000)
     }, [])
-
     return {
         allPlants,
         allPlantsCount,

@@ -3,9 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { StatsBar } from './shared'
-
 const getRows = (form) => (Array.isArray(form.rows) ? form.rows : [])
-
 const STAT_ITEMS = [
     { format: (v) => v, key: 'totalLoads', label: 'Total Loads' },
     { format: (v) => v?.toFixed(2) ?? '--', key: 'totalHours', label: 'Total Hours' },
@@ -23,7 +21,6 @@ const STAT_ITEMS = [
         label: 'Avg Washout -> Punch Out'
     }
 ]
-
 function WarningsBar({ messages }) {
     if (!messages?.length) return null
     return (
@@ -40,17 +37,14 @@ function WarningsBar({ messages }) {
         </div>
     )
 }
-
 function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpandAll, onCollapseAll }) {
     const toggleSort = (key) => setSort(key, sortKey === key && sortDir === 'asc' ? 'desc' : 'asc')
-
     const sortButtons = [
         { key: 'operator', label: 'Name' },
         { key: 'loads', label: 'Loads' },
         { key: 'hours', label: 'Hours' },
         { key: 'lph', label: 'L/H' }
     ]
-
     return (
         <div className="flex flex-wrap items-center gap-3 mb-4 rounded-lg border border-gray-200 bg-slate-50 p-4">
             <input
@@ -89,7 +83,6 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
         </div>
     )
 }
-
 function ValidationAlert({ show }) {
     if (!show) return null
     return (
@@ -118,15 +111,12 @@ function ValidationAlert({ show }) {
         </div>
     )
 }
-
 const TH_BASE =
     'whitespace-nowrap border-b border-gray-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500'
 const TD_BASE = 'border-b border-slate-100 px-4 py-3 align-middle text-[0.9375rem] text-slate-800'
-
 function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expandAllSeq, collapseAllSeq }) {
     const [expanded, setExpanded] = useState(new Set())
     const minutes = (timeStr) => ReportUtility.parseTimeToMinutes(timeStr)
-
     const processed = useMemo(() => {
         const lower = (filterText || '').toLowerCase().trim()
         const filtered = rows.filter((r) => {
@@ -135,7 +125,6 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
             const truck = String(r.truck_number || '').toLowerCase()
             return name.includes(lower) || truck.includes(lower)
         })
-
         return filtered
             .map((r, idx) => {
                 const start = minutes(r.start_time)
@@ -163,24 +152,19 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                 return 0
             })
     }, [rows, operatorOptions, sortKey, sortDir, filterText])
-
     useEffect(() => {
         if (expandAllSeq) setExpanded(new Set(processed.map((p) => p.key)))
     }, [expandAllSeq, processed])
-
     useEffect(() => {
         if (collapseAllSeq) setExpanded(new Set())
     }, [collapseAllSeq])
-
     const toggleExpand = (key) =>
         setExpanded((prev) => {
             const next = new Set(prev)
             next.has(key) ? next.delete(key) : next.add(key)
             return next
         })
-
     const headers = ['Operator', 'Truck #', 'Punch In -> 1st Load', 'Washout -> Punch Out', 'L/H', '']
-
     return (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
             <table className="w-full min-w-[700px] border-collapse">
@@ -202,7 +186,6 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
                         const needsComment = warnStart || warnEnd || lowLoads || longHours
                         const hasComment = r.comments?.trim()
                         const isOpen = expanded.has(key)
-
                         return (
                             <React.Fragment key={key}>
                                 <tr className="transition-colors hover:bg-slate-50">
@@ -299,28 +282,23 @@ function DetailTable({ rows, operatorOptions, sortKey, sortDir, filterText, expa
         </div>
     )
 }
-
 function EfficiencyPluginBody({ form, operatorOptions }) {
     const [filterText, setFilterText] = useState('')
     const [sortKey, setSortKey] = useState('')
     const [sortDir, setSortDir] = useState('asc')
     const [expandAllSeq, setExpandAllSeq] = useState(0)
     const [collapseAllSeq, setCollapseAllSeq] = useState(0)
-
     const rows = getRows(form)
     const insights = ReportService.getPlantProductionInsights(rows)
     const setSort = (k, d) => {
         setSortKey(k)
         setSortDir(d)
     }
-
     if (!rows.length) return null
-
     const statsItems = STAT_ITEMS.map(({ key, label, format }) => ({
         label,
         value: format(insights[key])
     }))
-
     return (
         <>
             <div className="mt-5">
@@ -348,12 +326,10 @@ function EfficiencyPluginBody({ form, operatorOptions }) {
         </>
     )
 }
-
 /** Submit-mode wrapper for the Plant Production (Efficiency) report plugin. */
 export function EfficiencySubmitPlugin({ form, operatorOptions }) {
     return <EfficiencyPluginBody form={form} operatorOptions={operatorOptions} />
 }
-
 /** Review-mode wrapper for the Plant Production (Efficiency) report plugin (read-only). */
 export function EfficiencyReviewPlugin({ form, operatorOptions }) {
     return <EfficiencyPluginBody form={form} operatorOptions={operatorOptions} />

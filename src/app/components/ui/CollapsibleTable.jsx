@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Expandable/collapsible table with a toggle header.
  * Shows "None" placeholder when rows are empty and expanded.

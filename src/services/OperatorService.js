@@ -13,9 +13,7 @@ import UserUtility from '../utils/UserUtility'
 import { supabase } from './DatabaseService'
 import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
-
 const SERVICE_PREFIX = '/operator-service'
-
 /**
  * Operator CRUD, history, comments, and assignment management service.
  * Handles plant-based operator queries, trainer management, and cross-references
@@ -26,19 +24,16 @@ class OperatorServiceImpl {
     async fetchAllCommentsCounts(operatorIds) {
         return fetchAllCountsFromTable('operators_comments', 'operator_id', operatorIds)
     }
-
     /** Fetches all operator records from the API. */
     async getAllOperators() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list`, {}, 'Failed to fetch operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
-
     /** Fetches only active-status operators. */
     async fetchActiveOperators() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-active`, {}, 'Failed to fetch active operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
-
     /** Fetches operators assigned to a specific plant. */
     async fetchOperatorsByPlant(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
@@ -49,13 +44,11 @@ class OperatorServiceImpl {
         )
         return (json?.data ?? []).map((op) => new Operator(op))
     }
-
     /** Fetches operators with tractor-driver position type. */
     async fetchTractorOperators() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-tractor`, {}, 'Failed to fetch tractor operators')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
-
     /** Fetches a single operator by employee ID, returning null if not found. */
     async getOperatorByEmployeeId(employeeId) {
         if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
@@ -66,7 +59,6 @@ class OperatorServiceImpl {
         data.smyrna_id = data.smyrna_id ?? ''
         return new Operator(data)
     }
-
     /** Creates a new operator, auto-generating an employee ID if not valid. */
     async createOperator(operator) {
         const op = operator instanceof Operator ? operator : new Operator(operator)
@@ -78,7 +70,6 @@ class OperatorServiceImpl {
         )
         return new Operator(json?.data)
     }
-
     /**
      * Updates an operator record. When the plant changes, automatically unassigns
      * the operator from all active mixers and tractors at the old plant.
@@ -89,7 +80,6 @@ class OperatorServiceImpl {
         const op = operator instanceof Operator ? operator : new Operator(operator)
         const update = op.toApiFormat()
         delete update.created_at
-
         const currentOperator = await this.getOperatorByEmployeeId(operator.employeeId)
         if (currentOperator?.plantCode !== op.plantCode) {
             const assignedMixers = await MixerService.getMixersByOperator(operator.employeeId)
@@ -109,23 +99,19 @@ class OperatorServiceImpl {
                 }
             }
         }
-
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/update`, { operator: update }, 'Failed to update operator')
         return new Operator(json?.data)
     }
-
     /** Deletes an operator by employee ID. */
     async deleteOperator(employeeId) {
         if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { employeeId }, 'Operator was not deleted')
     }
-
     /** Fetches all operators marked as trainers. */
     async getAllTrainers() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/list-trainers`, {}, 'Failed to fetch trainers')
         return (json?.data ?? []).map((op) => new Operator(op))
     }
-
     /**
      * Fetches operators directly from Supabase with status change history enrichment.
      * Optionally filtered by region codes for scoped views.
@@ -134,10 +120,8 @@ class OperatorServiceImpl {
         try {
             const { data, error } = await supabase.from('operators').select('*')
             if (error) throw error
-
             const operatorIds = (data || []).map((op) => op.employee_id).filter(Boolean)
             const statusHistoryMap = await fetchStatusHistoryMap('operators_history', 'operator_id', operatorIds)
-
             const formattedOperators = data.map((op) => {
                 const rawPending = op.pending_start_date || ''
                 const normalizedPending =
@@ -158,13 +142,11 @@ class OperatorServiceImpl {
                     statusChangedAt: statusHistoryMap[op.employee_id] || op.created_at || null
                 }
             })
-
             return filterByRegionCodes(formattedOperators, regionCodes, 'plantCode')
         } catch {
             return []
         }
     }
-
     /** Fetches all plants from the database. */
     async fetchPlants() {
         try {
@@ -175,7 +157,6 @@ class OperatorServiceImpl {
             return []
         }
     }
-
     /** Fetches trainer-eligible operators (employee ID + name). */
     async fetchTrainers() {
         try {
@@ -186,7 +167,6 @@ class OperatorServiceImpl {
             return []
         }
     }
-
     /** Fetches operators enriched with availability status based on active mixer assignments. */
     async fetchOperatorsWithAvailability(mixers = []) {
         const operators = await this.fetchOperators()
@@ -197,13 +177,11 @@ class OperatorServiceImpl {
                 !mixers.some((mixer) => mixer.assignedOperator === operator.employeeId && mixer.status === 'Active')
         }))
     }
-
     /** Checks if an operator is currently assigned to an active mixer. */
     isOperatorAssigned(operatorId, mixers = []) {
         if (!operatorId || operatorId === '0') return false
         return mixers.some((mixer) => mixer.assignedOperator === operatorId && mixer.status === 'Active')
     }
-
     /** Detects duplicate operator names for data quality alerts. */
     getDuplicateNames(operators) {
         return getDuplicateFieldValues(operators, (op) => {
@@ -211,7 +189,6 @@ class OperatorServiceImpl {
             return key || null
         })
     }
-
     /** Fetches change history for a specific operator. */
     async getOperatorHistory(operatorId, limit = null) {
         const payload = { limit, operatorId }
@@ -222,7 +199,6 @@ class OperatorServiceImpl {
         )
         return (json?.data ?? []).map((entry) => new OperatorHistory(entry))
     }
-
     /** Records a field-level change in the operator history audit trail. */
     async createHistoryEntry(operatorId, fieldName, oldValue, newValue, changedBy) {
         const json = await apiPostOrThrow(
@@ -238,7 +214,6 @@ class OperatorServiceImpl {
         )
         return json?.data
     }
-
     async fetchComments(operatorId) {
         if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
         const json = await apiPostOrThrow(
@@ -248,7 +223,6 @@ class OperatorServiceImpl {
         )
         return json?.data ?? []
     }
-
     async addComment(operatorId, text, userId) {
         if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
         if (!text || !text.trim()) throw new Error('Comment text is required')
@@ -264,11 +238,9 @@ class OperatorServiceImpl {
         )
         return json?.data
     }
-
     async deleteComment(commentId) {
         if (!commentId || !UserUtility.isValidUUID(commentId)) throw new Error('Invalid Comment ID')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
 }
-
 export const OperatorService = new OperatorServiceImpl()

@@ -3,7 +3,6 @@
  * to prevent them from cluttering browser dev tools during normal operation.
  */
 const originalConsoleError = console.error
-
 console.error = (...args) => {
     const message = args.join(' ')
     if (
@@ -16,7 +15,6 @@ console.error = (...args) => {
     }
     originalConsoleError.apply(console, args)
 }
-
 window.addEventListener('error', (event) => {
     if (
         event.message &&
@@ -29,7 +27,6 @@ window.addEventListener('error', (event) => {
         return false
     }
 })
-
 window.addEventListener('unhandledrejection', (event) => {
     if (
         event.reason &&
@@ -47,5 +44,4 @@ window.addEventListener('unhandledrejection', (event) => {
         return false
     }
 })
-
 export default {}

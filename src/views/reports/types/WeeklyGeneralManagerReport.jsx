@@ -7,13 +7,11 @@ import { reportTypeMap } from '../../../types/ReportTypes'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { RPT_INPUT, RPT_TEXTAREA, TD_STYLE, TH_STYLE, useReportForWeek } from './shared'
 import { ReadyMixInstructorReviewPlugin } from './WeeklyReadyMixInstructorReport'
-
 const VARIANCE_CLASSES = {
     negative: 'text-red-600 bg-red-100',
     neutral: 'text-slate-500 bg-slate-100',
     positive: 'text-emerald-600 bg-emerald-100'
 }
-
 /* eslint-disable no-undef */
 /** Submit-mode plugin for the General Manager report — collects per-plant metrics (operators, trucks, yardage, hours) with AI summary generation. */
 export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnly, weekIso, userId }) {
@@ -27,21 +25,17 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
     const [aiAnalysis, setAiAnalysis] = React.useState(null)
     const [aiLoading, setAiLoading] = React.useState(false)
     const [aiError, setAiError] = React.useState(false)
-
     React.useEffect(() => {
         let cancelled = false
-
         function sameIsoDay(a, b) {
             return a && b && a.slice(0, 10) === b.slice(0, 10)
         }
-
         function toMondayIso(d) {
             if (!d) return ''
             const dt = new Date(d)
             if (isNaN(dt)) return ''
             return ReportUtility.getMondayISO(dt)
         }
-
         async function loadEff() {
             const codes = Array.isArray(plants) ? plants.map((p) => p.plant_code).filter(Boolean) : []
             if (!weekIso || codes.length === 0) {
@@ -93,13 +87,11 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     .lt('report_date_range_start', qEnd)
                 if (Array.isArray(resp.data)) prod = resp.data
             }
-
             function anchorMatches(r) {
                 const weekField = r.week || r.report_date_range_start || r?.data?.report_date
                 const mondayIso = toMondayIso(weekField)
                 return sameIsoDay(mondayIso, targetMondayIso)
             }
-
             const effRaw = prod.filter(anchorMatches).filter((r) => {
                 const pc = r?.data?.plant
                 if (!pc) return false
@@ -175,16 +167,13 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const pick = aggFiltered.find((a) => a.completed) || aggFiltered[0] || null
             if (!cancelled) setAggReport(pick)
         }
-
         loadEff()
         return () => {
             cancelled = true
         }
     }, [plants, weekIso])
-
     React.useEffect(() => {
         let cancelled = false
-
         async function loadPrevWeekAgg() {
             if (!weekIso) {
                 if (!cancelled) setLastWeekAgg(null)
@@ -239,16 +228,13 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const pick = aggFiltered.find((a) => a.completed) || aggFiltered[0] || null
             if (!cancelled) setLastWeekAgg(pick)
         }
-
         loadPrevWeekAgg()
         return () => {
             cancelled = true
         }
     }, [weekIso])
-
     React.useEffect(() => {
         let cancelled = false
-
         async function loadPrevGM() {
             if (!weekIso) {
                 setLastWeekGM(null)
@@ -299,13 +285,11 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const pick = gm.find((a) => a.completed) || gm[0] || null
             if (!cancelled) setLastWeekGM(pick)
         }
-
         loadPrevGM()
         return () => {
             cancelled = true
         }
     }, [weekIso, userId])
-
     React.useEffect(() => {
         async function fetchRMIReport() {
             if (!weekIso || !plants?.length) {
@@ -313,14 +297,12 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 setRmiLoading(false)
                 return
             }
-
             const targetMondayIso = ReportUtility.getMondayISO(weekIso)
             if (!targetMondayIso) {
                 setRmiReport(null)
                 setRmiLoading(false)
                 return
             }
-
             const targetMondayDate = new Date(targetMondayIso + 'T00:00:00Z')
             const prevSunday = new Date(targetMondayDate)
             prevSunday.setUTCDate(prevSunday.getUTCDate() - 1)
@@ -328,7 +310,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
             const qStart = prevSunday.toISOString()
             const qEnd = windowEnd.toISOString()
-
             try {
                 let { data: reports } = await supabase
                     .from('reports')
@@ -336,15 +317,12 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     .eq('report_name', 'ready_mix_instructor')
                     .gte('week', qStart)
                     .lt('week', qEnd)
-
                 if (!Array.isArray(reports)) reports = []
-
                 const filtered = reports.filter((r) => {
                     const weekField = r.week
                     const mondayIso = weekField ? ReportUtility.getMondayISO(weekField) : ''
                     return mondayIso === targetMondayIso
                 })
-
                 if (filtered.length > 0) {
                     const sorted = filtered.sort((a, b) => {
                         if (a.completed !== b.completed) return b.completed ? 1 : -1
@@ -360,20 +338,15 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 setRmiLoading(false)
             }
         }
-
         fetchRMIReport()
     }, [weekIso, plants])
-
     React.useEffect(() => {
         let cancelled = false
-
         async function generateAnalysis() {
             if (!plants.length || !weekIso) return
             if (aiAnalysis) return
-
             setAiLoading(true)
             setAiError(false)
-
             try {
                 const plantSummaries = plants.map((p) => {
                     const code = p.plant_code
@@ -396,7 +369,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                         yardage: form[`total_yardage_${code}`]
                     }
                 })
-
                 const efficiencyData = effReports.map((r) => {
                     const insights = ReportService.getPlantProductionInsights(r.rows || [])
                     return {
@@ -406,7 +378,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                         totalLoads: insights.totalLoads
                     }
                 })
-
                 const reportContext = {
                     aggregateData: aggReport?.data || null,
                     efficiencyReports: efficiencyData,
@@ -415,9 +386,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     rmiReport: rmiReport,
                     weekIso
                 }
-
                 const analysis = await AIService.generateGMReportAnalysis(reportContext)
-
                 if (!cancelled) {
                     if (analysis) {
                         setAiAnalysis(analysis)
@@ -432,22 +401,18 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 if (!cancelled) setAiLoading(false)
             }
         }
-
         const hasData = Object.keys(form).some((k) => form[k] !== undefined && form[k] !== '')
         if (hasData && !rmiLoading) {
             generateAnalysis()
         }
-
         return () => {
             cancelled = true
         }
     }, [plants, weekIso, form, effReports, aggReport, rmiReport, rmiLoading, aiAnalysis])
-
     const handleRegenerateAI = React.useCallback(async () => {
         setAiAnalysis(null)
         setAiLoading(true)
         setAiError(false)
-
         try {
             const plantSummaries = plants.map((p) => {
                 const code = p.plant_code
@@ -470,7 +435,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     yardage: form[`total_yardage_${code}`]
                 }
             })
-
             const efficiencyData = effReports.map((r) => {
                 const insights = ReportService.getPlantProductionInsights(r.rows || [])
                 return {
@@ -480,7 +444,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     totalLoads: insights.totalLoads
                 }
             })
-
             const reportContext = {
                 aggregateData: aggReport?.data || null,
                 efficiencyReports: efficiencyData,
@@ -489,7 +452,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 rmiReport: rmiReport,
                 weekIso
             }
-
             const analysis = await AIService.generateGMReportAnalysis(reportContext)
             if (analysis) {
                 setAiAnalysis(analysis)
@@ -503,7 +465,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             setAiLoading(false)
         }
     }, [plants, weekIso, form, effReports, aggReport, rmiReport])
-
     function getLastWeekValue(field) {
         const data = lastWeekGM?.data
         if (!data) return ''
@@ -535,7 +496,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         }
         return ''
     }
-
     function formatVariancePercent(field) {
         const lastRaw = getLastWeekValue(field)
         const currRaw = form[field]
@@ -548,7 +508,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         if (rounded === 0) return '0%'
         return `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}%`
     }
-
     function getVarianceClass(v) {
         const n = parseFloat(v)
         if (!isFinite(n)) return VARIANCE_CLASSES.neutral
@@ -556,7 +515,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         if (n < 0) return VARIANCE_CLASSES.negative
         return VARIANCE_CLASSES.neutral
     }
-
     function renderVariance(field) {
         const variance = formatVariancePercent(field)
         if (!variance)
@@ -565,11 +523,9 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     —
                 </div>
             )
-
         const varClass = getVarianceClass(variance)
         const n = parseFloat(variance)
         const symbol = n > 0 ? '▲' : n < 0 ? '▼' : ''
-
         return (
             <div
                 className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[0.8125rem] font-semibold ${varClass}`}
@@ -579,21 +535,18 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             </div>
         )
     }
-
     function getAggLastWeekValue(fieldName) {
         const data = lastWeekAgg?.data
         if (!data) return ''
         const v = data[fieldName]
         return v === undefined || v === null ? '' : v
     }
-
     function getAggThisWeekValue(fieldName) {
         const data = aggReport?.data
         if (!data) return ''
         const v = data[fieldName]
         return v === undefined || v === null ? '' : v
     }
-
     function formatAggVariancePercent(fieldName) {
         const lastRaw = getAggLastWeekValue(fieldName)
         const currRaw = getAggThisWeekValue(fieldName)
@@ -606,7 +559,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         if (rounded === 0) return '0%'
         return `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}%`
     }
-
     function getAggVarianceClass(v) {
         const n = parseFloat(v)
         if (!isFinite(n)) return VARIANCE_CLASSES.neutral
@@ -614,7 +566,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         if (n < 0) return VARIANCE_CLASSES.negative
         return VARIANCE_CLASSES.neutral
     }
-
     function renderAggVariance(fieldName) {
         const variance = formatAggVariancePercent(fieldName)
         if (!variance)
@@ -623,11 +574,9 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     —
                 </div>
             )
-
         const varClass = getAggVarianceClass(variance)
         const n = parseFloat(variance)
         const symbol = n > 0 ? '▲' : n < 0 ? '▼' : ''
-
         return (
             <div
                 className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[0.8125rem] font-semibold ${varClass}`}
@@ -637,7 +586,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             </div>
         )
     }
-
     return (
         <>
             {aiLoading && (
@@ -648,7 +596,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     </div>
                 </div>
             )}
-
             {aiError && !aiLoading && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900 mb-6">
                     <i className="fas fa-exclamation-triangle mr-2"></i>
@@ -661,7 +608,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     </button>
                 </div>
             )}
-
             {aiAnalysis && !aiLoading && (
                 <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
                     <div className="flex items-center gap-3 mb-3">
@@ -685,7 +631,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     </button>
                 </div>
             )}
-
             <div className="rounded-xl border border-gray-200 border-l-4 border-l-accent bg-white p-6 mb-6">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                     <div className="text-lg font-semibold text-slate-800 m-0">Per-Plant Summary</div>
@@ -1089,7 +1034,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                         </div>
                     </div>
                 )}
-
                 <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                         <div className="text-lg font-semibold text-slate-800 m-0">Ready Mix Instructor Report</div>
@@ -1110,11 +1054,9 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         </>
     )
 }
-
 /** Review-mode plugin for the General Manager report — displays submitted data and embeds the corresponding RMI report if available. */
 export function GeneralManagerReviewPlugin({ form: _form, plants = [], weekIso }) {
     const { report: rmiReport, loading } = useReportForWeek(weekIso, 'ready_mix_instructor')
-
     return (
         <>
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -1124,7 +1066,6 @@ export function GeneralManagerReviewPlugin({ form: _form, plants = [], weekIso }
                 <div className="text-center p-8 rounded-lg text-[0.9375rem] text-slate-500 bg-slate-50">
                     Review view for General Manager reports.
                 </div>
-
                 <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                         <div className="text-lg font-semibold text-slate-800 m-0">Ready Mix Instructor Report</div>

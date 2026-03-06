@@ -7,7 +7,6 @@ import { UserService } from '../../services/UserService'
 import { formatFrequency, formatMaintenanceDate, getStatusBadgeClass } from '../../utils/MaintenanceUtility'
 import MaintenanceCreateFormView from './MaintenanceCreateFormView'
 import MaintenanceFormView from './MaintenanceFormView'
-
 /**
  * Top-level maintenance hub. Shows tabbed views for the user's due tasks,
  * submission reviews (managers), submission history, and form management
@@ -30,11 +29,9 @@ export default function MaintenanceView() {
     const [plantFilter, setPlantFilter] = useState('')
     const [formTypeFilter, setFormTypeFilter] = useState('')
     const [showPlantModal, setShowPlantModal] = useState(false)
-
     useEffect(() => {
         loadData()
     }, [])
-
     /** Loads permissions first, then fetches all data in parallel — review/manage data is skipped if the user lacks those permissions. */
     const loadData = async () => {
         setLoading(true)
@@ -44,9 +41,7 @@ export default function MaintenanceView() {
                 canReview: false
             }))
             setPermissions(perms)
-
             const user = await UserService.getCurrentUser()
-
             const [due, reviews, reviewed, submissions, forms] = await Promise.all([
                 MaintenanceService.fetchMyDueItems().catch(() => []),
                 perms.canReview ? MaintenanceService.fetchPendingReviews().catch(() => []) : Promise.resolve([]),
@@ -56,7 +51,6 @@ export default function MaintenanceView() {
                     ? MaintenanceService.fetchForms({ createdBy: user?.id }).catch(() => [])
                     : Promise.resolve([])
             ])
-
             setDueItems(due)
             setPendingReviews(reviews)
             setReviewedSubmissions(reviewed)
@@ -72,7 +66,6 @@ export default function MaintenanceView() {
             setLoading(false)
         }
     }
-
     const getUniquePlants = (items) => {
         const plantsMap = new Map()
         items.forEach((item) => {
@@ -90,7 +83,6 @@ export default function MaintenanceView() {
             (a, b) => parseInt(a.plantCode.replace(/\D/g, '') || '0') - parseInt(b.plantCode.replace(/\D/g, '') || '0')
         )
     }
-
     const getUniqueFormTypes = (items, isSubmission = false) => {
         const forms = new Set()
         items.forEach((item) => {
@@ -99,7 +91,6 @@ export default function MaintenanceView() {
         })
         return Array.from(forms).sort()
     }
-
     const filterItems = (items, isSubmission = false) => {
         return items.filter((item) => {
             const plantCode = item.plant_code
@@ -109,7 +100,6 @@ export default function MaintenanceView() {
             return true
         })
     }
-
     const filteredDueItems = filterItems(dueItems, false)
     const filteredPendingReviews = filterItems(pendingReviews, true)
     const filteredReviewedSubmissions = filterItems(reviewedSubmissions, true)
@@ -117,7 +107,6 @@ export default function MaintenanceView() {
     const dueFormTypes = getUniqueFormTypes(dueItems, false)
     const reviewPlants = getUniquePlants([...pendingReviews, ...reviewedSubmissions])
     const reviewFormTypes = getUniqueFormTypes([...pendingReviews, ...reviewedSubmissions], true)
-
     /** Opens an item for filling or editing. Completed items re-fetch their full submission data for inline editing. */
     const handleItemClick = async (item) => {
         if (item.status === 'completed' && item.submission_id) {
@@ -135,7 +124,6 @@ export default function MaintenanceView() {
             setSelectedItem(item)
         }
     }
-
     const handleViewSubmission = (submission) => {
         setSelectedItem({
             ...submission,
@@ -143,23 +131,19 @@ export default function MaintenanceView() {
             isViewOnly: submission.status !== 'submitted'
         })
     }
-
     const handleFormSubmitted = () => {
         setSelectedItem(null)
         loadData()
     }
-
     const handleFormCreated = () => {
         setShowCreateForm(false)
         setEditingForm(null)
         loadData()
     }
-
     const handleEditForm = (form) => {
         setEditingForm(form)
         setShowCreateForm(true)
     }
-
     const styles = {
         container: {
             background: '#f8fafc',
@@ -464,7 +448,6 @@ export default function MaintenanceView() {
             marginBottom: '1.5rem'
         }
     }
-
     if (selectedItem) {
         return (
             <MaintenanceFormView
@@ -474,7 +457,6 @@ export default function MaintenanceView() {
             />
         )
     }
-
     if (showCreateForm) {
         return (
             <MaintenanceCreateFormView
@@ -487,7 +469,6 @@ export default function MaintenanceView() {
             />
         )
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.header}>
@@ -561,7 +542,6 @@ export default function MaintenanceView() {
                     </div>
                 </div>
             </div>
-
             <div style={styles.content}>
                 {loading ? (
                     <LoadingScreen inline message="Loading maintenance data..." />
@@ -698,7 +678,6 @@ export default function MaintenanceView() {
                                 )}
                             </div>
                         )}
-
                         {activeTab === 'review' && permissions.canReview && (
                             <div style={styles.sectionWithBg}>
                                 {[...pendingReviews, ...reviewedSubmissions].length === 0 ? (
@@ -789,7 +768,6 @@ export default function MaintenanceView() {
                                 )}
                             </div>
                         )}
-
                         {activeTab === 'history' && (
                             <div className="maintenance-section">
                                 {mySubmissions.length === 0 ? (
@@ -850,7 +828,6 @@ export default function MaintenanceView() {
                                 )}
                             </div>
                         )}
-
                         {activeTab === 'manage' && permissions.canCreate && (
                             <div style={myForms.length === 0 ? styles.section : styles.sectionWithBg}>
                                 {myForms.length === 0 ? (

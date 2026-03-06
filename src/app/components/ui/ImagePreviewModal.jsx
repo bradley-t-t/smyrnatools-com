@@ -1,9 +1,7 @@
 import React from 'react'
-
 /** Full-screen overlay modal for viewing an attached image at full resolution. */
 export default function ImagePreviewModal({ imageUrl, onClose }) {
     if (!imageUrl) return null
-
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4" onClick={onClose}>
             <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>

@@ -2,7 +2,6 @@ import React from 'react'
 
 import CardSection from '../../app/components/sections/CardSection'
 import { TractorUtility } from '../../utils/TractorUtility'
-
 /**
  * Grid-mode card for a single tractor. Displays plant, operator, status,
  * service overdue warning, blower indicator, cleanliness rating, and
@@ -27,21 +26,18 @@ function TractorCard({
                   tractor.updatedBy,
                   tractor.latestHistoryDate
               )
-
     let statusColor = 'var(--accent)'
     if (tractor.status === 'Active') statusColor = 'var(--status-active)'
     else if (tractor.status === 'Spare') statusColor = 'var(--status-spare)'
     else if (tractor.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (tractor.status === 'Retired') statusColor = 'var(--status-retired)'
     else if (TractorUtility.isServiceOverdue(tractor.lastServiceDate)) statusColor = 'var(--error)'
-
     const verificationTooltip =
         !tractor.updatedLast || !tractor.updatedBy
             ? 'Tractor never verified'
             : tractor.latestHistoryDate && new Date(tractor.latestHistoryDate) > new Date(tractor.updatedLast)
               ? 'Changes recorded in history since last verification'
               : 'Tractor not verified since last Sunday'
-
     return (
         <CardSection
             item={tractor}
@@ -95,5 +91,4 @@ function TractorCard({
         </CardSection>
     )
 }
-
 export default TractorCard

@@ -7,7 +7,6 @@ import DashboardUtility from '../../utils/DashboardUtility'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
 import { INITIAL_PLANT_NOTIFICATIONS } from '../constants/dashboardConstants'
-
 const filterByPlantSet = (operators, plantSet, plantField, trainerField = null) =>
     operators.filter(
         (o) =>
@@ -15,7 +14,6 @@ const filterByPlantSet = (operators, plantSet, plantField, trainerField = null) 
             plantSet.has(String(o[plantField] || '').trim()) ||
             (trainerField && plantSet.has(String(o[trainerField] || '').trim()))
     )
-
 /**
  * Computes per-plant notification alerts (unverified mixers, overdue service, pending operators,
  * unassigned operators, training operators, long-term shop assets, assets with most issues).
@@ -36,12 +34,10 @@ export function usePlantNotifications({
     trainingOperators
 }) {
     const [plantNotifications, setPlantNotifications] = useState(INITIAL_PLANT_NOTIFICATIONS)
-
     useEffect(() => {
         if (!dataReady) return
         const plantSet = plantSetRef.current
         const consider = createFilterFn(plantSet)
-
         const unverifiedMixers = allMixersRef.current
             .filter(
                 (m) =>
@@ -51,13 +47,11 @@ export function usePlantNotifications({
             )
             .slice(0, 10)
             .map((m) => ({ id: m.id, plantCode: m.plantCode, truckNumber: m.truckNumber, type: 'Mixer' }))
-
         const pendingOps = filterByPlantSet(pendingStartOperators, plantSet, 'operatorPlant', 'trainerPlant').slice(
             0,
             5
         )
         const trainingOps = filterByPlantSet(trainingOperators, plantSet, 'operatorPlant', 'trainerPlant').slice(0, 5)
-
         const assetsWithIssues = assetIssueDetails
             .filter((a) => {
                 if (!consider(a.plant)) return false
@@ -76,15 +70,12 @@ export function usePlantNotifications({
                 issue.resolved ? acc[key].resolvedIssueCount++ : acc[key].openIssueCount++
                 return acc
             }, {})
-
         const topIssueAssets = Object.values(assetsWithIssues)
             .filter((a) => a.openIssueCount > 0)
             .sort((a, b) => b.openIssueCount - a.openIssueCount)
             .slice(0, 5)
-
         const totalOpenIssues = assetIssueDetails.filter((a) => !a.resolved && consider(a.plant)).length
         const totalResolvedIssues = assetIssueDetails.filter((a) => a.resolved && consider(a.plant)).length
-
         const getOverdueAssets = (assets, type, identifierField) =>
             assets
                 .filter(
@@ -100,14 +91,12 @@ export function usePlantNotifications({
                     plantCode: a.plantCode,
                     type
                 }))
-
         const overdueAssets = [
             ...getOverdueAssets(allMixersRef.current, 'Mixer', 'truckNumber'),
             ...getOverdueAssets(allTractorsRef.current, 'Tractor', 'truckNumber'),
             ...getOverdueAssets(allTrailersRef.current, 'Trailer', 'identifyingNumber'),
             ...getOverdueAssets(allEquipmentRef.current, 'Equipment', 'identifyingNumber')
         ].slice(0, 5)
-
         const longTermShop = [
             ...DashboardUtility.getLongTermShopAssets(
                 allMixersRef.current,
@@ -126,7 +115,6 @@ export function usePlantNotifications({
         ]
             .sort((a, b) => b.daysInShop - a.daysInShop)
             .slice(0, 5)
-
         const filteredMixers = allMixersRef.current.filter((m) => m.status !== 'Retired' && consider(m.plantCode))
         const spareMixers = filteredMixers.filter((m) => m.status === 'Spare').length
         const inShopMixers = filteredMixers.filter((m) => m.status === 'In Shop').length
@@ -141,7 +129,6 @@ export function usePlantNotifications({
                       spareCount: spareMixers
                   }
                 : null
-
         const filteredOperators = allOperatorsFullRef.current.filter(
             (o) => o.status === 'Active' && consider(o.plantCode)
         )
@@ -155,7 +142,6 @@ export function usePlantNotifications({
             .filter((o) => !assignedOperatorIds.has(o.employeeId))
             .slice(0, 5)
             .map((o) => ({ id: o.employeeId, name: o.name, plantCode: o.plantCode, position: o.position }))
-
         setPlantNotifications((prev) => ({
             ...prev,
             assetsWithMostIssues: topIssueAssets,
@@ -184,10 +170,8 @@ export function usePlantNotifications({
         allOperatorsFullRef,
         historyRecordsRef
     ])
-
     return { filterByPlantSet, plantNotifications, setPlantNotifications }
 }
-
 /**
  * Calculates per-plant leaderboard efficiency metrics from weekly reports
  * and fleet data, enriching plants with rankings and yardage comparisons.
@@ -208,37 +192,28 @@ export function useLeaderboardMetrics({
             setPlantNotifications((prev) => ({ ...prev, leaderboardMetrics: null }))
             return
         }
-
         let cancelled = false
-
         async function fetchLeaderboardMetrics() {
             try {
                 const selectedYear = new Date().getFullYear()
                 const plantsInRegion = await RegionService.fetchRegionPlants(dashboardRegionCode)
                 if (cancelled || !plantsInRegion?.length) return
-
                 const plantCodesInRegion = plantsInRegion.map((p) => p.plantCode)
                 if (!plantCodesInRegion.includes(dashboardPlant)) return
-
                 const extendedStartDate = new Date(selectedYear - 1, 11, 25)
                 const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
-
                 const { data: profilesData } = await supabase
                     .from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodesInRegion)
                     .not('plant_code', 'is', null)
-
                 if (cancelled || !profilesData?.length) return
-
                 const userIdsByPlant = {}
                 profilesData.forEach((p) => {
                     if (!userIdsByPlant[p.plant_code]) userIdsByPlant[p.plant_code] = []
                     userIdsByPlant[p.plant_code].push(p.id)
                 })
-
                 const allUserIds = profilesData.map((p) => p.id)
-
                 const [{ data: reports }, { data: safetyReports }] = await Promise.all([
                     supabase
                         .from('reports')
@@ -254,9 +229,7 @@ export function useLeaderboardMetrics({
                         .gte('week', extendedStartDate.toISOString())
                         .lte('week', extendedEndDate.toISOString())
                 ])
-
                 if (cancelled || !reports?.length) return
-
                 const hoursAdjustmentsByPlant = LeaderboardsUtility.calculateHoursAdjustments(
                     reports,
                     profilesData,
@@ -274,15 +247,12 @@ export function useLeaderboardMetrics({
                     allEquipmentRef.current || [],
                     allOperatorsFullRef.current || []
                 )
-
                 const now = new Date()
                 const currentWeekStart = new Date(now)
                 currentWeekStart.setDate(now.getDate() - now.getDay())
                 currentWeekStart.setHours(0, 0, 0, 0)
-
                 const filteredReports = reports.filter((report) => new Date(report.week) < currentWeekStart)
                 if (cancelled || !filteredReports.length) return
-
                 const DEFAULT_FLEET_DATA = {
                     avgFleetCleanliness: 0,
                     equipment: 0,
@@ -293,7 +263,6 @@ export function useLeaderboardMetrics({
                     tractors: 0,
                     trailers: 0
                 }
-
                 const plantMetricsArray = Object.keys(userIdsByPlant)
                     .map((plantCode) => {
                         const plantReports = filteredReports.filter((r) =>
@@ -302,7 +271,6 @@ export function useLeaderboardMetrics({
                         const fleetData = fleetCountsByPlant[plantCode] || DEFAULT_FLEET_DATA
                         const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
                         const safetyIncidents = safetyByPlant[plantCode] || null
-
                         const metrics = LeaderboardsUtility.calculateMetrics(
                             plantReports,
                             fleetData.avgFleetCleanliness || 0,
@@ -311,7 +279,6 @@ export function useLeaderboardMetrics({
                             hoursAdjustments,
                             safetyIncidents
                         )
-
                         return metrics
                             ? {
                                   plantCode,
@@ -326,16 +293,12 @@ export function useLeaderboardMetrics({
                             : null
                     })
                     .filter(Boolean)
-
                 const sortedByEfficiency = plantMetricsArray
                     .filter((p) => typeof p.avgEfficiency === 'number' && p.avgWeeklyHours > 0)
                     .sort((a, b) => b.avgEfficiency - a.avgEfficiency)
-
                 const plantRank = sortedByEfficiency.findIndex((p) => p.plantCode === dashboardPlant) + 1
                 const plantMetrics = sortedByEfficiency.find((p) => p.plantCode === dashboardPlant)
-
                 if (cancelled || !plantMetrics) return
-
                 setPlantNotifications((prev) => ({
                     ...prev,
                     leaderboardMetrics: {
@@ -353,7 +316,6 @@ export function useLeaderboardMetrics({
                 }))
             } catch {}
         }
-
         fetchLeaderboardMetrics()
         return () => {
             cancelled = true
@@ -370,7 +332,6 @@ export function useLeaderboardMetrics({
         setPlantNotifications
     ])
 }
-
 /**
  * Generates an AI-powered plant summary using fleet data, efficiency metrics,
  * and role context. Caches results per plant and supports regeneration.
@@ -387,17 +348,14 @@ export function useAISummary({
     userRoleWeight
 }) {
     const [forceRegenerateAI, setForceRegenerateAI] = useState(0)
-
     const handleRegenerateAISummary = useCallback(() => {
         if (!dashboardPlant) return
         DashboardUtility.clearAISummaryCache(dashboardPlant)
         setPlantNotifications((prev) => ({ ...prev, aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false }))
         setForceRegenerateAI((prev) => prev + 1)
     }, [dashboardPlant, setPlantNotifications])
-
     useEffect(() => {
         if (!plantNotifications.leaderboardMetrics || !dashboardPlant) return
-
         if (forceRegenerateAI === 0) {
             const cachedSummary = DashboardUtility.getAISummaryFromCache(dashboardPlant)
             if (cachedSummary) {
@@ -405,17 +363,13 @@ export function useAISummary({
                 return
             }
         }
-
         let cancelled = false
         let failResetTimerId
-
         async function generateAISummary() {
             setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false, aiSummaryLoading: true }))
-
             try {
                 const plantSet = plantSetRef.current
                 const consider = createFilterFn(plantSet)
-
                 const activeMixers = allMixersRef.current.filter((m) => m.status === 'Active' && consider(m.plantCode))
                 const mixersWithCleanliness = activeMixers.filter((m) => m.cleanlinessRating > 0)
                 const avgCleanliness =
@@ -423,9 +377,7 @@ export function useAISummary({
                         ? mixersWithCleanliness.reduce((sum, m) => sum + m.cleanlinessRating, 0) /
                           mixersWithCleanliness.length
                         : 0
-
                 const countByRating = (rating) => activeMixers.filter((m) => m.cleanlinessRating === rating).length
-
                 const summary = await AIService.generatePlantSummary({
                     assetsWithMostIssues: plantNotifications.assetsWithMostIssues,
                     fleetCleanliness: {
@@ -459,9 +411,7 @@ export function useAISummary({
                         roleWeight: userRoleWeight
                     }
                 })
-
                 if (cancelled) return
-
                 if (summary) {
                     DashboardUtility.setAISummaryToCache(dashboardPlant, summary)
                     updateAISummaryState(setPlantNotifications, summary, false)
@@ -480,7 +430,6 @@ export function useAISummary({
                 }
             }
         }
-
         generateAISummary()
         return () => {
             cancelled = true
@@ -507,10 +456,8 @@ export function useAISummary({
         userRoleWeight,
         setPlantNotifications
     ])
-
     return { handleRegenerateAISummary }
 }
-
 const updateAISummaryState = (setPlantNotifications, aiSummary, failed) =>
     setPlantNotifications((prev) => ({
         ...prev,

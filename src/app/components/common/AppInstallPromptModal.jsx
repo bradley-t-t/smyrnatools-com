@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react'
 import { AppInstallPromptService } from '../../../services/AppInstallPromptService'
 import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /** Step-by-step PWA install instructions for iOS Safari. */
 const IOS_STEPS = [
     {
@@ -30,7 +29,6 @@ const IOS_STEPS = [
         )
     }
 ]
-
 /** Step-by-step PWA install instructions for Android Chrome. */
 const ANDROID_STEPS = [
     {
@@ -56,7 +54,6 @@ const ANDROID_STEPS = [
         )
     }
 ]
-
 /** Desktop-targeted instructions for installing on an iPhone/iPad. */
 const DESKTOP_IOS_STEPS = [
     'Open **Safari** on your iPhone or iPad',
@@ -65,7 +62,6 @@ const DESKTOP_IOS_STEPS = [
     'Select **Add to Home Screen**',
     'Tap **Add**'
 ]
-
 /** Desktop-targeted instructions for installing on Android. */
 const DESKTOP_ANDROID_STEPS = [
     'Open **Chrome** on your Android phone',
@@ -74,7 +70,6 @@ const DESKTOP_ANDROID_STEPS = [
     'Select **Add to Home screen**',
     'Tap **Add**'
 ]
-
 /** Numbered circle badge used in mobile install step lists. */
 function StepNumber({ number, accentColor }) {
     return (
@@ -86,7 +81,6 @@ function StepNumber({ number, accentColor }) {
         </span>
     )
 }
-
 /** Compact numbered badge used in desktop tutorial step lists. */
 function SmallStepNumber({ number, accentColor }) {
     return (
@@ -98,12 +92,10 @@ function SmallStepNumber({ number, accentColor }) {
         </span>
     )
 }
-
 /** Converts **bold** markdown segments to <strong> elements. */
 function renderBold(text) {
     return text.split(/\*\*(.+?)\*\*/).map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : part))
 }
-
 /** Shared button group for install prompt actions (primary, remind later, dismiss forever). */
 function ActionButtons({ onPrimary, primaryIcon, primaryLabel, onSecondary, onDismiss, accentColor }) {
     return (
@@ -130,11 +122,9 @@ function ActionButtons({ onPrimary, primaryIcon, primaryLabel, onSecondary, onDi
         </div>
     )
 }
-
 /** Mobile-specific install instructions panel with device-appropriate steps. */
 function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, onDismissForever }) {
     const steps = deviceType === 'ios' ? IOS_STEPS : deviceType === 'android' ? ANDROID_STEPS : []
-
     return (
         <div className="px-8 pb-8 pt-10 text-center">
             <div
@@ -149,7 +139,6 @@ function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, on
             <p className="mb-7 text-[15px] leading-relaxed text-slate-500">
                 Add Smyrna Tools to your home screen for quick access and a better experience!
             </p>
-
             <div className="mb-7 text-left">
                 {steps.map((step, index) => (
                     <div
@@ -163,7 +152,6 @@ function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, on
                     </div>
                 ))}
             </div>
-
             <ActionButtons
                 accentColor={accentColor}
                 onPrimary={onInstalled}
@@ -175,7 +163,6 @@ function MobileContent({ deviceType, accentColor, onInstalled, onRemindLater, on
         </div>
     )
 }
-
 /** Tutorial section card for a single platform (iOS or Android) shown on desktop. */
 function DesktopTutorialSection({ icon, title, steps, accentColor }) {
     return (
@@ -195,7 +182,6 @@ function DesktopTutorialSection({ icon, title, steps, accentColor }) {
         </div>
     )
 }
-
 /** Desktop-specific content showing install tutorials for both iOS and Android. */
 function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissForever }) {
     return (
@@ -212,7 +198,6 @@ function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissFore
             <p className="mb-7 text-[15px] leading-relaxed text-slate-500">
                 Get the best experience by installing Smyrna Tools on your mobile device
             </p>
-
             <div className="mb-7 flex flex-col gap-5">
                 <DesktopTutorialSection
                     icon="fab fa-apple"
@@ -227,7 +212,6 @@ function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissFore
                     accentColor={accentColor}
                 />
             </div>
-
             <ActionButtons
                 accentColor={accentColor}
                 onPrimary={onInstalled}
@@ -239,7 +223,6 @@ function DesktopContent({ accentColor, onInstalled, onRemindLater, onDismissFore
         </div>
     )
 }
-
 /**
  * Smart PWA install prompt modal that detects the user's device and shows
  * platform-appropriate installation instructions.
@@ -251,49 +234,38 @@ function AppInstallPromptModal() {
     const [deviceType, setDeviceType] = useState('desktop')
     const [promptType, setPromptType] = useState('mobile_install')
     const accentColor = useAccentColor()
-
     useEffect(() => {
         let timerId
         const checkAndShowPrompt = async () => {
             const currentUser = await UserService.getCurrentUser()
             if (!currentUser?.id) return
-
             const roles = await UserService.getUserRoles(currentUser.id)
             const isGuestOnly = roles.length > 0 && roles.every((r) => r?.name?.toLowerCase() === 'guest')
             if (isGuestOnly || roles.length === 0) return
-
             const device = AppInstallPromptService.detectDeviceType()
             setDeviceType(device)
-
             if (!AppInstallPromptService.canShowInstallPrompt()) return
-
             const type = device === 'desktop' ? 'desktop_tutorial' : 'mobile_install'
             setPromptType(type)
-
             const shouldShow = await AppInstallPromptService.shouldShowPrompt(currentUser.id, type)
             if (shouldShow) timerId = setTimeout(() => setShowModal(true), 2000)
         }
         checkAndShowPrompt()
         return () => clearTimeout(timerId)
     }, [])
-
     const withCurrentUser = async (action) => {
         const currentUser = await UserService.getCurrentUser()
         if (currentUser?.id) await action(currentUser.id)
         setShowModal(false)
     }
-
     const handleDismissForever = () =>
         withCurrentUser((id) => AppInstallPromptService.dismissForever(id, promptType, deviceType))
     const handleRemindLater = () =>
         withCurrentUser((id) => AppInstallPromptService.remindLater(id, promptType, deviceType))
     const handleInstalled = () =>
         withCurrentUser((id) => AppInstallPromptService.markAsInstalled(id, promptType, deviceType))
-
     if (!showModal) return null
-
     const ContentComponent = deviceType === 'desktop' ? DesktopContent : MobileContent
-
     return (
         <div
             className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-5"
@@ -320,5 +292,4 @@ function AppInstallPromptModal() {
         </div>
     )
 }
-
 export default AppInstallPromptModal

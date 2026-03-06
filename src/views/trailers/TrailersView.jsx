@@ -23,7 +23,6 @@ import TrailerCard from './TrailerCard'
 import TrailerCommentModal from './TrailerCommentModal'
 import TrailerDetailView from './TrailerDetailView'
 import TrailerIssueModal from './TrailerIssueModal'
-
 /**
  * Main list/grid view for the trailer fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant
@@ -90,7 +89,6 @@ function TrailersView({
         VIN: 'vinNumber'
     }
     const headerRef = useRef(null)
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -100,7 +98,6 @@ function TrailersView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
         obj.isVerified = function (latestHistoryDate = null) {
@@ -117,7 +114,6 @@ function TrailersView({
         }
         return obj
     }, [])
-
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
             if (eventType === 'UPDATE' && data.new) {
@@ -168,7 +164,6 @@ function TrailersView({
         },
         [regionPlantCodes, attachIsVerified]
     )
-
     useEffect(() => {
         const channel = supabase
             .channel('trailers-realtime-changes')
@@ -182,12 +177,10 @@ function TrailersView({
                     console.error('Trailers realtime subscription error')
                 }
             })
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -199,7 +192,6 @@ function TrailersView({
                 setIsLoading(false)
             }
         }
-
         fetchAllData()
         if (preferences?.trailerFilters) {
             setSearchText(preferences.trailerFilters.searchText || '')
@@ -216,7 +208,6 @@ function TrailersView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences, reloadTrailers])
-
     useEffect(() => {
         if (preferences.trailerFilters?.viewMode !== undefined && preferences.trailerFilters?.viewMode !== null) {
             setViewMode(preferences.trailerFilters.viewMode)
@@ -227,11 +218,9 @@ function TrailersView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences.trailerFilters?.viewMode, preferences.defaultViewMode])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -249,13 +238,11 @@ function TrailersView({
                 setRegionPlantCodes(null)
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -263,12 +250,10 @@ function TrailersView({
             const root = document.querySelector('.global-dashboard-container.trailers-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchInput, selectedPlant, typeFilter])
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -280,7 +265,6 @@ function TrailersView({
             localStorage.setItem('trailers_last_view_mode', mode)
         }
     }
-
     async function handleExportIssues() {
         setIsExportingIssues(true)
         try {
@@ -297,7 +281,6 @@ function TrailersView({
             setIsExportingIssues(false)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -306,7 +289,6 @@ function TrailersView({
             setSortDirection('asc')
         }
     }
-
     async function fetchTrailers(codes) {
         try {
             const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
@@ -314,7 +296,6 @@ function TrailersView({
             loadDetailsForTrailers(processedBase)
         } catch {}
     }
-
     async function fetchTractors() {
         try {
             const data = await TractorService.fetchTractors()
@@ -323,26 +304,22 @@ function TrailersView({
             setTractors([])
         }
     }
-
     async function fetchPlants(codes) {
         try {
             const data = await PlantService.fetchPlants(codes)
             setPlants(data)
         } catch {}
     }
-
     function handleSelectTrailer(trailerId) {
         saveLastViewedFilters()
         const trailerObj = trailers.find((t) => t.id === trailerId)
         setSelectedTrailer(trailerObj)
         if (onSelectTrailer) onSelectTrailer(trailerId)
     }
-
     function handleBackFromDetail() {
         setSelectedTrailer(null)
         setReloadTrailers((r) => !r)
     }
-
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
@@ -350,7 +327,6 @@ function TrailersView({
         }, 300),
         []
     )
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -360,7 +336,6 @@ function TrailersView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     const filteredTrailers = useMemo(() => {
         const filtered = trailers.filter((trailer) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -406,7 +381,6 @@ function TrailersView({
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesType
         })
-
         return FleetUtility.sortWithRetiredLast(
             filtered,
             (a, b) => {
@@ -456,7 +430,6 @@ function TrailersView({
         sortDirection,
         exactMatch
     ])
-
     const content = useMemo(() => {
         if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
         if (filteredTrailers.length === 0)
@@ -860,7 +833,6 @@ function TrailersView({
             />
         )
     }, [isLoading, filteredTrailers, viewMode, searchText, selectedPlant, typeFilter, tractors, plants, trailers])
-
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -884,25 +856,21 @@ function TrailersView({
                 setTrailers(trailers)
             }
         }
-
         if (searchText.trim().length >= 1) {
             searchByVin()
         } else {
             setTrailers(trailers)
         }
     }, [searchText, trailers, regionPlantCodes])
-
     const loadDetailsForTrailers = async (trailersList) => {
         if (!trailersList || trailersList.length === 0) return
         const trailerIds = trailersList.map((t) => t.id).filter(Boolean)
         if (trailerIds.length === 0) return
-
         try {
             const [commentsCounts, issuesCounts] = await Promise.all([
                 TrailerService.fetchAllCommentsCounts(trailerIds),
                 TrailerService.fetchAllIssuesCounts(trailerIds)
             ])
-
             setTrailers((prev) =>
                 prev.map((t) => ({
                     ...t,
@@ -914,9 +882,7 @@ function TrailersView({
             console.error('Error loading trailer details:', e)
         }
     }
-
     const showReset = searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types')
-
     return (
         <>
             <div className="global-dashboard-container dashboard-container global-flush-top flush-top trailers-view">
@@ -1033,5 +999,4 @@ function TrailersView({
         </>
     )
 }
-
 export default TrailersView

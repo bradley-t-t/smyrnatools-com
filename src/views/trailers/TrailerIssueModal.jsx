@@ -2,7 +2,6 @@ import React from 'react'
 
 import IssueModalSection from '../../app/components/sections/IssueModalSection'
 import TrailerService from '../../services/TrailerService'
-
 /** Thin wrapper connecting the shared IssueModalSection to TrailerService. */
 function TrailerIssueModal({ trailerId, trailerNumber, onClose }) {
     return (
@@ -15,5 +14,4 @@ function TrailerIssueModal({ trailerId, trailerNumber, onClose }) {
         />
     )
 }
-
 export default TrailerIssueModal

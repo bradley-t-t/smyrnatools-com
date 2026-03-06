@@ -9,7 +9,6 @@ export class EquipmentHistory {
         this.changedAt = changedAt ? new Date(changedAt) : null
         this.changedBy = changedBy
     }
-
     static fromApiFormat(data) {
         return new EquipmentHistory({
             changedAt: data.changed_at,

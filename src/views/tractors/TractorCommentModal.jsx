@@ -2,7 +2,6 @@ import React from 'react'
 
 import CommentModalSection from '../../app/components/sections/CommentModalSection'
 import { TractorService } from '../../services/TractorService'
-
 /** Thin wrapper connecting the shared CommentModalSection to TractorService. */
 function TractorCommentModal({ tractorId, tractorNumber, onClose }) {
     return (
@@ -15,5 +14,4 @@ function TractorCommentModal({ tractorId, tractorNumber, onClose }) {
         />
     )
 }
-
 export default TractorCommentModal

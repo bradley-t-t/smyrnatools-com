@@ -8,12 +8,10 @@ export class MixerImage {
         this.uploadedBy = data.uploaded_by ?? ''
         this.uploadedAt = data.uploaded_at ?? new Date().toISOString()
     }
-
     static fromRow(row) {
         if (!row) return null
         return new MixerImage(row)
     }
-
     toRow() {
         return {
             file_path: this.filePath,

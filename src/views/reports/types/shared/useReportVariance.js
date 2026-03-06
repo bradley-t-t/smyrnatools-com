@@ -1,5 +1,4 @@
 import { useCallback } from 'react'
-
 /** Hook for computing week-over-week variance percentages and styling classes between last week's and current week's report data. */
 export function useReportVariance(lastWeekData, currentWeekData = {}) {
     const getLastWeekValue = useCallback(
@@ -10,7 +9,6 @@ export function useReportVariance(lastWeekData, currentWeekData = {}) {
         },
         [lastWeekData]
     )
-
     const formatVariancePercent = useCallback(
         (fieldName, currentValue) => {
             const lastRaw = getLastWeekValue(fieldName)
@@ -26,7 +24,6 @@ export function useReportVariance(lastWeekData, currentWeekData = {}) {
         },
         [getLastWeekValue, currentWeekData]
     )
-
     const getVarianceClass = useCallback((varianceStr) => {
         const n = parseFloat(varianceStr)
         if (!isFinite(n)) return 'rpt-variance-neutral'
@@ -34,14 +31,12 @@ export function useReportVariance(lastWeekData, currentWeekData = {}) {
         if (n < 0) return 'rpt-variance-negative'
         return 'rpt-variance-neutral'
     }, [])
-
     const getVarianceSymbol = useCallback((varianceStr) => {
         const n = parseFloat(varianceStr)
         if (n > 0) return '▲'
         if (n < 0) return '▼'
         return ''
     }, [])
-
     return {
         formatVariancePercent,
         getLastWeekValue,

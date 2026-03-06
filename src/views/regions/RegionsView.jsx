@@ -5,7 +5,6 @@ import RegionsAddView from '../../app/components/regions/RegionsAddView'
 import RegionsDetailView from '../../app/components/regions/RegionsDetailView'
 import TopSection from '../../app/components/sections/TopSection'
 import { RegionService } from '../../services/RegionService'
-
 /**
  * List view for all regions. Supports search by name/code/type, type filter
  * (Concrete/Aggregate/Office), and drill-down into RegionsDetailView for
@@ -19,7 +18,6 @@ function RegionsView({ title = 'Regions' }) {
     const [selectedRegion, setSelectedRegion] = useState(null)
     const [selectedType, setSelectedType] = useState('')
     const headerRef = useRef(null)
-
     useEffect(() => {
         async function fetchRegions() {
             setIsLoading(true)
@@ -30,30 +28,24 @@ function RegionsView({ title = 'Regions' }) {
                 setIsLoading(false)
             }
         }
-
         fetchRegions()
     }, [])
-
     function handleSelectRegion(regionCode) {
         const region = regions.find((r) => (r.region_code || r.regionCode) === regionCode)
         setSelectedRegion(region)
     }
-
     function handleRegionAdded(newRegion) {
         setRegions((prev) => [...prev, newRegion])
     }
-
     async function handleRegionDeleted(regionCode) {
         setRegions((prev) => prev.filter((r) => (r.region_code || r.regionCode) !== regionCode))
         setSelectedRegion(null)
     }
-
     async function handleRegionUpdated(regionCode) {
         const updatedRegions = await RegionService.fetchRegions()
         setRegions(updatedRegions)
         setSelectedRegion(updatedRegions.find((r) => (r.region_code || r.regionCode) === regionCode) || null)
     }
-
     const filteredRegions = regions.filter((region) => {
         const normalizedSearch = searchText.trim().toLowerCase()
         const name = (region.region_name || region.regionName || '').toLowerCase()
@@ -67,7 +59,6 @@ function RegionsView({ title = 'Regions' }) {
         const typeMatch = !selectedType || selectedType === 'All Types' || region.type === selectedType
         return searchMatch && typeMatch
     })
-
     const selectStyle = {
         appearance: 'none',
         backgroundColor: '#f8fafc',
@@ -83,7 +74,6 @@ function RegionsView({ title = 'Regions' }) {
         minWidth: '140px',
         padding: '12px 40px 12px 16px'
     }
-
     const customFilters = (
         <select style={selectStyle} value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
             <option value="">All Types</option>
@@ -92,13 +82,11 @@ function RegionsView({ title = 'Regions' }) {
             <option value="Office">Office</option>
         </select>
     )
-
     const showReset = !!(searchText || selectedType)
     const onReset = () => {
         setSearchText('')
         setSelectedType('')
     }
-
     return (
         <div className="min-h-screen bg-slate-50">
             {selectedRegion ? (
@@ -202,5 +190,4 @@ function RegionsView({ title = 'Regions' }) {
         </div>
     )
 }
-
 export default RegionsView

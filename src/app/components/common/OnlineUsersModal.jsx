@@ -4,11 +4,9 @@ import ReactDOM from 'react-dom'
 import { RegionService } from '../../../services/RegionService'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
-
 const MILLISECONDS_PER_MINUTE = 60000
 const MILLISECONDS_PER_HOUR = 3600000
 const MILLISECONDS_PER_DAY = 86400000
-
 /**
  * Extracts role name strings from a mixed roles array (strings or objects with `name`).
  * @param {Array} rolesData
@@ -18,7 +16,6 @@ function extractRoleNames(rolesData) {
     if (!Array.isArray(rolesData)) return []
     return rolesData.map((r) => (typeof r === 'string' ? r : (r?.name ?? null))).filter(Boolean)
 }
-
 /**
  * Resolves the primary region code from a user profile object.
  * @param {Object|null} profile
@@ -29,7 +26,6 @@ function extractRegionCode(profile) {
     if (Array.isArray(profile.regions) && profile.regions.length > 0) return profile.regions[0]
     return profile.region_code || profile.regionCode || null
 }
-
 /**
  * Builds a presence entry for the current user by fetching their name, roles, region, and weight.
  * @param {string} userId
@@ -52,7 +48,6 @@ async function buildCurrentUserEntry(userId) {
         roles: extractRoleNames(rolesData)
     }
 }
-
 /** Ensures the current user is flagged with `isCurrentUser` in the users array. */
 function ensureCurrentUser(users, currentId) {
     if (!currentId) return users
@@ -60,12 +55,10 @@ function ensureCurrentUser(users, currentId) {
     if (hasCurrentUser) return users.map((u) => (u.id === currentId ? { ...u, isCurrentUser: true } : u))
     return users
 }
-
 /** Sorts users descending by role weight so higher-privilege users appear first. */
 function sortByRoleWeight(users) {
     return [...users].sort((a, b) => (b.roleWeight || 0) - (a.roleWeight || 0))
 }
-
 /**
  * Formats a last-activity timestamp into a human-readable relative string.
  * @param {string|null} lastActivity - ISO timestamp.
@@ -81,7 +74,6 @@ function formatLastActivity(lastActivity) {
     if (diffHours < 24) return `${diffHours}h ago`
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
-
 /**
  * Builds a map of role name (lowercase) → unique HSL color.
  * Roles are sorted descending by weight; highest weight gets hue 0 (red),
@@ -99,15 +91,13 @@ function buildRoleColorMap(roles) {
         })
     )
 }
-
 /** Session-level cache so re-opens are instant. */
 const _sessionCache = {
-    roleColorMap: null,
+    currentUserId: null,
     onlineUsers: null,
     regionNames: {},
-    currentUserId: null
+    roleColorMap: null
 }
-
 /**
  * Anchored dropdown panel (portal) displaying currently online users.
  * Shows each user's name, primary role badge, region, and last activity timestamp.
@@ -123,7 +113,6 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
     const [regionNames, setRegionNames] = useState(_sessionCache.regionNames)
     const [currentUserId, setCurrentUserId] = useState(_sessionCache.currentUserId)
     const [roleColorMap, setRoleColorMap] = useState(_sessionCache.roleColorMap ?? {})
-
     const resolveRegionNames = useCallback(async (users, existingNames) => {
         const codes = [...new Set(users.map((u) => u.regionCode).filter(Boolean))]
         const names = { ...existingNames }
@@ -143,10 +132,8 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
             setRegionNames(names)
         }
     }, [])
-
     useEffect(() => {
         if (!isOpen) return
-
         const refresh = async (isInitial) => {
             if (isInitial && _sessionCache.onlineUsers === null) setIsLoading(true)
             try {
@@ -155,27 +142,22 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                     _sessionCache.roleColorMap ? Promise.resolve(null) : UserService.getAllRoles().catch(() => []),
                     UserPresenceService.getOnlineUsers()
                 ])
-
                 const currentId = currentUser?.id || null
                 if (currentId !== _sessionCache.currentUserId) {
                     _sessionCache.currentUserId = currentId
                     setCurrentUserId(currentId)
                 }
-
                 if (allRoles !== null) {
                     const colorMap = buildRoleColorMap(allRoles)
                     _sessionCache.roleColorMap = colorMap
                     setRoleColorMap(colorMap)
                 }
-
                 let users = presenceUsers || []
                 users = ensureCurrentUser(users, currentId)
-
                 if (currentId && !users.some((u) => u.id === currentId)) {
                     const entry = await buildCurrentUserEntry(currentId)
                     users = [...users, entry]
                 }
-
                 users = sortByRoleWeight(users)
                 _sessionCache.onlineUsers = users
                 setOnlineUsers(users)
@@ -186,39 +168,31 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                 setIsLoading(false)
             }
         }
-
         refresh(true)
-
         const handleUpdate = async (incoming) => {
             let users = [...(incoming || [])]
             const cachedId = _sessionCache.currentUserId
             users = ensureCurrentUser(users, cachedId)
-
             if (cachedId && !users.some((u) => u.id === cachedId)) {
                 try {
                     const entry = await buildCurrentUserEntry(cachedId)
                     users = [...users, entry]
                 } catch {}
             }
-
             users = sortByRoleWeight(users)
             _sessionCache.onlineUsers = users
             setOnlineUsers(users)
         }
-
         UserPresenceService.addListener(handleUpdate)
         return () => UserPresenceService.removeListener(handleUpdate)
     }, [isOpen, resolveRegionNames])
-
     if (!isOpen) return null
-
     const modalStyle = {
         position: 'fixed',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
         top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
-
     const modal = (
         <div className="fixed inset-0 z-[999]" onClick={onClose}>
             <div
@@ -241,7 +215,6 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                         <i className="fas fa-times text-sm" />
                     </button>
                 </div>
-
                 <div className="flex-1 overflow-y-auto">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -315,8 +288,6 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
             </div>
         </div>
     )
-
     return ReactDOM.createPortal(modal, document.body)
 }
-
 export default OnlineUsersModal

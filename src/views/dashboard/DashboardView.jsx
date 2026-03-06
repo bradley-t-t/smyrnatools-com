@@ -22,7 +22,6 @@ import { useAISummary, useLeaderboardMetrics, usePlantNotifications } from '../.
 import { useStatusHistory } from '../../app/hooks/useStatusHistory'
 import { RegionService } from '../../services/RegionService'
 import DateUtility from '../../utils/DateUtility'
-
 /**
  * Primary dashboard view. Orchestrates region/plant-scoped fleet, operator,
  * maintenance, and analytics data through a network of specialized hooks.
@@ -34,7 +33,6 @@ export default function DashboardView() {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const isMobile = useIsMobile()
-
     const [expandedSections, setExpandedSections] = useState(INITIAL_EXPANDED_SECTIONS)
     const [embeddedView, setEmbeddedView] = useState(null)
     const [embeddedViewSearch, setEmbeddedViewSearch] = useState('')
@@ -43,9 +41,7 @@ export default function DashboardView() {
     const [lightDutyCollapsed, setLightDutyCollapsed] = useState(true)
     const [, startTransition] = useTransition()
     const filterTimeoutRef = useRef(null)
-
     const { plantSetRef } = usePlantFilter('', '', [], [])
-
     const {
         allPlants,
         allPlantsCount,
@@ -71,14 +67,12 @@ export default function DashboardView() {
         userRoleName,
         userRoleWeight
     } = useDashboardInit({ plantSetRef, preferences })
-
     const plantFilter = usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants)
     const {
         createFilterFn: activeCreateFilterFn,
         plantSetRef: activePlantSetRef,
         updatePlantSet: activeUpdatePlantSet
     } = plantFilter
-
     const {
         allEquipmentRef,
         allMixersRef,
@@ -94,7 +88,6 @@ export default function DashboardView() {
         dashboardRegionCode,
         updatePlantSet: activeUpdatePlantSet
     })
-
     const {
         allOperatorsFullRef,
         dataReady,
@@ -113,7 +106,6 @@ export default function DashboardView() {
         computeStats,
         refreshKey
     })
-
     const { assetIssueDetails, fetchIssueCommentCounts } = useIssueCommentCounts({
         allEquipmentRef,
         allMixersRef,
@@ -122,7 +114,6 @@ export default function DashboardView() {
         computeStats,
         countsRef
     })
-
     const {
         handleQuickDateFilter,
         historyEndDate,
@@ -131,7 +122,6 @@ export default function DashboardView() {
         setHistoryStartDate,
         setOldestHistoryDate
     } = useDateFilter()
-
     const { historyLoaded, historyRecordsRef, statusHistoryData } = useStatusHistory({
         allEquipmentRef,
         allMixersRef,
@@ -150,7 +140,6 @@ export default function DashboardView() {
         setOldestHistoryDate,
         updatePlantSet: activeUpdatePlantSet
     })
-
     const { filterByPlantSet, plantNotifications, setPlantNotifications } = usePlantNotifications({
         allEquipmentRef,
         allMixersRef,
@@ -166,7 +155,6 @@ export default function DashboardView() {
         plantSetRef: activePlantSetRef,
         trainingOperators
     })
-
     useLeaderboardMetrics({
         allEquipmentRef,
         allMixersRef,
@@ -178,7 +166,6 @@ export default function DashboardView() {
         dataReady,
         setPlantNotifications
     })
-
     const { handleRegenerateAISummary } = useAISummary({
         allMixersRef,
         createFilterFn: activeCreateFilterFn,
@@ -190,13 +177,11 @@ export default function DashboardView() {
         userRoleName,
         userRoleWeight
     })
-
     const displayStats = useAnimatedStats(stats, regionPlantsLoaded, dashboardRegionCode)
     const { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan } = useAITypingEffect(
         plantNotifications.aiSummary,
         dashboardPlant
     )
-
     // Debounce stat recomputation (30ms) to batch rapid plant/region filter changes.
     const applyFilters = useCallback(() => {
         if (loading) {
@@ -206,7 +191,6 @@ export default function DashboardView() {
         if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current)
         filterTimeoutRef.current = setTimeout(() => startTransition(() => computeStats()), 30)
     }, [computeStats, loading])
-
     useEffect(
         () => () => {
             if (filterTimeoutRef.current) clearTimeout(filterTimeoutRef.current)
@@ -219,11 +203,9 @@ export default function DashboardView() {
     useEffect(() => {
         if (!loading) fetchIssueCommentCounts()
     }, [stats.fleetTotal, loading, fetchIssueCommentCounts])
-
     const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
     const isAggregate = selectedRegion?.type === 'Aggregate'
     const showSkeleton = !dataReady
-
     // Resolve the display label: specific plant > specific region > "All Regions" (admins) > first permitted region.
     const regionDisplayName = (() => {
         if (selectedRegion?.type === 'Office') return 'Home Office'
@@ -233,7 +215,6 @@ export default function DashboardView() {
               ? 'All Regions'
               : permittedRegions[0]?.regionName || 'Region'
     })()
-
     // Build the hero subtitle: office shows combined region/plant/aggregate counts;
     // otherwise shows the selected plant code or a count of plants in the active scope.
     const heroRegionSub = (() => {
@@ -248,7 +229,6 @@ export default function DashboardView() {
               ? `${regionPlants.length} ${plantLabel}${regionPlants.length !== 1 ? 's' : ''}`
               : `${allPlantsCount} ${plantLabel}${allPlantsCount !== 1 ? 's' : ''}`
     })()
-
     // Scope operator status lists to the active plant set, checking both operator and trainer plant assignments.
     const filteredTrainingOperators = filterByPlantSet(
         trainingOperators,
@@ -263,7 +243,6 @@ export default function DashboardView() {
         'trainerPlant'
     )
     const filteredLightDutyOperators = filterByPlantSet(lightDutyOperators, activePlantSetRef.current, 'plant')
-
     return (
         <div className="dashboard-full-width min-h-screen bg-slate-50 text-slate-900">
             <DashboardHeader
@@ -277,7 +256,6 @@ export default function DashboardView() {
                 regionPlants={regionPlants}
                 setPlantModalOpen={setPlantModalOpen}
             />
-
             <div className={`mx-auto max-w-full ${isMobile ? 'p-3' : 'p-6'}`}>
                 {!showSkeleton && (isPlantManager || dashboardPlant) && (
                     <DashboardPlantSummary
@@ -298,7 +276,6 @@ export default function DashboardView() {
                         isMobile={isMobile}
                     />
                 )}
-
                 <RegionOverviewCard
                     showSkeleton={showSkeleton}
                     regionDisplayName={regionDisplayName}
@@ -306,7 +283,6 @@ export default function DashboardView() {
                     displayStats={displayStats}
                     isMobile={isMobile}
                 />
-
                 {error && (
                     <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl text-red-600 mb-6 px-5 py-4">
                         <span>{error}</span>
@@ -318,7 +294,6 @@ export default function DashboardView() {
                         </button>
                     </div>
                 )}
-
                 {showSkeleton ? (
                     <DashboardSkeleton isMobile={isMobile} />
                 ) : (
@@ -331,7 +306,6 @@ export default function DashboardView() {
                             accentColor={accentColor}
                             isMobile={isMobile}
                         />
-
                         <DashboardCard>
                             <SectionTitle>Fleet Analytics</SectionTitle>
                             <DashboardCharts
@@ -344,7 +318,6 @@ export default function DashboardView() {
                                 stats={stats}
                             />
                         </DashboardCard>
-
                         <PeopleSection
                             displayStats={displayStats}
                             isAggregate={isAggregate}
@@ -360,7 +333,6 @@ export default function DashboardView() {
                             formatPendingDate={DateUtility.formatPendingDate}
                             accentColor={accentColor}
                         />
-
                         <MaintenanceQualitySection
                             displayStats={displayStats}
                             isAggregate={isAggregate}
@@ -371,7 +343,6 @@ export default function DashboardView() {
                     </div>
                 )}
             </div>
-
             <PlantDropdownModal
                 isOpen={plantModalOpen}
                 onClose={() => setPlantModalOpen(false)}
@@ -379,7 +350,6 @@ export default function DashboardView() {
                 onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
                 showAllPlants={true}
             />
-
             {embeddedView && (
                 <EmbeddedViewModal
                     embeddedView={embeddedView}

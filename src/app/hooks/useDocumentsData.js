@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { DocumentService } from '../../services/DocumentService'
 import { UserService } from '../../services/UserService'
-
 export function useDocumentsData() {
     const [documents, setDocuments] = useState([])
     const [loading, setLoading] = useState(true)
@@ -10,7 +9,6 @@ export function useDocumentsData() {
     const [error, setError] = useState('')
     const [canUpload, setCanUpload] = useState(false)
     const [profiles, setProfiles] = useState({})
-
     const loadDocuments = useCallback(async () => {
         setError('')
         try {
@@ -23,43 +21,32 @@ export function useDocumentsData() {
             setLoading(false)
         }
     }, [])
-
     useEffect(() => {
         let cancelled = false
-
         async function init() {
             const user = await UserService.getCurrentUser()
             if (cancelled || !user?.id) return
-
             const hasUpload = await UserService.hasPermission(user.id, 'documents.upload')
             if (!cancelled) setCanUpload(hasUpload)
-
             await loadDocuments()
         }
-
         init()
         return () => {
             cancelled = true
         }
     }, [loadDocuments])
-
     const uploaderIds = useMemo(() => [...new Set(documents.map((d) => d.uploaded_by).filter(Boolean))], [documents])
-
     useEffect(() => {
         if (uploaderIds.length === 0) return
         let cancelled = false
-
         async function fetchProfiles() {
             const missing = uploaderIds.filter((id) => !profiles[id])
             if (missing.length === 0) return
-
             const { data, error } = await (await import('../../services/DatabaseService')).supabase
                 .from('users_profiles')
                 .select('id, first_name, last_name')
                 .in('id', missing)
-
             if (cancelled || error || !Array.isArray(data)) return
-
             setProfiles((prev) => ({
                 ...prev,
                 ...data.reduce((map, p) => {
@@ -68,13 +55,11 @@ export function useDocumentsData() {
                 }, {})
             }))
         }
-
         fetchProfiles()
         return () => {
             cancelled = true
         }
     }, [uploaderIds])
-
     const uploadFile = useCallback(
         async (file) => {
             setUploading(true)
@@ -90,7 +75,6 @@ export function useDocumentsData() {
         },
         [loadDocuments]
     )
-
     const deleteDocument = useCallback(async (doc) => {
         setError('')
         try {
@@ -100,6 +84,5 @@ export function useDocumentsData() {
             setError(err.message || 'Delete failed')
         }
     }, [])
-
     return { canUpload, deleteDocument, documents, error, loading, profiles, uploadFile, uploading }
 }

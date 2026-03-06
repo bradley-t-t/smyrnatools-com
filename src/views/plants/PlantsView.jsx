@@ -6,26 +6,21 @@ import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
 import PlantsAddView from './PlantsAddView'
 import PlantsDetailView from './PlantsDetailView'
-
 /** Maps region types to human-readable plant type labels. */
 const REGION_TYPE_TO_PLANT_TYPE = {
     Aggregate: 'Aggregate Location',
     Concrete: 'Concrete Plant',
     Office: 'Office Location'
 }
-
 const PLANT_TYPE_OPTIONS = ['Concrete Plant', 'Aggregate Location', 'Office Location']
-
 const getPlantCode = (plant) => plant?.plant_code || plant?.plantCode || ''
 const getPlantName = (plant) => plant?.plant_name || plant?.plantName || ''
 const getPlantType = (region) => REGION_TYPE_TO_PLANT_TYPE[region?.type] || 'N/A'
-
 const PLANT_TYPE_BADGE_CLASSES = {
     'Aggregate Location': 'bg-amber-100 text-amber-700',
     'Concrete Plant': 'bg-blue-100 text-blue-700',
     'Office Location': 'bg-purple-100 text-purple-700'
 }
-
 const SELECT_STYLE = {
     appearance: 'none',
     backgroundColor: '#f8fafc',
@@ -41,7 +36,6 @@ const SELECT_STYLE = {
     minWidth: '140px',
     padding: '12px 40px 12px 16px'
 }
-
 /**
  * List view for all plants. Builds a plant-to-region map on load to display
  * each plant's type (Concrete/Aggregate/Office). Supports search by code/name,
@@ -58,7 +52,6 @@ function PlantsView({ title = 'Plants' }) {
     const [selectedRegion, setSelectedRegion] = useState('')
     const [selectedPlantType, setSelectedPlantType] = useState('')
     const headerRef = useRef(null)
-
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true)
@@ -69,7 +62,6 @@ function PlantsView({ title = 'Plants' }) {
                 ])
                 setPlants(plantsData)
                 setRegions(regionsData)
-
                 const regionPlantsResults = await Promise.all(
                     regionsData.map((r) => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
                 )
@@ -87,22 +79,17 @@ function PlantsView({ title = 'Plants' }) {
         }
         fetchData()
     }, [])
-
     const handleSelectPlant = (plantCode) => setSelectedPlant(plants.find((p) => getPlantCode(p) === plantCode))
-
     const handlePlantAdded = (newPlant) => setPlants((prev) => [...prev, newPlant])
-
     const handlePlantDeleted = (plantCode) => {
         setPlants((prev) => prev.filter((p) => getPlantCode(p) !== plantCode))
         setSelectedPlant(null)
     }
-
     const handlePlantUpdated = async (plantCode) => {
         const updatedPlants = await PlantService.fetchPlants()
         setPlants(updatedPlants)
         setSelectedPlant(updatedPlants.find((p) => getPlantCode(p) === plantCode) || null)
     }
-
     const filteredPlants = plants.filter((plant) => {
         const normalizedSearch = searchText.trim().toLowerCase()
         const code = getPlantCode(plant)
@@ -118,13 +105,11 @@ function PlantsView({ title = 'Plants' }) {
             !selectedPlantType || selectedPlantType === 'All Types' || plantType === selectedPlantType
         return searchMatch && regionMatch && plantTypeMatch
     })
-
     const resetFilters = () => {
         setSearchText('')
         setSelectedRegion('')
         setSelectedPlantType('')
     }
-
     const customFilters = (
         <>
             <select style={SELECT_STYLE} value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)}>
@@ -149,7 +134,6 @@ function PlantsView({ title = 'Plants' }) {
             </select>
         </>
     )
-
     if (selectedPlant) {
         return (
             <div className="min-h-screen bg-slate-50">
@@ -162,7 +146,6 @@ function PlantsView({ title = 'Plants' }) {
             </div>
         )
     }
-
     return (
         <div className="min-h-screen bg-slate-50">
             <TopSection
@@ -248,5 +231,4 @@ function PlantsView({ title = 'Plants' }) {
         </div>
     )
 }
-
 export default PlantsView

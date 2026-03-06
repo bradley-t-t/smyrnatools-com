@@ -9,7 +9,6 @@ import { ListService } from '../../services/ListService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import ListAddView from './ListAddView'
-
 /** Maps internal status keys to their user-facing display labels. */
 const STATUS_MAP = {
     blocked: 'Blocked',
@@ -20,9 +19,7 @@ const STATUS_MAP = {
     pending: 'Pending',
     waiting: 'Waiting'
 }
-
 const STATUS_OPTIONS = ['Pending', 'In Progress', 'Ordered Materials', 'Blocked', 'Waiting', 'Overdue', 'Completed']
-
 /** Maps internal role keys to their user-facing display labels. */
 const ROLE_MAP = {
     district_manager: 'District Manager',
@@ -30,9 +27,7 @@ const ROLE_MAP = {
     plant_manager: 'Plant Manager',
     unassigned: 'Unassigned'
 }
-
 const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
-
 /** Available grouping modes for the task list with icons for the toggle bar. */
 const VIEW_MODES = [
     { icon: 'fa-layer-group', id: 'status', label: 'Status' },
@@ -40,7 +35,6 @@ const VIEW_MODES = [
     { icon: 'fa-user', id: 'role', label: 'Role' },
     { icon: 'fa-calendar-week', id: 'planner', label: 'Planner' }
 ]
-
 const STATUS_COLORS = {
     blocked: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
     completed: { bg: '#dcfce7', border: '#16a34a', text: '#16a34a' },
@@ -50,25 +44,20 @@ const STATUS_COLORS = {
     pending: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
     waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' }
 }
-
 const BULK_ACTION_COLORS = {
     cancel: { bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b' },
     complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
     delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' }
 }
-
 const mapStatusValue = (value) => {
     const lower = value?.toLowerCase()
     return Object.entries(STATUS_MAP).find(([_k, v]) => v.toLowerCase() === lower)?.[0] || ''
 }
-
 const mapRoleValue = (value) => Object.entries(ROLE_MAP).find(([_k, v]) => v === value)?.[0] || ''
-
 const normalizeToUpperCase = (str) =>
     String(str || '')
         .trim()
         .toUpperCase()
-
 /**
  * Task list view with multiple grouping modes (by status, date, role, or
  * weekly planner). Supports region-scoped plant filtering, bulk selection
@@ -85,7 +74,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
     const plannerGroupsRef = useRef(null)
-
     const [plants, setPlants] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchText, setSearchText] = useState('')
@@ -98,7 +86,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [viewMode, setViewMode] = useState('status')
     const [roleFilter, setRoleFilter] = useState('')
     const isMobile = useIsMobile()
-
     const baseFilteredItems = ListService.getFilteredItems({
         filterType: '',
         plantCode: selectedPlant,
@@ -106,17 +93,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         showCompleted: statusFilter === 'completed',
         statusFilter
     })
-
     const filteredItems = useMemo(() => {
         if (!regionPlantCodes?.size) return baseFilteredItems
         return baseFilteredItems.filter((item) => regionPlantCodes.has(normalizeToUpperCase(item.plant_code)))
     }, [baseFilteredItems, regionPlantCodes])
-
     const roleFilteredItems = useMemo(
         () => (roleFilter ? filteredItems.filter((item) => item.responsible_role === roleFilter) : filteredItems),
         [filteredItems, roleFilter]
     )
-
     /** Buckets tasks into time-relative groups: Overdue, Today, Tomorrow, This Week, Later, Completed. */
     const groupedByDate = useMemo(() => {
         const groups = {
@@ -127,34 +111,28 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             today: { color: 'warning', icon: 'fa-calendar-day', items: [], label: 'Today', priority: 1 },
             tomorrow: { color: 'info', icon: 'fa-calendar-plus', items: [], label: 'Tomorrow', priority: 2 }
         }
-
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const tomorrow = new Date(today)
         tomorrow.setDate(tomorrow.getDate() + 1)
         const endOfWeek = new Date(today)
         endOfWeek.setDate(endOfWeek.getDate() + (7 - today.getDay()))
-
         roleFilteredItems.forEach((item) => {
             if (item.completed || item.status === 'completed') {
                 groups.completed.items.push(item)
                 return
             }
-
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
-
             if (deadline < today || item.status === 'overdue') groups.overdue.items.push(item)
             else if (deadline.getTime() === today.getTime()) groups.today.items.push(item)
             else if (deadline.getTime() === tomorrow.getTime()) groups.tomorrow.items.push(item)
             else if (deadline <= endOfWeek) groups.thisWeek.items.push(item)
             else groups.later.items.push(item)
         })
-
         Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
-
     /**
      * Groups tasks by workflow status. Items past deadline that are not in an
      * active-work status (in_progress, blocked, waiting, ordered_materials)
@@ -176,30 +154,24 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             pending: { color: 'secondary', icon: 'fa-clock', items: [], label: 'Pending', priority: 6 },
             waiting: { color: 'warning', icon: 'fa-hourglass-half', items: [], label: 'Waiting', priority: 4 }
         }
-
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const activeStatuses = ['in_progress', 'blocked', 'waiting', 'ordered_materials']
-
         roleFilteredItems.forEach((item) => {
             if (item.completed || item.status === 'completed') {
                 groups.completed.items.push(item)
                 return
             }
-
             const deadline = new Date(item.deadline)
             deadline.setHours(0, 0, 0, 0)
             const isOverdue = deadline < today && !activeStatuses.includes(item.status)
-
             if (isOverdue) groups.overdue.items.push(item)
             else if (groups[item.status]) groups[item.status].items.push(item)
             else groups.pending.items.push(item)
         })
-
         Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
-
     /** Groups open (non-completed) tasks by responsible role. */
     const groupedByRole = useMemo(() => {
         const groups = {
@@ -214,20 +186,16 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             plant_manager: { color: 'info', icon: 'fa-user-tie', items: [], label: 'Plant Manager', priority: 2 },
             unassigned: { color: 'secondary', icon: 'fa-users', items: [], label: 'Unassigned', priority: 4 }
         }
-
         roleFilteredItems
             .filter((item) => !item.completed && item.status !== 'completed')
             .forEach((item) => {
                 const role = item.responsible_role || 'unassigned'
                 ;(groups[role] ?? groups.unassigned).items.push(item)
             })
-
         Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
-
     const groupedItems = viewMode === 'date' ? groupedByDate : viewMode === 'status' ? groupedByStatus : groupedByRole
-
     const summaryStats = useMemo(
         () => ({
             overdue: groupedByDate.overdue?.items?.length || 0,
@@ -235,7 +203,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }),
         [roleFilteredItems, groupedByDate]
     )
-
     /** Clips planner items that scroll behind the sticky header so they don't peek through. */
     const handleScroll = useCallback(() => {
         if (!headerRef.current || !plannerGroupsRef.current) return
@@ -254,7 +221,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             }
         })
     }, [])
-
     useEffect(() => {
         const contentArea = document.querySelector('.content-area')
         if (!contentArea) return
@@ -262,7 +228,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         handleScroll()
         return () => contentArea.removeEventListener('scroll', handleScroll)
     }, [handleScroll])
-
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true)
@@ -275,7 +240,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }
         loadData()
     }, [])
-
     useEffect(() => {
         let cancelled = false
         const fetchRegionCodes = async () => {
@@ -293,12 +257,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             cancelled = true
         }
     }, [preferences?.selectedRegion?.code, selectedPlant])
-
     useEffect(() => {
         if (!selectedPlant || !regionPlantCodes?.size) return
         if (!regionPlantCodes.has(normalizeToUpperCase(selectedPlant))) setSelectedPlant('')
     }, [regionPlantCodes, selectedPlant])
-
     useEffect(() => {
         const onKeyDown = (e) => {
             if (e.metaKey && e.key.toLowerCase() === 'k') {
@@ -313,7 +275,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         window.addEventListener('keydown', onKeyDown)
         return () => window.removeEventListener('keydown', onKeyDown)
     }, [])
-
     useEffect(() => {
         const updateHeight = () => {
             const h = headerRef.current ? Math.ceil(headerRef.current.getBoundingClientRect().height) : 0
@@ -323,21 +284,18 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         window.addEventListener('resize', updateHeight)
         return () => window.removeEventListener('resize', updateHeight)
     }, [searchInput, selectedPlant, statusFilter])
-
     const visiblePlants = useMemo(() => {
         if (!Array.isArray(plants)) return []
         return regionPlantCodes?.size
             ? plants.filter((p) => regionPlantCodes.has(normalizeToUpperCase(p.plant_code)))
             : plants
     }, [plants, regionPlantCodes])
-
     const toggleSelect = (id) =>
         setSelectedIds((prev) => {
             const next = new Set(prev)
             next.has(id) ? next.delete(id) : next.add(id)
             return next
         })
-
     /** Marks all selected items as complete (or incomplete) in sequence, then clears the selection. */
     const bulkToggleCompletion = async (markComplete) => {
         if (!selectedIds.size) return
@@ -353,7 +311,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }
         setSelectedIds(new Set())
     }
-
     const bulkDelete = async () => {
         if (!selectedIds.size || !window.confirm('Delete selected items?')) return
         for (const id of selectedIds) {
@@ -363,7 +320,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }
         setSelectedIds(new Set())
     }
-
     const resetFilters = () => {
         setSearchText('')
         setSearchInput('')
@@ -371,7 +327,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         setStatusFilter('')
         setRoleFilter('')
     }
-
     const handleStatusFilterChange = (value) => {
         const mapped = mapStatusValue(value)
         if (mapped) {
@@ -379,17 +334,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             onStatusFilterChange?.(mapped)
         }
     }
-
     const clearStatusFilter = () => {
         setStatusFilter('')
         onStatusFilterChange?.('')
     }
-
     const handleRoleFilterChange = (value) => {
         const mapped = mapRoleValue(value)
         if (mapped) setRoleFilter(mapped)
     }
-
     const getItemStatusStyle = (statusType, mobile) => {
         const color = STATUS_COLORS[statusType] || STATUS_COLORS.pending
         return {
@@ -409,7 +361,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             whiteSpace: 'nowrap'
         }
     }
-
     const getBulkButtonStyle = (type) => {
         const color = BULK_ACTION_COLORS[type] || BULK_ACTION_COLORS.cancel
         return {
@@ -428,11 +379,9 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             transition: 'all 0.2s'
         }
     }
-
     const showReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
     const statusDisplayValue = STATUS_MAP[statusFilter] || 'All Statuses'
     const roleDisplayValue = ROLE_MAP[roleFilter] || 'All Roles'
-
     return (
         <div
             className="global-dashboard-container dashboard-container global-flush-top flush-top list-view"
@@ -463,7 +412,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 sticky={true}
                 hideViewModeToggle={true}
             />
-
             <div style={{ position: 'relative' }}>
                 <div
                     style={{
@@ -504,9 +452,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             </button>
                         ))}
                     </div>
-
                     <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }} />
-
                     {statusFilter ? (
                         <button
                             onClick={clearStatusFilter}
@@ -556,7 +502,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             ))}
                         </select>
                     )}
-
                     {roleFilter ? (
                         <button
                             onClick={() => setRoleFilter('')}
@@ -606,9 +551,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             ))}
                         </select>
                     )}
-
                     {!isMobile && <div style={{ flex: 1 }} />}
-
                     <div
                         style={{
                             alignItems: 'center',
@@ -646,9 +589,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         </span>
                     </div>
                 </div>
-
                 <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } } .list-content-area { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }`}</style>
-
                 <div
                     className="content-area list-content-area"
                     style={{ padding: isMobile ? '1rem' : '1.5rem 2rem', paddingBottom: isMobile ? '2rem' : '2rem' }}
@@ -731,7 +672,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 if (statusFilter === 'completed' && key !== 'completed') return null
                                 if (statusFilter === 'pending' && key === 'completed') return null
                                 if (statusFilter === 'overdue' && key !== 'overdue') return null
-
                                 return (
                                     <div
                                         key={key}
@@ -790,7 +730,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                 const isItemOverdue =
                                                     (ListService.isOverdue(item) || item.status === 'overdue') &&
                                                     !item.completed
-
                                                 return (
                                                     <div
                                                         key={item.id}
@@ -999,7 +938,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     )}
                 </div>
             </div>
-
             {selectedIds.size > 0 && (
                 <div
                     style={{
@@ -1055,7 +993,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     </div>
                 </div>
             )}
-
             {showAddSheet && (
                 <ListAddView
                     onClose={() => setShowAddSheet(false)}
@@ -1070,5 +1007,4 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         </div>
     )
 }
-
 export default ListView

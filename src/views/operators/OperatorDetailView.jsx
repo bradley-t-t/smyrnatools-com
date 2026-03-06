@@ -12,7 +12,6 @@ import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
 import OperatorCommentModal from './OperatorCommentModal'
 import OperatorHistoryView from './OperatorHistoryView'
-
 /**
  * Full detail/edit view for a single operator. Supports editing name, Smyrna ID,
  * status, plant (with region-scoped picker), position, trainer assignment,
@@ -53,7 +52,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     const [canEditOperator, setCanEditOperator] = useState(false)
     const [canDeleteOperator, setCanDeleteOperator] = useState(false)
     const [automaticRestriction, setAutomaticRestriction] = useState(false)
-
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
             if (assignedPlant && !allowedPlantCodes.has(String(assignedPlant).trim().toUpperCase())) {
@@ -61,20 +59,17 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             }
         }
     }, [allowedPlantCodes])
-
     useEffect(() => {
         document.body.classList.add('in-detail-view')
         return () => {
             document.body.classList.remove('in-detail-view')
         }
     }, [])
-
     useEffect(() => {
         fetchData()
         fetchPlants()
         fetchTrainers()
     }, [operatorId])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -92,12 +87,10 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         }
         checkDeletePermission()
     }, [])
-
     const fetchPlants = async () => {
         const { data } = await supabase.from('plants').select('*')
         setPlants(data || [])
     }
-
     const fetchTrainers = async () => {
         const { data } = await supabase
             .from('operators')
@@ -120,7 +113,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                 }))
         )
     }
-
     const filteredPlants = useMemo(() => {
         return plants
             .filter((p) => {
@@ -135,12 +127,10 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                 return aCode - bCode
             })
     }, [plants, allowedPlantCodes])
-
     const selectedPlantObj = plants.find((p) => p.plant_code === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     const fetchData = async () => {
         setIsLoading(true)
         try {
@@ -168,14 +158,12 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         } catch (error) {}
         setIsLoading(false)
     }
-
     const handleBackClick = async () => {
         if (_hasUnsavedChanges) {
             await handleSave()
         }
         if (onClose) onClose()
     }
-
     useEffect(() => {
         if (operator?.plant_code) {
             RegionService.fetchRegionsByPlantCode(operator.plant_code)
@@ -189,35 +177,28 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [operator?.plant_code])
-
     /** Transfers the operator to a different region/plant via OperatorService, then refreshes local state. */
     const handleRegionTransfer = async (newRegionCode, newPlantCode) => {
         if (!operator?.employeeId || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid operator, region, or plant')
         }
-
         const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedOperator = {
                 ...operator,
                 plant_code: newPlantCode
             }
-
             await OperatorService.updateOperator(operator.employeeId, updatedOperator, userId)
             setAssignedPlant(newPlantCode)
             setMessage(`Successfully transferred to ${newRegion.regionName}`)
             setTimeout(() => setMessage(''), 3000)
-
             await fetchData()
         } catch (error) {
             console.error('Region transfer failed:', error)
@@ -226,14 +207,12 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             setIsSaving(false)
         }
     }
-
     const handleDelete = async () => {
         setIsSaving(true)
         await supabase.from('operators').delete().eq('employee_id', operatorId)
         setIsSaving(false)
         if (onClose) onClose()
     }
-
     /** Persists all field changes. If plant changed or status became non-Active, auto-unassigns the operator from active mixers and tractors. */
     const handleSave = async () => {
         setIsSaving(true)
@@ -257,7 +236,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             const shouldUnassignEquipment =
                 (operator && operator.plant_code !== assignedPlant) ||
                 (operator && operator.status !== status && !['Active'].includes(status))
-
             if (shouldUnassignEquipment) {
                 const assignedMixers = await MixerService.getMixersByOperator(operatorId)
                 for (const mixer of assignedMixers) {
@@ -276,7 +254,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     }
                 }
             }
-
             const { error } = await supabase.from('operators').update(updateObj).eq('employee_id', operatorId)
             if (error) {
                 if (
@@ -336,7 +313,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         setIsSaving(false)
         setTimeout(() => setMessage(''), 3000)
     }
-
     return (
         <DetailViewSection
             title={operator && operator.name ? operator.name : 'Operator Details'}
@@ -460,7 +436,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                         />
                     </div>
                 </DetailViewSection.Card>
-
                 <DetailViewSection.Card title="Rating" icon="fas fa-star">
                     <div className="form-group">
                         <label>Rating</label>
@@ -518,7 +493,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     </div>
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
-
             <DetailViewSection.Section id="assignment" title="Assignment" icon="fas fa-building">
                 <DetailViewSection.Card title="Assignment Information" icon="fas fa-map-marker-alt">
                     <div className="form-group">
@@ -587,7 +561,6 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     </div>
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
-
             {hasTrainingPermission && (
                 <DetailViewSection.Section id="training" title="Training" icon="fas fa-graduation-cap">
                     <DetailViewSection.Card title="Training Details" icon="fas fa-chalkboard-teacher">
@@ -634,5 +607,4 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         </DetailViewSection>
     )
 }
-
 export default OperatorDetailView

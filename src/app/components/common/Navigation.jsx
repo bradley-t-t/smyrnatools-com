@@ -9,19 +9,14 @@ import { useMagneticHover } from '../../hooks/useMagneticHover'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
-
 /** Menu items visible only for Office-type regions. */
 const OFFICE_VISIBLE_ITEMS = ['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions']
-
 /** Items hidden for Aggregate-type regions. */
 const AGGREGATE_HIDDEN_ITEMS = ['Mixers', 'Plants', 'Regions', 'Leaderboards', 'Calculators', 'Maintenance']
-
 /** Items hidden by default for standard regions. */
 const DEFAULT_HIDDEN_ITEMS = ['Plants', 'Regions']
-
 /** Items exclusively available to Office regions. */
 const OFFICE_ONLY_ITEMS = ['Roles']
-
 /** FontAwesome icon class mapping for each navigation item ID. */
 const ICONS = {
     Archive: 'fa-archive',
@@ -31,6 +26,7 @@ const ICONS = {
     'Heavy Equipment': 'fa-snowplow',
     Leaderboards: 'fa-trophy',
     List: 'fa-list',
+    Documents: 'fa-folder-open',
     Logout: 'fa-sign-out-alt',
     Maintenance: 'fa-wrench',
     Managers: 'fa-user-tie',
@@ -41,7 +37,6 @@ const ICONS = {
     'Pickup Trucks': 'fa-truck-pickup',
     Plan: 'fa-calendar-alt',
     Plants: 'fa-industry',
-    Documents: 'fa-folder-open',
     Productivity: 'fa-chart-line',
     Regions: 'fa-map-marker-alt',
     Reports: 'fa-file-alt',
@@ -49,7 +44,6 @@ const ICONS = {
     Tractors: 'fa-tractor',
     Trailers: 'fa-trailer'
 }
-
 /** Permission-gated menu item definitions for the primary navigation. */
 const menuItems = [
     { id: 'Dashboard', permission: 'dashboard.view', text: 'Dashboard' },
@@ -70,16 +64,12 @@ const menuItems = [
     { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' },
     { id: 'Documents', permission: 'documents.view', text: 'Documents' }
 ]
-
 /** Navigation item IDs grouped under the "Assets" dropdown. */
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-
 /** Navigation item IDs grouped under the "People" dropdown. */
 const PEOPLE_ITEMS = ['Operators', 'Managers']
-
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
 const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
-
 /**
  * Primary app navigation bar with responsive mobile/tablet/desktop layouts.
  * Handles permission-based menu filtering, region switching, notifications,
@@ -104,7 +94,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
     const dropdownRef = useRef(null)
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
@@ -115,7 +104,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         handleMouseMove: magneticMove,
         registerElement: registerMagnetic
     } = useMagneticHover()
-
     useEffect(() => {
         const setupAndFetch = async () => {
             try {
@@ -131,20 +119,17 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             setOnlineUsersCount(users?.length || 0)
         }
         UserPresenceService.addListener(handlePresenceUpdate)
-
         const refreshInterval = setInterval(async () => {
             try {
                 const users = await UserPresenceService.getOnlineUsers()
                 setOnlineUsersCount(users?.length || 0)
             } catch {}
         }, 30000)
-
         return () => {
             UserPresenceService.removeListener(handlePresenceUpdate)
             clearInterval(refreshInterval)
         }
     }, [])
-
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768)
@@ -153,7 +138,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [])
-
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -163,7 +147,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         if (openDropdown) document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [openDropdown])
-
     useEffect(() => {
         async function fetchRegions() {
             if (!userId) return setPermittedRegions([])
@@ -182,10 +165,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 setPermittedRegions([])
             }
         }
-
         fetchRegions()
     }, [userId, regionCode, updatePreferences])
-
     useEffect(() => {
         async function filterItems() {
             if (!userId) return setVisibleMenuItems([])
@@ -210,10 +191,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 setVisibleMenuItems([])
             }
         }
-
         filterItems()
     }, [userId, regionType, regionCode])
-
     const handleMenuClick = (id) => {
         if (window.appSwitchView && (id === 'List' || id === 'Archive')) {
             window.appSwitchView(id)
@@ -223,7 +202,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         setMobileMenuOpen(false)
         setOpenDropdown(null)
     }
-
     const handleRegionChange = (e) => {
         const code = e.target.value
         if (!code) return
@@ -238,7 +216,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             window.dispatchEvent(new CustomEvent('region-changed', { detail: newRegion }))
         }
     }
-
     const hasAssets = visibleMenuItems.some((i) => ASSET_ITEMS.includes(i.id))
     const hasPeople = visibleMenuItems.filter((i) => PEOPLE_ITEMS.includes(i.id)).length > 1
     const hasProductivity = visibleMenuItems.filter((i) => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
@@ -248,7 +225,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
             !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
     )
-
     const navItemStyle = (isActive) => ({
         alignItems: 'center',
         backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
@@ -265,7 +241,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         transition: 'all 0.2s ease',
         whiteSpace: 'nowrap'
     })
-
     const dropdownStyle = {
         backgroundColor: 'white',
         border: '1px solid #e5e7eb',
@@ -279,7 +254,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         top: '100%',
         zIndex: 1000
     }
-
     const renderDropdown = (label, icon, items, dropdownId, activeCheck) => {
         const isOpen = openDropdown === dropdownId
         const isActive = activeCheck()
@@ -343,7 +317,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             </div>
         )
     }
-
     const renderIconButton = (
         icon,
         title,
@@ -408,7 +381,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             )}
         </div>
     )
-
     if (isMobile) {
         return (
             <>
@@ -451,7 +423,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             <i className={`fas fa-${mobileMenuOpen ? 'times' : 'bars'}`}></i>
                         </button>
                     </div>
-
                     {mobileMenuOpen && (
                         <div
                             style={{
@@ -507,7 +478,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         )}
                                     </select>
                                 </div>
-
                                 {standaloneItems.filter((i) => i.id !== 'Dashboard').length > 0 &&
                                     standaloneItems.find((i) => i.id === 'Dashboard') && (
                                         <MobileMenuItem
@@ -517,7 +487,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             accentColor={accentColor}
                                         />
                                     )}
-
                                 {hasAssets && (
                                     <MobileSection title="Assets">
                                         {ASSET_ITEMS.map((id) => {
@@ -535,7 +504,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         })}
                                     </MobileSection>
                                 )}
-
                                 {hasPeople && (
                                     <MobileSection title="People">
                                         {PEOPLE_ITEMS.map((id) => {
@@ -553,7 +521,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         })}
                                     </MobileSection>
                                 )}
-
                                 {hasProductivity && (
                                     <MobileSection title="Productivity">
                                         {PRODUCTIVITY_ITEMS.map((id) => {
@@ -571,7 +538,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         })}
                                     </MobileSection>
                                 )}
-
                                 {standaloneItems
                                     .filter((i) => i.id !== 'Dashboard')
                                     .map((item) => (
@@ -583,7 +549,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             accentColor={accentColor}
                                         />
                                     ))}
-
                                 <MobileSection title="Account">
                                     <MobileMenuItem
                                         item={{ id: 'MyAccount', text: 'My Account' }}
@@ -595,13 +560,11 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             </div>
                         </div>
                     )}
-
                     <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</div>
                 </div>
             </>
         )
     }
-
     return (
         <>
             <div
@@ -651,7 +614,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 draggable={false}
                             />
                         </div>
-
                         <nav
                             style={{
                                 alignItems: 'center',
@@ -677,7 +639,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     {!isTablet && <span>Dashboard</span>}
                                 </div>
                             )}
-
                             {hasAssets &&
                                 renderDropdown('Assets', ICONS.Assets, ASSET_ITEMS, 'assets', () =>
                                     ASSET_ITEMS.includes(selectedView)
@@ -694,7 +655,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     'productivity',
                                     () => PRODUCTIVITY_ITEMS.includes(selectedView)
                                 )}
-
                             {standaloneItems
                                 .filter((i) => i.id !== 'Dashboard')
                                 .map((item) => (
@@ -722,7 +682,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 ))}
                         </nav>
                     </div>
-
                     <div
                         style={{ alignItems: 'center', display: 'flex', flexShrink: 0, gap: isTablet ? '8px' : '16px' }}
                     >
@@ -760,7 +719,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 ))
                             )}
                         </select>
-
                         {renderIconButton(
                             ICONS.MyAccount,
                             userName ? `My Account - ${userName}` : 'My Account',
@@ -794,9 +752,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         )}
                     </div>
                 </header>
-
                 <main style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</main>
-
                 {showNotifications && (
                     <NotificationsModal
                         isOpen={showNotifications}
@@ -807,7 +763,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         anchorRect={notificationsAnchor}
                     />
                 )}
-
                 {showOnlineUsers && (
                     <OnlineUsersModal
                         isOpen={showOnlineUsers}
@@ -819,7 +774,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         </>
     )
 }
-
 /** Labeled section divider used in the mobile navigation drawer. */
 function MobileSection({ title, children }) {
     return (
@@ -841,7 +795,6 @@ function MobileSection({ title, children }) {
         </div>
     )
 }
-
 /** Single tappable row in the mobile navigation drawer. */
 function MobileMenuItem({ item, isActive, onClick, accentColor = '#1e3a5f' }) {
     return (

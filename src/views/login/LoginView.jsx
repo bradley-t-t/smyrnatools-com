@@ -7,11 +7,9 @@ import { useVersion } from '../../app/hooks/useVersion'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import { supabase } from '../../services/DatabaseService'
 import AuthUtility from '../../utils/AuthUtility'
-
 const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
 const VideoBackground = lazy(() => import('../../app/components/common/VideoBackground'))
-
 /** Static gradient placeholder shown while the video background lazy-loads. */
 const VideoFallback = memo(function VideoFallback() {
     return (
@@ -28,7 +26,6 @@ const VideoFallback = memo(function VideoFallback() {
         />
     )
 })
-
 /** Animated fleet/plant/operator stat counters shown on the login hero panel. */
 const StatsDisplay = memo(function StatsDisplay({ stats }) {
     return (
@@ -48,7 +45,6 @@ const StatsDisplay = memo(function StatsDisplay({ stats }) {
         </div>
     )
 })
-
 /** Horizontal bar that fills to 33/66/100% based on Weak/Medium/Strong password strength. */
 const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
     if (!strength.value) return null
@@ -72,7 +68,6 @@ const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
         </div>
     )
 })
-
 const inputBaseStyle = {
     background: '#fff',
     border: 'none',
@@ -84,7 +79,6 @@ const inputBaseStyle = {
     transition: 'border-color 0.2s',
     width: '100%'
 }
-
 /**
  * Full-screen login/signup view with a lazy-loaded video background,
  * animated fleet stats, password strength indicator, and links to
@@ -113,12 +107,10 @@ function LoginView() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [videoLoaded, setVideoLoaded] = useState(false)
     const strengthCheckRef = useRef(null)
-
     useEffect(() => {
         const timer = setTimeout(() => setVideoLoaded(true), 100)
         return () => clearTimeout(timer)
     }, [])
-
     // Fetch aggregate fleet counts after a 1s delay (so the UI paints first),
     // then animate them with a cubic ease-out over 1.5s.
     useEffect(() => {
@@ -151,7 +143,6 @@ function LoginView() {
                     operators: operatorsRes.count || 0,
                     plants: plantsRes.count || 0
                 }
-
                 const duration = 1500
                 const startTime = performance.now()
                 const animate = (currentTime) => {
@@ -176,14 +167,12 @@ function LoginView() {
             cancelled = true
         }
     }, [])
-
     useEffect(() => {
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current)
             if (strengthCheckRef.current) clearTimeout(strengthCheckRef.current)
         }
     }, [])
-
     useEffect(() => {
         if (strengthCheckRef.current) clearTimeout(strengthCheckRef.current)
         if (password && isSignUp) {
@@ -199,14 +188,12 @@ function LoginView() {
             setPasswordStrength({ color: '', value: '' })
         }
     }, [password, isSignUp])
-
     useEffect(() => {
         if (error) {
             setErrorMessage(error)
             setSuccessMessage('')
         }
     }, [error])
-
     /** Handles sign-in or sign-up with a 10s safety timeout to prevent infinite loading state. */
     const handleSubmit = useCallback(
         async (e) => {
@@ -259,14 +246,12 @@ function LoginView() {
         },
         [isSubmitting, loading, isSignUp, email, password, confirmPassword, firstName, lastName, signIn, signUp]
     )
-
     const toggleSignUp = useCallback(() => setIsSignUp((prev) => !prev), [])
     const togglePassword = useCallback(() => setShowPassword((prev) => !prev), [])
     const openRecovery = useCallback(() => setShowRecovery(true), [])
     const closeRecovery = useCallback(() => setShowRecovery(false), [])
     const openChangelog = useCallback(() => setShowChangelog(true), [])
     const closeChangelog = useCallback(() => setShowChangelog(false), [])
-
     const getInputStyle = useCallback(
         (isFocused) => ({
             ...inputBaseStyle,
@@ -274,7 +259,6 @@ function LoginView() {
         }),
         []
     )
-
     const getLabelStyle = useCallback(
         (isFocused, hasValue) => ({
             color: isFocused ? '#1e3a5f' : '#94a3b8',
@@ -288,7 +272,6 @@ function LoginView() {
         }),
         []
     )
-
     const submitButtonStyle = useMemo(
         () => ({
             background: '#1e3a5f',
@@ -305,7 +288,6 @@ function LoginView() {
         }),
         [isSubmitting, loading]
     )
-
     if (showChangelog) {
         return (
             <Suspense
@@ -327,7 +309,6 @@ function LoginView() {
             </Suspense>
         )
     }
-
     if (showRecovery) {
         return (
             <Suspense
@@ -349,7 +330,6 @@ function LoginView() {
             </Suspense>
         )
     }
-
     return (
         <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
             {videoLoaded ? (
@@ -360,7 +340,6 @@ function LoginView() {
                 <VideoFallback />
             )}
             <VersionPopup version={version} onClick={openChangelog} />
-
             <div
                 style={{
                     alignItems: 'stretch',
@@ -383,7 +362,6 @@ function LoginView() {
                         <StatsDisplay stats={animatedStats} />
                     </div>
                 </div>
-
                 <div
                     style={{
                         alignItems: 'center',
@@ -422,7 +400,6 @@ function LoginView() {
                                 </div>
                             </div>
                         )}
-
                         <div style={{ marginBottom: '2.5rem' }}>
                             <h2
                                 style={{
@@ -438,7 +415,6 @@ function LoginView() {
                                 {isSignUp ? 'Join the team' : 'Enter your credentials to continue'}
                             </p>
                         </div>
-
                         <form onSubmit={handleSubmit} noValidate>
                             {isSignUp && (
                                 <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -472,7 +448,6 @@ function LoginView() {
                                     </div>
                                 </div>
                             )}
-
                             <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
                                 <label style={getLabelStyle(focusedField === 'email', email)}>Email address</label>
                                 <input
@@ -486,7 +461,6 @@ function LoginView() {
                                     required
                                 />
                             </div>
-
                             <div style={{ marginBottom: '1.5rem' }}>
                                 <div style={{ position: 'relative' }}>
                                     <label style={getLabelStyle(focusedField === 'password', password)}>Password</label>
@@ -522,9 +496,7 @@ function LoginView() {
                                     </button>
                                 </div>
                             </div>
-
                             {isSignUp && password && <PasswordStrengthBar strength={passwordStrength} />}
-
                             {isSignUp && (
                                 <div style={{ marginBottom: '1.5rem' }}>
                                     <div style={{ position: 'relative' }}>
@@ -557,7 +529,6 @@ function LoginView() {
                                     </div>
                                 </div>
                             )}
-
                             {!isSignUp && (
                                 <div style={{ marginBottom: '1.5rem', textAlign: 'right' }}>
                                     <button
@@ -577,7 +548,6 @@ function LoginView() {
                                     </button>
                                 </div>
                             )}
-
                             {errorMessage && (
                                 <div
                                     style={{
@@ -606,7 +576,6 @@ function LoginView() {
                                     {successMessage}
                                 </div>
                             )}
-
                             <button type="submit" disabled={isSubmitting || loading} style={submitButtonStyle}>
                                 {isSubmitting || loading ? (
                                     <span style={{ alignItems: 'center', display: 'inline-flex', gap: '0.5rem' }}>
@@ -620,7 +589,6 @@ function LoginView() {
                                 )}
                             </button>
                         </form>
-
                         <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                             <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
                                 {isSignUp ? 'Already have an account?' : "Don't have an account?"}
@@ -644,7 +612,6 @@ function LoginView() {
                     </div>
                 </div>
             </div>
-
             <style>{`
                 @media (min-width: 1024px) { .lg-show { display: flex !important; } .lg-hide { display: none !important; } }
                 @media (max-width: 1023px) { .login-panel { width: 100% !important; min-width: unset !important; padding: 1.5rem !important; } }
@@ -654,5 +621,4 @@ function LoginView() {
         </div>
     )
 }
-
 export default LoginView

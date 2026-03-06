@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-
 const VERSION_POLL_INTERVAL = 5 * 60 * 1000 // 5 minutes
-
 async function fetchDeployedVersion() {
     const res = await fetch('/nit.json', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch version')
     const data = await res.json()
     return data.version ?? null
 }
-
 /**
  * Polls /nit.json every 5 minutes and signals when the deployed version
  * has changed since the page was first loaded.
@@ -19,7 +16,6 @@ export function useVersionCheck() {
     const loadedVersionRef = useRef(null)
     const latestVersionRef = useRef(null)
     const dismissedVersionRef = useRef(null)
-
     const check = useCallback(async () => {
         try {
             const version = await fetchDeployedVersion()
@@ -35,17 +31,14 @@ export function useVersionCheck() {
             // silently ignore — network may be unavailable
         }
     }, [])
-
     useEffect(() => {
         check()
         const interval = setInterval(check, VERSION_POLL_INTERVAL)
         return () => clearInterval(interval)
     }, [check])
-
     const dismiss = useCallback(() => {
         dismissedVersionRef.current = latestVersionRef.current
         setHasUpdate(false)
     }, [])
-
     return { dismiss, hasUpdate }
 }

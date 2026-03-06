@@ -8,7 +8,6 @@ import { ListService } from '../../services/ListService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
-
 /**
  * Detail/edit view for a single task list item. Supports editing description,
  * plant, deadline, status, role, and comments with AI-powered description
@@ -31,7 +30,6 @@ function ListDetailView({ itemId, onClose }) {
     const [plants, setPlants] = useState([])
     const [message, setMessage] = useState('')
     const [isImprovingDescription, setIsImprovingDescription] = useState(false)
-
     const statusOptions = [
         { label: 'Pending', value: 'pending' },
         { label: 'In Progress', value: 'in_progress' },
@@ -40,7 +38,6 @@ function ListDetailView({ itemId, onClose }) {
         { label: 'Blocked', value: 'blocked' },
         { label: 'Completed', value: 'completed' }
     ]
-
     const responsibleRoleOptions = [
         { label: 'Unassigned', value: '' },
         { label: 'Maintenance', value: 'maintenance' },
@@ -53,21 +50,17 @@ function ListDetailView({ itemId, onClose }) {
     const [originalValues, setOriginalValues] = useState({})
     const [canEditList, setCanEditList] = useState(false)
     const [canDeleteList, setCanDeleteList] = useState(false)
-
     const canEdit = true
-
     useEffect(() => {
         const contentArea = document.querySelector('.content-area')
         if (contentArea) contentArea.scrollTop = 0
     }, [])
-
     useEffect(() => {
         if (itemId) {
             Promise.all([fetchItem(), fetchPlants()]).catch(() => {})
         }
         return () => {}
     }, [itemId])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -85,7 +78,6 @@ function ListDetailView({ itemId, onClose }) {
         }
         checkDeletePermission()
     }, [])
-
     async function fetchItem() {
         setLoading(true)
         try {
@@ -117,7 +109,6 @@ function ListDetailView({ itemId, onClose }) {
             setLoading(false)
         }
     }
-
     async function fetchPlants() {
         try {
             const plantsData = await ListService.fetchPlants()
@@ -126,11 +117,9 @@ function ListDetailView({ itemId, onClose }) {
             showMessage('Failed to load plants', 'error')
         }
     }
-
     // Resolve which plants the user can assign to, scoped by their region permissions.
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowed() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -172,14 +161,11 @@ function ListDetailView({ itemId, onClose }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowed()
-
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, formData.plantCode])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return plants
         return plants.filter((p) =>
@@ -190,7 +176,6 @@ function ListDetailView({ itemId, onClose }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     useEffect(() => {
         const hasChanges =
             formData.description !== originalValues.description ||
@@ -201,16 +186,13 @@ function ListDetailView({ itemId, onClose }) {
             responsibleRole !== originalValues.responsibleRole
         setHasUnsavedChanges(hasChanges)
     }, [formData, status, responsibleRole, originalValues])
-
     function handleChange(e) {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
     }
-
     function showMessage(text, type = 'success', duration = 3000) {
         setMessage(type === 'error' ? `Error: ${text}` : text)
         if (duration) setTimeout(() => setMessage(''), duration)
     }
-
     async function handleSubmit() {
         try {
             if (!formData.description.trim()) return showMessage('Description is required', 'error')
@@ -233,7 +215,6 @@ function ListDetailView({ itemId, onClose }) {
             showMessage('Failed to update item', 'error', 5000)
         }
     }
-
     async function handleImproveDescription() {
         if (!formData.description.trim()) return
         setIsImprovingDescription(true)
@@ -264,7 +245,6 @@ function ListDetailView({ itemId, onClose }) {
             setIsImprovingDescription(false)
         }
     }
-
     async function handleDelete() {
         try {
             await ListService.deleteListItem(itemId)
@@ -274,7 +254,6 @@ function ListDetailView({ itemId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     // Keyboard shortcuts: Escape to close, Delete/Backspace to delete — but only when not focused on a form input.
     useEffect(() => {
         function onKeyDown(e) {
@@ -287,11 +266,9 @@ function ListDetailView({ itemId, onClose }) {
                 setShowDeleteConfirmation(true)
             }
         }
-
         window.addEventListener('keydown', onKeyDown)
         return () => window.removeEventListener('keydown', onKeyDown)
     }, [onClose])
-
     if (loading) {
         return (
             <>
@@ -304,7 +281,6 @@ function ListDetailView({ itemId, onClose }) {
             </>
         )
     }
-
     if (!item) {
         return (
             <>
@@ -318,7 +294,6 @@ function ListDetailView({ itemId, onClose }) {
             </>
         )
     }
-
     return (
         <>
             <DetailViewSection
@@ -466,7 +441,6 @@ function ListDetailView({ itemId, onClose }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="details" title="Additional Details" icon="fas fa-clipboard">
                     <DetailViewSection.Card title="Comments & History" icon="fas fa-comment-alt">
                         <div className="form-group">
@@ -545,5 +519,4 @@ function ListDetailView({ itemId, onClose }) {
         </>
     )
 }
-
 export default ListDetailView

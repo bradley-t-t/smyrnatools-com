@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 
 import { SESSION_STORAGE_KEYS } from '../constants/auth'
-
 /**
  * Manages authentication session lifecycle on app mount.
  * Listens for sign-in/sign-out events dispatched by AuthContext
@@ -17,7 +16,6 @@ export function useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSel
             if (userId) setUserId(userId)
             setSessionChecked(true)
         }
-
         const handleAuthSuccess = (event) => {
             const userId =
                 event.detail?.userId ||
@@ -25,18 +23,15 @@ export function useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSel
                 localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
             if (userId) setUserId(userId)
         }
-
         const handleSignOut = () => {
             setUserId(null)
             setSelectedView({ initialStatusFilter: null, view: 'Dashboard' })
             setIsGuestOnly(false)
             setRolesLoaded(false)
         }
-
         initSession()
         window.addEventListener('authSuccess', handleAuthSuccess)
         window.addEventListener('authSignOut', handleSignOut)
-
         return () => {
             window.removeEventListener('authSuccess', handleAuthSuccess)
             window.removeEventListener('authSignOut', handleSignOut)

@@ -4,10 +4,8 @@ import { ReportUtility } from '../utils/ReportUtility'
 import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 import { UserService } from './UserService'
-
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
-
 /** Sorts plants by plant_code numerically, falling back to string comparison. */
 function sortPlants(plants) {
     return (plants || [])
@@ -19,7 +17,6 @@ function sortPlants(plants) {
             return String(a.plant_code).localeCompare(String(b.plant_code))
         })
 }
-
 /** Calculates Monday and Saturday dates from a week ISO string. */
 function getWeekRangeDates(weekIso) {
     if (!weekIso) return null
@@ -30,7 +27,6 @@ function getWeekRangeDates(weekIso) {
     saturday.setDate(monday.getDate() + 5)
     return { monday, saturday }
 }
-
 /**
  * Weekly report management service handling plant manager, general manager,
  * efficiency, and RMI reports. Provides date utilities, production insights,
@@ -46,7 +42,6 @@ class ReportServiceImpl {
         saturday.setDate(monday.getDate() + 5)
         return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
     }
-
     /** Calculates the Monday and Saturday bounding a given date. */
     getMondayAndSaturday(date = new Date()) {
         const d = new Date(date)
@@ -59,38 +54,32 @@ class ReportServiceImpl {
         saturday.setHours(0, 0, 0, 0)
         return { monday, saturday }
     }
-
     /** Returns the ISO date string (YYYY-MM-DD) for the Monday of a given date's week. */
     getMondayISO(date) {
         return this.getMondayAndSaturday(date).monday.toISOString().slice(0, 10)
     }
-
     /** Formats a Date as M-D-YY. */
     /** Formats two Date objects into a "MM-DD-YY through MM-DD-YY" range string. */
     getWeekRangeString(monday, saturday) {
         return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
     }
-
     formatDateMMDDYY(date) {
         const mm = date.getMonth() + 1
         const dd = date.getDate()
         const yy = date.getFullYear().toString().slice(-2)
         return `${mm}-${dd}-${yy}`
     }
-
     /** Extracts the plant code from a report's data structure. */
     getPlantNameFromReport(report) {
         if (report.data?.plant) return report.data.plant
         if (report.data?.rows?.[0]?.plant_code) return report.data.rows[0].plant_code
         return ''
     }
-
     getPlantNameFromWeekItem(item) {
         if (item.report?.data?.plant) return item.report.data.plant
         if (item.report?.data?.rows?.[0]?.plant_code) return item.report.data.rows[0].plant_code
         return ''
     }
-
     /** Parses a "HH:MM" time string into total minutes. */
     parseTimeToMinutes(timeStr) {
         if (!timeStr || typeof timeStr !== 'string') return null
@@ -98,7 +87,6 @@ class ReportServiceImpl {
         if (isNaN(h) || isNaN(m)) return null
         return h * 60 + m
     }
-
     /** Resolves an operator's display name from row data and operator options. */
     getOperatorName(row, operatorOptions) {
         if (!row?.name) return ''
@@ -109,7 +97,6 @@ class ReportServiceImpl {
         if (row.displayName) return row.displayName
         return row.name
     }
-
     /**
      * Computes yardage efficiency metrics (yards per hour, lost yardage)
      * with performance grades from form data using multiple possible field name formats.
@@ -178,7 +165,6 @@ class ReportServiceImpl {
         else if (lostGrade === 'poor') lostLabel = 'Poor'
         return { lost, lostGrade, lostLabel, yph, yphGrade, yphLabel }
     }
-
     /** Maps a yardage performance grade to its CSS variable color. */
     getYphColor(grade) {
         if (grade === 'excellent') return 'var(--excellent)'
@@ -187,7 +173,6 @@ class ReportServiceImpl {
         if (grade === 'poor') return 'var(--error)'
         return ''
     }
-
     /**
      * Analyzes per-row production data for a plant, computing totals, averages,
      * and flagging efficiency warnings (late starts, long hours, low loads).
@@ -199,13 +184,11 @@ class ReportServiceImpl {
             if (isNaN(h) || isNaN(m)) return null
             return h * 60 + m
         }
-
         function isExcludedRow(row) {
             if (!row) return true
             const keys = Object.keys(row).filter((k) => k !== 'name' && k !== 'truck_number')
             return keys.every((k) => row[k] === '' || row[k] === undefined || row[k] === null || row[k] === 0)
         }
-
         let totalLoads = 0
         let totalHours = 0
         let totalElapsedStart = 0
@@ -300,7 +283,6 @@ class ReportServiceImpl {
             warnings
         }
     }
-
     /** Fetches active mixer counts grouped by plant code. */
     async fetchActiveMixerCountsByPlant(plantCodes = []) {
         if (!plantCodes || plantCodes.length === 0) return {}
@@ -321,7 +303,6 @@ class ReportServiceImpl {
         })
         return counts
     }
-
     /** Fetches all plants sorted by code with a 10-minute cache. */
     async fetchPlantsSorted() {
         const cacheKey = 'plants:all'
@@ -335,7 +316,6 @@ class ReportServiceImpl {
         CacheUtility.set(cacheKey, plants, TTL_MED)
         return plants
     }
-
     /**
      * Fetches plants accessible to a user based on their profile plant
      * and region memberships, with a 5-minute cache.
@@ -375,7 +355,6 @@ class ReportServiceImpl {
             return []
         }
     }
-
     /** Fetches operator name/ID options for a plant for use in report dropdowns. */
     async fetchOperatorOptions(plantCode) {
         if (!plantCode) return []
@@ -387,7 +366,6 @@ class ReportServiceImpl {
         CacheUtility.set(key, options, TTL_SHORT)
         return options
     }
-
     /** Fetches active operators and mixers for a plant for report context. */
     async fetchActiveOperatorsAndMixers(plantCode) {
         if (!plantCode) return { activeOperators: [], mixers: [], operatorOptions: [] }
@@ -412,7 +390,6 @@ class ReportServiceImpl {
         CacheUtility.set(key, result, TTL_SHORT)
         return result
     }
-
     /** Fetches completed maintenance items within a week's date range. */
     async fetchMaintenanceItems(weekIso) {
         if (!weekIso) return []
@@ -432,7 +409,6 @@ class ReportServiceImpl {
         CacheUtility.set(key, items, TTL_SHORT)
         return items
     }
-
     /**
      * Detects overdue report assignments by cross-referencing user permissions
      * against submitted reports across the last 52 weeks. Checks multiple report
@@ -622,20 +598,16 @@ class ReportServiceImpl {
         CacheUtility.set(cacheKey, overdue, TTL_SHORT)
         return overdue
     }
-
     /** Fetches completed plant manager reports for a given week, excluding a specific plant. */
     async fetchPlantManagerReportsForWeek(weekIso, excludePlantCode) {
         if (!weekIso) return { data: [], error: null }
-
         try {
             const weekStart = weekIso.split('T')[0]
-
             const [year, month, day] = weekStart.split('-').map(Number)
             const startDate = new Date(year, month - 1, day - 1)
             const weekStartStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`
             const weekEndDate = new Date(year, month - 1, day + 7)
             const weekEndStr = `${weekEndDate.getFullYear()}-${String(weekEndDate.getMonth() + 1).padStart(2, '0')}-${String(weekEndDate.getDate()).padStart(2, '0')}`
-
             const { data, error } = await supabase
                 .from('reports')
                 .select('*')
@@ -643,15 +615,12 @@ class ReportServiceImpl {
                 .eq('completed', true)
                 .gte('week', weekStartStr)
                 .lte('week', weekEndStr + 'T23:59:59.999Z')
-
             if (error) return { data: [], error }
-
             const excludePlantCodeStr = String(excludePlantCode || '')
             const filteredData = (data || []).filter((report) => {
                 const reportPlant = String(report.data?.plant || '')
                 return reportPlant && reportPlant !== excludePlantCodeStr
             })
-
             return { data: filteredData, error: null }
         } catch (err) {
             console.error('Error fetching plant manager reports for week:', err)
@@ -659,5 +628,4 @@ class ReportServiceImpl {
         }
     }
 }
-
 export const ReportService = new ReportServiceImpl()

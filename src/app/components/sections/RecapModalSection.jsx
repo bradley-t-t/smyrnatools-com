@@ -6,7 +6,6 @@ import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 /**
  * Floating recap button and modal showing recent mixer and operator history changes.
  * Displays net change metrics (runnable, down, operators, transfers) and an expandable
@@ -33,17 +32,14 @@ function RecapModalSection({
     const [expandedAssets, setExpandedAssets] = useState({})
     const [isTabVisible, setIsTabVisible] = useState(false)
     const isMobile = useIsMobile()
-
     const mixerIds = useMemo(() => {
         if (!mixers || !Array.isArray(mixers)) return []
         return mixers.map((m) => m.id).filter(Boolean)
     }, [mixers])
-
     const operatorIds = useMemo(() => {
         if (!operators || !Array.isArray(operators)) return []
         return operators.map((o) => o.employeeId || o.employee_id).filter(Boolean)
     }, [operators])
-
     const changeMetrics = useMemo(() => {
         const allHistory = [...mixerHistory, ...operatorHistory]
         if (!allHistory || allHistory.length === 0) {
@@ -54,12 +50,10 @@ function RecapModalSection({
                 transfersNet: 0
             }
         }
-
         let operatorsNet = 0
         let runnableNet = 0
         let downNet = 0
         let transfersNet = 0
-
         mixerHistory.forEach((h) => {
             if (h.field_name === 'assigned_operator') {
                 const oldVal = h.old_value
@@ -69,18 +63,14 @@ function RecapModalSection({
                 if (!hadOperator && hasOperator) operatorsNet++
                 else if (hadOperator && !hasOperator) operatorsNet--
             }
-
             if (h.field_name === 'status') {
                 const oldStatus = (h.old_value || '').toLowerCase()
                 const newStatus = (h.new_value || '').toLowerCase()
-
                 const wasDown = oldStatus === 'in shop'
                 const isDown = newStatus === 'in shop'
-
                 if (!wasDown && isDown) downNet++
                 else if (wasDown && !isDown) downNet--
             }
-
             if (h.field_name === 'assigned_plant') {
                 if (isAllPlants) {
                     transfersNet++
@@ -89,7 +79,6 @@ function RecapModalSection({
                     const newPlant = h.new_value
                     const wasAtThisPlant = oldPlant === plantCode
                     const isAtThisPlant = newPlant === plantCode
-
                     if (!wasAtThisPlant && isAtThisPlant) {
                         runnableNet++
                         transfersNet++
@@ -100,7 +89,6 @@ function RecapModalSection({
                 }
             }
         })
-
         return {
             downNet,
             operatorsNet,
@@ -108,7 +96,6 @@ function RecapModalSection({
             transfersNet
         }
     }, [mixerHistory, operatorHistory, plantCode, isAllPlants])
-
     const mixerLookup = useMemo(() => {
         const lookup = {}
         if (mixers && Array.isArray(mixers)) {
@@ -118,7 +105,6 @@ function RecapModalSection({
         }
         return lookup
     }, [mixers])
-
     const operatorLookup = useMemo(() => {
         const lookup = {}
         if (operators && Array.isArray(operators)) {
@@ -131,12 +117,10 @@ function RecapModalSection({
         }
         return lookup
     }, [operators])
-
     const groupedHistory = useMemo(() => {
         const allHistory = [...mixerHistory, ...operatorHistory]
         if (!allHistory || allHistory.length === 0) return []
         const groups = {}
-
         mixerHistory.forEach((entry) => {
             const mixerId = entry.mixer_id
             const key = `mixer_${mixerId}`
@@ -150,7 +134,6 @@ function RecapModalSection({
             }
             groups[key].changes.push(entry)
         })
-
         operatorHistory.forEach((entry) => {
             const operatorId = entry.operator_id
             const key = `operator_${operatorId}`
@@ -164,7 +147,6 @@ function RecapModalSection({
             }
             groups[key].changes.push(entry)
         })
-
         Object.values(groups).forEach((group) => {
             if (group.type === 'mixer') {
                 const mixer = mixerLookup[group.id]
@@ -201,10 +183,8 @@ function RecapModalSection({
             return new Date(bLatest) - new Date(aLatest)
         })
     }, [mixerHistory, operatorHistory, mixerLookup, operatorLookup])
-
     const fetchHistory = async () => {
         if (mixerIds.length === 0 && operatorIds.length === 0) return
-
         setIsLoading(true)
         try {
             let startDate = new Date()
@@ -217,7 +197,6 @@ function RecapModalSection({
             } else if (dateFilter === 'all') {
                 startDate = new Date('2020-01-01')
             }
-
             const [mixerResult, operatorResult] = await Promise.all([
                 mixerIds.length > 0
                     ? supabase
@@ -238,10 +217,8 @@ function RecapModalSection({
                           .limit(500)
                     : Promise.resolve({ data: [], error: null })
             ])
-
             const mixerData = !mixerResult.error ? mixerResult.data || [] : []
             const operatorData = !operatorResult.error ? operatorResult.data || [] : []
-
             const filterHistory = (entries) => {
                 return (entries || []).filter((entry) => {
                     const oldVal = entry.old_value
@@ -253,13 +230,10 @@ function RecapModalSection({
                     return true
                 })
             }
-
             const filteredMixerHistory = filterHistory(mixerData)
             const filteredOperatorHistory = filterHistory(operatorData)
-
             setMixerHistory(filteredMixerHistory)
             setOperatorHistory(filteredOperatorHistory)
-
             const allHistory = [...filteredMixerHistory, ...filteredOperatorHistory]
             const userIds = new Set()
             const opIdsForNames = new Set()
@@ -284,10 +258,8 @@ function RecapModalSection({
                     }
                 }
             })
-
             const userIdsToFetch = [...userIds].filter((id) => !userNames[id])
             const opIdsToFetch = [...opIdsForNames].filter((id) => !operatorNames[id])
-
             const [userNamesResults, opNamesResults] = await Promise.all([
                 Promise.all(
                     userIdsToFetch.map(async (userId) => {
@@ -322,13 +294,11 @@ function RecapModalSection({
                     })
                 )
             ])
-
             const names = { ...userNames }
             userNamesResults.forEach((result) => {
                 names[result.id] = result.name
             })
             setUserNames(names)
-
             const opNames = { ...operatorNames }
             opNamesResults.forEach((result) => {
                 opNames[result.id] = result.data
@@ -339,25 +309,21 @@ function RecapModalSection({
             setIsLoading(false)
         }
     }
-
     useEffect(() => {
         if (isOpen && (mixerIds.length > 0 || operatorIds.length > 0)) {
             fetchHistory()
         }
     }, [isOpen, mixerIds, operatorIds, dateFilter])
-
     useEffect(() => {
         if (!mixersLoaded || externalLoading) {
             setIsTabVisible(false)
             return
         }
-
         const timer = setTimeout(() => {
             setIsTabVisible(true)
         }, 2000)
         return () => clearTimeout(timer)
     }, [mixersLoaded, externalLoading])
-
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown Field'
         const mappings = {
@@ -388,7 +354,6 @@ function RecapModalSection({
         }
         return mappings[fieldName] || fieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     }
-
     const formatValue = (value, fieldName) => {
         if (value === null || value === undefined || value === '' || value === 'null') return 'None'
         if (fieldName === 'assigned_operator') {
@@ -435,7 +400,6 @@ function RecapModalSection({
         }
         return String(value)
     }
-
     const formatDate = (dateStr) => {
         try {
             const date = new Date(dateStr)
@@ -444,12 +408,10 @@ function RecapModalSection({
             const mins = Math.floor(diff / 60000)
             const hours = Math.floor(diff / 3600000)
             const days = Math.floor(diff / 86400000)
-
             if (mins < 1) return 'Just now'
             if (mins < 60) return `${mins}m ago`
             if (hours < 24) return `${hours}h ago`
             if (days < 7) return `${days}d ago`
-
             return date.toLocaleDateString('en-US', {
                 day: 'numeric',
                 hour: 'numeric',
@@ -460,7 +422,6 @@ function RecapModalSection({
             return dateStr
         }
     }
-
     const getChangeIcon = (fieldName) => {
         const iconMap = {
             assigned_operator: 'fa-solid fa-user',
@@ -488,24 +449,19 @@ function RecapModalSection({
         }
         return iconMap[fieldName] || 'fa-solid fa-pen'
     }
-
     const handleToggle = () => {
         setIsOpen(!isOpen)
     }
-
     const toggleAssetExpanded = (assetKey) => {
         setExpandedAssets((prev) => ({
             ...prev,
             [assetKey]: !prev[assetKey]
         }))
     }
-
     if (!plantCode && !isAllPlants) return null
-
     const displayTitle = isAllPlants ? 'All Plants Recap' : `Plant ${plantCode} Recap`
     const displaySubtitle = isAllPlants ? 'All Fleet Changes' : plantName || 'Changes History'
     const totalChanges = mixerHistory.length + operatorHistory.length
-
     const tab = (
         <div
             className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
@@ -516,7 +472,6 @@ function RecapModalSection({
             <span className="text-sm font-medium">Recap</span>
         </div>
     )
-
     const modal = isOpen ? (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
@@ -544,7 +499,6 @@ function RecapModalSection({
                         <i className="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-
                 <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
                     <div className="flex gap-1">
                         <button
@@ -596,7 +550,6 @@ function RecapModalSection({
                         {totalChanges} change{totalChanges !== 1 ? 's' : ''}
                     </div>
                 </div>
-
                 <div className="flex-1 overflow-y-auto">
                     <div className="grid grid-cols-4 gap-3 p-4 border-b border-slate-200">
                         <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
@@ -656,7 +609,6 @@ function RecapModalSection({
                             </div>
                         </div>
                     </div>
-
                     <div className="p-4">
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -757,7 +709,6 @@ function RecapModalSection({
             </div>
         </div>
     ) : null
-
     return (
         <>
             {!isMobile && tab}
@@ -765,5 +716,4 @@ function RecapModalSection({
         </>
     )
 }
-
 export default RecapModalSection

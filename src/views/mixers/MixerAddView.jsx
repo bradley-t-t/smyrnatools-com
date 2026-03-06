@@ -6,7 +6,6 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { Mixer } from '../../models/mixers/Mixer'
 import { MixerService } from '../../services/MixerService'
 import { RegionService } from '../../services/RegionService'
-
 /**
  * Slide-in form for creating a new mixer (concrete truck) record.
  * Requires truck number and assigned plant. Defaults cleanliness to 5
@@ -25,21 +24,17 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
     const [error, setError] = useState('')
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
-
     useEffect(() => {
         async function loadMixers() {
             try {
                 await MixerService.fetchMixers()
             } catch (error) {}
         }
-
         loadMixers()
     }, [])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -55,13 +50,11 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                 setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, assignedPlant])
-
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
         const filtered =
@@ -75,30 +68,25 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                     parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0')
             )
     }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
-
     const selectedPlantObj = visiblePlants.find((p) => p.plantCode === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
         : 'Select Plant'
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
         if (!truckNumber) return setError('Truck number is required')
         if (!assignedPlant) return setError('Plant is required')
-
         setIsSaving(true)
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-
             const formatDateForDb = (date) => {
                 if (!date) return null
                 const d = new Date(date)
                 if (isNaN(d.getTime())) return null
                 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
             }
-
             const now = formatDateForDb(new Date())
             const newMixer = new Mixer({
                 assigned_operator: '0',
@@ -111,10 +99,8 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                 updated_by: userId,
                 updated_last: now
             })
-
             const savedMixer = await MixerService.createMixer(newMixer, userId)
             if (!savedMixer) throw new Error('Failed to add mixer - no data returned from server')
-
             onMixerAdded(savedMixer)
             onClose()
         } catch (error) {
@@ -123,7 +109,6 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title="Add New Mixer" onClose={onClose} error={error}>
@@ -148,7 +133,6 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-building"></i>
@@ -176,7 +160,6 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Mixer'}
@@ -198,5 +181,4 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
         </>
     )
 }
-
 export default MixerAddView

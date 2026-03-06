@@ -6,20 +6,16 @@ const FormatUtility = {
     compareVINs: (vinA, vinB) => {
         const a = String(vinA || '').toUpperCase()
         const b = String(vinB || '').toUpperCase()
-
         if (!a && !b) return 0
         if (!a) return 1
         if (!b) return -1
-
         const parseVIN = (vin) => {
             const parts = []
             let currentPart = ''
             let isNumeric = null
-
             for (let i = 0; i < vin.length; i++) {
                 const char = vin[i]
                 const charIsNumeric = /\d/.test(char)
-
                 if (isNumeric === null) {
                     isNumeric = charIsNumeric
                     currentPart = char
@@ -31,25 +27,19 @@ const FormatUtility = {
                     isNumeric = charIsNumeric
                 }
             }
-
             if (currentPart) {
                 parts.push({ isNumeric, value: currentPart })
             }
-
             return parts
         }
-
         const partsA = parseVIN(a)
         const partsB = parseVIN(b)
         const maxLength = Math.max(partsA.length, partsB.length)
-
         for (let i = 0; i < maxLength; i++) {
             const partA = partsA[i]
             const partB = partsB[i]
-
             if (!partA) return -1
             if (!partB) return 1
-
             if (partA.isNumeric && partB.isNumeric) {
                 const numA = parseInt(partA.value, 10)
                 const numB = parseInt(partB.value, 10)
@@ -59,7 +49,6 @@ const FormatUtility = {
                 if (comparison !== 0) return comparison
             }
         }
-
         return 0
     },
     formatDate: (dateStr) => {
@@ -104,7 +93,6 @@ const FormatUtility = {
         else if (day % 10 === 3 && day !== 13) suffix = 'rd'
         return formatted.replace(`${day}`, `${day}${suffix}`)
     },
-
     formatDateTime: (dateStr) => {
         if (!dateStr) return ''
         const date = new Date(dateStr)
@@ -113,6 +101,5 @@ const FormatUtility = {
         return date.toLocaleString('en-US', options)
     }
 }
-
 export default FormatUtility
 export { FormatUtility }

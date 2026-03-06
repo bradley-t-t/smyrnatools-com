@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-
 const BACKDROP_CLASSES = 'fixed inset-0 z-[9999] flex items-center justify-center p-4'
 const OVERLAY_CLASSES = 'absolute inset-0 bg-black/50 backdrop-blur-sm'
 const MODAL_BASE_CLASSES = 'relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden'
@@ -12,7 +11,6 @@ const PRIMARY_BUTTON_CLASSES =
     'flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
 const SECONDARY_BUTTON_CLASSES =
     'px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
-
 /**
  * Portal-rendered modal shell for role/permission management dialogs.
  * Provides a branded header, close button, and renders children as the body.
@@ -26,7 +24,6 @@ const SECONDARY_BUTTON_CLASSES =
  */
 function RoleModal({ children, isOpen, maxWidth = 'max-w-md', onClose, subtitle, title, titleIcon }) {
     if (!isOpen) return null
-
     return ReactDOM.createPortal(
         <div className={BACKDROP_CLASSES} onClick={onClose}>
             <div className={OVERLAY_CLASSES} />
@@ -49,17 +46,14 @@ function RoleModal({ children, isOpen, maxWidth = 'max-w-md', onClose, subtitle,
         document.body
     )
 }
-
 /** Padded body section for RoleModal content. */
 export function RoleModalBody({ children }) {
     return <div className={BODY_CLASSES}>{children}</div>
 }
-
 /** Scrollable body section for RoleModal with overflow handling. */
 export function RoleModalScrollBody({ children }) {
     return <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
 }
-
 /** Footer bar with primary submit and secondary cancel buttons, supporting loading state. */
 export function RoleModalFooter({
     disabled,
@@ -96,7 +90,6 @@ export function RoleModalFooter({
         </div>
     )
 }
-
 /** Labeled form field wrapper with optional sublabel. */
 export function RoleFormField({ children, label, sublabel }) {
     return (
@@ -109,7 +102,6 @@ export function RoleFormField({ children, label, sublabel }) {
         </div>
     )
 }
-
 /** Styled text input for role modal forms. */
 export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
     return (
@@ -122,7 +114,6 @@ export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
         />
     )
 }
-
 /** Styled textarea for role modal forms with monospace font. */
 export function RoleTextarea({ disabled, onChange, placeholder, value }) {
     return (
@@ -135,5 +126,4 @@ export function RoleTextarea({ disabled, onChange, placeholder, value }) {
         />
     )
 }
-
 export default RoleModal

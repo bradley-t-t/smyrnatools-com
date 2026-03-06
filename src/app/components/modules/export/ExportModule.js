@@ -6,9 +6,7 @@ import {
     loadLogo,
     setDefaultPageSetup
 } from '../../../../utils/ExportUtility'
-
 export { exportGeneralManagerReport } from './reports/GeneralManagerExport'
-
 /**
  * Initializes an Excel workbook with optional logo and subject metadata.
  * @param {Object} [options]
@@ -19,16 +17,12 @@ export { exportGeneralManagerReport } from './reports/GeneralManagerExport'
  */
 export async function initExport(options = {}) {
     const { wb, ExcelLib } = await createWorkbook()
-
     if (options.subject) {
         wb.properties.subject = options.subject
     }
-
     const logoBase64 = options.skipLogo ? null : await loadLogo(options.logoPath)
-
     return { ExcelLib, logoBase64, wb }
 }
-
 /**
  * Adds a worksheet to the workbook with grid lines hidden.
  * @param {Object} wb - ExcelJS workbook.
@@ -41,12 +35,9 @@ export function createSheet(wb, sheetName, options = {}) {
         properties: { defaultRowHeight: options.defaultRowHeight || 18 },
         views: [{ showGridLines: false }]
     })
-
     ws.columns = options.columns || getDefaultColumnWidths()
-
     return ws
 }
-
 /** Applies page setup and optional subtle background fill to a completed worksheet. */
 export function finalizeSheet(ws, options = {}) {
     setDefaultPageSetup(ws)
@@ -54,12 +45,10 @@ export function finalizeSheet(ws, options = {}) {
         applySubtleBackground(ws, options.maxRow, options.maxCol)
     }
 }
-
 /** Downloads the completed workbook as an .xlsx file. */
 export async function exportWorkbook(wb, filename) {
     return downloadWorkbook(wb, filename)
 }
-
 /** Builds a filename with an optional MM-DD-YYYY date suffix from an ISO date string. */
 export function generateFilename(baseName, dateIso) {
     if (!dateIso) {

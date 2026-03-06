@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Dismissible error banner with icon support.
  * @param {Object} props
@@ -9,7 +8,6 @@ import React from 'react'
  */
 function ErrorMessage({ message, onDismiss, className = '' }) {
     if (!message) return null
-
     return (
         <div
             className={`flex items-center justify-between gap-3 rounded-[10px] border border-red-200 bg-red-50 px-[18px] py-3.5 text-sm leading-normal text-red-800 ${className}`}
@@ -27,5 +25,4 @@ function ErrorMessage({ message, onDismiss, className = '' }) {
         </div>
     )
 }
-
 export default ErrorMessage

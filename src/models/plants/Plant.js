@@ -6,7 +6,6 @@ export class Plant {
         this.createdAt = data.created_at ?? new Date().toISOString()
         this.updatedAt = data.updated_at ?? new Date().toISOString()
     }
-
     static fromRow(row) {
         if (!row) return null
         return new Plant(row)

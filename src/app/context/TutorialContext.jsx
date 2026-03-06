@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 import TutorialService from '../../services/TutorialService'
-
 /**
  * Tutorial dismissal context managing which in-app tutorials have been seen.
  * Supports delayed triggering, per-tutorial reset, and respects the user's
@@ -9,8 +8,8 @@ import TutorialService from '../../services/TutorialService'
  */
 const TutorialContext = createContext({
     activeTutorial: null,
-    dismissedTutorials: [],
     dismissTutorial: () => {},
+    dismissedTutorials: [],
     isMobile: false,
     isTutorialDismissed: () => false,
     resetAllTutorials: () => {},
@@ -18,7 +17,6 @@ const TutorialContext = createContext({
     showTutorial: () => {},
     triggerTutorial: () => {}
 })
-
 /**
  * Tutorial provider that loads dismissed state from TutorialService on mount,
  * persists dismissals to both localStorage and the database, and provides
@@ -31,7 +29,6 @@ export function TutorialProvider({ children }) {
     const [_tutorialsEnabled, setTutorialsEnabled] = useState(true)
     const dismissedRef = useRef([])
     const tutorialsEnabledRef = useRef(true)
-
     useEffect(() => {
         const checkTutorialsEnabled = async () => {
             try {
@@ -47,7 +44,6 @@ export function TutorialProvider({ children }) {
             } catch {}
         }
         checkTutorialsEnabled()
-
         const handlePrefsChange = (e) => {
             if (e.detail?.key === 'tutorials') {
                 const enabled = e.detail.value !== false
@@ -61,11 +57,9 @@ export function TutorialProvider({ children }) {
         window.addEventListener('preferences-updated', handlePrefsChange)
         return () => window.removeEventListener('preferences-updated', handlePrefsChange)
     }, [activeTutorial])
-
     useEffect(() => {
         dismissedRef.current = dismissedTutorials
     }, [dismissedTutorials])
-
     useEffect(() => {
         const loadDismissed = async () => {
             try {
@@ -79,21 +73,18 @@ export function TutorialProvider({ children }) {
         }
         loadDismissed()
     }, [])
-
     const isTutorialDismissed = useCallback(
         (tutorialId) => {
             return dismissedTutorials.includes(tutorialId)
         },
         [dismissedTutorials]
     )
-
     const dismissTutorial = useCallback(async (tutorialId) => {
         await TutorialService.dismissTutorial(tutorialId)
         setDismissedTutorials((prev) => [...prev, tutorialId])
         dismissedRef.current = [...dismissedRef.current, tutorialId]
         setActiveTutorial(null)
     }, [])
-
     const showTutorial = useCallback(
         (tutorialId) => {
             if (!isLoaded) return
@@ -103,7 +94,6 @@ export function TutorialProvider({ children }) {
         },
         [isLoaded]
     )
-
     const triggerTutorial = useCallback(
         (tutorialId, delay = 0) => {
             if (!isLoaded) {
@@ -112,7 +102,6 @@ export function TutorialProvider({ children }) {
             }
             if (!tutorialsEnabledRef.current) return
             if (dismissedRef.current.includes(tutorialId)) return
-
             if (delay > 0) {
                 setTimeout(() => {
                     if (!tutorialsEnabledRef.current) return
@@ -126,19 +115,16 @@ export function TutorialProvider({ children }) {
         },
         [isLoaded]
     )
-
     const resetTutorial = useCallback(async (tutorialId) => {
         await TutorialService.resetTutorial(tutorialId)
         setDismissedTutorials((prev) => prev.filter((id) => id !== tutorialId))
         dismissedRef.current = dismissedRef.current.filter((id) => id !== tutorialId)
     }, [])
-
     const resetAllTutorials = useCallback(async () => {
         await TutorialService.resetAllTutorials()
         setDismissedTutorials([])
         dismissedRef.current = []
     }, [])
-
     return (
         <TutorialContext.Provider
             value={{
@@ -157,10 +143,8 @@ export function TutorialProvider({ children }) {
         </TutorialContext.Provider>
     )
 }
-
 /** Hook to access tutorial context (activeTutorial, trigger, dismiss, reset). */
 export function useTutorial() {
     return useContext(TutorialContext)
 }
-
 export default TutorialContext

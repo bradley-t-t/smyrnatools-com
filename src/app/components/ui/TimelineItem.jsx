@@ -1,5 +1,4 @@
 import React from 'react'
-
 /** Timeline entry with a colored dot, connecting line, and a bordered content card. */
 export default function TimelineItem({ dotColor, dotClassName, isLast, children }) {
     return (
@@ -15,7 +14,6 @@ export default function TimelineItem({ dotColor, dotClassName, isLast, children 
         </div>
     )
 }
-
 /** Timeline entry header with label, optional "Current" badge, and custom badge slot. */
 export function TimelineHeader({ label, isCurrent, badge }) {
     return (
@@ -30,22 +28,18 @@ export function TimelineHeader({ label, isCurrent, badge }) {
         </div>
     )
 }
-
 /** Flex row container for timeline metadata items. */
 export function TimelineMeta({ children }) {
     return <div className="flex items-center gap-3 flex-wrap">{children}</div>
 }
-
 /** Muted date label for timeline entries. */
 export function TimelineDate({ date }) {
     return <span className="text-xs text-slate-500">{date}</span>
 }
-
 /** Accent-colored duration label for timeline entries. */
 export function TimelineDuration({ text }) {
     return <span className="text-xs text-accent font-semibold">{text}</span>
 }
-
 /** Uppercase section divider heading within a timeline. */
 export function TimelineSectionTitle({ title }) {
     return (

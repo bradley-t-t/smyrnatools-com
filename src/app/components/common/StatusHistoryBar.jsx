@@ -1,7 +1,6 @@
 import React, { memo, useEffect, useState } from 'react'
 
 import { supabase } from '../../../services/DatabaseService'
-
 /** Color mapping for each known asset status value. */
 const STATUS_COLORS = {
     Active: '#16a34a',
@@ -19,7 +18,6 @@ const STATUS_COLORS = {
     Training: '#6366f1',
     'Waiting For Shop': '#f59e0b'
 }
-
 /**
  * Animated horizontal bar that visualizes the percentage of time an asset
  * has spent in each status since creation.
@@ -36,10 +34,8 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
     const [loading, setLoading] = useState(true)
     const [isHovered, setIsHovered] = useState(false)
     const [animateIn, setAnimateIn] = useState(false)
-
     useEffect(() => {
         if (!itemId || !itemType) return
-
         let cancelled = false
         const fetchStatusHistory = async () => {
             try {
@@ -59,24 +55,19 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     tractor: 'tractor_id',
                     trailer: 'trailer_id'
                 }
-
                 const tableName = tableMap[itemType]
                 const idField = idFieldMap[itemType]
-
                 if (!tableName || !idField) {
                     setLoading(false)
                     return
                 }
-
                 const { data: historyData } = await supabase
                     .from(tableName)
                     .select('field_name, old_value, new_value, changed_at')
                     .eq(idField, itemId)
                     .eq('field_name', 'status')
                     .order('changed_at', { ascending: true })
-
                 if (cancelled) return
-
                 const statusChanges = historyData || []
                 const now = new Date()
                 const startDate = createdAt
@@ -85,17 +76,14 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                       ? new Date(statusChanges[0].changed_at)
                       : now
                 const totalDays = Math.max(1, Math.round((now - startDate) / (1000 * 60 * 60 * 24)))
-
                 if (statusChanges.length === 0) {
                     setStatusPercentages([{ days: totalDays, percentage: 100, status: currentStatus || 'Unknown' }])
                     setLoading(false)
                     return
                 }
-
                 const statusPeriods = []
                 let previousStatus = statusChanges[0].old_value || currentStatus
                 let previousDate = startDate
-
                 for (const change of statusChanges) {
                     const changeDate = new Date(change.changed_at)
                     const days = Math.max(0, Math.round((changeDate - previousDate) / (1000 * 60 * 60 * 24)))
@@ -105,17 +93,14 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     previousStatus = change.new_value
                     previousDate = changeDate
                 }
-
                 const finalDays = Math.max(0, Math.round((now - previousDate) / (1000 * 60 * 60 * 24)))
                 if (finalDays > 0 || statusPeriods.length === 0) {
                     statusPeriods.push({ days: Math.max(1, finalDays), status: currentStatus || previousStatus })
                 }
-
                 const statusDaysMap = {}
                 statusPeriods.forEach((p) => {
                     statusDaysMap[p.status] = (statusDaysMap[p.status] || 0) + p.days
                 })
-
                 const totalTrackedDays = Object.values(statusDaysMap).reduce((sum, d) => sum + d, 0) || 1
                 const statusOrder = { Active: 0, 'In Shop': 1, Spare: 2 }
                 const percentages = Object.entries(statusDaysMap)
@@ -131,7 +116,6 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                         if (orderA !== orderB) return orderA - orderB
                         return b.days - a.days
                     })
-
                 if (cancelled) return
                 setStatusPercentages(percentages)
             } catch {
@@ -140,22 +124,18 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                 if (!cancelled) setLoading(false)
             }
         }
-
         fetchStatusHistory()
         return () => {
             cancelled = true
         }
     }, [itemId, itemType, currentStatus, createdAt])
-
     useEffect(() => {
         if (!loading && statusPercentages) {
             const timer = setTimeout(() => setAnimateIn(true), 50)
             return () => clearTimeout(timer)
         }
     }, [loading, statusPercentages])
-
     const totalDays = statusPercentages?.reduce((sum, s) => sum + s.days, 0) || 0
-
     return (
         <div
             style={{
@@ -266,5 +246,4 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
         </div>
     )
 })
-
 export default StatusHistoryBar

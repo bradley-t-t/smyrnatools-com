@@ -2,11 +2,15 @@ import { useCallback, useRef, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
-
+async function assertITAccess() {
+    const user = await UserService.getCurrentUser()
+    if (!user?.id) throw new Error('Not authenticated')
+    const roles = await UserService.getUserRoles(user.id)
+    if (!roles.some((r) => r.name === 'IT Access')) throw new Error('Unauthorized: IT Access required')
+}
 const PERMISSION_SEPARATOR = '\n'
 const SUCCESS_MESSAGE_DURATION_MS = 3000
 const EXTENDED_MESSAGE_DURATION_MS = 5000
-
 const parsePermissionsText = (text) =>
     [
         ...new Set(
@@ -16,9 +20,7 @@ const parsePermissionsText = (text) =>
                 .filter(Boolean)
         )
     ].sort((a, b) => a.localeCompare(b))
-
 const getPluralized = (count, singular, plural) => (count === 1 ? singular : plural)
-
 /**
  * Manages roles CRUD: fetching all roles with user counts, creating/updating/deleting roles,
  * assigning/removing role-user associations, and IT access permission checks.
@@ -29,14 +31,12 @@ export function useRolesData() {
     const [hasITAccess, setHasITAccess] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
-
     const messageTimerRef = useRef(null)
     const showMessage = useCallback((text, duration = SUCCESS_MESSAGE_DURATION_MS) => {
         setMessage(text)
         if (messageTimerRef.current) clearTimeout(messageTimerRef.current)
         messageTimerRef.current = setTimeout(() => setMessage(''), duration)
     }, [])
-
     const loadData = useCallback(async () => {
         setIsLoading(true)
         setError('')
@@ -56,9 +56,9 @@ export function useRolesData() {
             setIsLoading(false)
         }
     }, [])
-
     const updateRolePermissions = useCallback(
         async (roleId, permissionsText) => {
+            await assertITAccess()
             const sortedPermissions = parsePermissionsText(permissionsText)
             const { error: updateError } = await supabase
                 .from('users_roles')
@@ -71,9 +71,9 @@ export function useRolesData() {
         },
         [loadData, showMessage]
     )
-
     const updateRoleWeight = useCallback(
         async (roleId, weight) => {
+            await assertITAccess()
             const { error: updateError } = await supabase.from('users_roles').update({ weight }).eq('id', roleId)
             if (updateError) throw updateError
             UserService.clearCache()
@@ -82,9 +82,9 @@ export function useRolesData() {
         },
         [loadData, showMessage]
     )
-
     const createRole = useCallback(
         async (name, weight) => {
+            await assertITAccess()
             const { error: createError } = await supabase
                 .from('users_roles')
                 .insert([{ name: name.trim(), permissions: [], weight }])
@@ -96,12 +96,11 @@ export function useRolesData() {
         },
         [loadData, showMessage]
     )
-
     const bulkAddPermissions = useCallback(
         async (roleIds, permissionsText) => {
+            await assertITAccess()
             const permissionsToAdd = parsePermissionsText(permissionsText)
             if (!permissionsToAdd.length) throw new Error('Please enter at least one permission node')
-
             let rolesModified = 0
             for (const roleId of roleIds) {
                 const role = roles.find((r) => r.id === roleId)
@@ -119,7 +118,6 @@ export function useRolesData() {
                     rolesModified++
                 }
             }
-
             UserService.clearCache()
             await loadData()
             showMessage(
@@ -129,9 +127,9 @@ export function useRolesData() {
         },
         [roles, loadData, showMessage]
     )
-
     const removePermissionFromRole = useCallback(
         async (permission, roleId) => {
+            await assertITAccess()
             const role = roles.find((r) => r.id === roleId)
             if (!role) return
             const sortedPermissions = role.permissions
@@ -148,9 +146,9 @@ export function useRolesData() {
         },
         [roles, loadData, showMessage]
     )
-
     const removePermissionFromAllRoles = useCallback(
         async (permission, affectedRoles) => {
+            await assertITAccess()
             let rolesModified = 0
             for (const { role } of affectedRoles) {
                 if (!role.permissions.includes(permission)) continue
@@ -173,7 +171,6 @@ export function useRolesData() {
         },
         [loadData, showMessage]
     )
-
     return {
         bulkAddPermissions,
         createRole,

@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Sticky dashboard top bar with refresh button and optional plant filter.
  * The plant selector is hidden for Office-type regions.

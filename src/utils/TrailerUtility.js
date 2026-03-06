@@ -8,11 +8,9 @@ const TrailerUtility = {
         const ratings = trailers.filter((t) => t.cleanlinessRating).map((t) => t.cleanlinessRating)
         return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 0
     },
-
     getNeedServiceCount(trailers) {
         return trailers.filter((t) => TrailerUtility.isServiceOverdue(t.lastServiceDate)).length
     },
-
     getPlantCounts(trailers) {
         const counts = {}
         trailers.forEach((trailer) => {
@@ -21,7 +19,6 @@ const TrailerUtility = {
         })
         return counts
     },
-
     getStatusCounts(trailers) {
         const counts = { Total: trailers.length }
         ;['Cement', 'End Dump'].forEach((type) => {
@@ -29,7 +26,6 @@ const TrailerUtility = {
         })
         return counts
     },
-
     getStatusCountsByStatus(trailers) {
         const statuses = ['Active', 'Spare', 'In Shop', 'Retired']
         const counts = {}
@@ -38,7 +34,6 @@ const TrailerUtility = {
         })
         return counts
     },
-
     isServiceOverdue(lastServiceDate) {
         if (!lastServiceDate) return true
         const serviceDate = new Date(lastServiceDate)
@@ -46,7 +41,6 @@ const TrailerUtility = {
         const diffDays = Math.ceil((now - serviceDate) / (1000 * 60 * 60 * 24))
         return diffDays > 90
     },
-
     isVerified(updatedLast, updatedAt, updatedBy, latestHistoryDate = null) {
         if (!updatedLast || !updatedBy) return false
         const lastVerification = new Date(updatedLast)
@@ -60,6 +54,5 @@ const TrailerUtility = {
         return lastUpdate <= lastVerification && lastVerification >= lastSunday
     }
 }
-
 export default TrailerUtility
 export { TrailerUtility }

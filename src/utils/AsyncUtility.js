@@ -6,6 +6,5 @@ export function debounce(fn, delay) {
         timer = setTimeout(() => fn(...args), delay)
     }
 }
-
 const AsyncUtility = { debounce }
 export default AsyncUtility

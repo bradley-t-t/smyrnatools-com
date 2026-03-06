@@ -4,10 +4,8 @@ import { FormatUtility } from '../../../utils/FormatUtility'
 import { CHART_HEIGHT, CHART_PADDING, CHART_WIDTH, MAX_STAR_RATING } from '../../constants/historyConstants'
 import HistoryEmptyState from './HistoryEmptyState'
 import StatCard from './StatCard'
-
 const USABLE_WIDTH = CHART_WIDTH - CHART_PADDING * 2
 const RATING_VALUES = [5, 4, 3, 2, 1]
-
 /**
  * SVG line chart plotting star ratings over time with stat summary cards.
  * Shows average, total, and current rating. Falls back to an empty state when no data.
@@ -21,10 +19,8 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
     if (data.length === 0) {
         return <HistoryEmptyState title={emptyTitle} subtitle={emptySubtitle} />
     }
-
     const averageRating = (data.reduce((sum, d) => sum + d.rating, 0) / data.length).toFixed(1)
     const currentRating = data[data.length - 1].rating
-
     return (
         <div className="flex flex-col gap-2.5">
             <h3 className="m-0 mb-3 text-sm font-bold text-slate-800">{title}</h3>
@@ -63,7 +59,6 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
                             const x = (index / (data.length - 1 || 1)) * USABLE_WIDTH
                             const y = (MAX_STAR_RATING - point.rating) * (CHART_HEIGHT / MAX_STAR_RATING)
                             const nextPoint = data[index + 1]
-
                             return (
                                 <g key={index}>
                                     {nextPoint && (

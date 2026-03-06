@@ -9,7 +9,6 @@ import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import GrammarUtility from '../../utils/GrammarUtility'
-
 /**
  * Add/edit form for task list items. Supports multi-plant creation in add mode
  * (broadcast a single task to multiple plants) and single-plant editing.
@@ -41,7 +40,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [isImprovingDescription, setIsImprovingDescription] = useState(false)
-
     const statusOptions = [
         { label: 'Pending', value: 'pending' },
         { label: 'In Progress', value: 'in_progress' },
@@ -49,24 +47,20 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         { label: 'Waiting', value: 'waiting' },
         { label: 'Blocked', value: 'blocked' }
     ]
-
     const responsibleRoleOptions = [
         { label: 'Unassigned', value: '' },
         { label: 'Maintenance', value: 'maintenance' },
         { label: 'Plant Manager', value: 'plant_manager' },
         { label: 'District Manager', value: 'district_manager' }
     ]
-
     useEffect(() => {
         async function fetchCurrentUser() {
             const user = await UserService.getCurrentUser()
             if (!user) return
             setCurrentUserId(user.id)
         }
-
         fetchCurrentUser()
     }, [])
-
     useEffect(() => {
         async function fetchPlants() {
             const selectedRegionCode = preferences?.selectedRegion?.code || ''
@@ -83,10 +77,8 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                 )
             }
         }
-
         fetchPlants()
     }, [preferences])
-
     useEffect(() => {
         if (item) {
             setDescription(item.description || '')
@@ -95,7 +87,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
             setComments(item.comments || '')
         }
     }, [item])
-
     const fetchSuggestions = useCallback(async (partial = '') => {
         setIsLoadingSuggestions(true)
         try {
@@ -108,7 +99,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
             setIsLoadingSuggestions(false)
         }
     }, [])
-
     /** Sends the description (and comments) to AI for rewriting; response may be a string or {description, comments} object. */
     const handleImproveDescription = async () => {
         if (!description.trim()) return
@@ -130,18 +120,15 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
             setIsImprovingDescription(false)
         }
     }
-
     const handleSelectSuggestion = (suggestion) => {
         setDescription(suggestion)
         setShowSuggestions(false)
         setAiSuggestions([])
     }
-
     const selectedPlantObj = plants.find((p) => p.plant_code === plantCode)
     const plantDisplayText = plantCode
         ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
         : 'Select Plant'
-
     const validate = () => {
         const newErrors = {}
         if (!description.trim()) newErrors.description = 'Description is required'
@@ -157,7 +144,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         setErrors(newErrors)
         return !Object.keys(newErrors).length
     }
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         if (!validate()) return
@@ -174,7 +160,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                 userId = user.id
                 setCurrentUserId(userId)
             }
-
             if (item) {
                 const updateData = {
                     comments: comments.trim(),
@@ -206,7 +191,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title={item ? 'Edit List Item' : 'Add New List Item'} onClose={onClose} isListItem={true}>
@@ -497,5 +481,4 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         </>
     )
 }
-
 export default ListAddView

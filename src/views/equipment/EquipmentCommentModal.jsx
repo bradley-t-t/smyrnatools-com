@@ -2,7 +2,6 @@ import React from 'react'
 
 import CommentModalSection from '../../app/components/sections/CommentModalSection'
 import { EquipmentService } from '../../services/EquipmentService'
-
 /** Thin wrapper connecting the shared CommentModalSection to EquipmentService. */
 function EquipmentCommentModal({ equipmentId, equipmentNumber, onClose }) {
     return (
@@ -15,5 +14,4 @@ function EquipmentCommentModal({ equipmentId, equipmentNumber, onClose }) {
         />
     )
 }
-
 export default EquipmentCommentModal

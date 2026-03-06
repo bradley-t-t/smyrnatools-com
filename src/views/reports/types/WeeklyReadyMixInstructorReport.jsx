@@ -3,33 +3,27 @@ import ReactDOM from 'react-dom'
 
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { OperatorService } from '../../../services/OperatorService'
-
 const POSITIONS = {
     MIXER: 'Mixer Operator',
     TRACTOR: 'Tractor Operator'
 }
-
 const CATEGORY_HEADER_COLORS = {
     [POSITIONS.MIXER]: 'bg-slate-700',
     [POSITIONS.TRACTOR]: 'bg-slate-600'
 }
-
 const CATEGORY_ICONS = {
     [POSITIONS.MIXER]: 'fa-truck-loading',
     [POSITIONS.TRACTOR]: 'fa-tractor'
 }
-
 const TH =
     'bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-gray-200 whitespace-nowrap'
 const TD = 'px-4 py-3 text-[0.9375rem] text-slate-800 border-b border-slate-100 align-middle last:border-b-0'
 const ACTION_BTN =
     'inline-flex items-center gap-1.5 rounded-md border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-medium text-white cursor-pointer transition-colors hover:bg-white/25 disabled:opacity-50 disabled:cursor-not-allowed'
-
 function getPlantNameFromList(plantCode, plants) {
     const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)
     return plant?.name || plantCode || '—'
 }
-
 function RMIEmptyState({ icon = 'fa-user-slash', message }) {
     return (
         <div className="text-center p-8 text-slate-500">
@@ -38,7 +32,6 @@ function RMIEmptyState({ icon = 'fa-user-slash', message }) {
         </div>
     )
 }
-
 function RMICategoryHeader({ position, label, count, actions }) {
     const bgColor = CATEGORY_HEADER_COLORS[position] || CATEGORY_HEADER_COLORS[POSITIONS.MIXER]
     const icon = CATEGORY_ICONS[position] || CATEGORY_ICONS[POSITIONS.MIXER]
@@ -51,7 +44,6 @@ function RMICategoryHeader({ position, label, count, actions }) {
         </div>
     )
 }
-
 function RMIDataTable({ headers, data, renderRow, emptyMessage, emptyIcon = 'fa-check-circle' }) {
     if (!data?.length) return <RMIEmptyState icon={emptyIcon} message={emptyMessage} />
     return (
@@ -71,7 +63,6 @@ function RMIDataTable({ headers, data, renderRow, emptyMessage, emptyIcon = 'fa-
         </div>
     )
 }
-
 function TrainerTable({ trainers, plants, position, onRemove, readOnly }) {
     const headers = readOnly ? ['Trainer Name', 'Plant', 'Status'] : ['Trainer Name', 'Plant', 'Status', 'Action']
     return (
@@ -111,7 +102,6 @@ function TrainerTable({ trainers, plants, position, onRemove, readOnly }) {
         />
     )
 }
-
 function PendingTable({ pending, plants, position, onRemove, readOnly }) {
     const headers = readOnly
         ? ['Operator Name', 'Plant', 'Start Date']
@@ -148,7 +138,6 @@ function PendingTable({ pending, plants, position, onRemove, readOnly }) {
         />
     )
 }
-
 function TrainingTable({ training, plants, position, onRemove, readOnly }) {
     const headers = readOnly ? ['Operator Name', 'Plant', 'Trainer'] : ['Operator Name', 'Plant', 'Trainer', 'Action']
     return (
@@ -183,7 +172,6 @@ function TrainingTable({ training, plants, position, onRemove, readOnly }) {
         />
     )
 }
-
 function HiringGoalsTable({ plants, hiringGoals, onChange, readOnly }) {
     return (
         <div>
@@ -238,7 +226,6 @@ function HiringGoalsTable({ plants, hiringGoals, onChange, readOnly }) {
         </div>
     )
 }
-
 function TrainersSection({ mixerTrainers, tractorTrainers, plants, readOnly, onRemove, actions }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -287,7 +274,6 @@ function TrainersSection({ mixerTrainers, tractorTrainers, plants, readOnly, onR
         </div>
     )
 }
-
 function PendingSection({ mixerPending, tractorPending, plants, readOnly, onRemove, actions }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -336,7 +322,6 @@ function PendingSection({ mixerPending, tractorPending, plants, readOnly, onRemo
         </div>
     )
 }
-
 function TrainingSection({ mixerTraining, tractorTraining, plants, readOnly, onRemove, actions }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -385,7 +370,6 @@ function TrainingSection({ mixerTraining, tractorTraining, plants, readOnly, onR
         </div>
     )
 }
-
 function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -401,7 +385,6 @@ function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
         </div>
     )
 }
-
 /** Submit-mode plugin for the Ready Mix Instructor report — manages trainer/trainee rosters by category (Mixer/Tractor) with operator selection. */
 export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants }) {
     const [liveOperators, setLiveOperators] = useState([])
@@ -418,7 +401,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         startDate: '',
         trainer: ''
     })
-
     const snapshotData = form?.snapshot_data || {}
     const mixerTrainers = snapshotData.mixer_trainers || []
     const tractorTrainers = snapshotData.tractor_trainers || []
@@ -427,7 +409,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     const mixerTraining = snapshotData.mixer_training || []
     const tractorTraining = snapshotData.tractor_training || []
     const hiringGoals = form?.hiring_goals || {}
-
     const isMixerTrainersAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerTrainers.length === 0) return false
         const liveTrainers = liveOperators.filter(
@@ -437,7 +418,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const mixerTrainerIds = new Set(mixerTrainers.map((t) => t.id))
         return liveTrainers.every((op) => mixerTrainerIds.has(op.employeeId))
     }, [liveOperators, mixerTrainers])
-
     const isTractorTrainersAccurate = React.useMemo(() => {
         if (!liveOperators.length || tractorTrainers.length === 0) return false
         const liveTrainers = liveOperators.filter(
@@ -447,7 +427,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const tractorTrainerIds = new Set(tractorTrainers.map((t) => t.id))
         return liveTrainers.every((op) => tractorTrainerIds.has(op.employeeId))
     }, [liveOperators, tractorTrainers])
-
     const isMixerPendingAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerPending.length === 0) return false
         const livePending = liveOperators.filter(
@@ -461,7 +440,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const mixerPendingIds = new Set(mixerPending.map((p) => p.id))
         return livePending.every((op) => mixerPendingIds.has(op.employeeId))
     }, [liveOperators, mixerPending])
-
     const isTractorPendingAccurate = React.useMemo(() => {
         if (!liveOperators.length || tractorPending.length === 0) return false
         const livePending = liveOperators.filter(
@@ -475,7 +453,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const tractorPendingIds = new Set(tractorPending.map((p) => p.id))
         return livePending.every((op) => tractorPendingIds.has(op.employeeId))
     }, [liveOperators, tractorPending])
-
     const isMixerTrainingAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerTraining.length === 0) return false
         const liveTraining = liveOperators.filter((op) => op.status === 'Training' && op.position === 'Mixer Operator')
@@ -483,7 +460,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const mixerTrainingIds = new Set(mixerTraining.map((t) => t.id))
         return liveTraining.every((op) => mixerTrainingIds.has(op.employeeId))
     }, [liveOperators, mixerTraining])
-
     const isTractorTrainingAccurate = React.useMemo(() => {
         if (!liveOperators.length || tractorTraining.length === 0) return false
         const liveTraining = liveOperators.filter(
@@ -493,7 +469,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const tractorTrainingIds = new Set(tractorTraining.map((t) => t.id))
         return liveTraining.every((op) => tractorTrainingIds.has(op.employeeId))
     }, [liveOperators, tractorTraining])
-
     async function loadLiveData() {
         setIsLoading(true)
         try {
@@ -507,11 +482,9 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             setIsLoading(false)
         }
     }
-
     function updateSnapshotData(key, value) {
         setForm((prev) => ({ ...prev, snapshot_data: { ...prev.snapshot_data, [key]: value } }))
     }
-
     function pullMixerTrainers() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -525,7 +498,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             trainers.map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, status: op.status }))
         )
     }
-
     function pullTractorTrainers() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -539,7 +511,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             trainers.map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, status: op.status }))
         )
     }
-
     function pullMixerPending() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -559,7 +530,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             }))
         )
     }
-
     function pullTractorPending() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -579,7 +549,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             }))
         )
     }
-
     function pullMixerTraining() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -599,7 +568,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             })
         )
     }
-
     function pullTractorTraining() {
         if (!liveOperators.length) {
             alert('Please load live data first')
@@ -619,7 +587,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             })
         )
     }
-
     function removeTrainer(position, id) {
         const key = position === POSITIONS.MIXER ? 'mixer_trainers' : 'tractor_trainers'
         updateSnapshotData(
@@ -627,7 +594,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             (snapshotData[key] || []).filter((t) => t.id !== id)
         )
     }
-
     function removePending(position, id) {
         const key = position === POSITIONS.MIXER ? 'mixer_pending' : 'tractor_pending'
         updateSnapshotData(
@@ -635,7 +601,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             (snapshotData[key] || []).filter((t) => t.id !== id)
         )
     }
-
     function removeTraining(position, id) {
         const key = position === POSITIONS.MIXER ? 'mixer_training' : 'tractor_training'
         updateSnapshotData(
@@ -643,12 +608,10 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             (snapshotData[key] || []).filter((t) => t.id !== id)
         )
     }
-
     function clearData(key) {
         if (!confirm(`Are you sure you want to clear all ${key.replace(/_/g, ' ')} data?`)) return
         updateSnapshotData(key, [])
     }
-
     function addTrainer() {
         if (!newTrainer.trainerId || !newTrainer.plant) {
             alert('Please select a trainer and plant')
@@ -670,7 +633,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         setNewTrainer({ plant: '', position: 'Mixer Operator', trainerId: '' })
         setShowAddTrainerModal(false)
     }
-
     function addPending() {
         if (!newPending.name || !newPending.plant || !newPending.startDate) {
             alert('Please fill in all required fields')
@@ -688,7 +650,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         setNewPending({ name: '', plant: '', position: 'Mixer Operator', startDate: '', trainer: '' })
         setShowAddPendingModal(false)
     }
-
     function getPlantName(plantCode) {
         return getPlantNameFromList(plantCode, plants)
     }
@@ -699,11 +660,9 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         if (setForm)
             setForm((prev) => ({ ...prev, hiring_goals: { ...(prev.hiring_goals || {}), [plantCode]: value } }))
     }
-
     useEffect(() => {
         loadLiveData()
     }, [plants])
-
     const createActionButtons = (pullFn, addFn, clearFn, isAccurate, dataLength) => (
         <>
             <button
@@ -732,7 +691,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             </button>
         </>
     )
-
     const trainerActions = {
         mixer: createActionButtons(
             pullMixerTrainers,
@@ -755,7 +713,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             tractorTrainers.length
         )
     }
-
     const pendingActions = {
         mixer: createActionButtons(
             pullMixerPending,
@@ -778,7 +735,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             tractorPending.length
         )
     }
-
     const trainingActions = {
         mixer: createActionButtons(
             pullMixerTraining,
@@ -801,7 +757,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
             tractorTraining.length
         )
     }
-
     return (
         <>
             <div>
@@ -835,7 +790,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                     onChange={handleHiringGoalChange}
                     readOnly={readOnly}
                 />
-
                 {showAddTrainerModal &&
                     ReactDOM.createPortal(
                         <div
@@ -948,7 +902,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                         </div>,
                         document.body
                     )}
-
                 {showAddPendingModal &&
                     ReactDOM.createPortal(
                         <div
@@ -1070,7 +1023,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                         </div>,
                         document.body
                     )}
-
                 <PlantDropdownModal
                     isOpen={showPlantModal}
                     onClose={() => setShowPlantModal(false)}
@@ -1086,7 +1038,6 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         </>
     )
 }
-
 /** Review-mode plugin for the Ready Mix Instructor report — read-only view of trainer/trainee assignments by category. */
 export function ReadyMixInstructorReviewPlugin({ form, plants }) {
     const snapshotData = form?.snapshot_data || {}
@@ -1097,7 +1048,6 @@ export function ReadyMixInstructorReviewPlugin({ form, plants }) {
     const mixerTraining = snapshotData.mixer_training || []
     const tractorTraining = snapshotData.tractor_training || []
     const hiringGoals = form?.hiring_goals || {}
-
     return (
         <div>
             <TrainersSection mixerTrainers={mixerTrainers} tractorTrainers={tractorTrainers} plants={plants} readOnly />

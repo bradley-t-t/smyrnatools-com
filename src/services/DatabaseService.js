@@ -1,10 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 import APIUtility from '../utils/APIUtility'
-
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-
 /** Shared Supabase client instance configured with realtime support. */
 const supabase = createClient(supabaseUrl, supabaseKey, {
     realtime: {
@@ -13,10 +11,8 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
         }
     }
 })
-
 export default supabase
 export { supabase }
-
 /** Allowlisted tables for sanitized database operations to prevent injection. */
 const ALLOWED_TABLES = new Set([
     'users',
@@ -47,29 +43,24 @@ const ALLOWED_TABLES = new Set([
     'notifications',
     'documents'
 ])
-
 /** Allowlisted SQL migrations that can be executed via the migration endpoint. */
 const ALLOWED_MIGRATIONS = new Set(['alter table public.operators add column if not exists phone text'])
-
 /** Validates and sanitizes a table name against the allowlist. Returns null if disallowed. */
 const sanitizeTableName = (tableName) => {
     if (!tableName || typeof tableName !== 'string') return null
     const cleaned = tableName.toLowerCase().replace(/[^a-z0-9_]/g, '')
     return ALLOWED_TABLES.has(cleaned) ? cleaned : null
 }
-
 /** Strips non-alphanumeric/underscore characters from a column name to prevent injection. */
 const sanitizeColumnName = (columnName) => {
     if (!columnName || typeof columnName !== 'string') return null
     return columnName.replace(/[^a-zA-Z0-9_]/g, '')
 }
-
 /** Escapes SQL LIKE pattern special characters (%, _, \) in user input. */
 const sanitizeLikePattern = (input) => {
     if (!input || typeof input !== 'string') return ''
     return input.trim().replace(/[%_\\]/g, (char) => '\\' + char)
 }
-
 /**
  * Provides controlled database operations (migrations, existence checks, record retrieval)
  * through the edge function API, enforcing table/migration allowlists.
@@ -85,7 +76,6 @@ export class DatabaseService {
         if (!res.ok) throw new Error(json?.error || 'Failed to execute migration')
         return json?.data ?? []
     }
-
     /** Checks if a table exists in the database. */
     static async tableExists(tableName) {
         const sanitized = sanitizeTableName(tableName)
@@ -94,7 +84,6 @@ export class DatabaseService {
         if (!res.ok) return false
         return json?.exists === true
     }
-
     /** Fetches all records from an allowlisted table. */
     static async getAllRecords(tableName) {
         const sanitized = sanitizeTableName(tableName)
@@ -104,7 +93,6 @@ export class DatabaseService {
         return json?.data ?? []
     }
 }
-
 /** Formats a Supabase error into a human-readable string with details, hint, and code. */
 export const getSupabaseErrorDetails = (error) => {
     if (!error) return 'Unknown error'
@@ -120,13 +108,11 @@ export const getSupabaseErrorDetails = (error) => {
         return 'Error object could not be stringified'
     }
 }
-
 /** Logs a Supabase error with context label and full details to the console. */
 export const logSupabaseError = (context, error) => {
     console.error(`Supabase error in ${context}:`, error)
     console.error('Details:', getSupabaseErrorDetails(error))
 }
-
 /** Converts a date value to ISO string format for Supabase queries. Returns null on invalid input. */
 export const formatDateForSupabase = (date) => {
     if (!date) return null
@@ -138,7 +124,6 @@ export const formatDateForSupabase = (date) => {
         return null
     }
 }
-
 /**
  * Attempts to refresh the Supabase auth session using multiple strategies:
  * refreshSession → getSession → getUser, returning the first successful userId.
@@ -162,7 +147,6 @@ export const refreshAuth = async () => {
         return { error, source: 'error', userId: null }
     }
 }
-
 /** Validates that Supabase is properly configured with real (non-placeholder) credentials. */
 export const isSupabaseConfigured = (supabase) => {
     if (!supabase) return false
@@ -171,13 +155,11 @@ export const isSupabaseConfigured = (supabase) => {
     if (!supabase.supabaseKey || supabase.supabaseKey === 'your-public-anon-key') return false
     return true
 }
-
 /** Extracts an error message from a Supabase response, or null if no error. */
 export const extractSupabaseErrorMessage = (response) => {
     if (!response) return 'Empty response received'
     return response.error ? getSupabaseErrorDetails(response.error) : null
 }
-
 /** Builds a case-insensitive partial text filter object for Supabase ILIKE queries. */
 export const createPartialTextFilter = (column, searchTerm) => {
     const sanitizedColumn = sanitizeColumnName(column)
@@ -185,7 +167,6 @@ export const createPartialTextFilter = (column, searchTerm) => {
     const sanitizedTerm = sanitizeLikePattern(searchTerm)
     return { [sanitizedColumn]: { ilike: `%${sanitizedTerm}%` } }
 }
-
 /**
  * Low-level CRUD operations against allowlisted tables via the database-service edge function.
  * All table and column names are sanitized before being sent to the API.
@@ -205,7 +186,6 @@ export const SupabaseUtils = {
         if (!res.ok) throw new Error(json?.error || 'Failed to delete')
         return true
     },
-
     /** Fetches records from an allowlisted table filtered by a column/value pair. */
     async fetch(table, columns = '*', filterColumn, value) {
         const sanitizedTable = sanitizeTableName(table)
@@ -221,7 +201,6 @@ export const SupabaseUtils = {
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch')
         return json?.data ?? []
     },
-
     /** Fetches all records from an allowlisted table, ordered by ID. */
     async fetchAll(table, columns = '*') {
         const sanitizedTable = sanitizeTableName(table)
@@ -234,7 +213,6 @@ export const SupabaseUtils = {
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch all')
         return json?.data ?? []
     },
-
     /** Inserts a record into an allowlisted table. */
     async insert(table, item) {
         const sanitizedTable = sanitizeTableName(table)
@@ -246,7 +224,6 @@ export const SupabaseUtils = {
         if (!res.ok) throw new Error(json?.error || 'Failed to insert')
         return json?.data ?? []
     },
-
     /** Updates records in an allowlisted table matching a filter column/value pair. */
     async update(table, filterColumn, value, data) {
         const sanitizedTable = sanitizeTableName(table)

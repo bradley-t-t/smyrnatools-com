@@ -9,14 +9,12 @@ import App from './app/App.js'
 import { AuthProvider } from './app/context/AuthContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
 import { TutorialProvider } from './app/context/TutorialContext'
-
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
         content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
         name: 'viewport'
     })
 )
-
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <BrowserRouter>
@@ -30,7 +28,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </BrowserRouter>
     </React.StrictMode>
 )
-
 const runWhenIdle = (callback) => {
     if ('requestIdleCallback' in window) {
         window.requestIdleCallback(callback, { timeout: 2000 })
@@ -38,13 +35,11 @@ const runWhenIdle = (callback) => {
         setTimeout(callback, 1)
     }
 }
-
 runWhenIdle(() => {
     import('./utils/VitalsUtility').then((module) => {
         module.default()
     })
 })
-
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         runWhenIdle(() => {

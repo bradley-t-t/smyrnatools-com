@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
-
 /**
  * Overweight/proportion-fix calculator for concrete batching.
  * Given a target mix design (coarse/fine aggregate, primary/supplemental powder)
@@ -16,24 +15,19 @@ const ProportionsCalculator = () => {
         fine: '',
         supplemental: ''
     })
-
     const [actual, setActual] = useState({
         cement: '',
         coarse: '',
         fine: '',
         supplemental: ''
     })
-
     const [adjustments, setAdjustments] = useState(null)
-
     const handleTargetChange = (field, value) => {
         setTarget((prev) => ({ ...prev, [field]: value }))
     }
-
     const handleActualChange = (field, value) => {
         setActual((prev) => ({ ...prev, [field]: value }))
     }
-
     const calculateAdjustments = useCallback(() => {
         const t = {
             cement: parseFloat(target.cement) || 0,
@@ -41,46 +35,37 @@ const ProportionsCalculator = () => {
             fine: parseFloat(target.fine) || 0,
             supplemental: parseFloat(target.supplemental) || 0
         }
-
         const a = {
             cement: parseFloat(actual.cement) || 0,
             coarse: parseFloat(actual.coarse) || 0,
             fine: parseFloat(actual.fine) || 0,
             supplemental: parseFloat(actual.supplemental) || 0
         }
-
         const hasTargetData = t.coarse > 0 && t.fine > 0 && (t.cement > 0 || t.supplemental > 0)
         const hasActualData = a.coarse > 0 || a.fine > 0 || a.cement > 0 || a.supplemental > 0
-
         if (!hasTargetData || !hasActualData) {
             setAdjustments(null)
             return
         }
-
         // Start from whichever is higher (actual or target) since we can only add material, never remove.
         let workingCoarse = Math.max(a.coarse, t.coarse)
         let workingFine = Math.max(a.fine, t.fine)
         let workingCite = Math.max(a.cement, t.cement)
         let workingSupp = Math.max(a.supplemental, t.supplemental)
-
         const targetAggRatio = t.coarse / t.fine
         const targetTotalAgg = t.coarse + t.fine
         const targetTotalCite = t.cement + t.supplemental
         const targetAggToCiteRatio = targetTotalCite > 0 ? targetTotalAgg / targetTotalCite : 0
         const targetCiteToSuppRatio = t.supplemental > 0 ? t.cement / t.supplemental : 0
-
         // Iteratively adjust each material upward until all three ratios converge.
         // Adjusting one ratio may throw off another, so multiple passes are needed.
         let iterations = 0
         const maxIterations = 10
-
         while (iterations < maxIterations) {
             iterations++
             let changed = false
-
             // Step 1: Correct the coarse-to-fine aggregate ratio.
             const currentAggRatio = workingFine > 0 ? workingCoarse / workingFine : 0
-
             if (Math.abs(currentAggRatio - targetAggRatio) > 0.001) {
                 if (currentAggRatio > targetAggRatio) {
                     const neededFine = workingCoarse / targetAggRatio
@@ -96,21 +81,17 @@ const ProportionsCalculator = () => {
                     }
                 }
             }
-
             const currentTotalAgg = workingCoarse + workingFine
             const currentTotalCite = workingCite + workingSupp
             const currentAggToCiteRatio = currentTotalCite > 0 ? currentTotalAgg / currentTotalCite : 0
-
             // Step 2: Correct the aggregate-to-cementitious ratio by adding powder.
             if (targetAggToCiteRatio > 0 && Math.abs(currentAggToCiteRatio - targetAggToCiteRatio) > 0.001) {
                 const neededTotalCite = currentTotalAgg / targetAggToCiteRatio
-
                 if (neededTotalCite > currentTotalCite) {
                     if (targetCiteToSuppRatio > 0) {
                         const citeRatioSum = targetCiteToSuppRatio + 1
                         const neededSupp = neededTotalCite / citeRatioSum
                         const neededCite = neededSupp * targetCiteToSuppRatio
-
                         if (neededCite > workingCite) {
                             workingCite = neededCite
                             changed = true
@@ -127,11 +108,9 @@ const ProportionsCalculator = () => {
                     }
                 }
             }
-
             // Step 3: Correct the primary-to-supplemental cementitious ratio.
             if (targetCiteToSuppRatio > 0) {
                 const currentCiteToSuppRatio = workingSupp > 0 ? workingCite / workingSupp : 0
-
                 if (Math.abs(currentCiteToSuppRatio - targetCiteToSuppRatio) > 0.001) {
                     if (currentCiteToSuppRatio > targetCiteToSuppRatio) {
                         const neededSupp = workingCite / targetCiteToSuppRatio
@@ -148,22 +127,17 @@ const ProportionsCalculator = () => {
                     }
                 }
             }
-
             if (!changed) break
         }
-
         const adjustCoarse = workingCoarse - a.coarse
         const adjustFine = workingFine - a.fine
         const adjustCite = workingCite - a.cement
         const adjustSupp = workingSupp - a.supplemental
-
         const totalTargetWeight = t.coarse + t.cement + t.fine + t.supplemental
         const totalAdjustedWeight = workingCoarse + workingFine + workingCite + workingSupp
-
         // ~3800 lbs is the approximate weight of one cubic yard of concrete.
         const targetYards = totalTargetWeight > 0 ? totalTargetWeight / 3800 : 0
         const adjustedYards = totalAdjustedWeight > 0 ? totalAdjustedWeight / 3800 : 0
-
         setAdjustments({
             adjustedYards,
             cement: adjustCite,
@@ -177,17 +151,14 @@ const ProportionsCalculator = () => {
             targetYards
         })
     }, [target, actual])
-
     useEffect(() => {
         calculateAdjustments()
     }, [calculateAdjustments])
-
     const clearForm = () => {
         setTarget({ cement: '', coarse: '', fine: '', supplemental: '' })
         setActual({ cement: '', coarse: '', fine: '', supplemental: '' })
         setAdjustments(null)
     }
-
     /** Returns the rounded material addition, treating sub-0.5 lb differences as negligible. */
     const getAddition = (key) => {
         if (!adjustments) return null
@@ -195,7 +166,6 @@ const ProportionsCalculator = () => {
         if (value < 0.5) return 0
         return Math.round(value)
     }
-
     const styles = {
         actualGrid: {
             display: 'grid',
@@ -410,7 +380,6 @@ const ProportionsCalculator = () => {
             paddingBottom: '1rem'
         }
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.section}>
@@ -528,7 +497,6 @@ const ProportionsCalculator = () => {
                     </div>
                 </div>
             </div>
-
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
                     <i className="fas fa-weight-hanging" style={{ color: 'var(--accent)' }}></i>
@@ -621,7 +589,6 @@ const ProportionsCalculator = () => {
                     </div>
                 </div>
             </div>
-
             {adjustments ? (
                 <div style={styles.resultContainer}>
                     <div style={styles.resultHeader}>
@@ -672,7 +639,6 @@ const ProportionsCalculator = () => {
                     </span>
                 </div>
             )}
-
             <div style={styles.footer}>
                 <button
                     onClick={clearForm}
@@ -693,5 +659,4 @@ const ProportionsCalculator = () => {
         </div>
     )
 }
-
 export default ProportionsCalculator

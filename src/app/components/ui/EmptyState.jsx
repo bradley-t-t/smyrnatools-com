@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Generic empty state card with icon, title, and optional subtitle.
  * @param {Object} props

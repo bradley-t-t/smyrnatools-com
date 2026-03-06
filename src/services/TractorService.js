@@ -18,9 +18,7 @@ import {
 import CleanupUtility from '../utils/CleanupUtility'
 import { TractorUtility } from '../utils/TractorUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
-
 const SERVICE_PREFIX = '/tractor-service'
-
 /** Fields that are allowed in the tractor history audit trail. */
 const ALLOWED_HISTORY_FIELDS = [
     'truck_number',
@@ -36,12 +34,10 @@ const ALLOWED_HISTORY_FIELDS = [
     'freight',
     'status'
 ]
-
 /** Converts camelCase field names to snake_case for API compatibility. */
 function toSnakeCase(fieldName) {
     return fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
 }
-
 /** Attaches an isVerified() method and uppercases VIN on a tractor instance. */
 function enrichTractorWithVerification(tractor) {
     tractor.vin = (tractor.vin || '').toUpperCase()
@@ -49,7 +45,6 @@ function enrichTractorWithVerification(tractor) {
         TractorUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy, tractor.latestHistoryDate)
     return tractor
 }
-
 /**
  * Tractor CRUD, history, comments, issues, and verification service.
  * Delegates shared asset operations to BaseAssetUtility.
@@ -59,17 +54,14 @@ export class TractorService {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch tractors')
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async fetchTractors() {
         return this.getAllTractors()
     }
-
     static async getTractorById(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id }, 'Failed to fetch tractor')
         return json?.data ? Tractor.fromApiFormat(json.data) : null
     }
-
     static async fetchTractorById(id) {
         ValidationUtility.requireUUID(id, 'Invalid tractor ID')
         const tractor = await this.getTractorById(id)
@@ -84,7 +76,6 @@ export class TractorService {
         }
         return tractor
     }
-
     /** Fetches the most recent history entry date for a tractor. */
     static async getLatestHistoryDate(tractorId) {
         if (!tractorId) return null
@@ -96,12 +87,10 @@ export class TractorService {
         if (!json) return null
         return (json?.data ?? [])[0]?.changed_at ?? null
     }
-
     static async getActiveTractors() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active tractors')
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async getTractorHistory(tractorId, limit = null) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         const payload = { tractorId }
@@ -109,14 +98,12 @@ export class TractorService {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-history`, payload, 'Failed to fetch tractor history')
         return (json?.data ?? []).map(TractorHistory.fromApiFormat)
     }
-
     /** Creates a new tractor, uppercasing VIN before submission. */
     static async addTractor(tractor, userId) {
         uppercaseVin(tractor)
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/create`, { tractor, userId }, 'Failed to create tractor')
         return Tractor.fromApiFormat(json?.data)
     }
-
     /** Creates a tractor with user ID resolution, ID cleanup, and VIN normalization. */
     static async createTractor(tractor, userId) {
         const resolvedUserId = await requireUserId(userId, 'Authentication required')
@@ -124,7 +111,6 @@ export class TractorService {
         uppercaseVin(tractor)
         return this.addTractor(tractor, resolvedUserId)
     }
-
     /**
      * Updates a tractor record. Clears operator assignment when the plant changes
      * to prevent cross-plant operator assignments.
@@ -134,11 +120,9 @@ export class TractorService {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
         const resolvedUserId = await requireUserId(userId)
         uppercaseVin(tractor)
-
         if (_prevTractorState?.assignedPlant !== tractor.assignedPlant) {
             tractor.assignedOperator = null
         }
-
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/update`,
             { id, tractor, userId: resolvedUserId },
@@ -147,7 +131,6 @@ export class TractorService {
         dispatchNotificationsRefresh()
         return Tractor.fromApiFormat(json?.data)
     }
-
     /** Marks a tractor as verified and dispatches a notification refresh. */
     static async verifyTractor(tractorId, userId) {
         const id = resolveEntityId(tractorId)
@@ -161,12 +144,10 @@ export class TractorService {
         dispatchNotificationsRefresh()
         return Tractor.fromApiFormat(json?.data)
     }
-
     static async deleteTractor(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete tractor')
     }
-
     /**
      * Records a field-level change in the tractor history audit trail.
      * Only allowed fields are recorded; VIN values are uppercased.
@@ -191,7 +172,6 @@ export class TractorService {
         )
         return json?.data
     }
-
     static async getCleanlinessHistory(tractorId = null, months = 6) {
         const payload = {}
         if (tractorId) payload.tractorId = tractorId
@@ -203,7 +183,6 @@ export class TractorService {
         )
         return json?.data ?? []
     }
-
     static async getTractorsByOperator(operatorId) {
         ValidationUtility.requireUUID(operatorId, 'Operator ID is required')
         const json = await apiPostOrThrow(
@@ -213,7 +192,6 @@ export class TractorService {
         )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async getTractorsByStatus(status) {
         if (!status) throw new Error('Status is required')
         const json = await apiPostOrThrow(
@@ -223,7 +201,6 @@ export class TractorService {
         )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async searchTractorsByTruckNumber(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -233,7 +210,6 @@ export class TractorService {
         )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async searchTractorsByVin(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -243,7 +219,6 @@ export class TractorService {
         )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async searchTractorsByVinProcessed(query) {
         const vinTractors = await this.searchTractorsByVin(query)
         return vinTractors.map((t) => {
@@ -253,7 +228,6 @@ export class TractorService {
             return t
         })
     }
-
     static async getTractorsNeedingService(dayThreshold = 30) {
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/fetch-needing-service`,
@@ -262,21 +236,17 @@ export class TractorService {
         )
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
-
     static async fetchAllCommentsCounts(tractorIds) {
         return fetchAllCountsFromTable('tractors_comments', 'tractor_id', tractorIds)
     }
-
     static async fetchAllIssuesCounts(tractorIds) {
         return fetchAllOpenIssueCountsFromTable('tractors_maintenance', 'tractor_id', tractorIds)
     }
-
     static async fetchComments(tractorId) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { tractorId }, 'Failed to fetch comments')
         return (json?.data ?? []).map(TractorComment.fromRow)
     }
-
     static async addComment(tractorId, text, author) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!text?.trim()) throw new Error('Comment text is required')
@@ -292,12 +262,10 @@ export class TractorService {
         )
         return json?.data ? TractorComment.fromRow(json.data) : null
     }
-
     static async deleteComment(commentId) {
         ValidationUtility.requireUUID(commentId, 'Comment ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
-
     static async _fetchHistoryDates() {
         const tractors = await this.getAllTractors()
         const map = {}
@@ -306,13 +274,11 @@ export class TractorService {
         })
         return map
     }
-
     static async fetchIssues(tractorId) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { tractorId }, 'Failed to fetch issues')
         return json?.data ?? []
     }
-
     static async addIssue(tractorId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
         if (!issueText?.trim()) throw new Error('Issue description is required')
@@ -328,17 +294,14 @@ export class TractorService {
         )
         return json?.data
     }
-
     static async deleteIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     }
-
     static async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     }
-
     /**
      * Fetches all tractors with enriched details (comments count, issues count, status history, verification).
      * Optionally filtered by region codes.
@@ -352,14 +315,12 @@ export class TractorService {
             regionCodes
         })
     }
-
     /** Sets unassigned-operator tractors to Spare status in batch. */
     static async ensureSpareIfNoOperator(tractorsList) {
         return ensureSpareIfNoOperatorBase(tractorsList, async (t) => {
             await this.updateTractor(t.id, { ...t, status: 'Spare' }, undefined, t)
         })
     }
-
     /** Batch-corrects null operator fields by setting affected tractors to Spare. */
     static async cleanupNullOperators(tractors = null) {
         return CleanupUtility.cleanupNullOperators(

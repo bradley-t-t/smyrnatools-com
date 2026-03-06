@@ -5,7 +5,6 @@ import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { DateUtility } from '../../utils/DateUtility'
 import { ReportUtility } from '../../utils/ReportUtility'
-
 /**
  * Loads data needed for the report submission form: maintenance items, operator options,
  * mixer lists, plants, and cross-plant hours received.
@@ -18,9 +17,7 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
     const [loadingPlants, setLoadingPlants] = useState(true)
     const [hoursReceivedFromOtherPlants, setHoursReceivedFromOtherPlants] = useState(0)
     const [userPlantCode, setUserPlantCode] = useState('')
-
     const targetUserId = managerEditUser || user?.id
-
     const forcedReportDate = useMemo(() => {
         if (report.name !== 'plant_production') return ''
         const sunday = new Date(report.weekIso)
@@ -32,7 +29,6 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
         forcedDate.setDate(monday.getDate() + (dayOfWeek - 1))
         return forcedDate.toISOString().slice(0, 10)
     }, [report.name, report.weekIso])
-
     const nextForcedReportDate = useMemo(() => {
         if (report.name !== 'plant_production' || !forcedReportDate) return ''
         const nextDate = new Date(forcedReportDate)
@@ -40,25 +36,30 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
         nextDate.setDate(nextDate.getDate() + addDays)
         return nextDate.toISOString().slice(0, 10)
     }, [report.name, forcedReportDate])
-
     useEffect(() => {
+        let cancelled = false
         async function fetchPlants() {
             setLoadingPlants(true)
             let list = []
             if (targetUserId) {
                 const plantCode = await UserService.getUserPlant(targetUserId)
+                if (cancelled) return
                 if (plantCode) setUserPlantCode(plantCode)
                 list = await ReportService.fetchPlantsForUser(targetUserId)
+                if (cancelled) return
             }
             if (!list || list.length === 0) {
                 list = await ReportService.fetchPlantsSorted()
+                if (cancelled) return
             }
             setPlants(list)
             setLoadingPlants(false)
         }
         fetchPlants()
+        return () => {
+            cancelled = true
+        }
     }, [targetUserId])
-
     useEffect(() => {
         async function fetchMaintenanceItems() {
             if (!report.weekIso) return
@@ -67,7 +68,6 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
         }
         fetchMaintenanceItems()
     }, [report.weekIso])
-
     const fetchOperatorsAndMixers = async (plantCode) => {
         if (!plantCode) {
             setOperatorOptions([])
@@ -79,19 +79,16 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
         setMixers(result.mixers)
         return result
     }
-
     const fetchHoursReceived = async (plantCode, weekIso) => {
         if (report.name !== 'plant_manager' || !weekIso || !plantCode) {
             setHoursReceivedFromOtherPlants(0)
             return 0
         }
-
         try {
             const weekStart = weekIso.split('T')[0]
             const [year] = weekStart.split('-').map(Number)
             const startOfYear = new Date(year, 0, 1)
             const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
             const { data: allReports, error } = await supabase
                 .from('reports')
                 .select('*')
@@ -99,12 +96,10 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
                 .eq('completed', true)
                 .gte('week', startOfYear.toISOString())
                 .lte('week', endOfYear.toISOString())
-
             if (error) {
                 setHoursReceivedFromOtherPlants(0)
                 return 0
             }
-
             const totalReceived = ReportUtility.calculateHoursReceivedForWeek(allReports, weekIso, plantCode)
             setHoursReceivedFromOtherPlants(totalReceived)
             return totalReceived
@@ -113,10 +108,8 @@ export function useSubmitData({ report, initialData, user, managerEditUser }) {
             return 0
         }
     }
-
     const weekVerbose = ReportUtility.getWeekVerbose(report.weekIso)
     const isCompleted = initialData?.completed || false
-
     return {
         fetchHoursReceived,
         fetchOperatorsAndMixers,

@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /**
  * Full-screen overlay that embeds external content in a sandboxed iframe.
  * Includes a branded header bar with a close button and the current URL.
@@ -11,7 +10,6 @@ import { useAccentColor } from '../../hooks/useAccentColor'
  */
 function WebOverlay({ url, onClose }) {
     const accentColor = useAccentColor()
-
     return (
         <div className="fixed inset-0 z-[10000] flex flex-col bg-white">
             <div
@@ -35,5 +33,4 @@ function WebOverlay({ url, onClose }) {
         </div>
     )
 }
-
 export default WebOverlay

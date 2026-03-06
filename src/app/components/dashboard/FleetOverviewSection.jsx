@@ -9,7 +9,6 @@ import {
     StatusPill,
     TrailerTypeBreakdown
 } from '../ui/DashboardCards'
-
 /**
  * Dashboard section displaying per-asset-type fleet metrics.
  * Shows active/spare/in-shop counts, allocation rates, and type breakdowns
@@ -53,7 +52,6 @@ export default function FleetOverviewSection({
                         <AllocationPill percent={displayStats.mixers.allocationPercent} />
                     </MetricCard>
                 )}
-
                 <MetricCard
                     label="Tractors"
                     value={displayStats.tractors.total}
@@ -71,7 +69,6 @@ export default function FleetOverviewSection({
                         <FreightTypeBreakdown freightData={displayStats.tractors.freight} isMobile={isMobile} />
                     )}
                 </MetricCard>
-
                 <MetricCard
                     label="Trailers"
                     value={displayStats.trailers.total}
@@ -87,7 +84,6 @@ export default function FleetOverviewSection({
                         <TrailerTypeBreakdown trailerTypeData={displayStats.trailers.trailerType} isMobile={isMobile} />
                     )}
                 </MetricCard>
-
                 <MetricCard
                     label="Equipment"
                     value={displayStats.equipment.total}
@@ -100,7 +96,6 @@ export default function FleetOverviewSection({
                     <StatusPill>In Shop {displayStats.equipment.shop}</StatusPill>
                     <AllocationPill percent={displayStats.equipment.allocationPercent} />
                 </MetricCard>
-
                 <MetricCard
                     label="Pickup Trucks"
                     value={stats.pickups.total}

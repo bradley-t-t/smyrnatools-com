@@ -12,14 +12,11 @@ import RoleModal, {
     RoleTextInput
 } from '../../app/components/ui/RoleModal'
 import { useRolesData } from '../../app/hooks/useRolesData'
-
 const BRAND_COLOR = 'var(--accent)'
 const BRAND_COLOR_HOVER = 'var(--accent-hover)'
-
 const getPermissionCount = (role) => (Array.isArray(role?.permissions) ? role.permissions.length : 0)
 const getSortedPermissions = (permissions) =>
     Array.isArray(permissions) ? [...permissions].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) : []
-
 /** Sticky header with title, IT access badge, and create/bulk-add actions (visible only to IT users). */
 function PageHeader({ hasITAccess, onBulkAdd, onCreate }) {
     return (
@@ -59,7 +56,6 @@ function PageHeader({ hasITAccess, onBulkAdd, onCreate }) {
         </div>
     )
 }
-
 function ActionButton({ children, disabled, icon, onClick, variant = 'primary' }) {
     const baseClasses = 'flex items-center gap-2 px-4 py-2.5 font-semibold rounded-lg transition-colors text-sm'
     const variantClasses =
@@ -73,7 +69,6 @@ function ActionButton({ children, disabled, icon, onClick, variant = 'primary' }
         </button>
     )
 }
-
 function SearchBar({ onClick }) {
     return (
         <button
@@ -86,7 +81,6 @@ function SearchBar({ onClick }) {
         </button>
     )
 }
-
 function AlertMessage({ message, type = 'success' }) {
     if (!message) return null
     const isSuccess = type === 'success'
@@ -99,11 +93,9 @@ function AlertMessage({ message, type = 'success' }) {
         </div>
     )
 }
-
 function RoleCard({ hasITAccess, isExpanded, onEditPermissions, onEditWeight, onToggle, role }) {
     const permissionCount = getPermissionCount(role)
     const permissions = getSortedPermissions(role.permissions)
-
     return (
         <div
             className={`bg-white rounded-xl border ${isExpanded ? 'border-accent/30 shadow-md' : 'border-slate-200'} overflow-hidden transition-all`}
@@ -147,7 +139,6 @@ function RoleCard({ hasITAccess, isExpanded, onEditPermissions, onEditWeight, on
         </div>
     )
 }
-
 function RoleMetadata({ hasITAccess, onEditWeight, permissionCount, weight }) {
     return (
         <div className="flex items-center gap-4 mt-1">
@@ -171,7 +162,6 @@ function RoleMetadata({ hasITAccess, onEditWeight, permissionCount, weight }) {
         </div>
     )
 }
-
 function PermissionsPanel({ permissions }) {
     if (!permissions.length) {
         return (
@@ -193,7 +183,6 @@ function PermissionsPanel({ permissions }) {
         </div>
     )
 }
-
 function PermissionBadge({ permission }) {
     return (
         <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm">
@@ -202,12 +191,10 @@ function PermissionBadge({ permission }) {
         </div>
     )
 }
-
 function CreateRoleModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState('')
     const [weight, setWeight] = useState(0)
     const [isCreating, setIsCreating] = useState(false)
-
     const handleCreate = async () => {
         if (!name.trim()) return
         setIsCreating(true)
@@ -220,7 +207,6 @@ function CreateRoleModal({ isOpen, onClose, onCreate }) {
             setIsCreating(false)
         }
     }
-
     return (
         <RoleModal
             isOpen={isOpen}
@@ -253,15 +239,12 @@ function CreateRoleModal({ isOpen, onClose, onCreate }) {
         </RoleModal>
     )
 }
-
 function EditPermissionsModal({ isOpen, onClose, onSave, role }) {
     const [permissions, setPermissions] = useState('')
     const [isSaving, setIsSaving] = useState(false)
-
     useEffect(() => {
         if (role) setPermissions(Array.isArray(role.permissions) ? role.permissions.join('\n') : '')
     }, [role])
-
     const handleSave = async () => {
         setIsSaving(true)
         try {
@@ -271,7 +254,6 @@ function EditPermissionsModal({ isOpen, onClose, onSave, role }) {
             setIsSaving(false)
         }
     }
-
     return (
         <RoleModal
             isOpen={isOpen}
@@ -303,15 +285,12 @@ function EditPermissionsModal({ isOpen, onClose, onSave, role }) {
         </RoleModal>
     )
 }
-
 function EditWeightModal({ isOpen, onClose, onSave, role }) {
     const [weight, setWeight] = useState(0)
     const [isSaving, setIsSaving] = useState(false)
-
     useEffect(() => {
         if (role) setWeight(role.weight || 0)
     }, [role])
-
     const handleSave = async () => {
         setIsSaving(true)
         try {
@@ -321,7 +300,6 @@ function EditWeightModal({ isOpen, onClose, onSave, role }) {
             setIsSaving(false)
         }
     }
-
     return (
         <RoleModal
             isOpen={isOpen}
@@ -351,12 +329,10 @@ function EditWeightModal({ isOpen, onClose, onSave, role }) {
         </RoleModal>
     )
 }
-
 function BulkAddModal({ isOpen, onClose, onSubmit, roles }) {
     const [selectedRoles, setSelectedRoles] = useState(new Set())
     const [permissionText, setPermissionText] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-
     const toggleRole = (roleId) => {
         setSelectedRoles((prev) => {
             const next = new Set(prev)
@@ -364,7 +340,6 @@ function BulkAddModal({ isOpen, onClose, onSubmit, roles }) {
             return next
         })
     }
-
     const handleSubmit = async () => {
         if (!selectedRoles.size || !permissionText.trim()) return
         setIsSubmitting(true)
@@ -377,9 +352,7 @@ function BulkAddModal({ isOpen, onClose, onSubmit, roles }) {
             setIsSubmitting(false)
         }
     }
-
     const permissionCount = permissionText.split('\n').filter((p) => p.trim()).length
-
     return (
         <RoleModal
             isOpen={isOpen}
@@ -439,10 +412,8 @@ function BulkAddModal({ isOpen, onClose, onSubmit, roles }) {
         </RoleModal>
     )
 }
-
 function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFromRole, roles }) {
     const [query, setQuery] = useState('')
-
     const searchResults = useMemo(() => {
         if (!query.trim()) return []
         const lowerQuery = query.toLowerCase()
@@ -453,19 +424,15 @@ function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFr
             }))
             .filter((result) => result.matchingPermissions.length > 0)
     }, [query, roles])
-
     const handleRemoveFromAll = async () => {
         if (!window.confirm(`Are you sure you want to remove "${query.trim()}" from all roles that have it?`)) return
         await onRemoveFromAll(query.trim(), searchResults)
     }
-
     const handleRemoveFromRole = async (roleId, roleName) => {
         if (!window.confirm(`Remove "${query.trim()}" from "${roleName}"?`)) return
         await onRemoveFromRole(query.trim(), roleId)
     }
-
     if (!isOpen) return null
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 px-4" onClick={onClose}>
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -493,7 +460,6 @@ function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFr
                         <i className="fas fa-times" />
                     </button>
                 </div>
-
                 {searchResults.length > 0 && (
                     <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200">
                         <div className="text-sm text-slate-600">
@@ -512,7 +478,6 @@ function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFr
                         )}
                     </div>
                 )}
-
                 <div className="flex-1 overflow-y-auto">
                     {searchResults.length > 0 ? (
                         <div className="divide-y divide-slate-100">
@@ -574,7 +539,6 @@ function SearchModal({ hasITAccess, isOpen, onClose, onRemoveFromAll, onRemoveFr
         document.body
     )
 }
-
 /**
  * Admin view for managing roles and their permission nodes. IT users can
  * create, edit, clone, delete roles, and bulk-add permission nodes via a
@@ -597,18 +561,15 @@ function RolesView() {
         updateRolePermissions,
         updateRoleWeight
     } = useRolesData()
-
     const [expandedRoles, setExpandedRoles] = useState(new Set())
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showBulkAddModal, setShowBulkAddModal] = useState(false)
     const [showSearchModal, setShowSearchModal] = useState(false)
     const [editingPermissionsRole, setEditingPermissionsRole] = useState(null)
     const [editingWeightRole, setEditingWeightRole] = useState(null)
-
     useEffect(() => {
         loadData()
     }, [loadData])
-
     const toggleRole = useCallback((roleId) => {
         setExpandedRoles((prev) => {
             const next = new Set(prev)
@@ -616,7 +577,6 @@ function RolesView() {
             return next
         })
     }, [])
-
     const handleCreateRole = useCallback(
         async (name, weight) => {
             try {
@@ -627,7 +587,6 @@ function RolesView() {
         },
         [createRole, setError]
     )
-
     const handleSavePermissions = useCallback(
         async (roleId, permissions) => {
             try {
@@ -638,7 +597,6 @@ function RolesView() {
         },
         [updateRolePermissions, setError]
     )
-
     const handleSaveWeight = useCallback(
         async (roleId, weight) => {
             try {
@@ -649,7 +607,6 @@ function RolesView() {
         },
         [updateRoleWeight, setError]
     )
-
     const handleBulkAdd = useCallback(
         async (selectedRoles, permissionText) => {
             try {
@@ -660,7 +617,6 @@ function RolesView() {
         },
         [bulkAddPermissions, setError]
     )
-
     const handleRemoveFromRole = useCallback(
         async (permission, roleId) => {
             try {
@@ -671,7 +627,6 @@ function RolesView() {
         },
         [removePermissionFromRole, setError]
     )
-
     const handleRemoveFromAll = useCallback(
         async (permission, affectedRoles) => {
             try {
@@ -682,7 +637,6 @@ function RolesView() {
         },
         [removePermissionFromAllRoles, setError]
     )
-
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 p-6">
@@ -690,7 +644,6 @@ function RolesView() {
             </div>
         )
     }
-
     return (
         <div className="min-h-screen bg-slate-50">
             <PageHeader
@@ -699,15 +652,12 @@ function RolesView() {
                 onCreate={() => setShowCreateModal(true)}
                 onSearch={() => setShowSearchModal(true)}
             />
-
             <div className="max-w-6xl mx-auto px-6 py-6">
                 <div className="mb-6">
                     <SearchBar onClick={() => setShowSearchModal(true)} />
                 </div>
-
                 <AlertMessage message={message} type="success" />
                 <AlertMessage message={error} type="error" />
-
                 {roles.length === 0 ? (
                     <EmptyState
                         icon="fa-users-slash"
@@ -730,34 +680,29 @@ function RolesView() {
                     </div>
                 )}
             </div>
-
             <CreateRoleModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onCreate={handleCreateRole}
             />
-
             <EditPermissionsModal
                 isOpen={!!editingPermissionsRole}
                 onClose={() => setEditingPermissionsRole(null)}
                 onSave={handleSavePermissions}
                 role={editingPermissionsRole}
             />
-
             <EditWeightModal
                 isOpen={!!editingWeightRole}
                 onClose={() => setEditingWeightRole(null)}
                 onSave={handleSaveWeight}
                 role={editingWeightRole}
             />
-
             <BulkAddModal
                 isOpen={showBulkAddModal}
                 onClose={() => setShowBulkAddModal(false)}
                 onSubmit={handleBulkAdd}
                 roles={roles}
             />
-
             <SearchModal
                 hasITAccess={hasITAccess}
                 isOpen={showSearchModal}
@@ -769,5 +714,4 @@ function RolesView() {
         </div>
     )
 }
-
 export default RolesView

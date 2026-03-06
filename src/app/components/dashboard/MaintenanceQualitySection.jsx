@@ -3,10 +3,8 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 
 import { STATUS_COLORS } from '../../constants/dashboardConstants'
 import { DashboardCard, MetricCard, SectionTitle, StatusPill } from '../ui/DashboardCards'
-
 /** Status types tracked in historical distribution charts. */
 const STATUSES = ['Active', 'Spare', 'In Shop', 'Stationary']
-
 /**
  * Computes active/spare/in-shop percentages from raw status-days data.
  * @param {Array<{status: string, days: number}>} data
@@ -21,7 +19,6 @@ const calcMetrics = (data) => {
         spare: total > 0 ? Math.round((findDays('Spare') / total) * 100) : 0
     }
 }
-
 /**
  * Converts raw status history data into a chart-ready entry.
  * @param {Array} data - Status history records with `percentage` and `status`.
@@ -37,7 +34,6 @@ const buildChartEntry = (data, name) => {
     }
     return entry
 }
-
 /** Per-asset-type configuration for building status history summaries. */
 const ASSET_CONFIG = [
     { dataKey: 'mixers', isConcreteOnly: true, name: 'Mixers' },
@@ -46,7 +42,6 @@ const ASSET_CONFIG = [
     { dataKey: 'equipment', isConcreteOnly: false, name: 'Equipment' },
     { dataKey: 'pickups', isConcreteOnly: false, name: 'Pickups' }
 ]
-
 /** Custom tooltip for the historical status distribution bar chart. */
 function HistoryTooltip({ active, payload, label }) {
     if (!active || !payload?.length) return null
@@ -63,10 +58,8 @@ function HistoryTooltip({ active, payload, label }) {
         </div>
     )
 }
-
 /** Available quick date-range filter labels for status history. */
 const DATE_FILTER_LABELS = ['last-week', 'this-month', 'this-quarter', 'this-year', 'all']
-
 /**
  * Converts a kebab-case filter key to a title-case label.
  * @param {string} filter
@@ -77,7 +70,6 @@ const formatFilterLabel = (filter) =>
         .split('-')
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' ')
-
 /**
  * Dashboard section showing service overdue counts, open issue counts,
  * and a historical status distribution chart with quick date filters.
@@ -99,12 +91,10 @@ export default function MaintenanceQualitySection({
         name: a.name,
         ...calcMetrics(statusHistoryData[a.dataKey])
     }))
-
     const chartData = ASSET_CONFIG.map((a) => {
         if (a.isConcreteOnly && isAggregate) return null
         return buildChartEntry(statusHistoryData[a.dataKey], a.name)
     }).filter(Boolean)
-
     return (
         <DashboardCard>
             <SectionTitle>Maintenance & Quality</SectionTitle>
@@ -136,7 +126,6 @@ export default function MaintenanceQualitySection({
                     <StatusPill>Equipment {displayStats.equipment.issues}</StatusPill>
                 </MetricCard>
             </div>
-
             <div className="border-t border-slate-200 pt-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                     <h4 className="text-base font-semibold text-slate-900 m-0">Historical Status Distribution</h4>
@@ -152,7 +141,6 @@ export default function MaintenanceQualitySection({
                         ))}
                     </div>
                 </div>
-
                 <div
                     className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-[repeat(auto-fit,minmax(140px,1fr))]'} gap-3 mb-4 md:mb-6`}
                 >
@@ -174,7 +162,6 @@ export default function MaintenanceQualitySection({
                         </div>
                     ))}
                 </div>
-
                 <div className="flex flex-col gap-2.5">
                     {chartData.length === 0 ? (
                         <div className="text-center py-5 text-slate-400 text-sm">No historical data available</div>

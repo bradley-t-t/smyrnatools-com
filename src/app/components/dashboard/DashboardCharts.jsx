@@ -19,7 +19,6 @@ import {
 
 import { supabase } from '../../../services/DatabaseService'
 import { RegionService } from '../../../services/RegionService'
-
 /** Semantic color palette used across all dashboard chart series. */
 const COLORS = {
     active: '#22c55e',
@@ -31,10 +30,8 @@ const COLORS = {
     success: '#10b981',
     warning: '#f59e0b'
 }
-
 /** Allocation percentage breakpoints for color coding (green/yellow/red). */
 const ALLOCATION_THRESHOLDS = { HIGH: 80, MEDIUM: 50 }
-
 /**
  * Returns a color based on allocation percentage relative to thresholds.
  * @param {number} percent
@@ -45,7 +42,6 @@ const getColorByAllocation = (percent) => {
     if (percent >= ALLOCATION_THRESHOLDS.MEDIUM) return '#f59e0b'
     return '#ef4444'
 }
-
 /** Shared tooltip renderer for line, area, and bar charts. */
 const ChartTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null
@@ -60,7 +56,6 @@ const ChartTooltip = ({ active, label, payload }) => {
         </div>
     )
 }
-
 /** Pie chart tooltip showing value and percentage of total. */
 const PieChartTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null
@@ -76,7 +71,6 @@ const PieChartTooltip = ({ active, payload }) => {
         </div>
     )
 }
-
 /** Reusable card wrapper for individual chart panels with icon header and optional footer. */
 const ChartCard = ({ icon, iconColor, title, children, footer }) => (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -88,7 +82,6 @@ const ChartCard = ({ icon, iconColor, title, children, footer }) => (
         {footer && <div className="flex flex-wrap gap-4 justify-center text-xs mt-2">{footer}</div>}
     </div>
 )
-
 /** Colored inline stat label with optional icon, used in chart footers. */
 const StatLabel = ({ color, icon, children }) => (
     <span style={{ color }} className="flex items-center gap-1">
@@ -96,7 +89,6 @@ const StatLabel = ({ color, icon, children }) => (
         {children}
     </span>
 )
-
 /** Small colored dot with label, used as a custom chart legend entry. */
 const LegendDot = ({ color, label }) => (
     <span className="flex items-center gap-1 text-slate-500">
@@ -104,13 +96,10 @@ const LegendDot = ({ color, label }) => (
         {label}
     </span>
 )
-
 /** Computes the average of a numeric field across an array of objects. */
 const calcAverage = (data, key) => (data.length > 0 ? data.reduce((sum, item) => sum + item[key], 0) / data.length : 0)
-
 /** Computes the sum of a numeric field across an array of objects. */
 const calcTotal = (data, key) => data.reduce((sum, item) => sum + item[key], 0)
-
 /** Pie chart card with a centered total footer and optional donut (innerRadius) mode. */
 const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
     <ChartCard
@@ -143,7 +132,6 @@ const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 
         </ResponsiveContainer>
     </ChartCard>
 )
-
 /**
  * Analytics chart grid for the dashboard.
  * Fetches weekly production/labor report data and mixer cleanliness ratings,
@@ -171,45 +159,36 @@ export default function DashboardCharts({
     const [weeklyData, setWeeklyData] = useState([])
     const [cleanlinessData, setCleanlinessData] = useState({ avg: 0, data: [] })
     const [loading, setLoading] = useState(true)
-
     useEffect(() => {
         let cancelled = false
-
         async function fetchReportData() {
             if (!dashboardRegionCode) {
                 setLoading(false)
                 return
             }
-
             try {
                 const region = RegionService.getRegionByCode(dashboardRegionCode)
                 const isOffice = region?.type === 'Office'
-
                 const plantCodes = isOffice
                     ? allPlants.map((p) => p.plantCode || p.plant_code).filter(Boolean)
                     : dashboardPlant
                       ? [dashboardPlant]
                       : (regionPlants || []).map((p) => p.plantCode || p.plant_code).filter(Boolean)
-
                 if (plantCodes.length === 0) {
                     setLoading(false)
                     return
                 }
-
                 const { data: profilesData } = await supabase
                     .from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodes)
-
                 if (cancelled || !profilesData?.length) {
                     setLoading(false)
                     return
                 }
-
                 const userIds = profilesData.map((p) => p.id)
                 const twelveWeeksAgo = new Date()
                 twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84)
-
                 const { data: reports } = await supabase
                     .from('reports')
                     .select('*')
@@ -217,21 +196,16 @@ export default function DashboardCharts({
                     .in('user_id', userIds)
                     .gte('week', twelveWeeksAgo.toISOString())
                     .order('week', { ascending: true })
-
                 if (cancelled) return
-
                 if (reports?.length) {
                     const weeklyMap = new Map()
-
                     reports.forEach((report) => {
                         if (!report.completed) return
-
                         const weekStr = report.week.split('T')[0]
                         const yardage = parseFloat(report.data?.yardage || report.data?.total_yards_delivered || 0)
                         const hours = parseFloat(report.data?.total_hours || report.data?.total_operator_hours || 0)
                         const lost = parseFloat(report.data?.total_yards_lost || report.data?.yardage_lost || 0)
                         const resold = parseFloat(report.data?.yards_resold || 0)
-
                         if (!weeklyMap.has(weekStr)) {
                             weeklyMap.set(weekStr, { hours: 0, lost: 0, resold: 0, yardage: 0 })
                         }
@@ -241,7 +215,6 @@ export default function DashboardCharts({
                         existing.lost += lost
                         existing.resold += resold
                     })
-
                     const sortedWeeks = Array.from(weeklyMap.entries())
                         .sort((a, b) => a[0].localeCompare(b[0]))
                         .slice(-12)
@@ -258,23 +231,18 @@ export default function DashboardCharts({
                                 yph: data.hours > 0 ? parseFloat((data.yardage / data.hours).toFixed(2)) : 0
                             }
                         })
-
                     setWeeklyData(sortedWeeks)
                 }
-
                 const { data: mixers } = await supabase
                     .from('mixers')
                     .select('cleanliness_rating, status, assigned_plant')
                     .in('assigned_plant', plantCodes)
                     .eq('status', 'Active')
-
                 if (cancelled) return
-
                 if (mixers?.length) {
                     const ratings = { average: 0, excellent: 0, good: 0, poor: 0, unrated: 0 }
                     let totalRating = 0
                     let ratedCount = 0
-
                     mixers.forEach((m) => {
                         const rating = m.cleanliness_rating
                         if (!rating || rating === 0) {
@@ -288,7 +256,6 @@ export default function DashboardCharts({
                             ratedCount++
                         }
                     })
-
                     setCleanlinessData({
                         avg: ratedCount > 0 ? parseFloat((totalRating / ratedCount).toFixed(1)) : 0,
                         data: [
@@ -306,24 +273,19 @@ export default function DashboardCharts({
                 if (!cancelled) setLoading(false)
             }
         }
-
         fetchReportData()
         return () => {
             cancelled = true
         }
     }, [dashboardRegionCode, dashboardPlant, regionPlants, allPlants])
-
     const shopTimeData = useMemo(() => {
         if (!statusHistoryData) return []
-
         const processData = (data, label) => {
             if (!data?.length) return null
             const total = data.reduce((sum, d) => sum + (d.days || 0), 0)
             if (total === 0) return null
-
             const getPercent = (status) =>
                 Math.round(((data.find((d) => d.status === status)?.days || 0) / total) * 100)
-
             return {
                 activePercent: getPercent('Active'),
                 label,
@@ -331,7 +293,6 @@ export default function DashboardCharts({
                 sparePercent: getPercent('Spare')
             }
         }
-
         return [
             !isAggregate && processData(statusHistoryData.mixers, 'Mixers'),
             processData(statusHistoryData.tractors, 'Tractors'),
@@ -339,7 +300,6 @@ export default function DashboardCharts({
             processData(statusHistoryData.equipment, 'Equipment')
         ].filter(Boolean)
     }, [statusHistoryData, isAggregate])
-
     if (loading) {
         return (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center">
@@ -348,9 +308,7 @@ export default function DashboardCharts({
             </div>
         )
     }
-
     const hasAnyData = weeklyData.length > 0 || cleanlinessData.data.length > 0 || shopTimeData.length > 0
-
     if (!hasAnyData) {
         return (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-10 text-center">
@@ -359,14 +317,12 @@ export default function DashboardCharts({
             </div>
         )
     }
-
     const totalYardage = calcTotal(weeklyData, 'yardage')
     const totalHours = calcTotal(weeklyData, 'hours')
     const totalLost = calcTotal(weeklyData, 'lost')
     const totalResold = calcTotal(weeklyData, 'resold')
     const avgYph = totalHours > 0 ? (totalYardage / totalHours).toFixed(2) : 0
     const recoveryRate = totalLost > 0 ? Math.round((totalResold / totalLost) * 100) : 0
-
     const getYphTrend = () => {
         if (weeklyData.length < 2) return { avgYph: 0, trend: 0 }
         const midpoint = Math.floor(weeklyData.length / 2)
@@ -374,7 +330,6 @@ export default function DashboardCharts({
         const secondHalfAvg = calcAverage(weeklyData.slice(midpoint), 'yph')
         return { avgYph: calcAverage(weeklyData, 'yph'), trend: secondHalfAvg - firstHalfAvg }
     }
-
     const buildAssetData = (filterFn = () => true) =>
         [
             !isAggregate &&
@@ -388,7 +343,6 @@ export default function DashboardCharts({
                 filterFn('equipment') && { color: '#8b5cf6', name: 'Equipment', ...stats.equipment },
             stats.pickups.total > 0 && filterFn('pickups') && { color: '#ec4899', name: 'Pickups', ...stats.pickups }
         ].filter(Boolean)
-
     return (
         <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
             {weeklyData.length > 0 && (
@@ -441,7 +395,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {weeklyData.length > 0 && (
                 <ChartCard
                     icon="fa-gauge-high"
@@ -484,7 +437,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {weeklyData.length > 0 && (
                 <ChartCard
                     icon="fa-scale-balanced"
@@ -522,7 +474,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0) && (
                 <ChartCard
                     icon="fa-triangle-exclamation"
@@ -558,7 +509,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0 || w.resold > 0) && (
                 <ChartCard
                     icon="fa-recycle"
@@ -593,7 +543,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {weeklyData.length > 0 && (
                 <ChartCard
                     icon="fa-users-between-lines"
@@ -624,7 +573,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {stats?.operators.total > 0 && (
                 <PieChartCard
                     icon="fa-users"
@@ -659,7 +607,6 @@ export default function DashboardCharts({
                     footerText={`Total Operators: ${stats.operators.total}`}
                 />
             )}
-
             {stats?.fleetTotal > 0 && (
                 <PieChartCard
                     icon="fa-chart-pie"
@@ -670,7 +617,6 @@ export default function DashboardCharts({
                     footerText={`Total Assets: ${stats.fleetTotal}`}
                 />
             )}
-
             {shopTimeData.length > 0 && (
                 <ChartCard
                     icon="fa-clock-rotate-left"
@@ -699,7 +645,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {stats && (
                 <ChartCard
                     icon="fa-gauge-high"
@@ -730,7 +675,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {stats && (stats.openIssuesTotal > 0 || stats.overdueTotal > 0) && (
                 <ChartCard
                     icon="fa-wrench"
@@ -764,7 +708,6 @@ export default function DashboardCharts({
                     </ResponsiveContainer>
                 </ChartCard>
             )}
-
             {cleanlinessData.data.length > 0 && !isAggregate && (
                 <ChartCard
                     icon="fa-spray-can-sparkles"
@@ -826,7 +769,6 @@ export default function DashboardCharts({
         </div>
     )
 }
-
 /** Custom tooltip for the Production vs Labor chart, computing inline YPH. */
 const ProductionTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null

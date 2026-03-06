@@ -10,12 +10,10 @@ import {
     useReportVariance,
     VarianceCell
 } from './shared'
-
 /** Submit-mode plugin for the Aggregate Production report — material tonnage fields with week-over-week variance comparison. */
 export function AggregateProductionSubmitPlugin({ form, setForm, readOnly, weekIso }) {
     const { previousReport: lastWeekAgg } = usePreviousWeekReport(weekIso, 'aggregate_production')
     const { getLastWeekValue, formatVariancePercent } = useReportVariance(lastWeekAgg?.data, form)
-
     return (
         <ReportCard title="Aggregate Production Report" accent>
             <div className="flex flex-col gap-4">
@@ -50,7 +48,6 @@ export function AggregateProductionSubmitPlugin({ form, setForm, readOnly, weekI
         </ReportCard>
     )
 }
-
 export function AggregateProductionReviewPlugin() {
     return (
         <ReportCard title="Aggregate Production Report">

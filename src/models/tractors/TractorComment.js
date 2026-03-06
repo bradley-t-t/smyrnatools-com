@@ -7,12 +7,10 @@ export class TractorComment {
         this.author = data.author ?? ''
         this.createdAt = data.created_at ?? new Date().toISOString()
     }
-
     static fromRow(row) {
         if (!row) return null
         return new TractorComment(row)
     }
-
     toRow() {
         return {
             author: this.author,

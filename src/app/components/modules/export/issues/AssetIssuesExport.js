@@ -7,16 +7,13 @@ import {
     COLORS
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, initExport } from '../ExportModule'
-
 /** Severity level to Excel color mapping. */
 const SEVERITY_COLORS = {
     High: COLORS.danger,
     Low: COLORS.success,
     Medium: COLORS.accent
 }
-
 const MAX_COLUMN_COUNT = 10
-
 /** Groups assets by their assigned plant code, sorted numerically with Unassigned last. */
 function groupAssetsByPlant(assets, plants, identifierField) {
     const plantNameMap = {}
@@ -24,14 +21,12 @@ function groupAssetsByPlant(assets, plants, identifierField) {
         const code = p.plantCode || p.plant_code || ''
         plantNameMap[code] = p.plantName || p.plant_name || code
     })
-
     const groups = {}
     assets.forEach((asset) => {
         const code = asset.assignedPlant || asset.assigned_plant || 'Unassigned'
         if (!groups[code]) groups[code] = { assets: [], name: plantNameMap[code] || code }
         groups[code].assets.push(asset)
     })
-
     return Object.entries(groups)
         .sort(([a], [b]) => {
             if (a === 'Unassigned') return 1
@@ -42,7 +37,6 @@ function groupAssetsByPlant(assets, plants, identifierField) {
         })
         .map(([code, group]) => ({ assets: group.assets, code, name: group.name }))
 }
-
 /** Formats a date string as "Mon DD, YYYY" for the export sheet. */
 function formatIssueDate(dateString) {
     if (!dateString) return ''
@@ -50,14 +44,12 @@ function formatIssueDate(dateString) {
     if (isNaN(date)) return ''
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-
 /** Resolves user UUIDs from issue `created_by` fields to display names. */
 async function resolveUserNames(issues) {
     const userIds = new Set()
     issues.forEach((issue) => {
         if (issue.created_by) userIds.add(issue.created_by)
     })
-
     const names = {}
     for (const userId of userIds) {
         try {
@@ -68,20 +60,16 @@ async function resolveUserNames(issues) {
     }
     return names
 }
-
 /**
  * Generates and downloads an Excel report of open issues grouped by plant.
  * Fetches issues per asset, resolves reporter names, and builds a styled workbook.
  */
 export async function exportAssetIssuesSheet({ assets, plants, assetType, identifierField, service }) {
     if (!assets?.length) return
-
     const assetsWithIssues = assets.filter((a) => (a.openIssuesCount ?? 0) > 0 && a.status !== 'Retired')
     if (assetsWithIssues.length === 0) return
-
     const allIssues = []
     const issuesByAssetId = {}
-
     await Promise.all(
         assetsWithIssues.map(async (asset) => {
             try {
@@ -94,9 +82,7 @@ export async function exportAssetIssuesSheet({ assets, plants, assetType, identi
             }
         })
     )
-
     const userNames = await resolveUserNames(allIssues)
-
     const sheetTitle = `${assetType} Issues Report`
     const { wb, logoBase64 } = await initExport({ subject: sheetTitle })
     const ws = createSheet(wb, `${assetType} Issues`, {
@@ -113,22 +99,17 @@ export async function exportAssetIssuesSheet({ assets, plants, assetType, identi
             { width: 14 }
         ]
     })
-
     const dateStr = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
     let r = addReportHeader(ws, wb, { logoBase64, subtitle: dateStr, title: sheetTitle })
     r++
-
     const totalOpenIssues = Object.values(issuesByAssetId).reduce((sum, issues) => sum + issues.length, 0)
-
     addSectionTitle(
         ws,
         r,
         `Summary  |  ${assetsWithIssues.length} ${assetType}s with Issues  |  ${totalOpenIssues} Open Issues`
     )
     r += 2
-
     const plantGroups = groupAssetsByPlant(assetsWithIssues, plants)
-
     for (const group of plantGroups) {
         ws.mergeCells(r, 2, r, MAX_COLUMN_COUNT)
         const plantCell = ws.getCell(r, 2)
@@ -141,26 +122,21 @@ export async function exportAssetIssuesSheet({ assets, plants, assetType, identi
         }
         ws.getRow(r).height = 26
         r++
-
         addTableHeaders(ws, r, ['#', assetType, 'Issue Description', 'Severity', 'Created', 'Reported By', 'Status'], 2)
         r++
-
         let rowIndex = 1
         const sortedAssets = [...group.assets].sort(
             (a, b) => (issuesByAssetId[b.id]?.length ?? 0) - (issuesByAssetId[a.id]?.length ?? 0)
         )
-
         for (const asset of sortedAssets) {
             const assetIdentifier = asset[identifierField] || asset.identifyingNumber || asset.vin || 'Unknown'
             const issues = issuesByAssetId[asset.id] ?? []
             const sortedIssues = [...issues].sort((a, b) => new Date(b.time_created) - new Date(a.time_created))
-
             for (const issue of sortedIssues) {
                 const isAlt = rowIndex % 2 === 0
                 const severityValue = issue.severity || 'Medium'
                 const description = issue.issue || issue.description || issue.details || issue.notes || 'No description'
                 const createdBy = issue.created_by ? userNames[issue.created_by] || 'Unknown' : 'Unknown'
-
                 addDataRow(
                     ws,
                     r,
@@ -185,17 +161,14 @@ export async function exportAssetIssuesSheet({ assets, plants, assetType, identi
                 rowIndex++
             }
         }
-
         r++
     }
-
     r++
     ws.mergeCells(r, 2, r, MAX_COLUMN_COUNT)
     const footerCell = ws.getCell(r, 2)
     footerCell.value = `Generated by Smyrna Tools on ${dateStr}`
     footerCell.font = { color: { argb: COLORS.slate500 }, italic: true, name: 'Calibri', size: 9 }
     footerCell.alignment = { horizontal: 'center', vertical: 'middle' }
-
     finalizeSheet(ws, { maxCol: MAX_COLUMN_COUNT + 2, maxRow: r + 5 })
     await exportWorkbook(wb, `${assetType} Issues Report ${new Date().toISOString().slice(0, 10)}.xlsx`)
 }

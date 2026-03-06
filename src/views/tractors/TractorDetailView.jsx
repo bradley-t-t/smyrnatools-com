@@ -19,7 +19,6 @@ import OperatorSelectModal from '../mixers/OperatorSelectModal'
 import TractorCommentModal from './TractorCommentModal'
 import TractorHistoryView from './TractorHistoryView'
 import TractorIssueModal from './TractorIssueModal'
-
 /**
  * Full detail/edit view for a single tractor. Handles operator assignment/
  * unassignment, region-scoped plant transfer, verification (with missing-field
@@ -69,7 +68,6 @@ function TractorDetailView({ tractorId, onClose }) {
     const [missingFields, setMissingFields] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
-
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true)
@@ -125,13 +123,10 @@ function TractorDetailView({ tractorId, onClose }) {
                 setHasUnsavedChanges(false)
             }
         }
-
         fetchData()
     }, [tractorId])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -171,13 +166,11 @@ function TractorDetailView({ tractorId, onClose }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter((p) =>
@@ -188,12 +181,10 @@ function TractorDetailView({ tractorId, onClose }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     useEffect(() => {
         if (!originalValues.truckNumber || isLoading) return
         const formatDateForComparison = (date) =>
@@ -226,7 +217,6 @@ function TractorDetailView({ tractorId, onClose }) {
         originalValues,
         isLoading
     ])
-
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (hasUnsavedChanges) {
@@ -237,7 +227,6 @@ function TractorDetailView({ tractorId, onClose }) {
         window.addEventListener('beforeunload', handleBeforeUnload)
         return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
-
     useEffect(() => {
         if (tractor?.assignedPlant) {
             RegionService.fetchRegionsByPlantCode(tractor.assignedPlant)
@@ -251,30 +240,24 @@ function TractorDetailView({ tractorId, onClose }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [tractor?.assignedPlant])
-
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!tractor?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid tractor, region, or plant')
         }
-
         const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedTractor = {
                 ...tractor,
                 assignedOperator: null,
                 assignedPlant: newPlantCode
             }
-
             const result = await TractorService.updateTractor(tractor.id, updatedTractor, userId, tractor)
             setTractor(result)
             setAssignedPlant(newPlantCode)
@@ -294,20 +277,17 @@ function TractorDetailView({ tractorId, onClose }) {
             setIsSaving(false)
         }
     }
-
     async function handleSave(overrideValues = {}) {
         if (!tractor?.id) {
             alert('Error: Cannot save tractor with undefined ID')
             return
         }
-
         const relevantOverrideKeys = Object.keys(overrideValues || {}).filter(
             (k) => !['silent', 'prevAssignedOperator'].includes(k)
         )
         if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
             return
         }
-
         setIsSaving(true)
         try {
             let userObj = await UserService.getCurrentUser()
@@ -324,14 +304,12 @@ function TractorDetailView({ tractorId, onClose }) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status
-
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const { data: openIssues } = await supabase
                     .from('tractors_maintenance')
                     .select('id')
                     .eq('tractor_id', tractor.id)
                     .is('time_completed', null)
-
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage(
@@ -341,7 +319,6 @@ function TractorDetailView({ tractorId, onClose }) {
                     return
                 }
             }
-
             if (
                 (!assignedOperatorValue || assignedOperatorValue === '' || assignedOperatorValue === null) &&
                 statusValue === 'Active'
@@ -427,7 +404,6 @@ function TractorDetailView({ tractorId, onClose }) {
             setHasUnsavedChanges(false)
         } catch (error) {
             let errorMessage = 'Unknown error'
-
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('tractors_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -435,13 +411,11 @@ function TractorDetailView({ tractorId, onClose }) {
                     errorMessage = error.message
                 }
             }
-
             alert(`Error saving changes: ${errorMessage}`)
         } finally {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!tractor) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
@@ -455,14 +429,12 @@ function TractorDetailView({ tractorId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     async function handleVerifyTractor(skipIssueCheck = false) {
         if (status === 'Retired') {
             setMessage('Cannot verify: Retired tractors cannot be verified.')
             setTimeout(() => setMessage(''), 4000)
             return
         }
-
         const missing = []
         if (!tractor.vin || !ValidationUtility.isVIN(tractor.vin)) missing.push('VIN')
         if (!tractor.make) missing.push('Make')
@@ -471,7 +443,6 @@ function TractorDetailView({ tractorId, onClose }) {
         setMissingFields(missing)
         setShowMissingFieldsModal(true)
     }
-
     async function handleSaveMissingFields() {
         const needVin = !tractor.vin || !ValidationUtility.isVIN(tractor.vin)
         const needMake = !tractor.make
@@ -509,14 +480,12 @@ function TractorDetailView({ tractorId, onClose }) {
         setTractor(refreshed)
         setVin((refreshed.vin || '').toUpperCase())
         setYear(String(refreshed.year || ''))
-
         if (hasUnsavedChanges) {
             await handleSave().catch(() => {
                 alert('Failed to save your changes before verification. Please try saving manually first.')
                 throw new Error('Failed to save changes before verification')
             })
         }
-
         let userObj = await UserService.getCurrentUser()
         let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
         const updated = await TractorService.verifyTractor(tractor.id, userId)
@@ -536,30 +505,25 @@ function TractorDetailView({ tractorId, onClose }) {
         setHasUnsavedChanges(false)
         setShowMissingFieldsModal(false)
     }
-
     async function handleBackClick() {
         if (hasUnsavedChanges) {
             await handleSave()
         }
         onClose()
     }
-
     function getOperatorName(operatorId) {
         if (!operatorId || operatorId === '0') return 'None'
         const operator = operators.find((op) => op.employeeId === operatorId)
         return operator ? (operator.position ? `${operator.name} (${operator.position})` : operator.name) : 'Unknown'
     }
-
     function getPlantName(plantCode) {
         const plant = plants.find((p) => p.plantCode === plantCode)
         return plant ? plant.plantName : plantCode
     }
-
     function formatDate(date) {
         if (!date) return ''
         return date instanceof Date ? date.toISOString().split('T')[0] : date
     }
-
     async function fetchOperatorsForModal() {
         let dbOperators = await OperatorService.fetchOperators()
         if (lastUnassignedOperatorId) {
@@ -570,12 +534,10 @@ function TractorDetailView({ tractorId, onClose }) {
         }
         setOperatorModalOperators(dbOperators)
     }
-
     async function refreshOperators() {
         const updatedOperators = await OperatorService.fetchOperators()
         setOperators(updatedOperators)
     }
-
     useEffect(() => {
         async function fetchCommentsAndIssues() {
             if (!tractorId) return
@@ -590,10 +552,8 @@ function TractorDetailView({ tractorId, onClose }) {
                 )
             } catch (e) {}
         }
-
         fetchCommentsAndIssues()
     }, [tractorId])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -611,11 +571,9 @@ function TractorDetailView({ tractorId, onClose }) {
         }
         checkDeletePermission()
     }, [])
-
     if (isLoading) {
         return null
     }
-
     if (!tractor) {
         return (
             <DetailViewSection
@@ -627,7 +585,6 @@ function TractorDetailView({ tractorId, onClose }) {
             />
         )
     }
-
     const verificationItems = [
         {
             icon: 'fas fa-calendar-check',
@@ -667,7 +624,6 @@ function TractorDetailView({ tractorId, onClose }) {
             }
         }
     ]
-
     return (
         <>
             {showHistory && <TractorHistoryView tractor={tractor} onClose={() => setShowHistory(false)} />}
@@ -887,7 +843,6 @@ function TractorDetailView({ tractorId, onClose }) {
                             </select>
                         </div>
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Assignment" icon="fas fa-user-tag">
                         <div className="form-group">
                             <label>Assigned Plant</label>
@@ -1077,7 +1032,6 @@ function TractorDetailView({ tractorId, onClose }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
                     <DetailViewSection.Card title="Service Information" icon="fas fa-calendar-alt">
                         <div className="form-group">
@@ -1114,7 +1068,6 @@ function TractorDetailView({ tractorId, onClose }) {
                             </select>
                         </div>
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Cleanliness Rating" icon="fas fa-broom">
                         <div className="form-group">
                             <label>Cleanliness Rating</label>
@@ -1154,7 +1107,6 @@ function TractorDetailView({ tractorId, onClose }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="verification" title="Verification" icon="fas fa-clipboard-check">
                     <DetailViewSection.Card>
                         <VerificationCardSection
@@ -1178,5 +1130,4 @@ function TractorDetailView({ tractorId, onClose }) {
         </>
     )
 }
-
 export default TractorDetailView

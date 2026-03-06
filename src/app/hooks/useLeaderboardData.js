@@ -9,7 +9,6 @@ import { TractorService } from '../../services/TractorService'
 import { TrailerService } from '../../services/TrailerService'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import { DEFAULT_FLEET_DATA } from '../constants/leaderboardConstants'
-
 function getCurrentWeekStart() {
     const now = new Date()
     const weekStart = new Date(now)
@@ -17,7 +16,6 @@ function getCurrentWeekStart() {
     weekStart.setHours(0, 0, 0, 0)
     return weekStart
 }
-
 function buildPlantMetrics(
     plantCode,
     plantName,
@@ -30,7 +28,6 @@ function buildPlantMetrics(
     const fleetData = fleetCountsByPlant[plantCode] || DEFAULT_FLEET_DATA
     const hoursAdjustments = hoursAdjustmentsByPlant[plantCode] || null
     const safetyIncidents = safetyByPlant[plantCode] || null
-
     const metrics = LeaderboardsUtility.calculateMetrics(
         plantReports,
         fleetData.avgFleetCleanliness || 0,
@@ -39,9 +36,7 @@ function buildPlantMetrics(
         hoursAdjustments,
         safetyIncidents
     )
-
     if (!metrics) return null
-
     return {
         plantCode,
         plantName,
@@ -53,7 +48,6 @@ function buildPlantMetrics(
         safetyReportsCount: safetyIncidents?.count || 0
     }
 }
-
 /**
  * Loads leaderboard rankings by aggregating weekly report data, fleet counts,
  * safety records, and hours adjustments across all plants in the selected region.
@@ -62,11 +56,9 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
     const [loading, setLoading] = useState(true)
     const [plantMetrics, setPlantMetrics] = useState([])
     const [hoursAdjustmentsData, setHoursAdjustmentsData] = useState({})
-
     const fetchData = useCallback(
         async (mounted) => {
             setLoading(true)
-
             try {
                 if (!selectedRegionCode) {
                     if (mounted.current) {
@@ -75,7 +67,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const selectedRegion = RegionService.getRegionByCode(selectedRegionCode)
                 if (selectedRegion?.type !== 'Concrete') {
                     if (mounted.current) {
@@ -84,7 +75,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const plantsInRegion = await RegionService.fetchRegionPlants(selectedRegionCode)
                 if (!plantsInRegion?.length) {
                     if (mounted.current) {
@@ -93,19 +83,15 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const plantCodesInRegion = plantsInRegion.map((p) => p.plantCode)
                 const plantNames = Object.fromEntries(plantsInRegion.map((p) => [p.plantCode, p.plantName]))
-
                 const extendedStartDate = new Date(selectedYear - 1, 11, 25)
                 const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
-
                 const { data: profilesData, error: profilesError } = await supabase
                     .from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodesInRegion)
                     .not('plant_code', 'is', null)
-
                 if (profilesError) {
                     console.error('Error fetching profiles:', profilesError)
                     if (mounted.current) {
@@ -114,13 +100,11 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const userIdsByPlant = profilesData.reduce((acc, p) => {
                     if (!acc[p.plant_code]) acc[p.plant_code] = []
                     acc[p.plant_code].push(p.id)
                     return acc
                 }, {})
-
                 const allUserIds = profilesData.map((p) => p.id)
                 if (!allUserIds.length) {
                     if (mounted.current) {
@@ -129,7 +113,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const [{ data: reports, error: reportsError }, { data: safetyReports }] = await Promise.all([
                     supabase
                         .from('reports')
@@ -145,7 +128,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                         .gte('week', extendedStartDate.toISOString())
                         .lte('week', extendedEndDate.toISOString())
                 ])
-
                 if (reportsError) {
                     console.error('Error fetching reports:', reportsError)
                     if (mounted.current) {
@@ -155,19 +137,16 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     return
                 }
                 if (!mounted.current) return
-
                 const hoursAdjustmentsByPlant = LeaderboardsUtility.calculateHoursAdjustments(
                     reports,
                     profilesData,
                     plantCodesInRegion
                 )
                 setHoursAdjustmentsData(hoursAdjustmentsByPlant)
-
                 const safetyByPlant = LeaderboardsUtility.calculateSafetyIncidents(
                     safetyReports || [],
                     plantCodesInRegion
                 )
-
                 if (!reports?.length) {
                     if (mounted.current) {
                         setPlantMetrics([])
@@ -175,10 +154,8 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const currentWeekStart = getCurrentWeekStart()
                 const filteredReports = reports.filter((report) => new Date(report.week) < currentWeekStart)
-
                 if (!filteredReports.length) {
                     if (mounted.current) {
                         setPlantMetrics([])
@@ -186,7 +163,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-
                 const [mixersData, tractorsData, trailersData, equipmentData, operatorsData] = await Promise.all([
                     MixerService.getAllMixers().catch(() => []),
                     TractorService.getAllTractors().catch(() => []),
@@ -194,7 +170,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     EquipmentService.getAllEquipments().catch(() => []),
                     OperatorService.getAllOperators().catch(() => [])
                 ])
-
                 const fleetCountsByPlant = LeaderboardsUtility.calculateFleetCounts(
                     plantCodesInRegion,
                     mixersData,
@@ -203,7 +178,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     equipmentData,
                     operatorsData
                 )
-
                 const plantMetricsArray = Object.keys(userIdsByPlant)
                     .map((plantCode) => {
                         const plantReports = filteredReports.filter((r) =>
@@ -220,7 +194,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                         )
                     })
                     .filter(Boolean)
-
                 if (mounted.current) {
                     setPlantMetrics(plantMetricsArray)
                 }
@@ -235,7 +208,6 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
         },
         [selectedRegionCode, selectedYear]
     )
-
     useEffect(() => {
         const mounted = { current: true }
         fetchData(mounted)
@@ -243,6 +215,5 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
             mounted.current = false
         }
     }, [fetchData])
-
     return { hoursAdjustmentsData, loading, plantMetrics }
 }

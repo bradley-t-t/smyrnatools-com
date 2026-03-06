@@ -1,5 +1,4 @@
 import EquipmentUtility from '../../utils/EquipmentUtility'
-
 /**
  * Equipment domain model with heuristic field resolution.
  * Maps snake_case API fields to camelCase properties and applies
@@ -40,11 +39,9 @@ export class Equipment {
         this.comments = data.comments ?? []
         if (Object.keys(data).length) this.#heuristicFill(data)
     }
-
     static ensureInstance(obj) {
         return obj instanceof Equipment ? obj : new Equipment(obj || {})
     }
-
     #heuristicFill(data) {
         const lower = Object.keys(data).reduce((acc, k) => {
             acc[k.toLowerCase()] = k
@@ -81,19 +78,15 @@ export class Equipment {
             if (key) this.equipmentType = data[lower[key]] || this.equipmentType
         }
     }
-
     getStatus() {
         return this.status || 'Unknown'
     }
-
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
-
     isVerified(latestHistoryDate) {
         return EquipmentUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
     }
-
     verify(userId) {
         const now = new Date().toISOString()
         this.updatedLast = now

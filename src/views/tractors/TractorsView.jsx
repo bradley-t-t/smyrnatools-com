@@ -25,7 +25,6 @@ import TractorCard from './TractorCard'
 import TractorCommentModal from './TractorCommentModal'
 import TractorDetailView from './TractorDetailView'
 import TractorIssueModal from './TractorIssueModal'
-
 /**
  * Main list/grid view for the tractor fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant
@@ -116,7 +115,6 @@ function TractorsView({
         VIN: 'vinNumber',
         Verified: null
     }
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -126,7 +124,6 @@ function TractorsView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     const unassignedActiveOperatorsCount = useMemo(
         () =>
             FleetUtility.countUnassignedActiveOperators(tractors, operators, searchText, {
@@ -139,7 +136,6 @@ function TractorsView({
             }),
         [operators, tractors, selectedPlant, searchText, regionPlantCodes]
     )
-
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
         obj.isVerified = function (latestHistoryDate) {
@@ -152,7 +148,6 @@ function TractorsView({
         }
         return obj
     }, [])
-
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
             if (eventType === 'UPDATE' && data.new) {
@@ -246,7 +241,6 @@ function TractorsView({
         },
         [regionPlantCodes, attachIsVerified]
     )
-
     useEffect(() => {
         const channel = supabase
             .channel('tractors-realtime-changes')
@@ -260,12 +254,10 @@ function TractorsView({
                     console.error('Tractors realtime subscription error')
                 }
             })
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -277,7 +269,6 @@ function TractorsView({
                 setIsLoading(false)
             }
         }
-
         fetchAllData()
         if (preferences?.tractorFilters) {
             setSearchText(preferences.tractorFilters.searchText || '')
@@ -295,7 +286,6 @@ function TractorsView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences])
-
     useEffect(() => {
         if (preferences.tractorFilters?.viewMode !== undefined && preferences.tractorFilters?.viewMode !== null)
             setViewMode(preferences.tractorFilters.viewMode)
@@ -306,10 +296,8 @@ function TractorsView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences.tractorFilters?.viewMode, preferences.defaultViewMode])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             setIsRegionLoading(!!preferences.selectedRegion?.code)
             try {
@@ -329,13 +317,11 @@ function TractorsView({
                 if (!cancelled) setIsRegionLoading(false)
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -347,7 +333,6 @@ function TractorsView({
             localStorage.setItem('tractors_last_view_mode', mode)
         }
     }
-
     async function handleExportIssues() {
         setIsExportingIssues(true)
         try {
@@ -364,7 +349,6 @@ function TractorsView({
             setIsExportingIssues(false)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -373,25 +357,20 @@ function TractorsView({
             setSortDirection('asc')
         }
     }
-
     async function fetchTractors(codes) {
         try {
             const processedBase = await TractorService.fetchTractorsWithDetails(codes)
-
             const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
-
             setTractors(processedBase)
             setAllTractors(processedBase)
             setTractorsLoaded(true)
             loadDetailsForTractors(processedBase)
-
             if (cleanupResult.fixed > 0) {
                 setTimeout(async () => {
                     const refreshed = await TractorService.fetchTractorsWithDetails(codes)
                     setTractors(refreshed)
                     setAllTractors(refreshed)
                     loadDetailsForTractors(refreshed)
-
                     setTimeout(() => {
                         runVerificationCheck(refreshed)
                     }, 1000)
@@ -403,10 +382,8 @@ function TractorsView({
             }
         } catch (error) {}
     }
-
     async function runVerificationCheck(tractorsToCheck) {
         if (!tractorsToCheck || tractorsToCheck.length === 0) return
-
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 tractorsToCheck,
@@ -414,7 +391,6 @@ function TractorsView({
                 'tractor',
                 operators
             )
-
             if (verificationResult.fixed > 0) {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
@@ -424,7 +400,6 @@ function TractorsView({
             }
         } catch (error) {}
     }
-
     async function fetchOperators() {
         try {
             const data = await OperatorService.fetchOperators()
@@ -434,14 +409,12 @@ function TractorsView({
             setOperators([])
         }
     }
-
     async function fetchPlants(codes) {
         try {
             const data = await PlantService.fetchPlants(codes)
             setPlants(data)
         } catch (error) {}
     }
-
     function handleSelectTractor(tractorId) {
         const tractor = tractors.find((m) => m.id === tractorId)
         if (tractor) {
@@ -450,7 +423,6 @@ function TractorsView({
             onSelectTractor?.(tractorId)
         }
     }
-
     const handleVerifyTractor = useCallback(
         async (tractorId) => {
             const tractor = tractors.find((t) => t.id === tractorId)
@@ -469,10 +441,8 @@ function TractorsView({
         },
         [tractors]
     )
-
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyTractor) return
-
         try {
             const updates = {}
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyTractor.vin || '')) {
@@ -490,16 +460,12 @@ function TractorsView({
             if (verifyLastServiceDate && verifyLastServiceDate !== verifyTractor.lastServiceDate) {
                 updates.lastServiceDate = verifyLastServiceDate
             }
-
             if (Object.keys(updates).length > 0) {
                 await TractorService.updateTractor(verifyTractor.id, updates)
             }
-
             const verified = await TractorService.verifyTractor(verifyTractor.id)
-
             setTractors((prevTractors) => prevTractors.map((t) => (t.id === verifyTractor.id ? verified : t)))
             setAllTractors((prevTractors) => prevTractors.map((t) => (t.id === verifyTractor.id ? verified : t)))
-
             setShowVerifyModal(false)
             setVerifyTractor(null)
         } catch (error) {
@@ -507,7 +473,6 @@ function TractorsView({
             alert('Failed to verify tractor. Please try again.')
         }
     }, [verifyTractor, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate])
-
     const filteredTractors = useMemo(() => {
         const filtered = tractors.filter((tractor) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -557,7 +522,6 @@ function TractorsView({
             const matchesFreight = !freightFilter || tractor.freight === freightFilter
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesFreight
         })
-
         return FleetUtility.sortWithRetiredLast(
             filtered,
             (a, b) => {
@@ -612,7 +576,6 @@ function TractorsView({
         plants,
         exactMatch
     ])
-
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
@@ -620,11 +583,9 @@ function TractorsView({
         }, 300),
         [updateTractorFilter]
     )
-
     const canShowUnassignedOverlay =
         tractorsLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
     const showReset = searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || freightFilter
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -632,12 +593,10 @@ function TractorsView({
             const root = document.querySelector('.global-dashboard-container.tractors-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchInput, selectedPlant, statusFilter, freightFilter])
-
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -662,14 +621,12 @@ function TractorsView({
                 setTractors(allTractors)
             }
         }
-
         if (searchText.trim().length >= 1) {
             searchByVin()
         } else {
             setTractors(allTractors)
         }
     }, [searchText, allTractors, regionPlantCodes])
-
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
             return <AssetListSkeleton viewMode={viewMode} />
@@ -1118,18 +1075,15 @@ function TractorsView({
         plants,
         tractors
     ])
-
     const loadDetailsForTractors = async (tractorsList) => {
         if (!tractorsList || tractorsList.length === 0) return
         const tractorIds = tractorsList.map((t) => t.id).filter(Boolean)
         if (tractorIds.length === 0) return
-
         try {
             const [commentsCounts, issuesCounts] = await Promise.all([
                 TractorService.fetchAllCommentsCounts(tractorIds),
                 TractorService.fetchAllIssuesCounts(tractorIds)
             ])
-
             setTractors((prev) =>
                 prev.map((t) => ({
                     ...t,
@@ -1148,7 +1102,6 @@ function TractorsView({
             console.error('Error loading tractor details:', e)
         }
     }
-
     return (
         <>
             <div
@@ -1328,5 +1281,4 @@ function TractorsView({
         </>
     )
 }
-
 export default TractorsView

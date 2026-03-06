@@ -8,7 +8,6 @@ class Region {
         this.createdAt = createdAt ? new Date(createdAt) : null
         this.updatedAt = updatedAt ? new Date(updatedAt) : null
     }
-
     static fromRow(row) {
         return new Region({
             createdAt: row.created_at,
@@ -20,5 +19,4 @@ class Region {
         })
     }
 }
-
 export default Region

@@ -5,7 +5,6 @@ import MixersView from '../../../views/mixers/MixersView'
 import OperatorsView from '../../../views/operators/OperatorsView'
 import TractorsView from '../../../views/tractors/TractorsView'
 import TrailersView from '../../../views/trailers/TrailersView'
-
 /** Maps view keys to their component, icon, and display title. */
 const VIEW_CONFIG = {
     equipment: { component: EquipmentsView, icon: 'fa-snowplow', title: 'Equipment' },
@@ -14,7 +13,6 @@ const VIEW_CONFIG = {
     tractors: { component: TractorsView, icon: 'fa-truck-front', title: 'Tractors' },
     trailers: { component: TrailersView, icon: 'fa-truck', title: 'Trailers' }
 }
-
 /**
  * Full-screen modal that embeds an asset or operator list view from the dashboard.
  * Allows quick drill-down into a specific view with an optional pre-applied search filter.
@@ -27,9 +25,7 @@ const VIEW_CONFIG = {
 export default function EmbeddedViewModal({ embeddedView, embeddedViewSearch, accentColor, onClose }) {
     const config = VIEW_CONFIG[embeddedView]
     if (!config) return null
-
     const ViewComponent = config.component
-
     return (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="relative w-full max-w-6xl h-[85vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">

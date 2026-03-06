@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { DashboardCard, SkeletonMetricCard } from '../ui/DashboardCards'
-
 /**
  * Placeholder skeleton UI rendered while dashboard data is loading.
  * Mimics the layout of Fleet Overview, Maintenance, and People sections
@@ -22,7 +21,6 @@ export default function DashboardSkeleton({ isMobile }) {
                     ))}
                 </div>
             </DashboardCard>
-
             <DashboardCard>
                 <div className="h-5 w-24 bg-slate-200 rounded-md mb-5" />
                 <SkeletonMetricCard />
@@ -34,7 +32,6 @@ export default function DashboardSkeleton({ isMobile }) {
                     ))}
                 </div>
             </DashboardCard>
-
             <DashboardCard>
                 <div className="h-5 w-48 bg-slate-200 rounded-md mb-5" />
                 <div

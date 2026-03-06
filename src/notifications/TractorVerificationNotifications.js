@@ -2,7 +2,6 @@
 import { TractorService } from '../services/TractorService'
 import TractorUtility from '../utils/TractorUtility'
 import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'
-
 export default createVerificationNotificationProvider({
     entityLabel: () => 'tractors',
     fetchAllItems: () => TractorService.getAllTractors().catch(() => []),

@@ -5,7 +5,6 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { useDocumentsData } from '../../app/hooks/useDocumentsData'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { usePagination } from '../../app/hooks/usePagination'
-
 const FILE_TYPE_ICONS = {
     document: 'fa-file-word',
     image: 'fa-file-image',
@@ -16,7 +15,6 @@ const FILE_TYPE_ICONS = {
     text: 'fa-file-alt',
     video: 'fa-file-video'
 }
-
 const FILE_TYPE_COLORS = {
     document: '#2563eb',
     image: '#8b5cf6',
@@ -27,7 +25,6 @@ const FILE_TYPE_COLORS = {
     text: '#64748b',
     video: '#7c3aed'
 }
-
 const TYPE_FILTER_OPTIONS = [
     'All Types',
     'pdf',
@@ -39,27 +36,22 @@ const TYPE_FILTER_OPTIONS = [
     'text',
     'other'
 ]
-
 function formatFileSize(bytes) {
     if (!bytes || bytes === 0) return '0 B'
     const units = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
     return `${(bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0)} ${units[i]}`
 }
-
 function formatDate(dateStr) {
     if (!dateStr) return ''
     const d = new Date(dateStr)
     return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-
 function canPreview(fileType) {
     return ['pdf', 'image', 'video'].includes(fileType)
 }
-
 function PreviewModal({ doc, onClose }) {
     const type = doc.file_type
-
     return (
         <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -103,12 +95,10 @@ function PreviewModal({ doc, onClose }) {
         </div>
     )
 }
-
 function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPreview, isMobile }) {
     const icon = FILE_TYPE_ICONS[doc.file_type] || FILE_TYPE_ICONS.other
     const color = FILE_TYPE_COLORS[doc.file_type] || FILE_TYPE_COLORS.other
     const previewable = canPreview(doc.file_type)
-
     if (isMobile) {
         return (
             <div className="flex items-start gap-3 px-4 py-3.5 border-b border-slate-100 last:border-b-0">
@@ -158,7 +148,6 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
             </div>
         )
     }
-
     return (
         <div className="grid grid-cols-[1fr_100px_120px_160px_140px] items-center px-4 lg:px-7 py-3.5 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
             <div className="flex items-center gap-3 min-w-0">
@@ -206,7 +195,6 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
         </div>
     )
 }
-
 function DocumentsSkeleton() {
     return Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-4 lg:px-7 py-4 border-b border-slate-100 animate-pulse">
@@ -218,7 +206,6 @@ function DocumentsSkeleton() {
         </div>
     ))
 }
-
 function EmptyState({ canUpload, onUpload, accentColor }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -245,7 +232,6 @@ function EmptyState({ canUpload, onUpload, accentColor }) {
         </div>
     )
 }
-
 function Pagination({ currentPage, totalPages, pageSize, onPageSizeChange, onPageChange }) {
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-slate-50">
@@ -292,22 +278,18 @@ function Pagination({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     )
 }
-
 export default function DocumentsView() {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const isMobile = useIsMobile()
-
     const { canUpload, deleteDocument, documents, error, loading, profiles, uploadFile, uploading } = useDocumentsData()
     const [searchInput, setSearchInput] = useState('')
     const [typeFilter, setTypeFilter] = useState('')
     const [previewDoc, setPreviewDoc] = useState(null)
     const fileInputRef = useRef(null)
-
     const handleUploadClick = useCallback(() => {
         fileInputRef.current?.click()
     }, [])
-
     const handleFileChange = useCallback(
         (e) => {
             const file = e.target.files?.[0]
@@ -316,29 +298,24 @@ export default function DocumentsView() {
         },
         [uploadFile]
     )
-
     const handleDelete = useCallback(
         (doc) => {
             if (window.confirm(`Delete "${doc.name}"?`)) deleteDocument(doc)
         },
         [deleteDocument]
     )
-
     const searchLower = searchInput.toLowerCase().trim()
-
     const filtered = useMemo(() => {
         let result = documents
         if (typeFilter) result = result.filter((d) => d.file_type === typeFilter)
         if (searchLower) result = result.filter((d) => d.name.toLowerCase().includes(searchLower))
         return result
     }, [documents, typeFilter, searchLower])
-
     const { paginatedItems, currentPage, totalPages, pageSize, changePageSize, goToPage } = usePagination({
-        items: filtered,
         initialPageSize: 25,
+        items: filtered,
         resetDependencies: [searchInput, typeFilter]
     })
-
     const typeFilterSelect = (
         <select
             className="appearance-none bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm cursor-pointer min-w-[140px] py-3 pl-4 pr-10 bg-no-repeat"
@@ -358,7 +335,6 @@ export default function DocumentsView() {
             ))}
         </select>
     )
-
     return (
         <div className="bg-slate-50 min-h-screen w-full pb-16">
             <TopSection
@@ -375,7 +351,6 @@ export default function DocumentsView() {
                 onAddClick={canUpload ? handleUploadClick : undefined}
                 customFilters={typeFilterSelect}
             />
-
             <input
                 ref={fileInputRef}
                 type="file"
@@ -383,7 +358,6 @@ export default function DocumentsView() {
                 onChange={handleFileChange}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.jpg,.jpeg,.png,.gif,.svg,.webp,.mp4,.mov,.webm"
             />
-
             {uploading && (
                 <div className="mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-4">
                     <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-5 py-3.5">
@@ -392,7 +366,6 @@ export default function DocumentsView() {
                     </div>
                 </div>
             )}
-
             {error && (
                 <div className="mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-4">
                     <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl text-red-600 px-5 py-3.5">
@@ -400,7 +373,6 @@ export default function DocumentsView() {
                     </div>
                 </div>
             )}
-
             <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     {loading ? (
@@ -442,7 +414,6 @@ export default function DocumentsView() {
                         </>
                     )}
                 </div>
-
                 {!loading && filtered.length > 0 && (
                     <div className="text-xs text-slate-400 text-center mt-3">
                         {filtered.length} document{filtered.length !== 1 ? 's' : ''}
@@ -450,7 +421,6 @@ export default function DocumentsView() {
                     </div>
                 )}
             </div>
-
             {previewDoc && <PreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} />}
         </div>
     )

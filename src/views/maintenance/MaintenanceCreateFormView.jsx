@@ -6,7 +6,6 @@ import { MaintenanceService } from '../../services/MaintenanceService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import { getFieldTypeIcon, getFieldTypeName } from '../../utils/MaintenanceUtility'
-
 /**
  * Form builder for creating or editing a maintenance form definition.
  * Supports dynamic field composition (short answer, long answer, checklist,
@@ -34,18 +33,15 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
     const [availablePlants, setAvailablePlants] = useState([])
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
-
     useEffect(() => {
         loadOptions()
         if (editingForm) {
             populateForm(editingForm)
         }
     }, [editingForm])
-
     useEffect(() => {
         loadRegionalPlants()
     }, [preferences.selectedRegion?.code])
-
     const loadOptions = async () => {
         try {
             const roles = await UserService.getAllRoles()
@@ -59,7 +55,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setAvailableRoles([])
         }
     }
-
     const loadRegionalPlants = async () => {
         try {
             const regionCode = preferences.selectedRegion?.code
@@ -73,7 +68,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setAvailablePlants([])
         }
     }
-
     /** Hydrates all form state from an existing form record, mapping DB field rows into the local builder shape. */
     const populateForm = (form) => {
         setTitle(form.title || '')
@@ -84,7 +78,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         const plants = form.plant_codes || (form.plant_code ? [form.plant_code] : [])
         setSelectedPlants(plants)
         setStartDate(form.start_date || new Date().toISOString().split('T')[0])
-
         const existingFields = (form.maintenance_form_fields || [])
             .sort((a, b) => a.field_order - b.field_order)
             .map((f) => ({
@@ -96,10 +89,8 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                 label: f.label,
                 options: f.options || {}
             }))
-
         setFields(existingFields)
     }
-
     const addField = (type) => {
         const newField = {
             description: '',
@@ -112,17 +103,14 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         }
         setFields([...fields, newField])
     }
-
     const updateField = (index, updates) => {
         const newFields = [...fields]
         newFields[index] = { ...newFields[index], ...updates }
         setFields(newFields)
     }
-
     const removeField = (index) => {
         setFields(fields.filter((_, i) => i !== index))
     }
-
     const moveField = (index, direction) => {
         const newFields = [...fields]
         const newIndex = index + direction
@@ -134,26 +122,22 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         newFields[newIndex] = temp
         setFields(newFields)
     }
-
     const addChecklistItem = (fieldIndex) => {
         const newFields = [...fields]
         const items = newFields[fieldIndex].options?.items || []
         newFields[fieldIndex].options = { items: [...items, ''] }
         setFields(newFields)
     }
-
     const updateChecklistItem = (fieldIndex, itemIndex, value) => {
         const newFields = [...fields]
         newFields[fieldIndex].options.items[itemIndex] = value
         setFields(newFields)
     }
-
     const removeChecklistItem = (fieldIndex, itemIndex) => {
         const newFields = [...fields]
         newFields[fieldIndex].options.items = newFields[fieldIndex].options.items.filter((_, i) => i !== itemIndex)
         setFields(newFields)
     }
-
     const toggleRole = (roleId) => {
         if (assignedRoles.includes(roleId)) {
             setAssignedRoles(assignedRoles.filter((id) => id !== roleId))
@@ -161,26 +145,20 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setAssignedRoles([...assignedRoles, roleId])
         }
     }
-
     const validateForm = () => {
         const newErrors = {}
-
         if (!title.trim()) {
             newErrors.title = 'Title is required'
         }
-
         if (selectedPlants.length === 0) {
             newErrors.plants = 'At least one plant must be selected'
         }
-
         if (assignedRoles.length === 0) {
             newErrors.assignment = 'At least one role must be assigned'
         }
-
         if (fields.length === 0) {
             newErrors.fields = 'At least one field is required'
         }
-
         fields.forEach((field, index) => {
             if (!field.label.trim()) {
                 newErrors[`field-${index}`] = 'Field label is required'
@@ -192,14 +170,11 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                 }
             }
         })
-
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
-
     const handleSave = async () => {
         if (!validateForm()) return
-
         setSaving(true)
         try {
             const formData = {
@@ -224,13 +199,11 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                 start_date: startDate,
                 title: title.trim()
             }
-
             if (editingForm) {
                 await MaintenanceService.updateForm(editingForm.id, formData)
             } else {
                 await MaintenanceService.createForm(formData)
             }
-
             onSaved()
         } catch (error) {
             setErrors({ save: error.message })
@@ -238,7 +211,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setSaving(false)
         }
     }
-
     const handleDelete = async () => {
         setSaving(true)
         try {
@@ -251,7 +223,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setShowDeleteConfirm(false)
         }
     }
-
     const styles = {
         backBtn: {
             alignItems: 'center',
@@ -486,7 +457,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             width: '120px'
         }
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.header}>
@@ -512,11 +482,9 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                     </button>
                 )}
             </div>
-
             <div style={styles.content}>
                 <div style={styles.section}>
                     <h3 style={styles.sectionTitle}>Form Details</h3>
-
                     <div style={styles.formGroup}>
                         <label style={styles.label}>
                             Title <span style={styles.required}>*</span>
@@ -542,7 +510,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                         />
                         {errors.title && <span style={styles.error}>{errors.title}</span>}
                     </div>
-
                     <div style={styles.formGroup}>
                         <label style={styles.label}>
                             Plants <span style={styles.required}>*</span>
@@ -610,7 +577,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             }}
                         />
                     </div>
-
                     <div className="form-group">
                         <label>Description</label>
                         <textarea
@@ -621,7 +587,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             rows={3}
                         />
                     </div>
-
                     <div className="form-row">
                         <div className="form-group">
                             <label>Frequency</label>
@@ -638,7 +603,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 <option value="yearly">Yearly</option>
                             </select>
                         </div>
-
                         {['daily', 'weekly', 'monthly', 'yearly'].includes(frequency) && (
                             <div className="form-group">
                                 <label>Every</label>
@@ -663,7 +627,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             </div>
                         )}
                     </div>
-
                     <div className="form-group">
                         <label>
                             First Due Date <span className="required">*</span>
@@ -684,15 +647,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                         </p>
                     </div>
                 </div>
-
                 <div className="create-section">
                     <h3>
                         Assigned Roles <span className="required">*</span>
                     </h3>
                     <p className="section-description">Select which roles are responsible for completing this form.</p>
-
                     {errors.assignment && <span className="field-error">{errors.assignment}</span>}
-
                     <div className="assignment-group">
                         <div className="assignment-header">
                             <span>Roles ({assignedRoles.length} selected)</span>
@@ -700,7 +660,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 <i className={`fas ${showRoleSelector ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
                             </button>
                         </div>
-
                         {showRoleSelector && (
                             <div className="selector-list">
                                 {availableRoles.length === 0 ? (
@@ -722,7 +681,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 )}
                             </div>
                         )}
-
                         {assignedRoles.length > 0 && (
                             <div className="selected-items">
                                 {assignedRoles.map((roleId) => {
@@ -740,15 +698,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                         )}
                     </div>
                 </div>
-
                 <div className="create-section">
                     <h3>
                         Form Fields <span className="required">*</span>
                     </h3>
                     <p className="section-description">Add questions and fields for the form.</p>
-
                     {errors.fields && <span className="field-error">{errors.fields}</span>}
-
                     <div className="field-type-buttons">
                         <button onClick={() => addField('short_answer')}>
                             <i className="fas fa-font"></i>
@@ -767,7 +722,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             <span>Notes</span>
                         </button>
                     </div>
-
                     <div className="fields-list">
                         {fields.map((field, index) => (
                             <div key={field.id} className="field-editor">
@@ -800,7 +754,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                         </button>
                                     </div>
                                 </div>
-
                                 <div className="field-editor-body">
                                     <div className="form-group">
                                         <label>
@@ -817,7 +770,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                             <span className="field-error">{errors[`field-${index}`]}</span>
                                         )}
                                     </div>
-
                                     <div className="form-group">
                                         <label>Description (optional)</label>
                                         <input
@@ -828,7 +780,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                             placeholder="Add a description or instructions"
                                         />
                                     </div>
-
                                     {field.field_type === 'checklist' && (
                                         <div className="checklist-editor">
                                             <label>
@@ -867,7 +818,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                             </button>
                                         </div>
                                     )}
-
                                     <label className="required-toggle">
                                         <input
                                             type="checkbox"
@@ -887,7 +837,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 </div>
                             </div>
                         ))}
-
                         {fields.length === 0 && (
                             <div className="no-fields">
                                 <i className="fas fa-plus-circle"></i>
@@ -896,14 +845,12 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                         )}
                     </div>
                 </div>
-
                 {errors.save && (
                     <div className="submit-error">
                         <i className="fas fa-exclamation-circle"></i>
                         <span>{errors.save}</span>
                     </div>
                 )}
-
                 <div className="form-actions">
                     <button className="cancel-btn" onClick={onBack}>
                         Cancel
@@ -923,7 +870,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                     </button>
                 </div>
             </div>
-
             {showDeleteConfirm && (
                 <div className="confirm-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
                     <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>

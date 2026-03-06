@@ -35,7 +35,6 @@ class Trailer {
         this.openIssuesCount = openIssuesCount
         this.commentsCount = commentsCount
     }
-
     static fromApiFormat(apiData) {
         return new Trailer({
             assigned_plant: apiData.assigned_plant,
@@ -54,11 +53,9 @@ class Trailer {
             updated_last: apiData.updated_last
         })
     }
-
     static ensureInstance(data) {
         return data instanceof Trailer ? data : Trailer.fromApiFormat(data)
     }
-
     toApiFormat() {
         return {
             assigned_plant: this.assignedPlant,
@@ -74,7 +71,6 @@ class Trailer {
             updated_last: this.updatedLast
         }
     }
-
     isVerified(latestHistoryDate = null) {
         if (!this.updatedLast || !this.updatedBy) return false
         const lastVerification = new Date(this.updatedLast)
@@ -88,5 +84,4 @@ class Trailer {
         return lastUpdate <= lastVerification && lastVerification >= lastSunday
     }
 }
-
 export default Trailer

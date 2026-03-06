@@ -23,7 +23,6 @@ import EquipmentCard from './EquipmentCard'
 import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentDetailView from './EquipmentDetailView'
 import EquipmentIssueModal from './EquipmentIssueModal'
-
 /**
  * Main list/grid view for the heavy equipment fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant filtering,
@@ -90,7 +89,6 @@ function EquipmentsView({
     const [verifyModel, setVerifyModel] = useState('')
     const [verifyYear, setVerifyYear] = useState('')
     const [verifyLastServiceDate, setVerifyLastServiceDate] = useState(null)
-
     const filterOptions = [
         'All Statuses',
         'Active',
@@ -141,7 +139,6 @@ function EquipmentsView({
         Type: 'equipmentType',
         Verified: 'verified'
     }
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -151,7 +148,6 @@ function EquipmentsView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     /** Attaches a bound `isVerified` method to an equipment object so cards can call it with history context. */
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
@@ -165,7 +161,6 @@ function EquipmentsView({
         }
         return obj
     }, [])
-
     /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep the local list in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
@@ -227,7 +222,6 @@ function EquipmentsView({
         },
         [regionPlantCodes, attachIsVerified]
     )
-
     // Subscribe to Supabase realtime changes on the heavy_equipment table for live updates.
     useEffect(() => {
         const channel = supabase
@@ -242,12 +236,10 @@ function EquipmentsView({
                     console.error('Equipment realtime subscription error')
                 }
             })
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -259,7 +251,6 @@ function EquipmentsView({
                 setIsLoading(false)
             }
         }
-
         fetchAllData()
         if (preferences?.equipmentFilters) {
             setSearchText(preferences.equipmentFilters.searchText || '')
@@ -270,12 +261,10 @@ function EquipmentsView({
             setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
     }, [preferences])
-
     // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -293,19 +282,16 @@ function EquipmentsView({
                 setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     async function fetchEquipments() {
         try {
             const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
             setEquipments(processedBase)
             loadDetailsForEquipments(processedBase)
-
             if (processedBase && processedBase.length > 0) {
                 // Defer verification check 1s so the UI renders before the background audit runs.
                 setTimeout(() => {
@@ -316,25 +302,21 @@ function EquipmentsView({
             setEquipments([])
         }
     }
-
     async function fetchPlants(codes) {
         try {
             const data = await PlantService.fetchPlants(codes)
             setPlants(data)
         } catch {}
     }
-
     /** Runs a background verification integrity check and re-fetches if any records were auto-corrected. */
     async function runVerificationCheck(equipmentsToCheck) {
         if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
-
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 equipmentsToCheck,
                 EquipmentService.updateEquipment,
                 'equipment'
             )
-
             if (verificationResult.fixed > 0) {
                 const refreshedEquipments = await EquipmentService.fetchEquipmentsWithDetails()
                 setEquipments(refreshedEquipments)
@@ -342,19 +324,16 @@ function EquipmentsView({
             }
         } catch (error) {}
     }
-
     /** Batch-loads comment and open-issue counts for all equipment and merges them into local state. */
     const loadDetailsForEquipments = async (equipmentsList) => {
         if (!equipmentsList || equipmentsList.length === 0) return
         const equipmentIds = equipmentsList.map((e) => e.id).filter(Boolean)
         if (equipmentIds.length === 0) return
-
         try {
             const [commentsCounts, issuesCounts] = await Promise.all([
                 EquipmentService.fetchAllCommentsCounts(equipmentIds),
                 EquipmentService.fetchAllIssuesCounts(equipmentIds)
             ])
-
             setEquipments((prev) =>
                 prev.map((e) => ({
                     ...e,
@@ -366,7 +345,6 @@ function EquipmentsView({
             console.error('Error loading equipment details:', e)
         }
     }
-
     function handleDetailViewSaved(updated) {
         if (updated && updated.id) {
             setEquipments((prev) => {
@@ -378,12 +356,10 @@ function EquipmentsView({
             })
         }
     }
-
     async function handleCloseDetailView() {
         await fetchEquipments()
         setSelectedEquipment(null)
     }
-
     function handleSelectEquipment(equipmentId) {
         const equipment = equipments.find((e) => e.id === equipmentId)
         if (!equipment || !equipment.id) return
@@ -391,7 +367,6 @@ function EquipmentsView({
         setSelectedEquipment(equipment)
         if (onSelectEquipment) onSelectEquipment(equipmentId)
     }
-
     const handleVerifyEquipment = useCallback(
         async (equipmentId) => {
             const equipment = equipments.find((e) => e.id === equipmentId)
@@ -410,11 +385,9 @@ function EquipmentsView({
         },
         [equipments]
     )
-
     /** Persists any changed verification fields (make, model, year, etc.) then marks the equipment as verified. */
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyEquipment) return
-
         try {
             const updates = {}
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyEquipment.vin || '')) {
@@ -444,15 +417,11 @@ function EquipmentsView({
             if (verifyLastServiceDate && verifyLastServiceDate !== verifyEquipment.lastServiceDate) {
                 updates.lastServiceDate = verifyLastServiceDate
             }
-
             if (Object.keys(updates).length > 0) {
                 await EquipmentService.updateEquipment(verifyEquipment.id, updates)
             }
-
             const verified = await EquipmentService.verifyEquipment(verifyEquipment.id)
-
             setEquipments((prevEquipments) => prevEquipments.map((e) => (e.id === verifyEquipment.id ? verified : e)))
-
             setShowVerifyModal(false)
             setVerifyEquipment(null)
         } catch (error) {
@@ -460,7 +429,6 @@ function EquipmentsView({
             alert('Failed to verify equipment. Please try again.')
         }
     }, [verifyEquipment, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate])
-
     const debouncedSetSearchText = useCallback(
         debounce((value) => {
             setSearchText(value)
@@ -468,7 +436,6 @@ function EquipmentsView({
         }, 300),
         [safeUpdateEquipmentFilter]
     )
-
     /** Applies search, plant, region, status, and type filters, then sorts with retired items pushed to the end. */
     const filteredEquipments = useMemo(() => {
         const filtered = equipments.filter((equipment) => {
@@ -506,7 +473,6 @@ function EquipmentsView({
             const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType
         })
-
         return FleetUtility.sortWithRetiredLast(
             filtered,
             (a, b) => {
@@ -561,7 +527,6 @@ function EquipmentsView({
         sortDirection,
         exactMatch
     ])
-
     useEffect(() => {
         if (preferences.equipmentFilters?.viewMode !== undefined && preferences.equipmentFilters?.viewMode !== null)
             setViewMode(preferences.equipmentFilters.viewMode)
@@ -572,7 +537,6 @@ function EquipmentsView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences])
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -584,7 +548,6 @@ function EquipmentsView({
             localStorage.setItem('equipments_last_view_mode', mode)
         }
     }
-
     async function handleExportIssues() {
         setIsExportingIssues(true)
         try {
@@ -601,7 +564,6 @@ function EquipmentsView({
             setIsExportingIssues(false)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -610,7 +572,6 @@ function EquipmentsView({
             setSortDirection('asc')
         }
     }
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -618,12 +579,10 @@ function EquipmentsView({
             const root = document.querySelector('.global-dashboard-container.equipments-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchInput, selectedPlant, statusFilter, equipmentTypeFilter])
-
     const content = useMemo(() => {
         if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
         if (filteredEquipments.length === 0)
@@ -1036,10 +995,8 @@ function EquipmentsView({
         plants,
         equipments
     ])
-
     const showReset =
         searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter
-
     return (
         <>
             <div
@@ -1219,5 +1176,4 @@ function EquipmentsView({
         </>
     )
 }
-
 export default EquipmentsView

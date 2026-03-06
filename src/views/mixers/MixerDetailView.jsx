@@ -19,7 +19,6 @@ import MixerCommentModal from './MixerCommentModal'
 import MixerHistoryView from './MixerHistoryView'
 import MixerIssueModal from './MixerIssueModal'
 import OperatorSelectModal from './OperatorSelectModal'
-
 /**
  * Full detail/edit view for a single mixer record. Handles loading, saving,
  * verification (with missing-field modal), deletion, operator assignment/
@@ -69,7 +68,6 @@ function MixerDetailView({ mixerId, onClose }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
     const [shopStatus, setShopStatus] = useState(null)
-
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true)
@@ -129,10 +127,8 @@ function MixerDetailView({ mixerId, onClose }) {
                 setHasUnsavedChanges(false)
             }
         }
-
         fetchData()
     }, [mixerId])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -150,10 +146,8 @@ function MixerDetailView({ mixerId, onClose }) {
         }
         checkDeletePermission()
     }, [])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -193,13 +187,11 @@ function MixerDetailView({ mixerId, onClose }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter((p) =>
@@ -210,9 +202,7 @@ function MixerDetailView({ mixerId, onClose }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     const isCleanlinessBlocking = cleanlinessRating > 0 && cleanlinessRating < 3
-
     useEffect(() => {
         if (!originalValues.truckNumber || isLoading) return
         const formatDateForComparison = (date) => (date ? (date instanceof Date ? date.toISOString() : date) : '')
@@ -244,7 +234,6 @@ function MixerDetailView({ mixerId, onClose }) {
         originalValues,
         isLoading
     ])
-
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (hasUnsavedChanges) {
@@ -255,31 +244,25 @@ function MixerDetailView({ mixerId, onClose }) {
         window.addEventListener('beforeunload', handleBeforeUnload)
         return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
-
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!mixer?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid mixer, region, or plant')
         }
-
         const regionService = RegionService
         const newRegion = await regionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedMixer = {
                 ...mixer,
                 assignedOperator: null,
                 assignedPlant: newPlantCode
             }
-
             const result = await MixerService.updateMixer(mixer.id, updatedMixer, userId, mixer)
             setMixer(result)
             setAssignedPlant(newPlantCode)
@@ -299,20 +282,17 @@ function MixerDetailView({ mixerId, onClose }) {
             setIsSaving(false)
         }
     }
-
     async function handleSave(overrideValues = {}) {
         if (!mixer?.id) {
             alert('Error: Cannot save mixer with undefined ID')
             return
         }
-
         const relevantOverrideKeys = Object.keys(overrideValues || {}).filter(
             (k) => !['silent', 'prevAssignedOperator'].includes(k)
         )
         if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
             return
         }
-
         setIsSaving(true)
         try {
             let userObj = await UserService.getCurrentUser()
@@ -323,14 +303,12 @@ function MixerDetailView({ mixerId, onClose }) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status
-
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const { data: openIssues } = await supabase
                     .from('mixers_maintenance')
                     .select('id')
                     .eq('mixer_id', mixer.id)
                     .is('time_completed', null)
-
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage(
@@ -340,7 +318,6 @@ function MixerDetailView({ mixerId, onClose }) {
                     return
                 }
             }
-
             if (originalValues.status === 'Active' && statusValue !== 'Active' && assignedOperatorValue) {
                 assignedOperatorValue = null
             }
@@ -359,13 +336,10 @@ function MixerDetailView({ mixerId, onClose }) {
                     ? overrideValues.prevAssignedOperator
                     : mixer.assignedOperator
             }
-
             let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
-
             const finalShopStatus =
                 statusValue === 'In Shop' ? (overrideValues.shopStatus ?? shopStatus ?? 'in_shop') : null
-
             const updatedMixer = {
                 ...mixer,
                 assignedOperator: assignedOperatorValue || null,
@@ -430,7 +404,6 @@ function MixerDetailView({ mixerId, onClose }) {
             setHasUnsavedChanges(false)
         } catch (error) {
             let errorMessage = 'Unknown error'
-
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('mixers_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -438,13 +411,11 @@ function MixerDetailView({ mixerId, onClose }) {
                     errorMessage = error.message
                 }
             }
-
             alert(`Error saving changes: ${errorMessage}`)
         } finally {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!mixer) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
@@ -458,14 +429,12 @@ function MixerDetailView({ mixerId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     async function handleVerifyMixer(skipIssueCheck = false) {
         if (status === 'Retired') {
             setMessage('Cannot verify: Retired mixers cannot be verified.')
             setTimeout(() => setMessage(''), 4000)
             return
         }
-
         const missing = []
         if (!mixer.vin || !ValidationUtility.isVIN(mixer.vin)) missing.push('VIN')
         if (!mixer.make) missing.push('Make')
@@ -474,7 +443,6 @@ function MixerDetailView({ mixerId, onClose }) {
         setMissingFields(missing)
         setShowMissingFieldsModal(true)
     }
-
     async function handleSaveMissingFields() {
         try {
             const needVin = !mixer.vin || !ValidationUtility.isVIN(mixer.vin)
@@ -538,14 +506,12 @@ function MixerDetailView({ mixerId, onClose }) {
                 setTimeout(() => setMessage(''), 4000)
                 return
             }
-
             if (hasUnsavedChanges) {
                 await handleSave().catch(() => {
                     alert('Failed to save your changes before verification. Please try saving manually first.')
                     throw new Error('Failed to save changes before verification')
                 })
             }
-
             let userObj = await UserService.getCurrentUser()
             let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
             const verified = await MixerService.verifyMixer(candidateMixer.id, userId)
@@ -567,25 +533,21 @@ function MixerDetailView({ mixerId, onClose }) {
             alert('Failed to save missing fields. Please try again.')
         }
     }
-
     async function handleBackClick() {
         if (hasUnsavedChanges) {
             await handleSave()
         }
         onClose()
     }
-
     function getOperatorName(operatorId) {
         if (!operatorId || operatorId === '0') return 'None'
         const operator = operators.find((op) => op.employeeId === operatorId)
         return operator ? (operator.position ? `${operator.name} (${operator.position})` : operator.name) : 'Unknown'
     }
-
     function formatDate(date) {
         if (!date) return ''
         return DateUtility.toLocalDateString(date)
     }
-
     async function fetchOperatorsForModal() {
         let dbOperators = await OperatorService.fetchOperators()
         if (lastUnassignedOperatorId) {
@@ -596,12 +558,10 @@ function MixerDetailView({ mixerId, onClose }) {
         }
         setOperatorModalOperators(dbOperators)
     }
-
     async function refreshOperators() {
         const updatedOperators = await OperatorService.fetchOperators()
         setOperators(updatedOperators)
     }
-
     useEffect(() => {
         async function fetchCommentsAndIssues() {
             if (!mixerId) return
@@ -627,10 +587,8 @@ function MixerDetailView({ mixerId, onClose }) {
                 setIssues([])
             }
         }
-
         fetchCommentsAndIssues()
     }, [mixerId])
-
     useEffect(() => {
         if (mixer?.assignedPlant) {
             RegionService.fetchRegionsByPlantCode(mixer.assignedPlant)
@@ -644,11 +602,9 @@ function MixerDetailView({ mixerId, onClose }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [mixer?.assignedPlant])
-
     if (isLoading) {
         return null
     }
-
     if (!mixer) {
         return (
             <DetailViewSection
@@ -660,12 +616,10 @@ function MixerDetailView({ mixerId, onClose }) {
             />
         )
     }
-
     const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     const verificationItems = [
         {
             icon: 'fas fa-calendar-check',
@@ -714,7 +668,6 @@ function MixerDetailView({ mixerId, onClose }) {
             }
         }
     ]
-
     return (
         <>
             {showHistory && <MixerHistoryView mixer={mixer} onClose={() => setShowHistory(false)} />}
@@ -988,7 +941,6 @@ function MixerDetailView({ mixerId, onClose }) {
                             </div>
                         )}
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Assignment" icon="fas fa-user-tag">
                         <div className="form-group">
                             <label>Assigned Plant</label>
@@ -1195,7 +1147,6 @@ function MixerDetailView({ mixerId, onClose }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
                     <DetailViewSection.Card title="Service Information" icon="fas fa-calendar-alt">
                         <div className="form-group">
@@ -1235,7 +1186,6 @@ function MixerDetailView({ mixerId, onClose }) {
                             )}
                         </div>
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Cleanliness Rating" icon="fas fa-broom">
                         <div className="form-group">
                             <label>Cleanliness Rating</label>
@@ -1275,7 +1225,6 @@ function MixerDetailView({ mixerId, onClose }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="verification" title="Verification" icon="fas fa-clipboard-check">
                     <DetailViewSection.Card>
                         <VerificationCardSection
@@ -1297,5 +1246,4 @@ function MixerDetailView({ mixerId, onClose }) {
         </>
     )
 }
-
 export default MixerDetailView

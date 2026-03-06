@@ -11,7 +11,6 @@ import {
 } from '../../utils/MaintenanceUtility'
 import { useMaintenanceDraft } from './useMaintenanceDraft'
 import { useMaintenanceImages } from './useMaintenanceImages'
-
 /**
  * Orchestrates the full maintenance form lifecycle: initialization from due items or submissions,
  * field validation, wizard step navigation, submission/review workflows, and draft management.
@@ -27,7 +26,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
     const [currentStep, setCurrentStep] = useState(0)
     const [formData, setFormData] = useState(null)
     const [loading, setLoading] = useState(false)
-
     const isReview = item?.isReview
     const isViewOnly = item?.isViewOnly
     const isEditing = item?.isEditing
@@ -37,23 +35,18 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         [item?.maintenance_submission_responses]
     )
     const submissionId = item?.submission_id || item?.id
-
     const formObj = formData || item?.form || item?.maintenance_forms || null
-
     const fields = useMemo(() => {
         const formFields = formObj?.maintenance_form_fields
         if (!formFields?.length) return []
         return [...formFields].sort((a, b) => (a.field_order || 0) - (b.field_order || 0))
     }, [formObj])
-
     const totalSteps = fields.length
     const currentField = fields[currentStep]
     const isLastStep = currentStep === totalSteps - 1
     const isFirstStep = currentStep === 0
-
     const imageHook = useMaintenanceImages({ formId: formObj?.id, setErrors })
     const { fieldImages, setFieldImages } = imageHook
-
     const draftHook = useMaintenanceDraft({
         checklistComments,
         checklistStates,
@@ -66,7 +59,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         plantCode: item?.plant_code,
         responses
     })
-
     const applyParsedResponses = useCallback(
         ({ responses: r, checklists, comments, images }) => {
             setResponses(r)
@@ -76,7 +68,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         },
         [setFieldImages]
     )
-
     const initializeResponses = useCallback(() => {
         const draft = draftHook.loadDraft()
         if (draft?.responses) {
@@ -87,9 +78,7 @@ export function useMaintenanceForm({ item, onSubmitted }) {
             setCurrentStep(draft.currentStep || 0)
             return
         }
-
         const { responses: initialResponses, checklists } = initializeFormResponses(fields)
-
         if (existingResponses.length > 0) {
             existingResponses.forEach((resp) => {
                 if (resp.checklist_values) {
@@ -99,11 +88,9 @@ export function useMaintenanceForm({ item, onSubmitted }) {
                 }
             })
         }
-
         setResponses(initialResponses)
         setChecklistStates(checklists)
     }, [draftHook, fields, existingResponses, setFieldImages])
-
     const loadSubmissionDetails = useCallback(async () => {
         setLoading(true)
         try {
@@ -111,26 +98,21 @@ export function useMaintenanceForm({ item, onSubmitted }) {
             const subId = submissionId || item?.id
             if (subId) data = await MaintenanceService.fetchSubmissionById(subId)
             if (!data && item?.maintenance_submission_responses?.length > 0) data = item
-
             if (!data) {
                 initializeResponses()
                 setLoading(false)
                 return
             }
-
             if (data?.maintenance_forms) setFormData(data.maintenance_forms)
-
             if (data?.submitted_by) {
                 const name = await UserService.getUserDisplayName(data.submitted_by)
                 setSubmitterName(name)
             }
-
             if (data?.maintenance_submission_responses?.length > 0) {
                 applyParsedResponses(parseSubmissionResponsesWithImages(data.maintenance_submission_responses))
             } else {
                 initializeResponses()
             }
-
             if (data?.review_notes) setReviewNotes(data.review_notes)
         } catch (_) {
             initializeResponses()
@@ -138,7 +120,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
             setLoading(false)
         }
     }, [submissionId, item, initializeResponses, applyParsedResponses])
-
     useEffect(() => {
         const loadFormData = async () => {
             if (isReview || isViewOnly || isEditing || existingResponses.length > 0) {
@@ -152,11 +133,9 @@ export function useMaintenanceForm({ item, onSubmitted }) {
                 }
                 return
             }
-
             const existingForm = item?.form || item?.maintenance_forms
             const hasFields = existingForm?.maintenance_form_fields?.length > 0
             const formId = existingForm?.id || item?.form_id
-
             if (hasFields) {
                 setFormData(existingForm)
             } else if (formId) {
@@ -169,7 +148,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
                     setLoading(false)
                 }
             }
-
             if (formId && item?.due_date) {
                 setLoading(true)
                 try {
@@ -185,13 +163,11 @@ export function useMaintenanceForm({ item, onSubmitted }) {
                 } catch (_) {}
                 setLoading(false)
             }
-
             initializeResponses()
         }
         loadFormData()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [item])
-
     useEffect(() => {
         if (!loading && !isReadOnly && !isEditing && fields.length > 0) {
             draftHook.saveDraftToStorage()
@@ -211,7 +187,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         draftHook.triggerAutoSave,
         fields.length
     ])
-
     const handleResponseChange = useCallback(
         (fieldId, value) => {
             setResponses((prev) => ({ ...prev, [fieldId]: value }))
@@ -219,7 +194,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         },
         [errors]
     )
-
     const handleChecklistChange = useCallback(
         (fieldId, checkItem, checked) => {
             setChecklistStates((prev) => ({ ...prev, [fieldId]: { ...prev[fieldId], [checkItem]: checked } }))
@@ -227,7 +201,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         },
         [errors]
     )
-
     const handleChecklistComment = useCallback(
         (fieldId, checkItem, comment) => {
             setChecklistComments((prev) => ({ ...prev, [fieldId]: { ...prev[fieldId], [checkItem]: comment } }))
@@ -235,7 +208,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         },
         [errors]
     )
-
     const validateCurrentField = useCallback(() => {
         if (!currentField) return true
         const fieldErrors = validateFieldErrors(
@@ -248,18 +220,15 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         setErrors(fieldErrors)
         return Object.keys(fieldErrors).length === 0
     }, [currentField, responses, checklistStates, checklistComments, fieldImages])
-
     const handleNext = useCallback(() => {
         if (validateCurrentField() && currentStep < totalSteps - 1) setCurrentStep((p) => p + 1)
     }, [validateCurrentField, currentStep, totalSteps])
-
     const handlePrevious = useCallback(() => {
         if (currentStep > 0) {
             setCurrentStep((p) => p - 1)
             setErrors({})
         }
     }, [currentStep])
-
     const handleSubmit = useCallback(async () => {
         const allErrors = validateAllFieldErrors(fields, responses, checklistStates, checklistComments, fieldImages)
         if (Object.keys(allErrors).length > 0) {
@@ -268,7 +237,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
             if (firstErrorIdx >= 0) setCurrentStep(firstErrorIdx)
             return
         }
-
         setSubmitting(true)
         try {
             const responseData = buildResponseData(fields, responses, checklistStates, checklistComments, fieldImages)
@@ -297,7 +265,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         draftHook,
         onSubmitted
     ])
-
     const handleReview = useCallback(
         async (status) => {
             setSubmitting(true)
@@ -312,7 +279,6 @@ export function useMaintenanceForm({ item, onSubmitted }) {
         },
         [item?.id, reviewNotes, onSubmitted]
     )
-
     return {
         checklistComments,
         checklistStates,

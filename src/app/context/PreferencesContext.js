@@ -4,14 +4,12 @@ import { logSupabaseError, supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
-
 /**
  * User preferences context managing per-entity filter states, region selection,
  * view modes, accent color, and tutorial toggles. Persists to Supabase on change.
  * Auto-resolves the user's default region from their plant assignment on first load.
  */
 const PreferencesContext = createContext()
-
 /**
  * Hook to access user preferences (filters, region, theme).
  * @throws If used outside PreferencesProvider.
@@ -21,7 +19,6 @@ export function usePreferences() {
     if (!context) throw new Error('usePreferences must be used within a PreferencesProvider')
     return context
 }
-
 /** Default preference values used for new users or when DB fetch fails. */
 const defaultPreferences = {
     accentColor: '#1e3a5f',
@@ -69,7 +66,6 @@ const defaultPreferences = {
     },
     tutorials: true
 }
-
 /**
  * Preferences provider that loads/saves user preferences to the database.
  * Provides per-entity filter update/reset helpers and region selection methods.
@@ -80,7 +76,6 @@ export const PreferencesProvider = ({ children }) => {
     const [userId, setUserId] = useState(null)
     const [_authTrigger, setAuthTrigger] = useState(0)
     const updatePreferencesRef = useRef(null)
-
     const updatePreferences = useCallback(
         async (keyOrObject, value) => {
             let updatedPreferences
@@ -129,11 +124,9 @@ export const PreferencesProvider = ({ children }) => {
         },
         [preferences, userId]
     )
-
     useEffect(() => {
         updatePreferencesRef.current = updatePreferences
     }, [updatePreferences])
-
     useEffect(() => {
         const handleAuthSuccess = () => {
             setAuthTrigger((prev) => prev + 1)
@@ -143,7 +136,6 @@ export const PreferencesProvider = ({ children }) => {
             window.removeEventListener('authSuccess', handleAuthSuccess)
         }
     }, [])
-
     useEffect(() => {
         let cancelled = false
         const initialize = async () => {
@@ -258,12 +250,10 @@ export const PreferencesProvider = ({ children }) => {
             cancelled = true
         }
     }, [userId])
-
     const updateManagerFilter = (key, value) => {
         const newFilters = { ...preferences.managerFilters, [key]: value }
         updatePreferences('managerFilters', newFilters)
     }
-
     const resetManagerFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.managerFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -271,12 +261,10 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('managerFilters', newFilters)
     }
-
     const updateTractorFilter = (key, value) => {
         const newFilters = { ...preferences.tractorFilters, [key]: value }
         updatePreferences('tractorFilters', newFilters)
     }
-
     const resetTractorFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.tractorFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -284,12 +272,10 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('tractorFilters', newFilters)
     }
-
     const updateTrailerFilter = (key, value) => {
         const newFilters = { ...preferences.trailerFilters, [key]: value }
         updatePreferences('trailerFilters', newFilters)
     }
-
     const resetTrailerFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.trailerFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -297,12 +283,10 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('trailerFilters', newFilters)
     }
-
     const updateEquipmentFilter = (key, value) => {
         const newFilters = { ...preferences.equipmentFilters, [key]: value }
         updatePreferences('equipmentFilters', newFilters)
     }
-
     const resetEquipmentFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.equipmentFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -310,12 +294,10 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('equipmentFilters', newFilters)
     }
-
     const updateMixerFilter = (key, value) => {
         const newFilters = { ...preferences.mixerFilters, [key]: value }
         updatePreferences('mixerFilters', newFilters)
     }
-
     const resetMixerFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.mixerFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -323,12 +305,10 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('mixerFilters', newFilters)
     }
-
     const updateOperatorFilter = (key, value) => {
         const newFilters = { ...preferences.operatorFilters, [key]: value }
         updatePreferences('operatorFilters', newFilters)
     }
-
     const resetOperatorFilters = (options = {}) => {
         let newFilters = { ...defaultPreferences.operatorFilters }
         if (options.keepViewMode && options.currentViewMode !== undefined) {
@@ -336,15 +316,12 @@ export const PreferencesProvider = ({ children }) => {
         }
         updatePreferences('operatorFilters', newFilters)
     }
-
     const setSelectedRegion = (code, name = '', type = '') => {
         updatePreferences('selectedRegion', { code: code || '', name: name || '', type: type || '' })
     }
-
     const setRegionOverlayMinimized = (minimized) => {
         updatePreferences('regionOverlayMinimized', !!minimized)
     }
-
     const saveLastViewedFilters = async (filters) => {
         try {
             if (!userId) return
@@ -363,7 +340,6 @@ export const PreferencesProvider = ({ children }) => {
             logSupabaseError('saving last viewed filters', error)
         }
     }
-
     const contextValue = {
         loading,
         preferences,
@@ -384,6 +360,5 @@ export const PreferencesProvider = ({ children }) => {
         updateTractorFilter,
         updateTrailerFilter
     }
-
     return <PreferencesContext.Provider value={contextValue}>{!loading && children}</PreferencesContext.Provider>
 }

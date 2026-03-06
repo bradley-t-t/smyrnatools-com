@@ -6,20 +6,16 @@ import { supabase } from '../../../services/DatabaseService'
 import { UserService } from '../../../services/UserService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import OperatorSelectModal from '../../mixers/OperatorSelectModal'
-
 const GRADE_COLORS = { average: 'bg-amber-500', excellent: 'bg-emerald-600', good: 'bg-sky-500', poor: 'bg-red-500' }
 const PM_TH =
     'bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-gray-200 whitespace-nowrap'
 const PM_TD = 'px-4 py-3 text-sm text-slate-800 border-b border-slate-100'
 const PM_INPUT = 'rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-slate-800 box-border'
-
 const YPH_GRADES = ['excellent', 'good', 'average', 'poor']
-
 function formatYphValue(v) {
     const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : NaN
     return Number.isFinite(n) ? n.toFixed(2) : '--'
 }
-
 function GradeScale({ grade }) {
     return (
         <div className="flex gap-2 flex-wrap">
@@ -34,7 +30,6 @@ function GradeScale({ grade }) {
         </div>
     )
 }
-
 function YphMetricCard({ yph, grade, label }) {
     return (
         <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
@@ -59,7 +54,6 @@ function YphMetricCard({ yph, grade, label }) {
         </div>
     )
 }
-
 function LostMetricCard({ lost, grade, label }) {
     return (
         <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
@@ -73,7 +67,6 @@ function LostMetricCard({ lost, grade, label }) {
         </div>
     )
 }
-
 function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -90,12 +83,10 @@ function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel })
         </div>
     )
 }
-
 function useYphCalculation(weekIso, plantCode, form) {
     const [yph, setYph] = useState({ adjusted: 0, raw: 0 })
     const [grade, setGrade] = useState({ adjusted: '', raw: '' })
     const [label, setLabel] = useState({ adjusted: '', raw: '' })
-
     useEffect(() => {
         async function calculate() {
             if (!weekIso || !plantCode) {
@@ -105,13 +96,11 @@ function useYphCalculation(weekIso, plantCode, form) {
                 setLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
                 return
             }
-
             try {
                 const weekStart = weekIso.split('T')[0]
                 const [year] = weekStart.split('-').map(Number)
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-
                 const { data: allReports } = await supabase
                     .from('reports')
                     .select('*')
@@ -119,11 +108,9 @@ function useYphCalculation(weekIso, plantCode, form) {
                     .eq('completed', true)
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
-
                 const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(allReports || [], plantCode)
                 const normalizedWeek = ReportUtility.normalizeWeekStr(weekIso)
                 const hoursReceived = hoursReceivedByWeek[normalizedWeek] || 0
-
                 const metrics = ReportUtility.getFullYphMetrics(form, hoursReceived)
                 setYph({ adjusted: metrics.adjusted, raw: metrics.raw })
                 setGrade({ adjusted: metrics.adjustedGrade, raw: metrics.rawGrade })
@@ -136,13 +123,10 @@ function useYphCalculation(weekIso, plantCode, form) {
                 setLabel({ adjusted: metrics.adjustedLabel, raw: metrics.rawLabel })
             }
         }
-
         calculate()
     }, [weekIso, plantCode, form])
-
     return { grade, label, yph }
 }
-
 function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     const [historicalData, setHistoricalData] = useState([])
     const [loading, setLoading] = useState(true)
@@ -150,24 +134,18 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     const [yearlyLoading, setYearlyLoading] = useState(true)
     const [userNames, setUserNames] = useState({})
     const [timelineUserNames, setTimelineUserNames] = useState({})
-
     const effectivePlantCode = plantCode || user?.plant_code || ''
-
     useEffect(() => {
         let mounted = true
-
         async function fetchTimelineUserNames() {
             if (!historicalData || historicalData.length === 0) return
-
             const userIds = new Set()
             historicalData.forEach((report) => {
                 if (report.userId) {
                     userIds.add(report.userId)
                 }
             })
-
             if (userIds.size === 0) return
-
             try {
                 const namesMap = {}
                 await Promise.all(
@@ -185,37 +163,29 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 console.error('Error fetching timeline user names:', err)
             }
         }
-
         fetchTimelineUserNames()
-
         return () => {
             mounted = false
         }
     }, [historicalData])
-
     useEffect(() => {
         let mounted = true
-
         async function fetchHistoricalReports() {
             if (!currentWeekIso || !effectivePlantCode) {
                 setLoading(false)
                 return
             }
-
             try {
                 const weekDateStr = currentWeekIso.split('T')[0]
                 const [year, month, day] = weekDateStr.split('-').map(Number)
                 const currentDate = new Date(year, month - 1, day)
                 const currentMonth = currentDate.getMonth()
                 const currentYear = currentDate.getFullYear()
-
                 const startOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`
                 const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate()
                 const endOfMonthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
-
                 const [{ data, error }, { data: yearData, error: yearError }] = await Promise.all([
                     supabase
                         .from('reports')
@@ -233,33 +203,26 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         .gte('week', startOfYear.toISOString())
                         .lte('week', endOfYear.toISOString())
                 ])
-
                 if (error) throw error
                 if (yearError) throw yearError
-
                 if (!mounted) {
                     setLoading(false)
                     return
                 }
-
                 const hoursReceivedByWeek = ReportUtility.buildHoursReceivedByWeek(yearData, effectivePlantCode)
-
                 const userIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))]
                 const usersMap = {}
-
                 if (userIds.length > 0) {
                     const { data: usersData } = await supabase
                         .from('users_profiles')
                         .select('id, plant_code')
                         .in('id', userIds)
-
                     if (usersData) {
                         usersData.forEach((u) => {
                             usersMap[u.id] = u.plant_code
                         })
                     }
                 }
-
                 const filteredByPlant = data.filter((report) => {
                     const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
                     const matches =
@@ -267,37 +230,29 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
                     return matches
                 })
-
                 if (mounted && filteredByPlant) {
                     const currentWeekDateOnly = currentWeekIso.split('T')[0]
-
                     const reportsByWeek = new Map()
-
                     filteredByPlant.forEach((r) => {
                         const weekStr = r.week.split('T')[0]
                         reportsByWeek.set(weekStr, r)
                     })
-
                     const allMonthWeeks = []
                     const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
                     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
-
                     let weekStart = new Date(firstDayOfMonth)
                     const dayOfWeek = weekStart.getDay()
                     if (dayOfWeek !== 0) {
                         weekStart.setDate(weekStart.getDate() - dayOfWeek)
                     }
-
                     while (weekStart <= lastDayOfMonth) {
                         const weekStr = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`
                         allMonthWeeks.push(weekStr)
                         weekStart.setDate(weekStart.getDate() + 7)
                     }
-
                     const reports = allMonthWeeks
                         .map((weekStr) => {
                             let report = reportsByWeek.get(weekStr)
-
                             if (!report) {
                                 for (const [dbWeekStr, dbReport] of reportsByWeek.entries()) {
                                     const dbDate = new Date(dbWeekStr + 'T12:00:00')
@@ -314,7 +269,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 const hoursReceived =
                                     hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
                                 const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
-
                                 return {
                                     adjustedYph: metrics.adjustedYph,
                                     data: report.data,
@@ -349,7 +303,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             }
                         })
                         .sort((a, b) => new Date(a.weekIso) - new Date(b.weekIso))
-
                     setHistoricalData(reports)
                 }
             } catch (err) {
@@ -358,30 +311,24 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 if (mounted) setLoading(false)
             }
         }
-
         fetchHistoricalReports()
-
         return () => {
             mounted = false
         }
     }, [currentWeekIso, effectivePlantCode])
-
     useEffect(() => {
         let mounted = true
-
         async function fetchYearlyTotals() {
             if (!effectivePlantCode || !currentWeekIso) {
                 setYearlyLoading(false)
                 return
             }
-
             try {
                 const weekDateStr = currentWeekIso.split('T')[0]
                 const [yearNum] = weekDateStr.split('-').map(Number)
                 const currentYear = yearNum
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
-
                 const { data: allData, error } = await supabase
                     .from('reports')
                     .select('*')
@@ -389,30 +336,24 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     .gte('week', startOfYear.toISOString())
                     .lte('week', endOfYear.toISOString())
                     .order('week', { ascending: false })
-
                 if (error) throw error
-
                 if (!mounted) {
                     setYearlyLoading(false)
                     return
                 }
-
                 const userIds = [...new Set(allData.map((r) => r.user_id).filter(Boolean))]
                 const usersMap = {}
-
                 if (userIds.length > 0) {
                     const { data: usersData } = await supabase
                         .from('users_profiles')
                         .select('id, plant_code')
                         .in('id', userIds)
-
                     if (usersData) {
                         usersData.forEach((u) => {
                             usersMap[u.id] = u.plant_code
                         })
                     }
                 }
-
                 const hoursReceivedByWeek = {}
                 const effectivePlantCodeStr = String(effectivePlantCode || '')
                 allData.forEach((report) => {
@@ -438,7 +379,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         })
                     }
                 })
-
                 const filteredData = allData.filter((report) => {
                     const reportPlant = report.data?.plant || usersMap[report.user_id] || ''
                     return (
@@ -446,7 +386,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         (effectivePlantCode && usersMap[report.user_id] === effectivePlantCode)
                     )
                 })
-
                 if (mounted && filteredData) {
                     if (filteredData.length === 0) {
                         setYearlyTotals({
@@ -462,23 +401,18 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         })
                         return
                     }
-
                     const reportsByWeek = new Map()
                     const allReportDates = []
-
                     const today = new Date()
                     const currentSunday = new Date(today)
                     currentSunday.setDate(today.getDate() - today.getDay())
                     currentSunday.setHours(0, 0, 0, 0)
-
                     filteredData.forEach((report) => {
                         const weekStr = report.week.split('T')[0]
                         const weekDate = new Date(weekStr + 'T12:00:00')
-
                         if (weekDate >= currentSunday) {
                             return
                         }
-
                         if (reportsByWeek.has(weekStr)) {
                             const existing = reportsByWeek.get(weekStr)
                             if (report.completed && !existing.completed) {
@@ -495,32 +429,25 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             allReportDates.push(weekStr)
                         }
                     })
-
                     allReportDates.sort()
                     const firstDate = allReportDates[0]
                     const lastDate = allReportDates[allReportDates.length - 1]
-
                     const allWeeks = []
                     let currentDate = new Date(firstDate + 'T12:00:00')
                     const endDate = new Date(lastDate + 'T12:00:00')
-
                     const lastSunday = new Date(currentSunday)
                     lastSunday.setDate(currentSunday.getDate() - 7)
-
                     while (currentDate <= endDate || currentDate <= lastSunday) {
                         const year = currentDate.getFullYear()
                         const month = String(currentDate.getMonth() + 1).padStart(2, '0')
                         const day = String(currentDate.getDate()).padStart(2, '0')
                         const weekStr = `${year}-${month}-${day}`
-
                         const report = reportsByWeek.get(weekStr)
-
                         if (report) {
                             const reportWeekStr = ReportUtility.normalizeWeekStr(report.week)
                             const hoursReceived =
                                 hoursReceivedByWeek[reportWeekStr] || hoursReceivedByWeek[weekStr] || 0
                             const metrics = ReportUtility.calculateAdjustedYph(report.data, hoursReceived)
-
                             allWeeks.push({
                                 adjustedYph: metrics.adjustedYph,
                                 hours: parseFloat(report.data?.total_hours || 0),
@@ -551,16 +478,12 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 yph: 0
                             })
                         }
-
                         currentDate.setDate(currentDate.getDate() + 7)
                     }
-
                     allWeeks.reverse()
-
                     const submittedWeeks = allWeeks.filter((w) => !w.isMissing && !w.isNotSubmitted)
                     const notSubmittedWeeks = allWeeks.filter((w) => w.isNotSubmitted)
                     const missingWeeks = allWeeks.filter((w) => w.isMissing)
-
                     const totals = submittedWeeks.reduce(
                         (acc, week) => {
                             return {
@@ -585,12 +508,10 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             year: currentYear
                         }
                     )
-
                     const weeksWithHours = submittedWeeks.filter((w) => w.hours > 0)
                     const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
                     const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
                     totals.avgYph = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
-
                     const targetYPH = 3.0
                     const yardageEfficiency =
                         totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards) * 100 : 0
@@ -598,7 +519,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
                     const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
                     totals.avgEfficiency = totals.avgYph > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
-
                     setYearlyTotals(totals)
                 }
             } catch (err) {
@@ -607,29 +527,22 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 if (mounted) setYearlyLoading(false)
             }
         }
-
         fetchYearlyTotals()
-
         return () => {
             mounted = false
         }
     }, [effectivePlantCode, currentWeekIso])
-
     useEffect(() => {
         let mounted = true
-
         async function fetchUserNames() {
             if (!yearlyTotals || !yearlyTotals.weeklyBreakdown) return
-
             const userIds = new Set()
             yearlyTotals.weeklyBreakdown.forEach((week) => {
                 if (week.userId) {
                     userIds.add(week.userId)
                 }
             })
-
             if (userIds.size === 0) return
-
             try {
                 const namesMap = {}
                 await Promise.all(
@@ -647,14 +560,11 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 console.error('Error fetching user names:', err)
             }
         }
-
         fetchUserNames()
-
         return () => {
             mounted = false
         }
     }, [yearlyTotals])
-
     if (loading) {
         return (
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -670,14 +580,12 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
             </div>
         )
     }
-
     const weekDateStrForMonth = currentWeekIso.split('T')[0]
     const [yearForMonth, monthForMonth] = weekDateStrForMonth.split('-').map(Number)
     const monthName = new Date(yearForMonth, monthForMonth - 1, 15).toLocaleString('default', {
         month: 'long',
         year: 'numeric'
     })
-
     if (historicalData.length === 0) {
         return (
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -691,14 +599,11 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
             </div>
         )
     }
-
     const calculateVariance = (current, previous) => {
         if (!previous || previous.isPlaceholder) return null
         return ((current - previous) / previous) * 100
     }
-
     const weeksWithData = historicalData.filter((r) => !r.isPlaceholder).length
-
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
             <div className="mb-5">
@@ -711,7 +616,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     data
                 </p>
             </div>
-
             <div className="relative mb-8">
                 <div className="absolute left-3 top-0 bottom-0 w-0.5">
                     <div className="absolute left-0 top-5 bottom-5 w-0.5 bg-gray-200"></div>
@@ -733,7 +637,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             ? calculateVariance(report.lost, previousReportWithData?.lost)
                             : null
                         const userName = report.userId ? timelineUserNames[report.userId] || 'Loading...' : null
-
                         return (
                             <div
                                 key={idx}
@@ -814,7 +717,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     })}
                 </div>
             </div>
-
             {yearlyTotals && yearlyTotals.weeklyBreakdown && yearlyTotals.weeklyBreakdown.length > 0 && (
                 <div className="mt-6">
                     <h5 className="text-base font-semibold text-slate-800 mb-4 mt-0">Weekly Breakdown</h5>
@@ -907,7 +809,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             </tbody>
                         </table>
                     </div>
-
                     {yearlyTotals.notSubmittedWeeks?.length > 0 && (
                         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 mt-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -932,7 +833,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             </div>
                         </div>
                     )}
-
                     {yearlyTotals.missingWeeks?.length > 0 && (
                         <div className="rounded-lg border border-red-200 bg-red-50 p-4 mt-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -962,7 +862,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
         </div>
     )
 }
-
 function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plantCode, regionalPlants }) {
     const [plants, setPlants] = useState([])
     const [operators, setOperators] = useState([])
@@ -972,22 +871,17 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
     const [showOperatorModal, setShowOperatorModal] = useState(false)
     const [selectedEntryIdForOperator, setSelectedEntryIdForOperator] = useState(null)
     const [selectedOperatorIndex, setSelectedOperatorIndex] = useState(null)
-
     const getValidDate = (iso) => {
         if (!iso) return new Date()
         const d = new Date(iso + 'T00:00:00')
         return isNaN(d.getTime()) ? new Date() : d
     }
-
     const weekStartDate = getValidDate(weekIso)
     const weekEndDate = new Date(weekStartDate)
     weekEndDate.setDate(weekEndDate.getDate() + 5)
-
     const minDate = weekStartDate.toISOString().split('T')[0]
     const maxDate = weekEndDate.toISOString().split('T')[0]
-
     const currentPlantCode = plantCode || user?.plant_code
-
     useEffect(() => {
         let mounted = true
         async function fetchData() {
@@ -1000,30 +894,25 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     setPlants(mappedPlants)
                 } else if (currentPlantCode) {
                     let regionPlantCodes = []
-
                     const { data: regionData } = await supabase
                         .from('regions_plants')
                         .select('region_id')
                         .eq('plant_code', currentPlantCode)
                         .limit(1)
                         .maybeSingle()
-
                     if (regionData?.region_id) {
                         const { data: regionPlantsData } = await supabase
                             .from('regions_plants')
                             .select('plant_code')
                             .eq('region_id', regionData.region_id)
-
                         regionPlantCodes = (regionPlantsData || []).map((rp) => rp.plant_code).filter(Boolean)
                     }
-
                     if (regionPlantCodes.length > 0) {
                         const { data: plantsData } = await supabase
                             .from('plants')
                             .select('plant_code, plant_name')
                             .in('plant_code', regionPlantCodes)
                             .order('plant_code')
-
                         if (!mounted) return
                         setPlants(
                             (plantsData || []).map((p) => ({
@@ -1033,7 +922,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                         )
                     }
                 }
-
                 const operatorPlantCode = currentPlantCode
                 if (operatorPlantCode) {
                     const { data: operatorsData } = await supabase
@@ -1043,7 +931,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                         .eq('plant_code', operatorPlantCode)
                         .eq('position', 'Mixer Operator')
                         .order('name')
-
                     if (!mounted) return
                     const transformedOperators = (operatorsData || []).map((op) => ({
                         employeeId: op.employee_id,
@@ -1053,7 +940,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                         smyrnaId: op.smyrna_id,
                         status: op.status
                     }))
-
                     setOperators(transformedOperators)
                 }
             } catch (err) {
@@ -1061,34 +947,27 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                 if (mounted) setLoading(false)
             }
         }
-
         fetchData()
         return () => {
             mounted = false
         }
     }, [currentPlantCode, regionalPlants])
-
     const addEntry = () => {
         const defaultDate = minDate || new Date().toISOString().split('T')[0]
-
         const newEntry = {
             date: defaultDate,
             destination_plant: '',
             id: Date.now(),
             operators: [{ hours: '', operator_id: '' }]
         }
-
         onUpdate([...(entries || []), newEntry])
     }
-
     const removeEntry = (entryId) => {
         onUpdate((entries || []).filter((e) => e.id !== entryId))
     }
-
     const updateEntry = (entryId, field, value) => {
         onUpdate((entries || []).map((e) => (e.id === entryId ? { ...e, [field]: value } : e)))
     }
-
     const addOperator = (entryId) => {
         onUpdate(
             (entries || []).map((e) =>
@@ -1096,7 +975,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             )
         )
     }
-
     const removeOperator = (entryId, operatorIndex) => {
         onUpdate(
             (entries || []).map((e) =>
@@ -1104,7 +982,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             )
         )
     }
-
     const updateOperator = (entryId, operatorIndex, field, value) => {
         let processedValue = value
         if (field === 'hours') {
@@ -1126,12 +1003,10 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             )
         )
     }
-
     const getDayName = (dateString) => {
         const date = new Date(dateString + 'T12:00:00')
         return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' })
     }
-
     if (loading) {
         return (
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -1147,7 +1022,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             </div>
         )
     }
-
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
             <div className="mb-5">
@@ -1158,7 +1032,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     Track operators sent to help other plants during this week
                 </p>
             </div>
-
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-blue-800 mb-3">
                     <i className="fas fa-info-circle"></i>Instructions for Tracking Operator Assistance
@@ -1174,7 +1047,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     <li>This data contributes to plant efficiency calculations and leaderboard rankings</li>
                 </ul>
             </div>
-
             {!readOnly && (
                 <button
                     type="button"
@@ -1184,7 +1056,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     <i className="fas fa-plus"></i>Add Entry
                 </button>
             )}
-
             <div className="flex flex-col gap-4">
                 {(!entries || entries.length === 0) && (
                     <div className="flex items-center gap-3 rounded-lg border border-dashed border-gray-200 bg-slate-50 p-6 text-sm text-slate-500">
@@ -1192,7 +1063,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                         <span>No operators were sent to other plants this week</span>
                     </div>
                 )}
-
                 {(entries || []).map((entry) => (
                     <div key={entry.id} className="rounded-lg border border-gray-200 bg-slate-50 overflow-hidden">
                         <div className="flex items-start justify-between gap-4 p-4 border-b border-gray-200">
@@ -1216,7 +1086,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                         />
                                     )}
                                 </div>
-
                                 <div className="flex flex-col gap-1.5 min-w-[150px]">
                                     <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         Destination Plant
@@ -1263,7 +1132,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                     )}
                                 </div>
                             </div>
-
                             {!readOnly && (
                                 <button
                                     type="button"
@@ -1275,7 +1143,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                 </button>
                             )}
                         </div>
-
                         <div className="p-4">
                             <div className="flex items-center justify-between mb-3">
                                 <span className="flex items-center gap-2 text-sm font-semibold text-gray-700">
@@ -1291,7 +1158,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                     </button>
                                 )}
                             </div>
-
                             <div className="flex flex-col gap-3">
                                 {entry.operators.map((op, opIdx) => {
                                     const selectedOperator = operators.find((o) => o.employeeId === op.operator_id)
@@ -1322,7 +1188,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                     </button>
                                                 )}
                                             </div>
-
                                             <div className="flex flex-col gap-1.5">
                                                 <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                     Hours
@@ -1346,7 +1211,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                                     />
                                                 )}
                                             </div>
-
                                             {!readOnly && (
                                                 <button
                                                     type="button"
@@ -1365,7 +1229,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     </div>
                 ))}
             </div>
-
             {showPlantModal && !loading && (
                 <PlantDropdownModal
                     isOpen={showPlantModal}
@@ -1393,7 +1256,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     }
                 />
             )}
-
             {showOperatorModal && !loading && (
                 <OperatorSelectModal
                     isOpen={showOperatorModal}
@@ -1437,7 +1299,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                 .eq('plant_code', currentPlantCode)
                                 .eq('position', 'Mixer Operator')
                                 .order('name')
-
                             const transformedOperators = (operatorsData || []).map((op) => ({
                                 employeeId: op.employee_id,
                                 name: op.name,
@@ -1446,7 +1307,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                                 smyrnaId: op.smyrna_id,
                                 status: op.status
                             }))
-
                             setOperators(transformedOperators)
                         } catch (err) {
                             console.error('Error refreshing operators:', err)
@@ -1459,7 +1319,6 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
         </div>
     )
 }
-
 /** Submit-mode plugin for the Plant Manager report — operator metrics, YPH/lost yards, maintenance items, weekly trends, and operator exclusion handling. */
 export function PlantManagerSubmitPlugin({
     yph: propYph,
@@ -1478,13 +1337,10 @@ export function PlantManagerSubmitPlugin({
     const { preferences: _preferences } = usePreferences()
     const userPlantCode = propUserPlantCode || user?.plant_code || ''
     const plantCode = form?.plant || userPlantCode
-
     const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)
-
     const handleOperatorsUpdate = (entries) => {
         setForm({ ...form, operators_sent_to_help: entries })
     }
-
     return (
         <div>
             <OperatorsSentToHelp
@@ -1512,7 +1368,6 @@ export function PlantManagerSubmitPlugin({
         </div>
     )
 }
-
 /** Review-mode plugin for the Plant Manager report — read-only view of metrics, maintenance items, and weekly trends. */
 export function PlantManagerReviewPlugin({
     yph: _propYph,
@@ -1531,9 +1386,7 @@ export function PlantManagerReviewPlugin({
     const { preferences: _preferences } = usePreferences()
     const plantCode = assignedPlant || user?.plant_code || form?.plant || ''
     const timelinePlantCode = form?.plant || assignedPlant || user?.plant_code || ''
-
     const { yph, grade: yphGrade, label: yphLabel } = useYphCalculation(weekIso, plantCode, form)
-
     return (
         <div>
             <OperatorsSentToHelp

@@ -2,9 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import NotificationsService from '../../services/NotificationsService'
 import { useMultiTableSubscription } from './useRealtimeSubscription'
-
 const NOTIFICATION_TABLES = ['list_items', 'mixers', 'equipment', 'tractors']
-
 /**
  * Manages notification badge data, fetching from NotificationsService on mount
  * and auto-refreshing via Supabase realtime subscriptions and custom events.
@@ -15,20 +13,16 @@ export function useNotifications(userId, selectedRegion) {
     const [loading, setLoading] = useState(true)
     const refreshSeqRef = useRef(0)
     const retryTimeoutsRef = useRef([])
-
     const refresh = useCallback(async () => {
         if (!userId) {
             setNotifications([])
             setCount(0)
             return
         }
-
         setLoading(true)
         const seq = ++refreshSeqRef.current
-
         try {
             const list = await NotificationsService.getNotifications(userId, selectedRegion)
-
             if (refreshSeqRef.current === seq) {
                 const validList = Array.isArray(list) ? list : []
                 setNotifications(validList)
@@ -43,7 +37,6 @@ export function useNotifications(userId, selectedRegion) {
             }
         }
     }, [userId, selectedRegion])
-
     const scheduleRetries = useCallback(() => {
         retryTimeoutsRef.current.forEach((t) => clearTimeout(t))
         retryTimeoutsRef.current = []
@@ -54,30 +47,24 @@ export function useNotifications(userId, selectedRegion) {
             retryTimeoutsRef.current.push(t)
         })
     }, [refresh])
-
     useEffect(() => {
         refresh()
     }, [refresh])
-
     useMultiTableSubscription(NOTIFICATION_TABLES, {
         enabled: !!userId,
         onAnyChange: refresh
     })
-
     useEffect(() => {
         const handleRefresh = () => {
             refresh()
             scheduleRetries()
         }
-
         const handleRegionChange = () => {
             refresh()
             scheduleRetries()
         }
-
         window.addEventListener('notifications-refresh', handleRefresh)
         window.addEventListener('region-changed', handleRegionChange)
-
         return () => {
             window.removeEventListener('notifications-refresh', handleRefresh)
             window.removeEventListener('region-changed', handleRegionChange)
@@ -85,7 +72,6 @@ export function useNotifications(userId, selectedRegion) {
             retryTimeoutsRef.current = []
         }
     }, [refresh, scheduleRetries])
-
     return {
         count,
         loading,
@@ -93,5 +79,4 @@ export function useNotifications(userId, selectedRegion) {
         refresh
     }
 }
-
 export default useNotifications

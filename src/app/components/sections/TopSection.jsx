@@ -3,12 +3,10 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import PlantDropdownModal from '../common/PlantDropdownModal'
-
 /** Default column header labels for asset list views. */
 const DEFAULT_LIST_LABELS = ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']
 /** Default column widths matching DEFAULT_LIST_LABELS. */
 const DEFAULT_COL_WIDTHS = ['10%', '12%', '12%', '18%', '12%', '18%', '10%', '8%']
-
 /** Search input with icon and optional clear button. */
 const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) => (
     <div className={`relative ${className}`} role="search">
@@ -33,11 +31,9 @@ const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) 
         )}
     </div>
 )
-
 const Badge = ({ children, onClick, accentColor }) => {
     const baseClasses = 'inline-flex items-center gap-2 rounded-lg text-sm font-semibold px-4 py-2'
     const style = { backgroundColor: `${accentColor}15`, color: accentColor }
-
     return onClick ? (
         <button className={`${baseClasses} border-none cursor-pointer`} style={style} onClick={onClick}>
             <i className="fas fa-user-clock" />
@@ -50,12 +46,10 @@ const Badge = ({ children, onClick, accentColor }) => {
         </span>
     )
 }
-
 const ActionButton = ({ icon, label, onClick, variant = 'subtle', accentColor, className = '' }) => {
     const baseClasses =
         'flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer transition-all duration-150'
     const isPrimary = variant === 'primary'
-
     return (
         <button
             className={`${baseClasses} ${className}`}
@@ -72,7 +66,6 @@ const ActionButton = ({ icon, label, onClick, variant = 'subtle', accentColor, c
         </button>
     )
 }
-
 const ViewToggle = ({ viewMode, onChange, accentColor }) => (
     <div
         className="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1"
@@ -100,7 +93,6 @@ const ViewToggle = ({ viewMode, onChange, accentColor }) => (
         })}
     </div>
 )
-
 const FilterSelect = ({ value, options, onChange, ariaLabel, className = '' }) => (
     <select
         className={`appearance-none bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm cursor-pointer min-w-[140px] py-3 pl-4 pr-10 bg-no-repeat ${className}`}
@@ -120,10 +112,8 @@ const FilterSelect = ({ value, options, onChange, ariaLabel, className = '' }) =
         ))}
     </select>
 )
-
 const CHEVRON_SVG =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E\")"
-
 const PlantFilterButton = ({ displayText, onClick }) => (
     <button
         className="bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-medium cursor-pointer py-3 pl-4 pr-10 bg-no-repeat"
@@ -138,7 +128,6 @@ const PlantFilterButton = ({ displayText, onClick }) => (
         {displayText}
     </button>
 )
-
 const ResetButton = ({ onClick }) => (
     <button
         className="flex items-center justify-center w-[46px] h-[46px] bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-[15px] cursor-pointer"
@@ -149,14 +138,12 @@ const ResetButton = ({ onClick }) => (
         <i className="fas fa-undo" />
     </button>
 )
-
 const ListHeader = ({ labels, colWidths, sortKey, sortDirection, onHeaderClick, accentColor }) => (
     <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7">
         {labels.map((label, index) => {
             const colWidth = colWidths[index] || 'auto'
             const isFlex = colWidth === 'flex' || colWidth === 'auto'
             const isActive = sortKey === label
-
             return (
                 <div
                     key={label}
@@ -179,7 +166,6 @@ const ListHeader = ({ labels, colWidths, sortKey, sortDirection, onHeaderClick, 
         })}
     </div>
 )
-
 const MobileViewToggle = ({ viewMode, onChange, accentColor }) => (
     <div className="flex gap-2.5">
         {[
@@ -207,14 +193,12 @@ const MobileViewToggle = ({ viewMode, onChange, accentColor }) => (
         })}
     </div>
 )
-
 const MobileFilterItem = ({ label, children, fullWidth = false }) => (
     <div className={`flex flex-col gap-2 ${fullWidth ? 'col-span-2' : ''}`}>
         <label className="text-slate-500 text-[11px] font-bold uppercase tracking-wide">{label}</label>
         {children}
     </div>
 )
-
 function TopSection({
     title,
     badge,
@@ -263,17 +247,14 @@ function TopSection({
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const isMobile = useIsMobile()
-
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [showMobileFilters, setShowMobileFilters] = useState(false)
-
     const safePlants = Array.isArray(plants) ? plants : []
     const safeStatusOptions = Array.isArray(statusOptions) ? statusOptions : []
     const safePositionOptions = Array.isArray(positionOptions) ? positionOptions : []
     const safeFreightOptions = Array.isArray(freightOptions) ? freightOptions : []
     const safeListLabels = Array.isArray(listLabels) && listLabels.length > 0 ? listLabels : DEFAULT_LIST_LABELS
     const safeColWidths = Array.isArray(colWidths) && colWidths.length > 0 ? colWidths : DEFAULT_COL_WIDTHS
-
     const filteredPlants =
         isOfficeRegion || !regionPlantCodes || regionPlantCodes.size === 0
             ? safePlants
@@ -284,13 +265,11 @@ function TopSection({
                           .toUpperCase()
                   )
               )
-
     const selectedPlantObj = safePlants.find((p) => (p.plantCode || p.plant_code) === selectedPlant)
     const plantDisplayText =
         selectedPlant && selectedPlantObj
             ? `(${selectedPlantObj.plantCode || selectedPlantObj.plant_code}) ${selectedPlantObj.plantName || selectedPlantObj.plant_name}`
             : 'All Plants'
-
     useLayoutEffect(() => {
         if (!forwardedRef?.current) return
         const element = forwardedRef.current
@@ -302,7 +281,6 @@ function TopSection({
         resizeObserver.observe(element)
         return () => resizeObserver.disconnect()
     }, [forwardedRef])
-
     const sectionClasses = `bg-white border-b border-slate-200 shadow-sm ${tightTop ? 'px-6 py-4 pb-5' : 'px-7 py-5 pb-6'} ${sticky ? 'sticky top-0 z-50' : ''}`
     const sectionStyle = {
         backgroundImage: `
@@ -313,12 +291,10 @@ function TopSection({
         backgroundPosition: '0 0, 0 0, 0 0',
         backgroundSize: '20px 20px, 20px 20px, 40px 40px'
     }
-
     const wasLoadingRef = useRef(isLoading)
     const hasRevealedRef = useRef(false)
     const [revealControls, setRevealControls] = useState(false)
     const needsRevealRef = useRef(false)
-
     useEffect(() => {
         if (wasLoadingRef.current && !isLoading && !hasRevealedRef.current) {
             hasRevealedRef.current = true
@@ -332,10 +308,8 @@ function TopSection({
         }
         wasLoadingRef.current = isLoading
     }, [isLoading])
-
     // While loading or awaiting reveal animation start, hide real content completely
     const hideRealContent = isLoading || (needsRevealRef.current && !revealControls)
-
     const skeletonContent = (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
@@ -375,7 +349,6 @@ function TopSection({
             {customBottomSkeleton}
         </div>
     )
-
     if (isMobile) {
         return (
             <>
@@ -444,7 +417,6 @@ function TopSection({
                                 )}
                             </div>
                         </div>
-
                         <div className="flex items-center gap-3 mt-0.5">
                             <div
                                 className={`flex-1${revealControls ? ' top-reveal-left' : ''}`}
@@ -477,7 +449,6 @@ function TopSection({
                                 </button>
                             </div>
                         </div>
-
                         {showMobileFilters && (
                             <div className="bg-slate-50 border border-slate-200 rounded-2xl mt-4 p-5">
                                 <div className="grid grid-cols-2 gap-3.5">
@@ -490,7 +461,6 @@ function TopSection({
                                             />
                                         </MobileFilterItem>
                                     )}
-
                                     {!hidePlantFilter && (
                                         <MobileFilterItem label="Plant">
                                             <button
@@ -503,7 +473,6 @@ function TopSection({
                                             </button>
                                         </MobileFilterItem>
                                     )}
-
                                     {safeStatusOptions.length > 0 && (
                                         <MobileFilterItem label="Status">
                                             <select
@@ -520,7 +489,6 @@ function TopSection({
                                             </select>
                                         </MobileFilterItem>
                                     )}
-
                                     {safePositionOptions.length > 0 && (
                                         <MobileFilterItem label="Position">
                                             <select
@@ -537,7 +505,6 @@ function TopSection({
                                             </select>
                                         </MobileFilterItem>
                                     )}
-
                                     {safeFreightOptions.length > 0 && (
                                         <MobileFilterItem label="Freight">
                                             <select
@@ -554,9 +521,7 @@ function TopSection({
                                             </select>
                                         </MobileFilterItem>
                                     )}
-
                                     {customFilters}
-
                                     {showReset && onReset && (
                                         <MobileFilterItem fullWidth>
                                             <button
@@ -572,7 +537,6 @@ function TopSection({
                                 </div>
                             </div>
                         )}
-
                         {customBottomContent && (
                             <div
                                 className={revealControls ? 'top-reveal-left' : ''}
@@ -583,7 +547,6 @@ function TopSection({
                         )}
                     </div>
                 </div>
-
                 {isPlantModalOpen && (
                     <PlantDropdownModal
                         isOpen={isPlantModalOpen}
@@ -596,7 +559,6 @@ function TopSection({
             </>
         )
     }
-
     return (
         <>
             <style>{`
@@ -665,7 +627,6 @@ function TopSection({
                             )}
                         </div>
                     </div>
-
                     <div
                         className="flex items-center flex-wrap gap-3.5 justify-between"
                         role="region"
@@ -683,7 +644,6 @@ function TopSection({
                                 className="min-w-[220px] max-w-[420px]"
                             />
                         </div>
-
                         <div
                             className={`flex items-center flex-wrap gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
                             role="group"
@@ -693,14 +653,12 @@ function TopSection({
                             {viewMode && !hideViewModeToggle && (
                                 <ViewToggle viewMode={viewMode} onChange={onViewModeChange} accentColor={accentColor} />
                             )}
-
                             {!hidePlantFilter && (
                                 <PlantFilterButton
                                     displayText={plantDisplayText}
                                     onClick={() => setIsPlantModalOpen(true)}
                                 />
                             )}
-
                             {safeStatusOptions.length > 0 && (
                                 <FilterSelect
                                     value={statusFilter}
@@ -709,7 +667,6 @@ function TopSection({
                                     ariaLabel="Status filter"
                                 />
                             )}
-
                             {safePositionOptions.length > 0 && (
                                 <FilterSelect
                                     value={positionFilter}
@@ -718,7 +675,6 @@ function TopSection({
                                     ariaLabel="Position filter"
                                 />
                             )}
-
                             {safeFreightOptions.length > 0 && (
                                 <FilterSelect
                                     value={freightFilter}
@@ -727,13 +683,10 @@ function TopSection({
                                     ariaLabel="Freight filter"
                                 />
                             )}
-
                             {customFilters}
-
                             {showReset && onReset && <ResetButton onClick={onReset} />}
                         </div>
                     </div>
-
                     {customBottomContent && (
                         <div
                             className={revealControls ? 'top-reveal-left' : ''}
@@ -742,7 +695,6 @@ function TopSection({
                             {customBottomContent}
                         </div>
                     )}
-
                     {viewMode === 'list' && safeListLabels.length > 0 && (
                         <div
                             className={revealControls ? 'top-reveal-left' : ''}
@@ -760,7 +712,6 @@ function TopSection({
                     )}
                 </div>
             </div>
-
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -773,5 +724,4 @@ function TopSection({
         </>
     )
 }
-
 export default TopSection

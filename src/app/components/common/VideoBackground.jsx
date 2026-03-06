@@ -5,10 +5,8 @@ import vid2 from '../../../assets/videos/2.mp4'
 import vid3 from '../../../assets/videos/3.mp4'
 import vid4 from '../../../assets/videos/4.mp4'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /** Pool of background videos randomly selected on mount. */
 const BACKGROUND_VIDEOS = [vid1, vid2, vid3, vid4]
-
 /**
  * Ambient looping video background with a gradient underlay and dark overlay.
  * Randomly selects one video on mount; skips the first 5 seconds to avoid intro frames.
@@ -20,11 +18,9 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
     const accentColor = useAccentColor()
-
     useEffect(() => {
         videoRef.current?.load()
     }, [currentVideoIndex])
-
     const handleCanPlay = () => {
         if (!videoRef.current) return
         videoRef.current.currentTime = 5
@@ -33,7 +29,6 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
             .then(() => setShowVideo(true))
             .catch(() => setShowVideo(true))
     }
-
     return (
         <div className={`absolute inset-0 overflow-hidden ${className}`}>
             <div
@@ -56,5 +51,4 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
         </div>
     )
 })
-
 export default VideoBackground

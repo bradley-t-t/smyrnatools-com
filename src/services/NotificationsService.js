@@ -2,14 +2,12 @@ import EquipmentVerificationProvider from '../notifications/EquipmentVerificatio
 import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
 import OverdueListProvider from '../notifications/OverdueListNotifications'
 import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
-
 const providers = [
     MixerVerificationProvider,
     EquipmentVerificationProvider,
     TractorVerificationProvider,
     OverdueListProvider
 ]
-
 /**
  * Aggregates notifications from multiple providers (mixer, equipment, tractor verifications
  * and overdue list items). Results are sorted by plant code for consistent display ordering.
@@ -38,5 +36,4 @@ const NotificationsService = {
         return [...withPlant, ...withoutPlant]
     }
 }
-
 export default NotificationsService

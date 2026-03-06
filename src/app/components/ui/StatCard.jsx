@@ -1,5 +1,4 @@
 import React from 'react'
-
 /** Compact stat card with uppercase label, bold value, and optional sublabel. */
 export default function StatCard({ label, value, sublabel, className = '' }) {
     return (

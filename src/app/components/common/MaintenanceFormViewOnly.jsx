@@ -3,14 +3,12 @@ import React from 'react'
 import { formatMaintenanceDateShort } from '../../../utils/MaintenanceUtility'
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
 import ImagePreviewModal from '../ui/ImagePreviewModal'
-
 /** Status badge configuration mapping submission status to display props. */
 const STATUS_CONFIG = {
     approved: { className: 'bg-green-100 text-green-700', icon: 'fa-check-circle', label: 'Approved' },
     rejected: { className: 'bg-red-100 text-red-700', icon: 'fa-times-circle', label: 'Rejected' },
     submitted: { className: 'bg-blue-100 text-blue-700', icon: 'fa-clock', label: 'Pending Review' }
 }
-
 /**
  * Read-only view of a submitted maintenance form.
  * Displays the submission status badge, optional reviewer notes,
@@ -42,7 +40,6 @@ export default function MaintenanceFormViewOnly({
     reviewNotes
 }) {
     const statusInfo = STATUS_CONFIG[item?.status]
-
     return (
         <div className="flex min-h-screen w-full flex-col bg-slate-50">
             <div className="sticky top-0 z-40 flex items-center gap-4 border-b border-gray-200 bg-white px-6 py-4">
@@ -58,7 +55,6 @@ export default function MaintenanceFormViewOnly({
                     <p className="m-0 text-sm text-slate-500">Due: {formatMaintenanceDateShort(item?.due_date)}</p>
                 </div>
             </div>
-
             <div className="mx-auto w-full max-w-3xl p-6">
                 {statusInfo && (
                     <div
@@ -68,7 +64,6 @@ export default function MaintenanceFormViewOnly({
                         {statusInfo.label}
                     </div>
                 )}
-
                 {reviewNotes && (
                     <div className="mb-4 rounded-xl border border-gray-200 bg-white p-5">
                         <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -77,7 +72,6 @@ export default function MaintenanceFormViewOnly({
                         <p className="m-0 text-sm text-slate-800">{reviewNotes}</p>
                     </div>
                 )}
-
                 <div className="flex flex-col gap-3">
                     {fields.map((field) => {
                         const imageData = fieldImages[field.id]
@@ -131,7 +125,6 @@ export default function MaintenanceFormViewOnly({
                     })}
                 </div>
             </div>
-
             <ImagePreviewModal imageUrl={imagePreview} onClose={onClosePreview} />
         </div>
     )

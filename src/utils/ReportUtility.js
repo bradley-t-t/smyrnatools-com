@@ -7,11 +7,9 @@ const ReportUtility = {
     buildHoursReceivedByWeek(allReports, targetPlantCode) {
         const hoursReceivedByWeek = {}
         const plantCodeStr = String(targetPlantCode || '')
-
         if (!allReports || !Array.isArray(allReports) || !plantCodeStr) {
             return hoursReceivedByWeek
         }
-
         allReports.forEach((report) => {
             const weekStr = this.normalizeWeekStr(report.week)
             const helpEntries = report.data?.operators_sent_to_help || []
@@ -29,7 +27,6 @@ const ReportUtility = {
                 })
             }
         })
-
         return hoursReceivedByWeek
     },
     calculateAdjustedYph(reportData, hoursReceived = 0) {
@@ -39,16 +36,13 @@ const ReportUtility = {
         const hours = parseFloat(
             reportData?.total_operator_hours || reportData?.total_hours || reportData?.['Total Hours'] || 0
         )
-
         if (hours <= 0 || yards <= 0) {
             return { adjustedYph: 0, hoursReceived: 0, hoursSent: 0, rawYph: 0 }
         }
-
         const rawYph = yards / hours
         const hoursSent = this.calculateHoursSent(reportData)
         const adjustedHours = hours - hoursSent + hoursReceived
         const adjustedYph = adjustedHours > 0 ? yards / adjustedHours : rawYph
-
         return { adjustedYph, hoursReceived, hoursSent, rawYph }
     },
     calculateHoursReceivedForWeek(allReports, targetWeekStr, targetPlantCode) {
@@ -135,7 +129,6 @@ const ReportUtility = {
         const { rawYph, adjustedYph, hoursSent } = this.calculateAdjustedYph(reportData, hoursReceived)
         const rawGradeInfo = this.getYphGradeAndLabel(rawYph)
         const adjustedGradeInfo = this.getYphGradeAndLabel(adjustedYph)
-
         return {
             adjusted: adjustedYph,
             adjustedGrade: adjustedGradeInfo.grade,
@@ -193,7 +186,6 @@ const ReportUtility = {
         if (diffWeeks > 1) return 'Older'
         return ''
     },
-
     getWeekDatesFromIso(weekIso) {
         if (!weekIso) return { monday: null, saturday: null }
         const monday = new Date(weekIso)
@@ -204,7 +196,6 @@ const ReportUtility = {
         saturday.setHours(0, 0, 0, 0)
         return { monday, saturday }
     },
-
     getWeekVerbose(weekIso, locale) {
         if (!weekIso) return ''
         const { monday, saturday } = this.getWeekDatesFromIso(weekIso)
@@ -218,11 +209,9 @@ const ReportUtility = {
         })
         return `${left}  – ${right}`
     },
-
     getYphGradeAndLabel(yph) {
         let grade = 'poor'
         let label = 'Poor'
-
         if (yph >= 6) {
             grade = 'excellent'
             label = 'Excellent'
@@ -233,10 +222,8 @@ const ReportUtility = {
             grade = 'average'
             label = 'Average'
         }
-
         return { grade, label }
     },
-
     mondayOf(dateInput) {
         const d = dateInput instanceof Date ? new Date(dateInput) : new Date(dateInput)
         if (isNaN(d.getTime())) return null
@@ -246,7 +233,6 @@ const ReportUtility = {
         monday.setHours(0, 0, 0, 0)
         return monday
     },
-
     normalizeWeekStr(weekStr) {
         if (!weekStr) return ''
         const datePart = weekStr.split('T')[0]
@@ -254,7 +240,6 @@ const ReportUtility = {
         if (!y || !m || !d) return datePart
         return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     },
-
     parseTimeToMinutes(timeStr) {
         if (!timeStr || typeof timeStr !== 'string') return null
         const parts = timeStr.split(':').map(Number)
@@ -263,7 +248,6 @@ const ReportUtility = {
         if (!Number.isFinite(h) || !Number.isFinite(m)) return null
         return h * 60 + m
     },
-
     async validatePlantProduction(form, operatorOptions) {
         if (!form || typeof form !== 'object') return 'Invalid form'
         if (!form.plant) return 'Please select a plant before submitting.'
@@ -301,11 +285,9 @@ const ReportUtility = {
             const lowLoads = loadsNum < 3
             const excessiveHours = hours !== null && hours > 14
             const hasIssues = startDelayed || endDelayed || lowLoads || excessiveHours
-
             if (hasIssues && (!r.comments || String(r.comments).trim() === '')) {
                 return `${label}: Comments are required when there are performance issues (e.g., delayed start/load, low loads, or excessive hours).`
             }
-
             if (hasIssues && r.comments && String(r.comments).trim()) {
                 const { AIService } = await import('../services/AIService')
                 const issues = {
@@ -318,13 +300,10 @@ const ReportUtility = {
                     startDelayed,
                     startMinutes: dStart
                 }
-
                 const validation = await AIService.validateEfficiencyComment(r.comments, issues)
-
                 if (validation.error) {
                     return `${label}: Unable to validate comment. Please ensure your explanation is detailed and specific.`
                 }
-
                 if (!validation.valid) {
                     const guidance = validation.guidance || 'Provide a specific reason for the timing issues.'
                     const issuesList = []
@@ -339,6 +318,5 @@ const ReportUtility = {
         return ''
     }
 }
-
 export default ReportUtility
 export { ReportUtility }

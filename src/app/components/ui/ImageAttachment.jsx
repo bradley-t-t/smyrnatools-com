@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { getImageDisplayUrl } from '../../hooks/useMaintenanceImages'
-
 /** Spinner indicator shown while an image is being uploaded. */
 function UploadingSpinner() {
     return (
@@ -11,13 +10,11 @@ function UploadingSpinner() {
         </div>
     )
 }
-
 /** Take Photo and Upload buttons for attaching images. */
 function ImageButtons({ disabled, onCamera, onUpload }) {
     const baseClasses =
         'flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-accent transition-colors'
     const enabledClasses = disabled ? '' : 'hover:border-accent hover:bg-blue-50 cursor-pointer'
-
     return (
         <div className="flex gap-3 mb-4">
             <button
@@ -47,7 +44,6 @@ function ImageButtons({ disabled, onCamera, onUpload }) {
         </div>
     )
 }
-
 /** Thumbnail preview of an attached image with remove and uploading overlay. */
 function ImagePreview({ displayUrl, isUploading, disabled, onRemove, onPreview }) {
     return (
@@ -78,7 +74,6 @@ function ImagePreview({ displayUrl, isUploading, disabled, onRemove, onPreview }
         </div>
     )
 }
-
 /** Image attachment field with camera/upload buttons, preview, and error display. */
 export default function ImageAttachment({
     fieldId,
@@ -95,7 +90,6 @@ export default function ImageAttachment({
     const rawUrl = imageData?.previewUrl || imageData?.uploadedUrl
     const displayUrl = imageData?.previewUrl || getImageDisplayUrl(rawUrl)
     const showButtons = !rawUrl && !isUploading
-
     return (
         <div className="mt-4">
             {rawUrl ? (

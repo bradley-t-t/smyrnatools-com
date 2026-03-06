@@ -1,7 +1,6 @@
 import Region from '../models/regions/Region'
 import APIUtility from '../utils/APIUtility'
 import { UserService } from './UserService'
-
 /**
  * Region CRUD and plant-to-region mapping service.
  * Manages organizational hierarchy (regions contain plants) with an in-memory cache.
@@ -9,7 +8,6 @@ import { UserService } from './UserService'
  */
 class RegionServiceImpl {
     allRegions = []
-
     /** Fetches all regions from the API and updates the local cache. */
     async fetchRegions() {
         const { res, json } = await APIUtility.post('/region-service/fetch-regions')
@@ -18,7 +16,6 @@ class RegionServiceImpl {
         this.allRegions = data
         return data.map((row) => Region.fromRow(row))
     }
-
     /** Fetches a single region by code, using the cache first. */
     async fetchRegionByCode(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
@@ -29,19 +26,16 @@ class RegionServiceImpl {
         const data = json?.data ?? null
         return data ? Region.fromRow(data) : null
     }
-
     /** Looks up a region in the local cache by code. */
     getRegionByCode(regionCode) {
         const region = this.allRegions.find((r) => r.region_code === regionCode)
         return region ? Region.fromRow(region) : null
     }
-
     /** Returns a region's display name, falling back to the code itself. */
     getRegionName(regionCode) {
         const r = this.getRegionByCode(regionCode)
         return r?.regionName ?? regionCode
     }
-
     /** Creates a new region with a type classification and refreshes the cache. */
     async createRegion(regionCode, regionName, type) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
@@ -51,7 +45,6 @@ class RegionServiceImpl {
         await this.fetchRegions()
         return true
     }
-
     /** Updates a region's name, plant assignments, and optionally its type. */
     async updateRegion(regionCode, regionName, plantCodes = [], type) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
@@ -62,7 +55,6 @@ class RegionServiceImpl {
         await this.fetchRegions()
         return true
     }
-
     /** Deletes a region and refreshes the cache. */
     async deleteRegion(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
@@ -71,7 +63,6 @@ class RegionServiceImpl {
         await this.fetchRegions()
         return true
     }
-
     /**
      * Fetches plants belonging to a region with exponential backoff retry (up to 3 attempts).
      * Returns an empty array on persistent failure rather than throwing.
@@ -97,7 +88,6 @@ class RegionServiceImpl {
         }
         return []
     }
-
     /** Fetches a region with its full plant membership list. */
     async getRegionWithPlants(regionCode) {
         if (!regionCode) throw new Error('Region code is required')
@@ -106,7 +96,6 @@ class RegionServiceImpl {
         const plants = await this.fetchRegionPlants(regionCode)
         return { ...region, plants }
     }
-
     /** Fetches all regions that contain a specific plant code. */
     async fetchRegionsByPlantCode(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
@@ -115,7 +104,6 @@ class RegionServiceImpl {
         const data = json?.data ?? []
         return data.map((row) => Region.fromRow(row))
     }
-
     /**
      * Resolves the set of plant codes the current user is allowed to access.
      * Falls back through: selected region → user profile plant → region lookup.
@@ -153,5 +141,4 @@ class RegionServiceImpl {
         return codes
     }
 }
-
 export const RegionService = new RegionServiceImpl()

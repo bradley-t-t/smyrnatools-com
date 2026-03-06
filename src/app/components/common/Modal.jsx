@@ -1,5 +1,4 @@
 import React from 'react'
-
 /**
  * Reusable modal dialog with header, backdrop-close, and scrollable content area.
  * @param {Object} props
@@ -35,7 +34,6 @@ export default function Modal({ children, onClose, title, titleIcon }) {
         </div>
     )
 }
-
 /**
  * Summary strip rendered below the modal header, displaying key metrics in a grid.
  * @param {Object} props
@@ -44,7 +42,6 @@ export default function Modal({ children, onClose, title, titleIcon }) {
 export function ModalSummary({ children }) {
     return <div className="grid grid-cols-3 gap-4 border-b border-gray-200 bg-gray-50 px-8 py-6">{children}</div>
 }
-
 /**
  * Individual metric card used inside ModalSummary.
  * @param {Object} props
@@ -60,7 +57,6 @@ export function ModalSummaryItem({ label, value, valueClassName = '' }) {
         </div>
     )
 }
-
 /**
  * Scrollable content wrapper for modal body sections.
  * @param {Object} props

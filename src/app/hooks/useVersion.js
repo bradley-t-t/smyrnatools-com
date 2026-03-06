@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
 import { AppService } from '../../services/AppService'
-
 /** Fetches the current app version string from AppService on mount. */
 export function useVersion() {
     const [version, setVersion] = useState('')
@@ -16,5 +15,4 @@ export function useVersion() {
     }, [])
     return version
 }
-
 export default useVersion

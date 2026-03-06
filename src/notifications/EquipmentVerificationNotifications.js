@@ -2,7 +2,6 @@
 import { EquipmentService } from '../services/EquipmentService'
 import EquipmentUtility from '../utils/EquipmentUtility'
 import createVerificationNotificationProvider from '../utils/VerificationNotificationProviderUtility'
-
 export default createVerificationNotificationProvider({
     entityLabel: () => 'equipment',
     fetchAllItems: () => EquipmentService.getAllEquipments().catch(() => []),

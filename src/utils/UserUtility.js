@@ -1,11 +1,9 @@
 import APIUtility from './APIUtility'
-
 /**
  * Edge-function-backed UUID operations: server-side generation,
  * format validation, and safe sanitization of user-provided UUIDs.
  */
 const USER_UTILITY_FUNCTION = '/user-utility'
-
 const userUtility = {
     async generateUUID() {
         const { res, json } = await APIUtility.post(`${USER_UTILITY_FUNCTION}/generate-uuid`)
@@ -20,7 +18,6 @@ const userUtility = {
         return res.ok ? json.safeUuid : null
     }
 }
-
 export const generateUUID = userUtility.generateUUID
 export const isValidUUID = userUtility.isValidUUID
 export default userUtility

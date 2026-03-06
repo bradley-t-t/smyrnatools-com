@@ -7,7 +7,6 @@ import SetTimeCalculator from './types/SetTimeCalculator'
 import SlumpAdjustmentCalculator from './types/SlumpAdjustmentCalculator'
 import WaterCementCalculator from './types/WaterCementCalculator'
 import YardagePerHourCalculator from './types/YardagePerHourCalculator'
-
 /** Tab definitions for each available calculator type with display metadata. */
 const CALCULATOR_TYPES = [
     { icon: 'fa-tachometer-alt', id: 'yardage-hour', name: 'Yd/Hr' },
@@ -16,7 +15,6 @@ const CALCULATOR_TYPES = [
     { icon: 'fa-tint', id: 'water-cement', name: 'W/C Ratio' },
     { icon: 'fa-clock', id: 'set-time', name: 'Set Time' }
 ]
-
 /**
  * Main calculator hub view. Renders a tab bar for switching between concrete
  * industry calculators (Yd/Hr, Overweight Fix, Slump, W/C Ratio, Set Time).
@@ -26,7 +24,6 @@ const CalculatorView = () => {
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [selectedCalculator, setSelectedCalculator] = useState('yardage-hour')
     const isMobile = useIsMobile()
-
     const styles = {
         comingSoon: {
             background: 'white',
@@ -110,7 +107,6 @@ const CalculatorView = () => {
             width: '100%'
         }
     }
-
     const renderCalculator = () => {
         switch (selectedCalculator) {
             case 'yardage-hour':
@@ -137,7 +133,6 @@ const CalculatorView = () => {
                 )
         }
     }
-
     return (
         <div style={styles.view}>
             <div style={styles.header}>
@@ -169,10 +164,8 @@ const CalculatorView = () => {
                     ))}
                 </div>
             </div>
-
             <div style={styles.content}>{renderCalculator()}</div>
         </div>
     )
 }
-
 export default CalculatorView

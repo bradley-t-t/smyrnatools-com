@@ -2,14 +2,11 @@ import { useCallback } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
 import { reportTypeMap } from '../../types/ReportTypes'
-
 const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
-
 const persistExclusionReason = async (reportId, reason) => {
     if (!reportId || !reason) return
     await supabase.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
 }
-
 /**
  * Handles report upsert (create/update) and submission workflows,
  * including operator exclusion reason persistence and auto-mark-as-reviewed logic.
@@ -31,7 +28,6 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             week: monday?.toISOString() || null
         }
     }, [])
-
     const findExistingReport = useCallback(async ({ reportName, userId, weekIso }) => {
         const monday = weekIso ? new Date(weekIso) : null
         const { data, error } = await supabase
@@ -43,7 +39,6 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             .maybeSingle()
         return { data, error }
     }, [])
-
     const saveReport = useCallback(async ({ upsertData, existingId }) => {
         const selectFields =
             'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
@@ -52,7 +47,6 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             : await supabase.from('reports').insert([upsertData]).select(selectFields).single()
         return response
     }, [])
-
     const mapReportData = useCallback(
         ({ data, weekIso, monday, saturday }) => ({
             completed: !!data.completed,
@@ -68,14 +62,12 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
         }),
         []
     )
-
     const submitReport = useCallback(
         async ({ showForm, formData, completed = true }) => {
             if (!showForm || !user?.id) {
                 setLoadError('User not found')
                 return { success: false }
             }
-
             const { weekIso, name: reportName } = showForm
             const upsertInfo = buildUpsertData({
                 completed,
@@ -84,18 +76,15 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 userId: user.id,
                 weekIso
             })
-
             const { data: existing, error: findError } = await findExistingReport({
                 reportName,
                 userId: user.id,
                 weekIso
             })
-
             if (findError) {
                 setLoadError(findError.message || 'Error checking for existing report')
                 return { success: false }
             }
-
             const { data, error } = await saveReport({
                 existingId: existing?.id,
                 upsertData: {
@@ -109,12 +98,10 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                     week: upsertInfo.week
                 }
             })
-
             if (error) {
                 setLoadError(error.message || 'Error submitting report')
                 return { success: false }
             }
-
             if (data?.id) {
                 await persistExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
@@ -127,19 +114,16 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 )
                 return { success: true }
             }
-
             return { success: false }
         },
         [user, setLoadError, buildUpsertData, findExistingReport, saveReport, mapReportData, updateLocalReport]
     )
-
     const submitManagerEdit = useCallback(
         async ({ showForm, formData, managerEditUser }) => {
             if (!showForm || !managerEditUser) {
                 setLoadError('No user selected for manager edit')
                 return { success: false }
             }
-
             const { weekIso, name: reportName } = showForm
             const upsertInfo = buildUpsertData({
                 completed: true,
@@ -148,18 +132,15 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 userId: managerEditUser,
                 weekIso
             })
-
             const { data: existing, error: findError } = await findExistingReport({
                 reportName,
                 userId: managerEditUser,
                 weekIso
             })
-
             if (findError) {
                 setLoadError(findError.message || 'Error checking for existing report')
                 return { success: false }
             }
-
             const { data, error } = await saveReport({
                 existingId: existing?.id,
                 upsertData: {
@@ -173,12 +154,10 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                     week: upsertInfo.week
                 }
             })
-
             if (error) {
                 setLoadError(error.message || 'Error submitting report')
                 return { success: false }
             }
-
             if (data?.id) {
                 await persistExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
@@ -192,17 +171,14 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 window.dispatchEvent(new CustomEvent('notifications-refresh'))
                 return { success: true }
             }
-
             return { success: false }
         },
         [setLoadError, buildUpsertData, findExistingReport, saveReport, mapReportData, updateLocalReport]
     )
-
     const fetchReportForEdit = useCallback(async ({ item, userId }) => {
         if (!userId || !item?.name || !item.weekIso) {
             return null
         }
-
         const { data, error } = await supabase
             .from('reports')
             .select(
@@ -212,7 +188,6 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
             .eq('user_id', userId)
             .eq('week', new Date(item.weekIso).toISOString())
             .maybeSingle()
-
         if (!error && data) {
             return {
                 completed: !!data.completed,
@@ -227,10 +202,8 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 week: data.week || data.data?.week || item.weekIso
             }
         }
-
         return null
     }, [])
-
     return {
         fetchReportForEdit,
         submitManagerEdit,

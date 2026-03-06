@@ -5,7 +5,6 @@ import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import { useNotifications } from '../../hooks/useNotifications'
-
 /**
  * Anchored dropdown panel (portal) displaying categorized notifications.
  * Groups notifications by type (mixer/tractor/equipment verifications, overdue tasks, reports)
@@ -21,9 +20,7 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
     const [userId, setUserId] = useState(null)
     const [collapsedCategories, setCollapsedCategories] = useState(new Set())
     const panelRef = useRef(null)
-
     const { notifications: items = [], loading } = useNotifications(userId, preferences?.selectedRegion)
-
     useEffect(() => {
         if (!isOpen) return
         let mounted = true
@@ -41,7 +38,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
             mounted = false
         }
     }, [isOpen])
-
     const toggleCategory = (categoryKey) => {
         setCollapsedCategories((prev) => {
             const next = new Set(prev)
@@ -53,14 +49,12 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
             return next
         })
     }
-
     const categorizedItems = useMemo(() => {
         const mixerVerifications = items.filter((n) => n.type === 'mixers.verifications')
         const tractorVerifications = items.filter((n) => n.type === 'tractors.verifications')
         const equipmentVerifications = items.filter((n) => n.type === 'equipment.verifications')
         const tasks = items.filter((n) => n.type?.includes('list.overdue'))
         const reports = items.filter((n) => n.type?.includes('reports'))
-
         return {
             equipmentVerifications,
             mixerVerifications,
@@ -69,10 +63,8 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
             tractorVerifications
         }
     }, [items])
-
     const categories = useMemo(() => {
         const cats = []
-
         if (categorizedItems.mixerVerifications.length > 0) {
             cats.push({
                 icon: 'fas fa-truck',
@@ -81,7 +73,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 label: 'Mixer Verifications'
             })
         }
-
         if (categorizedItems.tractorVerifications.length > 0) {
             cats.push({
                 icon: 'fas fa-tractor',
@@ -90,7 +81,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 label: 'Tractor Verifications'
             })
         }
-
         if (categorizedItems.equipmentVerifications.length > 0) {
             cats.push({
                 icon: 'fas fa-snowplow',
@@ -99,7 +89,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 label: 'Equipment Verifications'
             })
         }
-
         if (categorizedItems.tasks.length > 0) {
             cats.push({
                 icon: 'fas fa-list',
@@ -108,7 +97,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 label: 'Overdue Tasks'
             })
         }
-
         if (categorizedItems.reports.length > 0) {
             cats.push({
                 icon: 'fas fa-file-alt',
@@ -117,39 +105,30 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 label: 'Overdue Reports'
             })
         }
-
         return cats
     }, [categorizedItems])
-
     useEffect(() => {
         setCollapsedCategories(new Set(categories.map((c) => c.key)))
     }, [categories])
-
     useEffect(() => {
         if (!isOpen) return
-
         const handleClickOutside = (e) => {
             if (!panelRef.current) return
             if (panelRef.current.contains(e.target)) return
             onClose()
         }
-
         document.addEventListener('mousedown', handleClickOutside)
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
         }
     }, [isOpen, onClose])
-
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
-
     const modalStyle = {
         position: 'fixed',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
         top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
-
     const getSeverityClasses = (severity) => {
         switch (severity) {
             case 'error':
@@ -161,7 +140,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                 return { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-800' }
         }
     }
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[999]" onClick={onClose}>
             <div
@@ -185,7 +163,6 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
                         <i className="fas fa-times text-sm"></i>
                     </button>
                 </div>
-
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -264,5 +241,4 @@ function NotificationsModal({ isOpen, onClose, anchorRect }) {
         document.body
     )
 }
-
 export default NotificationsModal

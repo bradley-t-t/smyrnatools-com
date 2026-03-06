@@ -10,7 +10,6 @@ import TrailerService from '../../services/TrailerService'
 import DashboardUtility from '../../utils/DashboardUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS } from '../constants/dashboardConstants'
-
 /**
  * Fetches and caches all fleet assets (mixers, tractors, trailers, equipment, operators, pickups)
  * for the dashboard, using localStorage cache with TTL to reduce API calls.
@@ -34,18 +33,14 @@ export function useDashboardAssets({
     const [pendingStartOperators, setPendingStartOperators] = useState([])
     const [lightDutyOperators, setLightDutyOperators] = useState([])
     const [refreshing, setRefreshing] = useState(false)
-
     const allOperatorsFullRef = useRef([])
     const initialLoadRef = useRef(true)
-
     useEffect(() => {
         let cancelled = false
         let readyTimerId
-
         async function fetchAssets() {
             setError('')
             const now = Date.now()
-
             if (initialLoadRef.current) {
                 try {
                     const raw = sessionStorage.getItem(DASHBOARD_CACHE_KEY)
@@ -68,7 +63,6 @@ export function useDashboardAssets({
                     }
                 } catch {}
             }
-
             setRefreshing(true)
             try {
                 const [mix, trac, trail, equip, pick, ops] = await Promise.all([
@@ -79,9 +73,7 @@ export function useDashboardAssets({
                     PickupTruckService.getAll().catch(() => []),
                     OperatorService.getAllOperators().catch(() => [])
                 ])
-
                 if (cancelled) return
-
                 allMixersRef.current = mix.map(DashboardUtility.slimMixer)
                 allTractorsRef.current = trac.map(DashboardUtility.slimTractor)
                 allTrailersRef.current = trail.map(DashboardUtility.slimTrailer)
@@ -89,9 +81,7 @@ export function useDashboardAssets({
                 allPickupsRef.current = pick.map(DashboardUtility.slimPickup)
                 allOperatorsFullRef.current = ops
                 allOperatorsRef.current = ops.map(DashboardUtility.slimOperator)
-
                 const operatorsById = new Map(ops.map((o) => [o.employeeId, o]))
-
                 const training = ops
                     .filter((o) => o.status === 'Training')
                     .map((o) => {
@@ -106,7 +96,6 @@ export function useDashboardAssets({
                         }
                     })
                 setTrainingOperators(training)
-
                 const pending = ops
                     .filter((o) => o.status === 'Pending Start')
                     .map((o) => {
@@ -120,7 +109,6 @@ export function useDashboardAssets({
                         }
                     })
                 setPendingStartOperators(pending)
-
                 const lightDuty = ops
                     .filter((o) => o.status === 'Light Duty')
                     .map((o) => ({
@@ -129,11 +117,9 @@ export function useDashboardAssets({
                         plant: o.plantCode || ''
                     }))
                 setLightDutyOperators(lightDuty)
-
                 computeStats()
                 const fetchedAt = new Date()
                 setLastUpdated(fetchedAt)
-
                 try {
                     sessionStorage.setItem(
                         DASHBOARD_CACHE_KEY,
@@ -160,14 +146,12 @@ export function useDashboardAssets({
                 }
             }
         }
-
         fetchAssets()
         return () => {
             cancelled = true
             clearTimeout(readyTimerId)
         }
     }, [refreshKey, computeStats])
-
     return {
         allOperatorsFullRef,
         dataReady,
@@ -181,7 +165,6 @@ export function useDashboardAssets({
         trainingOperators
     }
 }
-
 export function useIssueCommentCounts({
     allEquipmentRef,
     allMixersRef,
@@ -193,16 +176,13 @@ export function useIssueCommentCounts({
     const internalCountsRef = useRef({ equipment: {}, mixers: {}, tractors: {}, trailers: {} })
     const countsRef = externalCountsRef || internalCountsRef
     const [assetIssueDetails, setAssetIssueDetails] = useState([])
-
     const fetchIssueCommentCounts = useCallback(async () => {
         try {
             const mixerIds = allMixersRef.current.map((m) => m.id).filter(Boolean)
             const tractorIds = allTractorsRef.current.map((t) => t.id).filter(Boolean)
             const trailerIds = allTrailersRef.current.map((t) => t.id).filter(Boolean)
             const equipmentIds = allEquipmentRef.current.map((e) => e.id).filter(Boolean)
-
             if (!mixerIds.length && !tractorIds.length && !trailerIds.length && !equipmentIds.length) return
-
             const [mMaint, mCom, tMaint, tCom, trMaint, trCom, eMaint, eCom] = await Promise.all([
                 mixerIds.length
                     ? supabase.from('mixers_maintenance').select('*').in('mixer_id', mixerIds)
@@ -232,31 +212,25 @@ export function useIssueCommentCounts({
                           .in('equipment_id', equipmentIds)
                     : Promise.resolve({ data: [] })
             ])
-
             const counts = { equipment: {}, mixers: {}, tractors: {}, trailers: {} }
             const issueDetails = []
-
             const mixersMap = new Map(allMixersRef.current.map((a) => [a.id, a]))
             const tractorsMap = new Map(allTractorsRef.current.map((a) => [a.id, a]))
             const trailersMap = new Map(allTrailersRef.current.map((a) => [a.id, a]))
             const equipmentMap = new Map(allEquipmentRef.current.map((a) => [a.id, a]))
-
             const processMaintenanceRecords = (records, assetMap, assetType, idField, identifierField) => {
                 const recordsList = records || []
                 recordsList.forEach((record) => {
                     const isResolved = !!record.time_completed
                     const assetId = record[idField]
-
                     if (!isResolved) {
                         counts[assetType][assetId] = counts[assetType][assetId] || { comments: 0, issues: 0 }
                         counts[assetType][assetId].issues++
                     }
-
                     const asset = assetMap.get(assetId)
                     const identifier = asset?.[identifierField] || ''
                     const raw = record.description || record.issue || record.details || record.notes || ''
                     const desc = GrammarUtility.cleanDescription(raw || 'Issue')
-
                     issueDetails.push({
                         assetId,
                         description: desc || 'Issue',
@@ -267,7 +241,6 @@ export function useIssueCommentCounts({
                     })
                 })
             }
-
             const processCommentRecords = (records, assetType, idField) => {
                 const recordsList = records || []
                 recordsList.forEach((record) => {
@@ -276,36 +249,27 @@ export function useIssueCommentCounts({
                     counts[assetType][assetId].comments++
                 })
             }
-
             processMaintenanceRecords(mMaint.data, mixersMap, 'mixers', 'mixer_id', 'truckNumber')
             processCommentRecords(mCom.data, 'mixers', 'mixer_id')
-
             processMaintenanceRecords(tMaint.data, tractorsMap, 'tractors', 'tractor_id', 'truckNumber')
             processCommentRecords(tCom.data, 'tractors', 'tractor_id')
-
             processMaintenanceRecords(trMaint.data, trailersMap, 'trailers', 'trailer_id', 'identifyingNumber')
             processCommentRecords(trCom.data, 'trailers', 'trailer_id')
-
             processMaintenanceRecords(eMaint.data, equipmentMap, 'equipment', 'equipment_id', 'identifyingNumber')
             processCommentRecords(eCom.data, 'equipment', 'equipment_id')
-
             countsRef.current = counts
             setAssetIssueDetails(issueDetails)
             computeStats()
         } catch {}
     }, [allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats])
-
     return { assetIssueDetails, countsRef, fetchIssueCommentCounts }
 }
-
 export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants) {
     const plantSetRef = useRef(new Set())
-
     const updatePlantSet = useCallback(
         (regionType) => {
             const isOffice = regionType === 'Office'
             const plantSet = new Set()
-
             if (isOffice) {
                 allPlants.forEach((p) => {
                     const code = p.plantCode || p.plant_code
@@ -320,17 +284,14 @@ export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants
                     if (code) plantSet.add(String(code).trim())
                 })
             }
-
             plantSetRef.current = plantSet
             return plantSet
         },
         [dashboardPlant, regionPlants, allPlants]
     )
-
     const createFilterFn = useCallback((plantSet) => {
         const filterActive = plantSet.size > 0
         return (plantCode) => !filterActive || plantSet.has(String(plantCode || '').trim())
     }, [])
-
     return { createFilterFn, plantSetRef, updatePlantSet }
 }

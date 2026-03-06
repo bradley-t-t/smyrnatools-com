@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
-
 /**
  * Slump adjustment calculator for concrete batching. Determines how much
  * water to add or remove to achieve a target slump, using the industry-standard
@@ -17,33 +16,26 @@ const SlumpAdjustmentCalculator = () => {
         currentWater: '',
         targetSlump: ''
     })
-
     const [result, setResult] = useState(null)
-
     const handleChange = (field, value) => {
         setValues((prev) => ({ ...prev, [field]: value }))
     }
-
     const calculate = useCallback(() => {
         const current = parseFloat(values.currentSlump) || 0
         const target = parseFloat(values.targetSlump) || 0
         const batch = parseFloat(values.batchSize) || 0
         const water = parseFloat(values.currentWater) || 0
-
         if (current <= 0 || target <= 0 || batch <= 0) {
             setResult(null)
             return
         }
-
         const slumpDiff = target - current
         // Industry rule of thumb: ~3 gallons of water per yard per inch of slump change.
         const waterPerInch = 3
         const waterAdjustment = slumpDiff * waterPerInch * batch
         const newWater = water + waterAdjustment
-
         // Rough estimate: each % increase in batch water reduces strength by ~0.5%.
         const strengthImpact = waterAdjustment > 0 ? Math.round((waterAdjustment / (water || 1)) * 100 * 0.5) : 0
-
         setResult({
             direction: slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none',
             newWater,
@@ -52,20 +44,16 @@ const SlumpAdjustmentCalculator = () => {
             waterAdjustment
         })
     }, [values])
-
     useEffect(() => {
         calculate()
     }, [calculate])
-
     const clearForm = () => {
         setValues({ batchSize: '', currentSlump: '', currentWater: '', targetSlump: '' })
         setResult(null)
     }
-
     const slumpDiff = (parseFloat(values.targetSlump) || 0) - (parseFloat(values.currentSlump) || 0)
     const batchSize = parseFloat(values.batchSize) || 0
     const hasResult = parseFloat(values.currentSlump) > 0 && parseFloat(values.targetSlump) > 0 && batchSize > 0
-
     const styles = {
         adjustValue: {
             color: 'var(--accent)',
@@ -318,7 +306,6 @@ const SlumpAdjustmentCalculator = () => {
             padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
         }
     }
-
     const inputFocusHandlers = {
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
@@ -329,7 +316,6 @@ const SlumpAdjustmentCalculator = () => {
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.section}>
@@ -374,16 +360,12 @@ const SlumpAdjustmentCalculator = () => {
                         <div style={styles.bracket}>)</div>
                         <span style={styles.eqUnit}>in</span>
                     </div>
-
                     <span style={styles.eqOp}>×</span>
-
                     <div style={styles.constant}>
                         <span style={styles.constantNum}>3</span>
                         <span style={styles.constantUnit}>gal/yd/in</span>
                     </div>
-
                     <span style={styles.eqOp}>×</span>
-
                     <div style={styles.equationPart}>
                         <div style={styles.eqInput}>
                             <label style={styles.label}>Batch</label>
@@ -400,9 +382,7 @@ const SlumpAdjustmentCalculator = () => {
                         </div>
                         <span style={styles.eqUnit}>yd</span>
                     </div>
-
                     <span style={styles.eqOp}>=</span>
-
                     <div
                         style={styles.result(
                             hasResult ? (slumpDiff > 0 ? 'add' : slumpDiff < 0 ? 'reduce' : 'none') : ''
@@ -422,7 +402,6 @@ const SlumpAdjustmentCalculator = () => {
                     </div>
                 </div>
             </div>
-
             {hasResult && parseFloat(values.currentWater) > 0 && (
                 <div style={styles.section}>
                     <div style={styles.sectionHeader}>
@@ -457,7 +436,6 @@ const SlumpAdjustmentCalculator = () => {
                     </div>
                 </div>
             )}
-
             {!hasResult && (
                 <div style={styles.section}>
                     <div style={styles.sectionHeader}>
@@ -480,14 +458,12 @@ const SlumpAdjustmentCalculator = () => {
                     </div>
                 </div>
             )}
-
             {result && result.strengthImpact > 0 && (
                 <div style={styles.warning}>
                     <i className="fas fa-exclamation-triangle"></i>
                     <span>Adding water may reduce strength by ~{result.strengthImpact}%</span>
                 </div>
             )}
-
             <div style={styles.footer}>
                 <button
                     onClick={clearForm}
@@ -508,5 +484,4 @@ const SlumpAdjustmentCalculator = () => {
         </div>
     )
 }
-
 export default SlumpAdjustmentCalculator

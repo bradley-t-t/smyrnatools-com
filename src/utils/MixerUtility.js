@@ -1,5 +1,4 @@
 import VerifiedUtility from './VerifiedUtility'
-
 /**
  * Mixer-specific fleet statistics: status counts, plant distribution,
  * cleanliness averages, chip/service overdue detection, and verification checks.
@@ -65,5 +64,4 @@ const mixerUtility = {
         return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
     }
 }
-
 export default mixerUtility

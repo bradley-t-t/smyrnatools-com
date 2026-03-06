@@ -3,14 +3,12 @@ import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
-
 const DetailViewContext = createContext({
     activeSection: '',
-    setActiveSection: () => {},
+    registerSection: () => {},
     sections: [],
-    registerSection: () => {}
+    setActiveSection: () => {}
 })
-
 /**
  * Full-screen detail view shell for asset editing.
  * Provides a sidebar with section navigation, plant-based edit restrictions,
@@ -69,7 +67,6 @@ function DetailViewSection({
             return false
         }
     })
-
     const handleSidebarToggle = () => {
         const newValue = !sidebarCollapsed
         setSidebarCollapsed(newValue)
@@ -77,20 +74,17 @@ function DetailViewSection({
             localStorage.setItem('detailview-sidebar-collapsed', String(newValue))
         } catch {}
     }
-
     const registerSection = (section) => {
         setSections((prev) => {
             if (prev.find((s) => s.id === section.id)) return prev
             return [...prev, section]
         })
     }
-
     useEffect(() => {
         if (sections.length > 0 && !activeSection) {
             setActiveSection(sections[0].id)
         }
     }, [sections, activeSection])
-
     const legacyStyles = `
 .detail-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
@@ -206,7 +200,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
 .read-only-indicator { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.625rem; background: #f1f5f9; border-radius: 6px; font-size: 0.75rem; color: #64748b; margin-left: 0.5rem; font-weight: 500; }
 .read-only-indicator i { font-size: 0.625rem; }
 `
-
     useEffect(() => {
         if (itemAssignedPlant === undefined) {
             setCanEdit(canEdit)
@@ -251,7 +244,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         }
         checkPlantPermission()
     }, [itemAssignedPlant, canEdit, restrictionWarning, onCanEditChange])
-
     useEffect(() => {
         const checkTransferPerm = async () => {
             try {
@@ -266,7 +258,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         }
         checkTransferPerm()
     }, [])
-
     useEffect(() => {
         if (!showTransfer || !hasTransferPerm) return
         const loadRegions = async () => {
@@ -279,7 +270,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         }
         loadRegions()
     }, [showTransfer, hasTransferPerm])
-
     useEffect(() => {
         if (!targetRegion) {
             setPlants([])
@@ -296,7 +286,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         }
         loadPlants()
     }, [targetRegion])
-
     const openTransfer = () => {
         setShowTransfer(true)
         setTargetRegion('')
@@ -311,7 +300,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         setPlants([])
         setTransferErr('')
     }
-
     const doTransfer = async () => {
         if (!targetRegion) return setTransferErr('Select a region')
         if (!targetPlant) return setTransferErr('Select a plant')
@@ -331,10 +319,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             setTransferring(false)
         }
     }
-
     const selectBg =
         "#f8fafc url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\") right 10px center/18px no-repeat"
-
     if (notFound) {
         return (
             <div
@@ -396,9 +382,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
             </div>
         )
     }
-
     return (
-        <DetailViewContext.Provider value={{ activeSection, setActiveSection, sections, registerSection }}>
+        <DetailViewContext.Provider value={{ activeSection, registerSection, sections, setActiveSection }}>
             <div
                 className={className}
                 style={{
@@ -452,7 +437,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                     }
                     ${legacyStyles}
                 `}</style>
-
                 {isSaving && (
                     <div
                         style={{
@@ -480,13 +464,12 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         <span style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>Saving changes...</span>
                     </div>
                 )}
-
                 <div
                     style={{
-                        borderBottom: '1px solid #e2e8f0',
                         background: 'white',
-                        position: 'relative',
-                        overflow: 'hidden'
+                        borderBottom: '1px solid #e2e8f0',
+                        overflow: 'hidden',
+                        position: 'relative'
                     }}
                 >
                     <div
@@ -563,7 +546,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         </div>
                     </div>
                 </div>
-
                 <div
                     className="dv-container"
                     style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', width: '100%' }}
@@ -601,8 +583,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                     display: 'flex',
                                     flexDirection: 'column',
                                     flexShrink: 0,
-                                    overflowY: 'auto',
                                     overflowX: 'hidden',
+                                    overflowY: 'auto',
                                     width: sidebarCollapsed ? 64 : 240
                                 }}
                             >
@@ -686,7 +668,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                         >
                                             <i
                                                 className={section.icon || 'fas fa-circle'}
-                                                style={{ fontSize: 16, flexShrink: 0 }}
+                                                style={{ flexShrink: 0, fontSize: 16 }}
                                             ></i>
                                             {!sidebarCollapsed && (
                                                 <span
@@ -726,14 +708,12 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                     </div>
                                 )}
                             </aside>
-
                             <main
                                 className="dv-main-content"
                                 style={{ background: '#f8fafc', flex: 1, overflowY: 'auto', padding: 24 }}
                             >
                                 <div style={{ animation: 'dv-fadeIn 0.3s ease-out' }}>{children}</div>
                             </main>
-
                             <nav className="dv-mobile-nav">
                                 {sections.map((section) => (
                                     <button
@@ -748,10 +728,10 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                         <i className={section.icon || 'fas fa-circle'}></i>
                                         <span
                                             style={{
-                                                whiteSpace: 'nowrap',
+                                                maxWidth: 60,
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
-                                                maxWidth: 60
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
                                             {section.title}
@@ -761,11 +741,11 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                 {footerActions && (
                                     <div
                                         style={{
+                                            borderLeft: '1px solid #e2e8f0',
                                             display: 'flex',
                                             gap: 4,
                                             marginLeft: 'auto',
-                                            paddingLeft: 8,
-                                            borderLeft: '1px solid #e2e8f0'
+                                            paddingLeft: 8
                                         }}
                                     >
                                         {footerActions}
@@ -775,7 +755,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         </>
                     )}
                 </div>
-
                 {(message || warning) &&
                     ReactDOM.createPortal(
                         <div
@@ -808,7 +787,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         </div>,
                         document.body
                     )}
-
                 {showDeleteConfirmation &&
                     ReactDOM.createPortal(
                         <div
@@ -901,7 +879,6 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         </div>,
                         document.body
                     )}
-
                 {showTransfer &&
                     ReactDOM.createPortal(
                         <div
@@ -1159,27 +1136,21 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         </div>,
                         document.body
                     )}
-
                 {modals}
             </div>
         </DetailViewContext.Provider>
     )
 }
-
 DetailViewSection.Section = function Section({ id, title, icon, children }) {
     const { activeSection, registerSection } = useContext(DetailViewContext)
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
-
     useEffect(() => {
-        registerSection({ id, title, icon })
+        registerSection({ icon, id, title })
     }, [id, title, icon, registerSection])
-
     if (activeSection !== id) return null
-
     const childArray = React.Children.toArray(children)
     const count = childArray.length
-
     const getGridStyle = () => {
         if (count === 1) return { display: 'flex', flexDirection: 'column', gap: 20 }
         if (count === 2) return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
@@ -1187,7 +1158,6 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
         if (count === 4) return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
         return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
     }
-
     const renderChildren = () => {
         if (count === 3) {
             return (
@@ -1211,7 +1181,6 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
         }
         return childArray
     }
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="dv-section-header" style={{ alignItems: 'center', display: 'flex', gap: 14 }}>
@@ -1237,7 +1206,6 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
         </div>
     )
 }
-
 DetailViewSection.Card = function Card({ title, icon, children, actions, fullWidth }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1284,11 +1252,9 @@ DetailViewSection.Card = function Card({ title, icon, children, actions, fullWid
         </div>
     )
 }
-
 DetailViewSection.Row = function Row({ children, cols = 2 }) {
     return <div style={{ display: 'grid', gap: 16, gridTemplateColumns: `repeat(${cols}, 1fr)` }}>{children}</div>
 }
-
 DetailViewSection.Field = function Field({ label, value, empty = '-', icon }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1324,7 +1290,6 @@ DetailViewSection.Field = function Field({ label, value, empty = '-', icon }) {
         </div>
     )
 }
-
 DetailViewSection.Input = function Input({ label, icon, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1364,7 +1329,6 @@ DetailViewSection.Input = function Input({ label, icon, ...props }) {
         </div>
     )
 }
-
 DetailViewSection.Select = function Select({ label, icon, options = [], placeholder, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1417,7 +1381,6 @@ DetailViewSection.Select = function Select({ label, icon, options = [], placehol
         </div>
     )
 }
-
 DetailViewSection.Textarea = function Textarea({ label, icon, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1460,7 +1423,6 @@ DetailViewSection.Textarea = function Textarea({ label, icon, ...props }) {
         </div>
     )
 }
-
 DetailViewSection.Button = function Button({ variant = 'primary', block, children, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1499,11 +1461,9 @@ DetailViewSection.Button = function Button({ variant = 'primary', block, childre
         </button>
     )
 }
-
 DetailViewSection.Divider = function Divider() {
     return <div style={{ background: '#e2e8f0', height: 1, margin: '4px 0' }}></div>
 }
-
 DetailViewSection.Banner = function Banner({ type = 'info', icon, children }) {
     const types = {
         error: { bg: '#fef2f2', border: '#fecaca', color: '#991b1b', icon: 'fa-times-circle' },
@@ -1531,7 +1491,6 @@ DetailViewSection.Banner = function Banner({ type = 'info', icon, children }) {
         </div>
     )
 }
-
 DetailViewSection.Toggle = function Toggle({ label, checked, onChange, disabled }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
@@ -1579,7 +1538,6 @@ DetailViewSection.Toggle = function Toggle({ label, checked, onChange, disabled 
         </label>
     )
 }
-
 DetailViewSection.Rating = function Rating({ value = 0, onChange, max = 5, disabled }) {
     const [hover, setHover] = useState(0)
     return (
@@ -1613,5 +1571,4 @@ DetailViewSection.Rating = function Rating({ value = 0, onChange, max = 5, disab
         </div>
     )
 }
-
 export default DetailViewSection

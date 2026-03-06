@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
-
 /**
  * Portal-rendered modal for selecting an operator to assign to a mixer.
  * Filters operators to the mixer's assigned plant, highlights already-assigned
@@ -29,11 +28,9 @@ function OperatorSelectModal({
     const [filterPosition, setFilterPosition] = useState('')
     const [sortAvailableFirst, setSortAvailableFirst] = useState(true)
     const modalRef = useRef(null)
-
     useEffect(() => {
         if (assignedPlant) setFilterPlant(assignedPlant)
     }, [assignedPlant])
-
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
@@ -44,7 +41,6 @@ function OperatorSelectModal({
             document.body.style.overflow = 'auto'
         }
     }, [isOpen])
-
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (modalRef.current && !modalRef.current.contains(e.target)) onClose()
@@ -52,13 +48,11 @@ function OperatorSelectModal({
         if (isOpen) document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
-
     /** Returns true if the operator is already assigned to an active mixer (prevents double-assignment). */
     function isOperatorAssigned(operatorId) {
         if (!operatorId || operatorId === '0' || !Array.isArray(mixers)) return false
         return mixers.some((mixer) => mixer.assignedOperator === operatorId && mixer.status === 'Active')
     }
-
     const filteredOperators = operators
         .filter(
             (operator) =>
@@ -79,9 +73,7 @@ function OperatorSelectModal({
             }
             return a.name.localeCompare(b.name)
         })
-
     if (!isOpen) return null
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
@@ -101,7 +93,6 @@ function OperatorSelectModal({
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-
                 <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
                     <div className="relative mb-3">
                         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -144,7 +135,6 @@ function OperatorSelectModal({
                         </button>
                     </div>
                 </div>
-
                 <div className="flex-1 overflow-y-auto">
                     <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-2">
                         <span className="text-sm text-slate-600">
@@ -178,7 +168,6 @@ function OperatorSelectModal({
                             </span>
                         )}
                     </div>
-
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-16 text-slate-400">
                             <i className="fas fa-spinner fa-spin text-3xl mb-3"></i>
@@ -225,7 +214,6 @@ function OperatorSelectModal({
                                 const isUnavailable = (isAssigned && !readOnly) || isInactive
                                 const isSelected = operator.employeeId === currentValue
                                 if (isAssigned && !readOnly && operator.employeeId !== currentValue) return null
-
                                 return (
                                     <div
                                         key={operator.employeeId}
@@ -295,7 +283,6 @@ function OperatorSelectModal({
                         </div>
                     )}
                 </div>
-
                 <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
                     <button
                         className="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
@@ -309,5 +296,4 @@ function OperatorSelectModal({
         document.body
     )
 }
-
 export default OperatorSelectModal

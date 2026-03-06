@@ -14,7 +14,6 @@ import EquipmentUtility from '../../utils/EquipmentUtility'
 import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentHistoryView from './EquipmentHistoryView'
 import EquipmentIssueModal from './EquipmentIssueModal'
-
 /**
  * Full detail/edit view for a single equipment record. Handles loading,
  * saving, verification, deletion, region transfer, and unsaved-change
@@ -59,7 +58,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     const [updatedByEmail, setUpdatedByEmail] = useState('')
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
-
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true)
@@ -68,10 +66,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                     EquipmentService.fetchEquipmentById(equipmentId),
                     PlantService.fetchPlants()
                 ])
-
                 setEquipment(equipmentData)
                 setPlants(plantsData)
-
                 setIdentifyingNumber(equipmentData.identifyingNumber || '')
                 setAssignedPlant(equipmentData.assignedPlant || '')
                 setEquipmentType(equipmentData.equipmentType || '')
@@ -104,14 +100,11 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 setIsLoading(false)
             }
         }
-
         fetchData()
     }, [equipmentId])
-
     // Resolve which plants the user can reassign to, scoped by their region permissions.
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -151,13 +144,11 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter((p) =>
@@ -168,10 +159,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     useEffect(() => {
         if (!originalValues.identifyingNumber || isLoading) return
-
         const formatDateForComparison = (date) =>
             date ? (date instanceof Date ? date.toISOString().split('T')[0] : '') : ''
         const hasChanges =
@@ -186,7 +175,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             make !== originalValues.equipmentMake ||
             model !== originalValues.equipmentModel ||
             year !== originalValues.yearMade
-
         setHasUnsavedChanges(hasChanges)
     }, [
         identifyingNumber,
@@ -203,7 +191,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         originalValues,
         isLoading
     ])
-
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (hasUnsavedChanges) {
@@ -214,7 +201,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         window.addEventListener('beforeunload', handleBeforeUnload)
         return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
-
     useEffect(() => {
         if (equipment?.assignedPlant) {
             RegionService.fetchRegionsByPlantCode(equipment.assignedPlant)
@@ -228,29 +214,23 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [equipment?.assignedPlant])
-
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!equipment?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid equipment, region, or plant')
         }
-
         const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedEquipment = {
                 ...equipment,
                 assignedPlant: newPlantCode
             }
-
             const result = await EquipmentService.updateEquipment(equipment.id, updatedEquipment, userId, equipment)
             setEquipment(result)
             setAssignedPlant(newPlantCode)
@@ -268,18 +248,15 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             setIsSaving(false)
         }
     }
-
     async function handleSave(overrides = {}) {
         if (!equipment?.id) {
             alert('Error: Cannot save equipment with undefined ID')
             return null
         }
-
         const relevantOverrideKeys = Object.keys(overrides || {}).filter((k) => !['silent'].includes(k))
         if (!hasUnsavedChanges && relevantOverrideKeys.length === 0) {
             return equipment
         }
-
         setIsSaving(true)
         try {
             const user = await UserService.getCurrentUser()
@@ -288,9 +265,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 setMessage('Error saving changes: User ID is required')
                 return null
             }
-
             const statusValue = overrides.status ?? status
-
             // Business rule: equipment cannot be set to "In Shop" unless it has at least one open maintenance issue.
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const { data: openIssues } = await supabase
@@ -298,7 +273,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                     .select('id')
                     .eq('equipment_id', equipment.id)
                     .is('time_completed', null)
-
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage(
@@ -308,13 +282,10 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                     return null
                 }
             }
-
             // Floor ratings to 1 on save — a rating of 0 is treated as "not yet rated" in the UI.
             let cleanlinessValue = cleanlinessRating
-
             let conditionValue = conditionRating
             if (!conditionValue || isNaN(conditionValue) || conditionValue < 1) conditionValue = 1
-
             const updatedEquipment = {
                 assignedPlant,
                 cleanlinessRating: cleanlinessValue,
@@ -365,9 +336,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 message: error.message,
                 stack: error.stack
             })
-
             let errorMessage = 'Unknown error'
-
             if (error.message && typeof error.message === 'string') {
                 if (
                     error.message.includes('duplicate key') &&
@@ -378,18 +347,15 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                     errorMessage = error.message
                 }
             }
-
             setMessage('Error saving changes: ' + errorMessage)
             return null
         } finally {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!equipment) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
-
         try {
             await EquipmentService.deleteEquipment(equipment.id)
             alert('Equipment deleted successfully')
@@ -400,19 +366,16 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     async function handleBackClick() {
         if (hasUnsavedChanges) {
             await handleSave()
         }
         onClose()
     }
-
     function formatDate(date) {
         if (!date) return ''
         return date instanceof Date ? date.toISOString().split('T')[0] : date
     }
-
     useEffect(() => {
         async function fetchCommentsAndIssues() {
             if (!equipmentId) return
@@ -426,10 +389,8 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 setIssues([])
             }
         }
-
         fetchCommentsAndIssues()
     }, [equipmentId])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -447,20 +408,17 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         }
         checkDeletePermission()
     }, [])
-
     async function handleVerifyEquipment() {
         try {
             const missing = []
             if (!make || !make.trim()) missing.push('Make')
             if (!model || !model.trim()) missing.push('Model')
             if (!year || year === '0') missing.push('Year')
-
             if (missing.length > 0) {
                 setMissingFields(missing)
                 setShowMissingFieldsModal(true)
                 return
             }
-
             const overrides = {}
             const incomingService = lastServiceDate
                 ? lastServiceDate instanceof Date
@@ -470,7 +428,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             const existingService = equipment.lastServiceDate ? new Date(equipment.lastServiceDate) : null
             if (incomingService && (!existingService || existingService.getTime() !== incomingService.getTime()))
                 overrides.lastServiceDate = incomingService
-
             await handleSave(overrides)
             const candidateEquipment = {
                 ...equipment,
@@ -479,14 +436,12 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate,
                 yearMade: overrides.yearMade ?? year ?? equipment.yearMade
             }
-
             if (hasUnsavedChanges) {
                 await handleSave().catch(() => {
                     alert('Failed to save your changes before verification. Please try saving manually first.')
                     throw new Error('Failed to save changes before verification')
                 })
             }
-
             let userObj = await UserService.getCurrentUser()
             let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
             const verified = await EquipmentService.verifyEquipment(candidateEquipment.id, userId)
@@ -511,7 +466,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             alert('Failed to verify equipment. Please try again.')
         }
     }
-
     async function handleSaveAndVerify() {
         try {
             const overrides = {
@@ -528,7 +482,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 : null
             if (incomingService && (!existingService || existingService.getTime() !== incomingService.getTime()))
                 overrides.lastServiceDate = incomingService
-
             await handleSave(overrides)
             const candidateEquipment = {
                 ...equipment,
@@ -537,14 +490,12 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 lastServiceDate: overrides.lastServiceDate ?? equipment.lastServiceDate,
                 yearMade: overrides.yearMade ?? equipment.yearMade
             }
-
             if (hasUnsavedChanges) {
                 await handleSave().catch(() => {
                     alert('Failed to save your changes before verification. Please try saving manually first.')
                     throw new Error('Failed to save changes before verification')
                 })
             }
-
             let userObj = await UserService.getCurrentUser()
             let userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
             const verified = await EquipmentService.verifyEquipment(candidateEquipment.id, userId)
@@ -569,7 +520,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             alert('Failed to save missing fields. Please try again.')
         }
     }
-
     useEffect(() => {
         if (equipment?.updatedBy) {
             UserService.getUserDisplayName(equipment.updatedBy)
@@ -577,11 +527,9 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                 .catch(() => setUpdatedByEmail('Unknown User'))
         }
     }, [equipment?.updatedBy])
-
     if (isLoading) {
         return null
     }
-
     if (!equipment) {
         return (
             <DetailViewSection
@@ -593,12 +541,10 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             />
         )
     }
-
     const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     return (
         <>
             {showHistory && <EquipmentHistoryView equipment={equipment} onClose={() => setShowHistory(false)} />}
@@ -829,7 +775,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
                     <DetailViewSection.Card title="Service Information" icon="fas fa-calendar-alt">
                         <div className="form-group">
@@ -865,7 +810,6 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                             />
                         </div>
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Ratings" icon="fas fa-star">
                         <div className="form-group">
                             <label>Cleanliness Rating</label>
@@ -941,5 +885,4 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         </>
     )
 }
-
 export default EquipmentDetailView

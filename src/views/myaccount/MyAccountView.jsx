@@ -1,7 +1,6 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react'
 
 import VersionPopup from '../../app/components/common/VersionPopup'
-
 const ChangelogView = lazy(() => import('../login/ChangelogView'))
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
@@ -10,10 +9,8 @@ import { useVersion } from '../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../app/utils/BrowserDetection'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
-
 const MAX_BRIGHTNESS_HEX = '#D6D6D6'
 const MAX_BRIGHTNESS_VALUE = 214
-
 /** Parses a 6-digit hex color string into its {r, g, b} components. */
 const getRgbFromHex = (hex) => {
     const cleanHex = hex.replace('#', '')
@@ -23,7 +20,6 @@ const getRgbFromHex = (hex) => {
         r: parseInt(cleanHex.substring(0, 2), 16)
     }
 }
-
 /** Darkens a color if its average brightness exceeds the threshold, ensuring sufficient contrast on white backgrounds. */
 const clampColorToMaxBrightness = (hex) => {
     const { b, g, r } = getRgbFromHex(hex)
@@ -35,7 +31,6 @@ const clampColorToMaxBrightness = (hex) => {
     const clampedB = Math.round(b * scale)
     return `#${clampedR.toString(16).padStart(2, '0')}${clampedG.toString(16).padStart(2, '0')}${clampedB.toString(16).padStart(2, '0')}`
 }
-
 /**
  * Tabbed account settings view with Profile, Security, and Preferences sections.
  * Profile: editable name, read-only email/role/plant, and region selector scoped
@@ -72,7 +67,6 @@ function MyAccountView({ userId }) {
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
     const [showChangelog, setShowChangelog] = useState(false)
-
     const formatSessionTime = (timestamp) => {
         const date = new Date(timestamp)
         const now = new Date()
@@ -80,13 +74,11 @@ function MyAccountView({ userId }) {
         const diffMins = Math.floor(diffMs / 60000)
         const diffHours = Math.floor(diffMs / 3600000)
         const diffDays = Math.floor(diffMs / 86400000)
-
         if (diffMins < 5) return 'Active now'
         if (diffMins < 60) return `${diffMins}m ago`
         if (diffHours < 24) return `${diffHours}h ago`
         return `${diffDays}d ago`
     }
-
     /** Deletes a remote session record. Refuses to revoke the current session — user must sign out instead. */
     const handleRevokeSession = async (sessionId) => {
         if (sessionId === currentSessionId) {
@@ -96,9 +88,7 @@ function MyAccountView({ userId }) {
         }
         try {
             const { error } = await supabase.from('users_sessions').delete().eq('id', sessionId)
-
             if (error) throw error
-
             setSessions(sessions.filter((s) => s.id !== sessionId))
             setMessage('Session revoked successfully')
             setTimeout(() => setMessage(''), 3000)
@@ -107,16 +97,13 @@ function MyAccountView({ userId }) {
             setTimeout(() => setMessage(''), 3000)
         }
     }
-
     useEffect(() => {
         triggerTutorial('preferences-tab-hint', 500)
     }, [triggerTutorial])
-
     // Loads profile, roles, permitted regions, and active sessions.
     // Deduplicates sessions per browser/OS/device combo to prevent ghost entries.
     useEffect(() => {
         let cancelled = false
-
         async function load() {
             try {
                 const { data } = await supabase.auth.getSession()
@@ -127,7 +114,6 @@ function MyAccountView({ userId }) {
                     throw new Error('No active session or user ID')
                 }
                 setIsAuthenticated(true)
-
                 const [profileData, userData, highestRole, regionsList] = await Promise.all([
                     supabase
                         .from('users_profiles')
@@ -146,21 +132,16 @@ function MyAccountView({ userId }) {
                     UserService.getHighestRole(uid).catch(() => null),
                     UserService.getPermittedRegions(uid).catch(() => [])
                 ])
-
                 const userEmail = session?.user?.email || userData?.email || ''
                 if (userEmail) setEmail(userEmail)
-
                 if (cancelled) return
-
                 if (highestRole?.name) setUserRole(highestRole.name)
-
                 if (profileData) {
                     setUser({ ...profileData })
                     if (profileData.first_name) setFirstName(profileData.first_name)
                     if (profileData.last_name) setLastName(profileData.last_name)
                     if (profileData.plant_code) setPlantCode(profileData.plant_code)
                 }
-
                 if (regionsList && regionsList.length) {
                     setPermittedRegions(regionsList)
                     const currentSelCode = preferences.selectedRegion?.code
@@ -178,29 +159,23 @@ function MyAccountView({ userId }) {
                     updatePreferences('selectedRegion', { code: '', name: '', type: '' })
                     setRegionName('')
                 }
-
                 if (uid) {
                     const userAgent = navigator.userAgent
                     const currentBrowser = getBrowserName(userAgent)
                     const currentOS = getOSName(userAgent)
                     const currentDevice = getDeviceType(userAgent)
-
                     const { data: existingSessions } = await supabase
                         .from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
                         .order('last_active', { ascending: false })
-
                     let matchingSession = null
                     const duplicates = []
-
                     if (existingSessions && existingSessions.length > 0) {
                         const sessionsByDevice = {}
-
                         for (const session of existingSessions) {
                             const key = `${session.browser}_${session.os}_${session.device}`
-
                             if (
                                 session.browser === currentBrowser &&
                                 session.os === currentOS &&
@@ -212,14 +187,12 @@ function MyAccountView({ userId }) {
                                     duplicates.push(session.id)
                                 }
                             }
-
                             if (sessionsByDevice[key]) {
                                 duplicates.push(session.id)
                             } else {
                                 sessionsByDevice[key] = session
                             }
                         }
-
                         if (duplicates.length > 0) {
                             try {
                                 await supabase.from('users_sessions').delete().in('id', duplicates)
@@ -228,12 +201,10 @@ function MyAccountView({ userId }) {
                             }
                         }
                     }
-
                     let currentSessId
                     if (matchingSession) {
                         currentSessId = matchingSession.id
                         sessionStorage.setItem('sessionId', currentSessId)
-
                         try {
                             await supabase
                                 .from('users_sessions')
@@ -245,7 +216,6 @@ function MyAccountView({ userId }) {
                     } else {
                         currentSessId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                         sessionStorage.setItem('sessionId', currentSessId)
-
                         try {
                             await supabase.from('users_sessions').upsert(
                                 {
@@ -264,9 +234,7 @@ function MyAccountView({ userId }) {
                             console.error('Failed to create session:', err)
                         }
                     }
-
                     setCurrentSessionId(currentSessId)
-
                     const { data: userSessions } = await supabase
                         .from('users_sessions')
                         .select('*')
@@ -274,7 +242,6 @@ function MyAccountView({ userId }) {
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
                         .order('last_active', { ascending: false })
                         .limit(10)
-
                     if (userSessions && userSessions.length > 0) {
                         const sessionsList = userSessions.map((s) => ({
                             browser: s.browser,
@@ -297,13 +264,11 @@ function MyAccountView({ userId }) {
                 }
             }
         }
-
         load()
         return () => {
             cancelled = true
         }
     }, [userId])
-
     const updateProfile = async (e) => {
         e.preventDefault()
         setLoading(true)
@@ -343,7 +308,6 @@ function MyAccountView({ userId }) {
             setLoading(false)
         }
     }
-
     /** Verifies the current password server-side, updates to the new one, then forces sign-out so the user re-authenticates. */
     const updatePassword = async (e) => {
         e.preventDefault()
@@ -354,13 +318,10 @@ function MyAccountView({ userId }) {
             if (!currentPassword) throw new Error('Current password is required')
             if (newPassword !== confirmPassword) throw new Error('New passwords do not match')
             if (newPassword.length < 8) throw new Error('Password must be at least 8 characters')
-
             const uid = userId || sessionStorage.getItem('userId')
             if (!uid) throw new Error('No active session')
-
             await verifyPassword(uid, currentPassword)
             await authUpdatePassword(uid, newPassword)
-
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
@@ -373,7 +334,6 @@ function MyAccountView({ userId }) {
             setLoading(false)
         }
     }
-
     /** Signs out via AuthContext (which handles session cleanup) and redirects to root. */
     const handleSignOut = async () => {
         setLoading(true)
@@ -386,7 +346,6 @@ function MyAccountView({ userId }) {
             setLoading(false)
         }
     }
-
     /** Updates the globally-stored selected region preference when the user picks a different region. */
     const handleChangeRegion = (e) => {
         const code = e.target.value
@@ -402,12 +361,10 @@ function MyAccountView({ userId }) {
         updatePreferences('selectedRegion', { code, name, type })
         setRegionName(name)
     }
-
     const getInitials = () => {
         if (firstName && lastName) return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
         return null
     }
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
@@ -476,7 +433,6 @@ function MyAccountView({ userId }) {
             </div>
         )
     }
-
     if (showChangelog) {
         return (
             <Suspense
@@ -490,7 +446,6 @@ function MyAccountView({ userId }) {
             </Suspense>
         )
     }
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="relative overflow-hidden border-b border-gray-200 bg-white">
@@ -506,7 +461,6 @@ function MyAccountView({ userId }) {
                     <p className="mt-1 text-sm text-gray-500">Manage your profile, security, and preferences</p>
                 </div>
             </div>
-
             <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
                 {message && (
                     <div
@@ -521,7 +475,6 @@ function MyAccountView({ userId }) {
                         </button>
                     </div>
                 )}
-
                 <div className="grid gap-8 lg:grid-cols-3">
                     <div className="lg:col-span-1">
                         <div className="sticky top-8 space-y-6">
@@ -554,7 +507,6 @@ function MyAccountView({ userId }) {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
                                 <nav className="flex flex-col">
                                     <button
@@ -563,8 +515,8 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'profile'
                                                 ? {
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       color: preferences.accentColor || '#1e3a5f'
                                                   }
                                                 : {}
@@ -579,8 +531,8 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'security'
                                                 ? {
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       color: preferences.accentColor || '#1e3a5f'
                                                   }
                                                 : {}
@@ -596,8 +548,8 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'preferences'
                                                 ? {
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
                                                       color: preferences.accentColor || '#1e3a5f'
                                                   }
                                                 : {}
@@ -618,7 +570,6 @@ function MyAccountView({ userId }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="space-y-6 lg:col-span-2">
                         {activeTab === 'profile' && (
                             <>
@@ -674,7 +625,6 @@ function MyAccountView({ userId }) {
                                         </button>
                                     </form>
                                 </div>
-
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center gap-3">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
@@ -741,7 +691,6 @@ function MyAccountView({ userId }) {
                                 </div>
                             </>
                         )}
-
                         {activeTab === 'security' && (
                             <>
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
@@ -765,7 +714,6 @@ function MyAccountView({ userId }) {
                                         Change Password
                                     </button>
                                 </div>
-
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
@@ -831,7 +779,6 @@ function MyAccountView({ userId }) {
                                         )}
                                     </div>
                                 </div>
-
                                 <div className="overflow-hidden rounded-2xl border border-red-100 bg-red-50">
                                     <div className="flex items-center justify-between p-6">
                                         <div className="flex items-center gap-4">
@@ -853,7 +800,6 @@ function MyAccountView({ userId }) {
                                 </div>
                             </>
                         )}
-
                         {activeTab === 'preferences' && (
                             <>
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
@@ -953,7 +899,6 @@ function MyAccountView({ userId }) {
                                         </div>
                                     </div>
                                 </div>
-
                                 {!isMobile && (
                                     <div className="rounded-2xl border border-gray-100 bg-white p-6">
                                         <div className="mb-6 flex items-center gap-3">
@@ -973,7 +918,6 @@ function MyAccountView({ userId }) {
                                                 </p>
                                             </div>
                                         </div>
-
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
                                                 <div>
@@ -999,7 +943,6 @@ function MyAccountView({ userId }) {
                                                     ></div>
                                                 </button>
                                             </div>
-
                                             <button
                                                 onClick={async () => {
                                                     await resetAllTutorials()
@@ -1019,9 +962,7 @@ function MyAccountView({ userId }) {
                     </div>
                 </div>
             </div>
-
             <VersionPopup version={version} onClick={() => setShowChangelog(true)} />
-
             {showPasswordModal && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
@@ -1122,5 +1063,4 @@ function MyAccountView({ userId }) {
         </div>
     )
 }
-
 export default MyAccountView

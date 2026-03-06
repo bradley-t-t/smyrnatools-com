@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
-
 /**
  * Portal-rendered modal wrapper for add/create forms.
  * Checks user permissions (assets.add / list.add) before rendering the form.
@@ -19,7 +18,6 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
     const [hasPermission, setHasPermission] = useState(null)
     const [internalError, setInternalError] = useState(null)
     const pointerDownTargetRef = useRef(null)
-
     useEffect(() => {
         async function checkPermission() {
             const userId = sessionStorage.getItem('userId')
@@ -36,10 +34,8 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 setHasPermission(false)
             }
         }
-
         checkPermission()
     }, [isListItem])
-
     useEffect(() => {
         if (error) {
             let cleanError = error
@@ -65,18 +61,15 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             setInternalError(null)
         }
     }, [error])
-
     const handleBackdropPointerDown = (e) => {
         pointerDownTargetRef.current = e.target
     }
-
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget && pointerDownTargetRef.current === e.currentTarget) {
             onClose()
         }
         pointerDownTargetRef.current = null
     }
-
     const styles = {
         backdrop: {
             alignItems: 'center',
@@ -193,15 +186,12 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             margin: 0
         }
     }
-
     if (typeof document === 'undefined' || !document.body) {
         return null
     }
-
     if (hasPermission === null) {
         return null
     }
-
     if (!hasPermission) {
         return ReactDOM.createPortal(
             <>
@@ -260,7 +250,6 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             document.body
         )
     }
-
     return ReactDOM.createPortal(
         <>
             <style>{`
@@ -507,5 +496,4 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         document.body
     )
 }
-
 export default AddViewSection

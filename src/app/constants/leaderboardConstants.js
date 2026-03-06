@@ -12,10 +12,8 @@ export const LEADERBOARD_CATEGORIES = [
     { group: 'Teamwork', icon: 'fa-hand-holding-heart', id: 'help-given', label: 'Help Given' },
     { group: 'Teamwork', icon: 'fa-hands-helping', id: 'help-received', label: 'Help Received' }
 ]
-
 /** Display ordering for leaderboard category group tabs. */
 export const CATEGORY_GROUPS = ['Performance', 'Production', 'Hours', 'Teamwork']
-
 /** Zero-state fleet data used as fallback before leaderboard data loads. */
 export const DEFAULT_FLEET_DATA = {
     avgFleetCleanliness: 0,

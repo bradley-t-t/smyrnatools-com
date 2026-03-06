@@ -6,11 +6,9 @@ import { UserService } from '../../services/UserService'
 import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
-
 const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
 const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
-
 /**
  * Loads all reports data: user's own reports, review permissions, assigned report types,
  * region-scoped plant lists, and reporter-to-plant mappings.
@@ -27,19 +25,15 @@ export function useReportsData() {
     const [reporterPlantMap, setReporterPlantMap] = useState({})
     const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set())
     const [reviewLoadedWeeks, setReviewLoadedWeeks] = useState(new Set())
-
     const [loadError, setLoadError] = useState('')
     const [isLoadingUser, setIsLoadingUser] = useState(true)
     const [isLoadingMy, setIsLoadingMy] = useState(true)
     const [isLoadingReview, setIsLoadingReview] = useState(true)
     const [isLoadingPermissions, setIsLoadingPermissions] = useState(true)
     const [loadingReporterPlants, setLoadingReporterPlants] = useState(false)
-
     const [refreshKey, setRefreshKey] = useState(0)
     const [isRefreshing, setIsRefreshing] = useState(false)
-
     const { preferences } = usePreferences()
-
     const fetchProfilesFor = useCallback(
         async (userIds) => {
             const missing = userIds.filter((id) => !userProfiles[id])
@@ -57,7 +51,6 @@ export function useReportsData() {
         },
         [userProfiles]
     )
-
     const fetchReportsBatch = useCallback(
         async ({ weeks, scope }) => {
             if (!user || !Array.isArray(weeks) || weeks.length === 0) return
@@ -95,7 +88,6 @@ export function useReportsData() {
                 return
             }
             if (!Array.isArray(data)) return
-
             const reportIds = data.map((r) => r.id).filter((id) => id != null)
             if (reportIds.length > 0 && scope === 'review' && user?.id) {
                 const { data: reviewedData } = await supabase
@@ -103,7 +95,6 @@ export function useReportsData() {
                     .select('report_id')
                     .in('report_id', reportIds)
                     .eq('reviewed_by_user_id', user.id)
-
                 if (reviewedData && Array.isArray(reviewedData)) {
                     const reviewedSet = new Set(reviewedData.map((r) => r.report_id))
                     setReviewedByCurrentUser((prev) => {
@@ -113,7 +104,6 @@ export function useReportsData() {
                     })
                 }
             }
-
             setLocalReports((prev) => {
                 const existingIds = new Set(prev.map((r) => r.id))
                 const mapped = data
@@ -137,7 +127,6 @@ export function useReportsData() {
         },
         [user, regionType, hasAssigned, hasReviewPermission, fetchProfilesFor]
     )
-
     useEffect(() => {
         async function init() {
             setIsLoadingUser(true)
@@ -153,7 +142,6 @@ export function useReportsData() {
         }
         init()
     }, [])
-
     useEffect(() => {
         async function checkAssignedAndReview() {
             if (!user?.id) {
@@ -179,7 +167,6 @@ export function useReportsData() {
         }
         checkAssignedAndReview()
     }, [user?.id])
-
     useEffect(() => {
         async function fetchPlants() {
             const { data, error } = await supabase
@@ -190,11 +177,9 @@ export function useReportsData() {
         }
         fetchPlants()
     }, [])
-
     useEffect(() => {
         if (!user || isLoadingPermissions) return
         const initialMyWeeks = ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY)
-
         async function loadInitial() {
             setIsLoadingMy(true)
             await fetchReportsBatch({ scope: 'my', weeks: initialMyWeeks })
@@ -202,11 +187,9 @@ export function useReportsData() {
         }
         loadInitial()
     }, [user?.id, isLoadingPermissions, hasAssigned, regionType, refreshKey, fetchReportsBatch])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegion() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -229,7 +212,6 @@ export function useReportsData() {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     useEffect(() => {
         const ids = Array.from(
             new Set([
@@ -238,7 +220,6 @@ export function useReportsData() {
         ).filter((id) => !(id in reporterPlantMap))
         if (ids.length === 0) return
         let cancelled = false
-
         async function loadReporterPlants() {
             setLoadingReporterPlants(true)
             try {
@@ -266,12 +247,10 @@ export function useReportsData() {
             cancelled = true
         }
     }, [localReports, user?.id, reporterPlantMap])
-
     useEffect(() => {
         const interval = setInterval(() => setRefreshKey((prev) => prev + 1), 5 * 60 * 1000)
         return () => clearInterval(interval)
     }, [])
-
     const hasAnyReviewPermission = useMemo(() => {
         if (isLoadingPermissions) return false
         const allowedReviewTypes =
@@ -284,9 +263,7 @@ export function useReportsData() {
                       .map((rt) => rt.name)
         return allowedReviewTypes.length > 0
     }, [hasReviewPermission, regionType, isLoadingPermissions])
-
     const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [])
-
     const myReportsByWeek = useMemo(() => {
         const grouped = {}
         weeksToShow.forEach((weekIso) => {
@@ -310,7 +287,6 @@ export function useReportsData() {
         })
         return grouped
     }, [weeksToShow, user, hasAssigned, localReports, regionType])
-
     const reviewableReports = useMemo(
         () =>
             localReports
@@ -326,7 +302,6 @@ export function useReportsData() {
                 .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime()),
         [localReports, hasReviewPermission, user?.id, regionType]
     )
-
     const loadReviewReports = useCallback(async () => {
         if (!user || isLoadingPermissions) return
         const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(52, HARDCODED_TODAY))
@@ -335,23 +310,19 @@ export function useReportsData() {
             if (isLoadingReview) setIsLoadingReview(false)
             return
         }
-
         setIsLoadingReview(true)
         await fetchReportsBatch({ scope: 'review', weeks: toLoad })
         setReviewLoadedWeeks((prev) => new Set([...toLoad, ...prev]))
         setIsLoadingReview(false)
     }, [user, isLoadingPermissions, reviewLoadedWeeks, isLoadingReview, fetchReportsBatch])
-
     const triggerRefresh = useCallback(() => {
         setIsRefreshing(true)
         setRefreshKey((prev) => prev + 1)
         setTimeout(() => setIsRefreshing(false), 1000)
     }, [])
-
     const updateLocalReport = useCallback((reportData) => {
         setLocalReports((prev) => [...prev.filter((r) => r.id !== reportData.id), reportData])
     }, [])
-
     const markReportReviewed = useCallback((reportId) => {
         setReviewedByCurrentUser((prev) => {
             const newSet = new Set(prev)
@@ -359,7 +330,6 @@ export function useReportsData() {
             return newSet
         })
     }, [])
-
     const getUserName = useCallback(
         (userId) => {
             const profile = userProfiles[userId]
@@ -371,7 +341,6 @@ export function useReportsData() {
         },
         [userProfiles]
     )
-
     return {
         getUserName,
         hasAnyReviewPermission,

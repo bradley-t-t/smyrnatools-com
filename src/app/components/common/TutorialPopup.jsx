@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 
 import { useTutorial } from '../../context/TutorialContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /**
  * Registry of all available tutorial definitions.
  * Each key maps to positioning, target selector, and content for the popup.
@@ -24,7 +23,6 @@ const TUTORIALS = {
         title: 'Preferences Tab'
     }
 }
-
 /**
  * Positioned popup overlay that highlights a target DOM element and displays
  * contextual guidance. Uses an SVG mask to create a spotlight effect around the target,
@@ -40,17 +38,13 @@ function TutorialPopup({ tutorialId, onDismiss }) {
     const [isReady, setIsReady] = useState(false)
     const popupRef = useRef(null)
     const tutorial = TUTORIALS[tutorialId]
-
     useEffect(() => {
         if (!tutorial) return
-
         let attempts = 0
         const maxAttempts = 20
-
         const tryCalculatePosition = () => {
             const target = document.querySelector(tutorial.targetSelector)
             const popupEl = popupRef.current
-
             if (!target || !popupEl) {
                 attempts++
                 if (attempts < maxAttempts) {
@@ -58,7 +52,6 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                 }
                 return
             }
-
             const tRect = target.getBoundingClientRect()
             if (tRect.width === 0 || tRect.height === 0) {
                 attempts++
@@ -67,10 +60,8 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                 }
                 return
             }
-
             const popupRect = popupEl.getBoundingClientRect()
             const padding = 12
-
             const newTargetRect = {
                 bottom: tRect.bottom,
                 height: tRect.height,
@@ -79,9 +70,7 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                 top: tRect.top,
                 width: tRect.width
             }
-
             let top, left
-
             switch (tutorial.position) {
                 case 'bottom':
                     top = tRect.bottom + padding
@@ -111,17 +100,13 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                     top = tRect.bottom + padding
                     left = tRect.left
             }
-
             left = Math.max(12, Math.min(left, window.innerWidth - popupRect.width - 12))
             top = Math.max(12, Math.min(top, window.innerHeight - popupRect.height - 12))
-
             setTargetRect(newTargetRect)
             setPosition({ left, top })
             setIsReady(true)
         }
-
         const timer = setTimeout(tryCalculatePosition, 200)
-
         const handleUpdate = () => {
             if (isReady) {
                 const target = document.querySelector(tutorial.targetSelector)
@@ -138,19 +123,15 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                 }
             }
         }
-
         window.addEventListener('resize', handleUpdate)
         window.addEventListener('scroll', handleUpdate, true)
-
         return () => {
             clearTimeout(timer)
             window.removeEventListener('resize', handleUpdate)
             window.removeEventListener('scroll', handleUpdate, true)
         }
     }, [tutorial, tutorialId, isReady])
-
     if (!tutorial) return null
-
     const getArrowStyle = () => {
         const base = {
             borderStyle: 'solid',
@@ -158,7 +139,6 @@ function TutorialPopup({ tutorialId, onDismiss }) {
             position: 'absolute',
             width: 0
         }
-
         switch (tutorial.arrowPosition) {
             case 'top':
                 return {
@@ -216,7 +196,6 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                 return base
         }
     }
-
     return ReactDOM.createPortal(
         <>
             {isReady && (
@@ -355,18 +334,14 @@ function TutorialPopup({ tutorialId, onDismiss }) {
         document.body
     )
 }
-
 /**
  * Context-driven manager that renders the currently active tutorial popup.
  * Consumes TutorialContext to determine which tutorial (if any) to display.
  */
 function TutorialManager() {
     const { activeTutorial, dismissTutorial } = useTutorial()
-
     if (!activeTutorial) return null
-
     return <TutorialPopup tutorialId={activeTutorial} onDismiss={() => dismissTutorial(activeTutorial)} />
 }
-
 export { TutorialManager, TutorialPopup, TUTORIALS }
 export default TutorialManager

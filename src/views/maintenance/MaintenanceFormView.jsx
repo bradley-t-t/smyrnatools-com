@@ -7,11 +7,9 @@ import ImageAttachment from '../../app/components/ui/ImageAttachment'
 import ImagePreviewModal from '../../app/components/ui/ImagePreviewModal'
 import { useMaintenanceForm } from '../../app/hooks/useMaintenanceForm'
 import { formatMaintenanceDateShort, getFieldTypeIcon } from '../../utils/MaintenanceUtility'
-
 const INPUT_BASE_CLASSES =
     'w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-accent focus:ring-[3px] focus:ring-accent/10'
 const INPUT_ERROR_CLASSES = 'border-red-500'
-
 /** Reusable single-line text input for short-answer and fallback field types. */
 function FormInput({ field, value, disabled, hasError, onChange, placeholder = 'Type your answer...' }) {
     return (
@@ -26,7 +24,6 @@ function FormInput({ field, value, disabled, hasError, onChange, placeholder = '
         />
     )
 }
-
 function FormTextarea({ field, value, disabled, hasError, onChange, placeholder = 'Type your answer...', rows = 5 }) {
     return (
         <textarea
@@ -40,7 +37,6 @@ function FormTextarea({ field, value, disabled, hasError, onChange, placeholder 
         />
     )
 }
-
 /**
  * Renders a checklist with per-item check state, optional image attachments,
  * and a "why incomplete?" comment field for unchecked required items.
@@ -59,7 +55,6 @@ function ChecklistField({
 }) {
     const checkItems = field.options?.items || []
     const comments = checklistComments[field.id] || {}
-
     return (
         <div className="flex flex-col gap-4">
             {checkItems.map((checkItem, idx) => {
@@ -70,7 +65,6 @@ function ChecklistField({
                 const imageError = errors[`${field.id}_${checkItem.trim()}_image`]
                 const showImageSection =
                     (isChecked && field.image_required) || imageData?.previewUrl || imageData?.uploadedUrl
-
                 return (
                     <div key={idx} className="flex flex-col gap-3">
                         <label
@@ -117,7 +111,6 @@ function ChecklistField({
         </div>
     )
 }
-
 /** Dispatches to the correct input component based on the field's type (short_answer, long_answer, checklist, notes). */
 function FieldRenderer({ field, form, imageHook, errors, disabled }) {
     const {
@@ -130,7 +123,6 @@ function FieldRenderer({ field, form, imageHook, errors, disabled }) {
     } = form
     const hasError = !!errors[field.id]
     const value = responses[field.id] || ''
-
     switch (field.field_type) {
         case 'short_answer':
             return (
@@ -191,10 +183,8 @@ function FieldRenderer({ field, form, imageHook, errors, disabled }) {
             )
     }
 }
-
 function FieldImageSection({ field, imageHook, errors, disabled }) {
     if (field.field_type === 'checklist') return null
-
     return (
         <div className="mt-4">
             <label className="mb-3 block text-sm font-semibold text-gray-700">
@@ -215,7 +205,6 @@ function FieldImageSection({ field, imageHook, errors, disabled }) {
         </div>
     )
 }
-
 /** Sticky wizard header with progress bar, step counter, and prev/next/submit navigation. */
 function StepperHeader({
     formTitle,
@@ -295,10 +284,8 @@ function StepperHeader({
         </div>
     )
 }
-
 function FieldCard({ field }) {
     const fieldTypeName = field.field_type.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-
     return (
         <div className="mb-3 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-accent">
@@ -317,7 +304,6 @@ function FieldCard({ field }) {
         </div>
     )
 }
-
 function LoadingState({ formTitle, onBack }) {
     return (
         <div className="flex min-h-screen w-full flex-col bg-slate-50">
@@ -337,7 +323,6 @@ function LoadingState({ formTitle, onBack }) {
         </div>
     )
 }
-
 function EmptyFieldsState({ formTitle, onBack }) {
     return (
         <div className="flex min-h-screen w-full flex-col bg-slate-50">
@@ -359,7 +344,6 @@ function EmptyFieldsState({ formTitle, onBack }) {
         </div>
     )
 }
-
 /**
  * Stepper-based form filler for maintenance tasks. Renders one field per
  * step with image attachments, then submits responses. Also handles
@@ -374,7 +358,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
     const form = useMaintenanceForm({ item, onSubmitted })
     const { imageHook } = form
     const isDisabled = form.isReview || (form.isViewOnly && !form.isEditing)
-
     if (form.isReview) {
         if (form.loading) return <LoadingState formTitle={form.formObj?.title} onBack={onBack} />
         return (
@@ -399,7 +382,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
             />
         )
     }
-
     if (form.isViewOnly && !form.isEditing) {
         return (
             <MaintenanceFormViewOnly
@@ -417,15 +399,12 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
             />
         )
     }
-
     if (form.loading || (!form.formObj && !item)) {
         return <LoadingState formTitle={form.formObj?.title} onBack={onBack} />
     }
-
     if (form.fields.length === 0) {
         return <EmptyFieldsState formTitle={form.formObj?.title} onBack={onBack} />
     }
-
     return (
         <div className="flex min-h-screen w-full flex-col bg-slate-50">
             <StepperHeader
@@ -442,7 +421,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                 onNext={form.handleNext}
                 onSubmit={form.handleSubmit}
             />
-
             {form.currentField && (
                 <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-6 sm:p-8">
                     <div className="rounded-xl bg-white p-6 shadow-sm sm:p-8">
@@ -475,7 +453,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                             )}
                         </div>
                     </div>
-
                     {form.errors.submit && (
                         <div className="mt-4 rounded-lg border border-red-500 bg-red-100 px-4 py-3 text-sm font-medium text-red-600">
                             <i className="fas fa-exclamation-triangle" /> {form.errors.submit}
@@ -483,7 +460,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                     )}
                 </div>
             )}
-
             <input
                 ref={imageHook.fileInputRef}
                 type="file"
@@ -499,7 +475,6 @@ export default function MaintenanceFormView({ item, onBack, onSubmitted }) {
                 onChange={imageHook.onFileInputChange}
                 className="hidden"
             />
-
             <ImagePreviewModal imageUrl={imageHook.imagePreview} onClose={imageHook.closeImagePreview} />
         </div>
     )

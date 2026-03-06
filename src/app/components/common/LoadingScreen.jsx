@@ -2,7 +2,6 @@ import React from 'react'
 
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /**
  * Branded loading indicator with animated progress bar and SRM logo.
  * Supports full-page overlay, inline, and default container modes.
@@ -13,13 +12,11 @@ import { useAccentColor } from '../../hooks/useAccentColor'
  */
 function LoadingScreen({ message = 'Loading...', fullPage = false, inline = false }) {
     const accentColor = useAccentColor()
-
     const containerClass = fullPage
         ? 'fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/85 backdrop-blur-sm'
         : inline
           ? 'flex items-center justify-center bg-transparent px-5 py-10'
           : 'flex items-center justify-center bg-transparent px-10 py-[60px]'
-
     return (
         <>
             <style>{`
@@ -54,5 +51,4 @@ function LoadingScreen({ message = 'Loading...', fullPage = false, inline = fals
         </>
     )
 }
-
 export default LoadingScreen

@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import VideoBackground from './VideoBackground'
-
 /** Maps lock reasons to user-facing title/message pairs. */
 const REASON_CONFIG = {
     'invalid-session': {
@@ -18,13 +17,11 @@ const REASON_CONFIG = {
         title: 'Setup Incomplete'
     }
 }
-
 /** Fallback messaging when the lock reason is unrecognized. */
 const DEFAULT_REASON = {
     message: 'You must contact your district manager for them to approve your sign-up.',
     title: 'Access Pending'
 }
-
 /**
  * Full-screen portal overlay shown when user access is locked.
  * Displays contextual messaging based on the lock reason and provides
@@ -36,16 +33,13 @@ function LockedOverlay({ reason }) {
     const { signOut } = useAuth()
     const accentColor = useAccentColor()
     const { title, message } = REASON_CONFIG[reason] || DEFAULT_REASON
-
     if (typeof document === 'undefined' || !document.body) return null
-
     const handleSignOut = async () => {
         try {
             await signOut()
             window.location.href = '/'
         } catch {}
     }
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85">
             <VideoBackground />
@@ -76,5 +70,4 @@ function LockedOverlay({ reason }) {
         document.body
     )
 }
-
 export default LockedOverlay

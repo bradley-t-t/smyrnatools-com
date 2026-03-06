@@ -1,11 +1,9 @@
 import React from 'react'
-
 const VARIANCE_STYLES = {
     negative: 'text-red-600 bg-red-100',
     neutral: 'text-slate-500 bg-slate-100',
     positive: 'text-emerald-600 bg-emerald-100'
 }
-
 function getVarianceInfo(varianceStr) {
     const n = parseFloat(varianceStr)
     if (!isFinite(n)) return { className: VARIANCE_STYLES.neutral, symbol: '' }
@@ -13,7 +11,6 @@ function getVarianceInfo(varianceStr) {
     if (n < 0) return { className: VARIANCE_STYLES.negative, symbol: '▼' }
     return { className: VARIANCE_STYLES.neutral, symbol: '' }
 }
-
 /** Renders a colored variance indicator cell with up/down arrow and percentage value. */
 export function VarianceCell({ varianceStr }) {
     if (!varianceStr) {
@@ -23,9 +20,7 @@ export function VarianceCell({ varianceStr }) {
             </div>
         )
     }
-
     const { className, symbol } = getVarianceInfo(varianceStr)
-
     return (
         <div className={`inline-flex items-center gap-1 rounded px-2 py-1 text-[0.8125rem] font-semibold ${className}`}>
             {symbol && <span className="text-[0.6875rem]">{symbol}</span>}
@@ -33,7 +28,6 @@ export function VarianceCell({ varianceStr }) {
         </div>
     )
 }
-
 const RPT_INPUT =
     'w-full rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 box-border disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10'
 const RPT_TEXTAREA = `${RPT_INPUT} min-h-[60px] resize-y`
@@ -41,7 +35,6 @@ const TH_STYLE =
     'bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-gray-200'
 const TD_STYLE =
     'px-4 py-3 text-[0.9375rem] text-slate-800 border-b border-slate-100 align-middle bg-white last:border-b-0'
-
 /** Table row showing last week's value (disabled), current week's editable input, and a variance cell. */
 export function ComparisonTableRow({
     label,
@@ -89,7 +82,6 @@ export function ComparisonTableRow({
         </tr>
     )
 }
-
 /** Styled table wrapper for week-over-week comparison grids used by report plugins. */
 export function ComparisonTable({ headers, children }) {
     return (
@@ -107,7 +99,6 @@ export function ComparisonTable({ headers, children }) {
         </table>
     )
 }
-
 /** Styled card container used as a section wrapper in report plugins. Supports accent border and header actions. */
 export function ReportCard({ title, accent, badge, actions, children, className = '' }) {
     return (
@@ -127,7 +118,6 @@ export function ReportCard({ title, accent, badge, actions, children, className 
         </div>
     )
 }
-
 export function EmptyState({ icon = 'fa-inbox', title, subtitle, success = false }) {
     return (
         <div
@@ -141,7 +131,6 @@ export function EmptyState({ icon = 'fa-inbox', title, subtitle, success = false
         </div>
     )
 }
-
 export function StatsCard({ label, value }) {
     return (
         <div className="text-center rounded-lg border border-gray-200 bg-slate-50 p-3.5">
@@ -150,7 +139,6 @@ export function StatsCard({ label, value }) {
         </div>
     )
 }
-
 export function StatsBar({ items }) {
     return (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-3 mt-5 mb-4">
@@ -160,7 +148,6 @@ export function StatsBar({ items }) {
         </div>
     )
 }
-
 export function LoadingSpinner({ text = 'Loading...' }) {
     return (
         <div className="flex items-center justify-center gap-3 p-8 text-slate-500">
@@ -169,7 +156,6 @@ export function LoadingSpinner({ text = 'Loading...' }) {
         </div>
     )
 }
-
 /** Card displaying an AI-generated analysis summary with loading state, error handling, and regenerate action. */
 export function AIAnalysisCard({ analysis, loading, error, onRegenerate, plantCount }) {
     if (loading) {
@@ -182,7 +168,6 @@ export function AIAnalysisCard({ analysis, loading, error, onRegenerate, plantCo
             </div>
         )
     }
-
     if (error && !loading) {
         return (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900 mb-6">
@@ -197,9 +182,7 @@ export function AIAnalysisCard({ analysis, loading, error, onRegenerate, plantCo
             </div>
         )
     }
-
     if (!analysis) return null
-
     return (
         <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
             <div className="flex items-center gap-3 mb-3">
@@ -224,7 +207,6 @@ export function AIAnalysisCard({ analysis, loading, error, onRegenerate, plantCo
         </div>
     )
 }
-
 export function SectionHeader({ icon, title, subtitle }) {
     return (
         <div className="flex items-start gap-3 mb-5">
@@ -240,5 +222,4 @@ export function SectionHeader({ icon, title, subtitle }) {
         </div>
     )
 }
-
 export { RPT_INPUT, RPT_TEXTAREA, TD_STYLE, TH_STYLE }

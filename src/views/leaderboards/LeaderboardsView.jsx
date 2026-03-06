@@ -10,10 +10,8 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { useLeaderboardData } from '../../app/hooks/useLeaderboardData'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
-
 const CURRENT_YEAR = new Date().getFullYear()
 const SKELETON_COUNT = 5
-
 /** Subtle grid overlay for the header background, tinted to the user's accent color. */
 const GRID_PATTERN_STYLE = (accentColor) => ({
     backgroundImage: `
@@ -22,7 +20,6 @@ const GRID_PATTERN_STYLE = (accentColor) => ({
     `,
     backgroundSize: '20px 20px'
 })
-
 /**
  * Region-scoped plant leaderboard view. Ranks plants by a selectable
  * performance category (efficiency, quality, safety, etc.) for a given year.
@@ -35,12 +32,10 @@ export default function LeaderboardsView() {
     const [selectedCategory, setSelectedCategory] = useState('efficiency')
     const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
     const [helpModal, setHelpModal] = useState({ details: null, plant: null })
-
     const selectedRegionCode = preferences.selectedRegion?.code ?? null
     const accentColor = preferences.accentColor || '#1e3a5f'
     const { hoursAdjustmentsData, loading, plantMetrics } = useLeaderboardData(selectedRegionCode, selectedYear)
     const categoryData = LeaderboardsUtility.getCategoryData(plantMetrics, selectedCategory)
-
     /** Opens the hours-adjustment detail modal only if the plant has non-zero adjustment data. */
     const openHelpModal = (plant) => {
         const details = hoursAdjustmentsData[plant.plantCode]
@@ -48,9 +43,7 @@ export default function LeaderboardsView() {
             setHelpModal({ details, plant })
         }
     }
-
     const closeHelpModal = () => setHelpModal({ details: null, plant: null })
-
     return (
         <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100">
             <header className="border-b border-slate-200 bg-white shadow-sm" style={GRID_PATTERN_STYLE(accentColor)}>
@@ -64,7 +57,6 @@ export default function LeaderboardsView() {
                         </div>
                         <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} startYear={2025} />
                     </div>
-
                     <LeaderboardCategorySelector
                         selectedId={selectedCategory}
                         onSelect={setSelectedCategory}
@@ -73,10 +65,8 @@ export default function LeaderboardsView() {
                     />
                 </div>
             </header>
-
             <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
                 {selectedCategory === 'efficiency' && <EfficiencyInfoCard />}
-
                 {loading ? (
                     <div className="space-y-3">
                         {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
@@ -103,7 +93,6 @@ export default function LeaderboardsView() {
                     </div>
                 )}
             </main>
-
             {helpModal.details && (
                 <HelpDetailsModal details={helpModal.details} plant={helpModal.plant} onClose={closeHelpModal} />
             )}

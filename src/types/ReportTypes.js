@@ -15,7 +15,6 @@ function createReportType({ name, title, frequency, assignment, review, fields }
         title
     }
 }
-
 const reportTypes = [
     createReportType({
         assignment: ['reports.assigned.district_manager'],
@@ -126,7 +125,5 @@ const reportTypes = [
         title: 'Test'
     })
 ]
-
 const reportTypeMap = Object.fromEntries(reportTypes.map((rt) => [rt.name, rt]))
-
 export { reportTypeMap, reportTypes }

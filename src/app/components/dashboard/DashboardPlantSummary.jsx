@@ -1,10 +1,8 @@
 import React, { memo, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
-
 /** LocalStorage key for persisting the plant summary minimized/expanded state. */
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
-
 /**
  * Expandable alert card with icon, count badge, and a collapsible item list.
  * Used for unverified mixers, overdue service, open issues, and long-term shop alerts.
@@ -25,7 +23,6 @@ const AlertItem = ({
     const isExpanded = expandedSections[expandKey]
     const displayItems = isExpanded ? items : items.slice(0, maxItems)
     const hasMore = items.length > maxItems
-
     return (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 p-3.5 border-b border-slate-100">
@@ -65,7 +62,6 @@ const AlertItem = ({
         </div>
     )
 }
-
 /** Clickable pill button for navigating to a specific asset in an embedded view. */
 const AssetButton = ({ label, onClick, color }) => (
     <button
@@ -76,7 +72,6 @@ const AssetButton = ({ label, onClick, color }) => (
         {label}
     </button>
 )
-
 /** Compact KPI card displaying a labeled value with optional icon and color. */
 const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
     <div
@@ -92,7 +87,6 @@ const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
         <div className="text-slate-500 text-[11px] font-medium text-center uppercase">{label}</div>
     </div>
 )
-
 /** Operator category card with icon header and clickable name buttons that open the operators embedded view. */
 const OperatorSection = ({
     iconBg,
@@ -143,13 +137,11 @@ const OperatorSection = ({
         </div>
     </div>
 )
-
 /** Maps a display asset type name to its embedded view key. */
 const getAssetViewType = (assetType) => {
     const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
     return viewMap[assetType] || 'equipment'
 }
-
 /**
  * Collapsible plant-level summary panel on the dashboard.
  * Shows leaderboard metrics, AI-generated analysis, asset/operator alerts,
@@ -181,11 +173,9 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         const saved = localStorage.getItem(STORAGE_KEY)
         return saved === null ? true : saved === 'true'
     })
-
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, String(isMinimized))
     }, [isMinimized])
-
     const hasNotifications =
         plantNotifications.unverifiedMixers.length > 0 ||
         plantNotifications.pendingOperators.length > 0 ||
@@ -193,19 +183,14 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         plantNotifications.overdueService.length > 0 ||
         plantNotifications.trainingOperators.length > 0 ||
         plantNotifications.longTermShopAssets.length > 0
-
     if (!hasNotifications && !plantNotifications.leaderboardMetrics) return null
-
     const alertCount =
         plantNotifications.unverifiedMixers.length +
         plantNotifications.overdueService.length +
         plantNotifications.assetsWithMostIssues.length +
         plantNotifications.longTermShopAssets.length
-
     const { leaderboardMetrics, aiSummary, aiSummaryLoading, aiSummaryFailed, shopIssue } = plantNotifications
-
     const toggleMinimized = () => setIsMinimized(!isMinimized)
-
     const renderAssetButton = (asset, color) => (
         <AssetButton
             label={`${asset.type} ${asset.identifier || ''}`}
@@ -216,7 +201,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
             }}
         />
     )
-
     return (
         <div className="bg-white border border-slate-200 rounded-2xl mb-6 overflow-hidden transition-all duration-300">
             <div
@@ -265,7 +249,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                     <i className={`fas fa-chevron-${isMinimized ? 'down' : 'up'} text-sm`} />
                 </button>
             </div>
-
             {!isMinimized && (
                 <>
                     {leaderboardMetrics && (
@@ -324,7 +307,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                             />
                         </div>
                     )}
-
                     {(aiSummary || aiSummaryLoading || aiSummaryFailed) && (
                         <AISummarySection
                             aiSummaryLoading={aiSummaryLoading}
@@ -342,7 +324,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                             isMobile={isMobile}
                         />
                     )}
-
                     {hasNotifications && (
                         <div className={isMobile ? 'p-4' : 'px-7 py-5'}>
                             <TabHeader
@@ -351,7 +332,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 alertCount={alertCount}
                                 accentColor={accentColor}
                             />
-
                             {activeTab === 'alerts' && (
                                 <AlertsTab
                                     plantNotifications={plantNotifications}
@@ -363,7 +343,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                     shopIssue={shopIssue}
                                 />
                             )}
-
                             {activeTab === 'operators' && (
                                 <OperatorsTab
                                     plantNotifications={plantNotifications}
@@ -378,7 +357,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         </div>
     )
 })
-
 /** AI-powered plant performance analysis with typewriter-style display and regenerate button. */
 const AISummarySection = ({
     aiSummaryLoading,
@@ -454,7 +432,6 @@ const AISummarySection = ({
         </div>
     </div>
 )
-
 /** Tab switcher between Alerts and Operators sections with badge counts. */
 const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
     <div className="flex gap-1 border-b-2 border-slate-200 mb-5">
@@ -485,7 +462,6 @@ const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
         ))}
     </div>
 )
-
 /** Alerts tab content showing unverified, overdue, issue-heavy, and long-term shop assets. */
 const AlertsTab = ({
     plantNotifications,
@@ -521,7 +497,6 @@ const AlertsTab = ({
                 )}
             />
         )}
-
         {plantNotifications.overdueService.length > 0 && (
             <AlertItem
                 icon="fa-wrench"
@@ -537,7 +512,6 @@ const AlertsTab = ({
                 renderItem={(a, i) => <span key={i}>{renderAssetButton(a, '#f59e0b')}</span>}
             />
         )}
-
         {plantNotifications.assetsWithMostIssues.length > 0 && (
             <AlertItem
                 icon="fa-exclamation-circle"
@@ -563,7 +537,6 @@ const AlertsTab = ({
                 )}
             />
         )}
-
         {plantNotifications.longTermShopAssets.length > 0 && (
             <AlertItem
                 icon="fa-tools"
@@ -597,7 +570,6 @@ const AlertsTab = ({
                 )}
             />
         )}
-
         {shopIssue && (
             <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
                 <div className="flex items-center justify-center w-10 h-10 bg-red-600 rounded-lg flex-shrink-0">
@@ -614,13 +586,11 @@ const AlertsTab = ({
         )}
     </div>
 )
-
 /** Operators tab content showing unassigned, pending-start, and in-training operator groups. */
 const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
     const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
     const hasOperatorAlerts =
         unassignedOperators.length > 0 || pendingOperators.length > 0 || trainingOperators.length > 0
-
     return (
         <div className="flex flex-col gap-4">
             {unassignedOperators.length > 0 && (
@@ -638,7 +608,6 @@ const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSear
                     setEmbeddedViewSearch={setEmbeddedViewSearch}
                 />
             )}
-
             {pendingOperators.length > 0 && (
                 <OperatorSection
                     iconBg="#10b981"
@@ -655,7 +624,6 @@ const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSear
                     nameField="operatorName"
                 />
             )}
-
             {trainingOperators.length > 0 && (
                 <OperatorSection
                     iconBg="#8b5cf6"
@@ -672,7 +640,6 @@ const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSear
                     nameField="operatorName"
                 />
             )}
-
             {!hasOperatorAlerts && (
                 <div className="flex flex-col items-center gap-2 bg-slate-50 rounded-xl px-5 py-10 text-center">
                     <i className="fas fa-check-circle text-emerald-500 text-[32px]" />
@@ -683,5 +650,4 @@ const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSear
         </div>
     )
 }
-
 export default DashboardPlantSummary

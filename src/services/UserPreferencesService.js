@@ -1,5 +1,4 @@
 import APIUtility from '../utils/APIUtility'
-
 /**
  * User preferences persistence service for saving and retrieving
  * per-user filter states (mixer filters, last-viewed filters) via the edge function.
@@ -12,7 +11,6 @@ class UserPreferencesService {
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch user preferences')
         return json?.data ?? null
     }
-
     /** Persists the user's mixer view filter configuration. */
     static async saveMixerFilters(userId, filters) {
         if (!userId) throw new Error('User ID is required')
@@ -22,7 +20,6 @@ class UserPreferencesService {
             throw new Error(response.json?.error || 'Failed to save mixer filters')
         return true
     }
-
     /** Persists the user's last-viewed filter configuration (cross-entity). */
     static async saveLastViewedFilters(userId, filters) {
         if (!userId) throw new Error('User ID is required')
@@ -36,5 +33,4 @@ class UserPreferencesService {
         return true
     }
 }
-
 export { UserPreferencesService }

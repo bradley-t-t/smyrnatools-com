@@ -2,14 +2,12 @@ import React, { useEffect, useState } from 'react'
 
 import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /** Size-variant Tailwind class mappings for the label and initials badge. */
 const SIZE_CONFIG = {
     large: { fontSize: 'text-base', initialsFontSize: 'text-[13px]', initialsSize: 'h-8 w-8' },
     medium: { fontSize: 'text-sm', initialsFontSize: 'text-[11px]', initialsSize: 'h-[26px] w-[26px]' },
     small: { fontSize: 'text-xs', initialsFontSize: 'text-[10px]', initialsSize: 'h-5 w-5' }
 }
-
 /**
  * Extracts up to two-letter initials from a display name.
  * @param {string} displayName
@@ -20,7 +18,6 @@ function getInitials(displayName) {
     if (parts.length > 1) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
     return displayName.substring(0, 2).toUpperCase()
 }
-
 /**
  * Inline label that asynchronously resolves and displays a user's name by ID.
  * Optionally shows a colored initials badge or user icon, with loading/error states.
@@ -37,10 +34,8 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
     const [error, setError] = useState(null)
     const accentColor = useAccentColor()
     const sizeStyles = SIZE_CONFIG[size] || SIZE_CONFIG.medium
-
     useEffect(() => {
         let mounted = true
-
         async function fetchUserData() {
             if (!userId) {
                 if (mounted) {
@@ -65,16 +60,13 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
                 if (mounted) setIsLoading(false)
             }
         }
-
         fetchUserData()
         return () => {
             mounted = false
         }
     }, [userId])
-
     const baseClass = `inline-flex items-center gap-2 text-gray-700 ${sizeStyles.fontSize}`
     const initialsBaseClass = `inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white ${sizeStyles.initialsFontSize} ${sizeStyles.initialsSize}`
-
     if (isLoading) {
         return (
             <span className={baseClass}>
@@ -84,7 +76,6 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
             </span>
         )
     }
-
     if (error) {
         return (
             <span className={baseClass} title={`Error: ${error}`}>
@@ -97,7 +88,6 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
             </span>
         )
     }
-
     return (
         <span className={baseClass} data-testid={`user-label-${userId}`}>
             {showIcon ? (
@@ -111,5 +101,4 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
         </span>
     )
 }
-
 export default UserLabel

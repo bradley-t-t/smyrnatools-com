@@ -1,12 +1,10 @@
 import React, { useMemo, useState } from 'react'
-
 /** Available time range options for the review stats filter. */
 const RANGE_OPTIONS = [
     { label: 'Last Week', value: 'week' },
     { days: 30, label: '1 Month', value: 'month' },
     { days: 365, label: '1 Year', value: 'year' }
 ]
-
 const getLastWeekMondayISO = () => {
     const now = new Date()
     const day = now.getDay()
@@ -18,7 +16,6 @@ const getLastWeekMondayISO = () => {
     const dd = String(lastMonday.getDate()).padStart(2, '0')
     return `${yyyy}-${mm}-${dd}`
 }
-
 /** Computes completed/pending/not-started totals and completion rate for the user's reports. */
 const computeMyReportsStats = (items) => {
     const total = items.length
@@ -27,11 +24,9 @@ const computeMyReportsStats = (items) => {
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
     return { completed, completionRate, notStarted: total - completed - pending, pending, total }
 }
-
 /** Computes reviewed/pending totals for reports within the selected date range. */
 const computeReviewStats = (items, reviewedByCurrentUser, rangeValue) => {
     let filteredItems
-
     if (rangeValue === 'week') {
         const lastMondayISO = getLastWeekMondayISO()
         filteredItems = items.filter((item) => {
@@ -47,13 +42,11 @@ const computeReviewStats = (items, reviewedByCurrentUser, rangeValue) => {
             return !isNaN(itemDate.getTime()) && itemDate >= cutoffDate
         })
     }
-
     const total = filteredItems.length
     const reviewed = filteredItems.filter((item) => reviewedByCurrentUser?.has(item.id)).length
     const completionRate = total > 0 ? Math.round((reviewed / total) * 100) : 0
     return { completionRate, pending: total - reviewed, reviewed, total }
 }
-
 const StatItem = ({ icon, color, bgColor, count, label }) => (
     <div className="flex items-center gap-2 sm:gap-3">
         <div className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg ${bgColor} ${color}`}>
@@ -65,9 +58,7 @@ const StatItem = ({ icon, color, bgColor, count, label }) => (
         </div>
     </div>
 )
-
 const Divider = () => <div className="w-px h-6 sm:h-8 bg-gray-200 hidden sm:block" />
-
 const ProgressPill = ({ percent, label }) => {
     const color = percent >= 80 ? 'bg-emerald-500' : percent >= 50 ? 'bg-amber-500' : 'bg-red-500'
     return (
@@ -85,7 +76,6 @@ const ProgressPill = ({ percent, label }) => {
         </div>
     )
 }
-
 const RangeSelector = ({ value, onChange }) => (
     <div className="flex items-center gap-0.5 sm:gap-1 bg-slate-100 rounded-lg p-0.5 sm:p-1">
         {RANGE_OPTIONS.map((opt) => (
@@ -101,11 +91,9 @@ const RangeSelector = ({ value, onChange }) => (
         ))}
     </div>
 )
-
 /** Stats bar showing completion/review metrics with a progress pill, adapting to the active tab. */
 function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
     const [reviewRange, setReviewRange] = useState('week')
-
     const stats = useMemo(
         () =>
             tab === 'all'
@@ -113,7 +101,6 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
                 : computeReviewStats(items, reviewedByCurrentUser, reviewRange),
         [items, tab, reviewedByCurrentUser, reviewRange]
     )
-
     if (tab === 'all') {
         return (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
@@ -146,7 +133,6 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
             </div>
         )
     }
-
     return (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
             <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3">
@@ -173,5 +159,4 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
         </div>
     )
 }
-
 export default ReportsStatsCards

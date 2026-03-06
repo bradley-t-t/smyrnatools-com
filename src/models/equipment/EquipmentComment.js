@@ -10,12 +10,10 @@ export class EquipmentComment {
                 ? data.created_at
                 : new Date().toISOString()
     }
-
     static fromRow(row) {
         if (!row) return null
         return new EquipmentComment(row)
     }
-
     toRow() {
         return {
             author: this.author,

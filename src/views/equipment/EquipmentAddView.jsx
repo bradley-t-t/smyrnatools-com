@@ -3,7 +3,6 @@ import React, { useMemo, useState } from 'react'
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import { EquipmentService } from '../../services/EquipmentService'
-
 /**
  * Slide-in form for creating a new heavy equipment record.
  * Requires identifying number, assigned plant, and equipment type.
@@ -22,7 +21,6 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState('')
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
-
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
         return list
@@ -32,34 +30,28 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                     parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0')
             )
     }, [plants])
-
     const selectedPlantObj = visiblePlants.find((p) => p.plantCode === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
         : 'Select Plant'
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
         if (!identifyingNumber) return setError('Identifying number is required')
         if (!assignedPlant) return setError('Plant is required')
         if (!equipmentType) return setError('Equipment type is required')
-
         setIsSaving(true)
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-
             const newEquipment = {
                 assigned_plant: assignedPlant,
                 equipment_type: equipmentType,
                 identifying_number: identifyingNumber,
                 status
             }
-
             const savedEquipment = await EquipmentService.createEquipment(newEquipment, userId)
             if (!savedEquipment) throw new Error('Failed to add equipment - no data returned from server')
-
             onEquipmentAdded(savedEquipment)
             onClose()
         } catch (error) {
@@ -77,7 +69,6 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title="Add New Equipment" onClose={onClose} error={error}>
@@ -102,7 +93,6 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-building"></i>
@@ -166,7 +156,6 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Equipment'}
@@ -188,5 +177,4 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
         </>
     )
 }
-
 export default EquipmentAddView

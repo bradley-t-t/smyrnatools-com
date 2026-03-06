@@ -20,7 +20,6 @@ import PickupTruckIssueModal from './PickupTruckIssueModal'
 import PickupTrucksAddView from './PickupTrucksAddView'
 import PickupTrucksCard from './PickupTrucksCard'
 import PickupTrucksDetailView from './PickupTrucksDetailView'
-
 /**
  * Main list/grid view for the pickup truck fleet. Handles data fetching
  * with comment/issue count aggregation, Supabase realtime subscriptions
@@ -74,7 +73,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         VIN: 'vin',
         Year: 'year'
     }
-
     /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep the pickup list in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
@@ -132,7 +130,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         },
         [regionPlantCodes]
     )
-
     useEffect(() => {
         const channel = supabase
             .channel('pickup-trucks-realtime-changes')
@@ -146,12 +143,10 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                     console.error('Pickup trucks realtime subscription error')
                 }
             })
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-
     /** Fetches all pickups scoped to the user's region, then batch-loads comment and issue counts. */
     const fetchAllPickups = useCallback(async () => {
         setIsLoading(true)
@@ -161,7 +156,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             const data = await PickupTruckService.fetchAll(codes)
             const pickupsList = Array.isArray(data) ? data : []
             setPickups(pickupsList)
-
             if (pickupsList.length > 0) {
                 const pickupIds = pickupsList.map((p) => p.id).filter(Boolean)
                 const [commentsCounts, issuesCounts] = await Promise.all([
@@ -182,11 +176,9 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             setIsLoading(false)
         }
     }, [preferences.selectedRegion?.code])
-
     useEffect(() => {
         fetchAllPickups()
     }, [fetchAllPickups])
-
     useEffect(() => {
         async function loadPlants() {
             try {
@@ -196,13 +188,10 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 setPlants([])
             }
         }
-
         loadPlants()
     }, [regionPlantCodes])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             try {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
@@ -216,13 +205,11 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, selectedPlant])
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -232,7 +219,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             localStorage.setItem('pickup_trucks_last_view_mode', mode)
         }
     }
-
     async function handleExportIssues() {
         setIsExportingIssues(true)
         try {
@@ -249,7 +235,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             setIsExportingIssues(false)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -258,7 +243,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             setSortDirection('asc')
         }
     }
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -266,19 +250,16 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             const root = document.querySelector('.global-dashboard-container.pickup-trucks-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchText, selectedPlant, statusFilter])
-
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
         }, 300),
         []
     )
-
     const filtered = useMemo(() => {
         const q = searchText.trim().toLowerCase()
         const list = pickups.filter((p) => {
@@ -351,15 +332,12 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             'status'
         )
     }, [pickups, searchText, selectedPlant, statusFilter, regionPlantCodes, sortKey, sortDirection])
-
     const duplicateVINs = useMemo(() => {
         return PickupTruckService.getDuplicateVINs(pickups)
     }, [pickups])
-
     const duplicateAssigned = useMemo(() => {
         return PickupTruckService.getDuplicateAssigned(pickups)
     }, [pickups])
-
     const content = useMemo(() => {
         if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
         if (filtered.length === 0)
@@ -720,9 +698,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
             />
         )
     }, [isLoading, filtered, viewMode, searchText, selectedPlant, statusFilter, duplicateVINs, duplicateAssigned])
-
     const showReset = searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses')
-
     function handleDetailSaved(updated) {
         if (updated && updated.id) {
             setPickups((prev) => {
@@ -736,7 +712,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         setSelectedId(null)
         fetchAllPickups()
     }
-
     function handleCommentSaved(pickupId, pickupNumber, comment) {
         setPickups((prev) => {
             const arr = prev.slice()
@@ -753,7 +728,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         setModalPickupNumber('')
         setShowCommentModal(false)
     }
-
     return (
         <>
             <div
@@ -864,5 +838,4 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         </>
     )
 }
-
 export default PickupTrucksView

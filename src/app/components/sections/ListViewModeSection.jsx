@@ -1,11 +1,9 @@
 import React from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 const BASE_ROW_DELAY_MS = 160
 const MIN_ROW_DELAY_MS = 12
 const DECAY_FACTOR = 0.9
-
 /**
  * Computes cumulative animation delay for a row index using exponential decay.
  * Early rows cascade slowly; later rows arrive almost simultaneously.
@@ -17,7 +15,6 @@ function getRowDelay(index) {
     }
     return Math.round(total)
 }
-
 /**
  * Table-based list view mode for assets.
  * Renders rows with action buttons for comments, issues, history, and verification.
@@ -35,7 +32,6 @@ function ListViewModeSection({
     onVerify
 }) {
     const isMobile = useIsMobile()
-
     const styles = {
         actionBtn: {
             alignItems: 'center',
@@ -209,7 +205,6 @@ function ListViewModeSection({
             overflowX: 'auto'
         }
     }
-
     if (!filteredItems || filteredItems.length === 0) {
         return (
             <div style={styles.wrapper}>
@@ -222,7 +217,6 @@ function ListViewModeSection({
             </div>
         )
     }
-
     if (renderRow) {
         return (
             <div style={styles.wrapper}>
@@ -251,8 +245,8 @@ function ListViewModeSection({
                                     alternatingBg
                                 )
                                 return React.cloneElement(row, {
-                                    key: row.key || item.id,
                                     className: `list-row-animated ${row.props.className || ''}`.trim(),
+                                    key: row.key || item.id,
                                     style: {
                                         ...styles.row,
                                         animationDelay: `${getRowDelay(index)}ms`,
@@ -267,7 +261,6 @@ function ListViewModeSection({
             </div>
         )
     }
-
     const renderStars = (rating) => {
         if (!rating) return <span style={styles.notRated}>Not Rated</span>
         const stars = []
@@ -278,7 +271,6 @@ function ListViewModeSection({
         }
         return <div style={styles.starsContainer}>{stars}</div>
     }
-
     return (
         <div style={styles.wrapper}>
             <style>{`
@@ -299,7 +291,6 @@ function ListViewModeSection({
                             const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || ''
                             const isVerified = typeof item.isVerified === 'function' ? item.isVerified() : item.verified
                             const alternatingBg = index % 2 === 0 ? 'white' : '#f8fafc'
-
                             return (
                                 <tr
                                     key={item.id}
@@ -417,5 +408,4 @@ function ListViewModeSection({
         </div>
     )
 }
-
 export default ListViewModeSection

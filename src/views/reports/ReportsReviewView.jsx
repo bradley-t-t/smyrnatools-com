@@ -10,7 +10,6 @@ import { GeneralManagerReviewPlugin } from './types/WeeklyGeneralManagerReport'
 import { PlantManagerReviewPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorReviewPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerReviewPlugin } from './types/WeeklySafetyManagerReport'
-
 /** Maps report type keys to their review-mode plugin components. */
 const PLUGINS = {
     district_manager: DistrictManagerReviewPlugin,
@@ -20,7 +19,6 @@ const PLUGINS = {
     ready_mix_instructor: ReadyMixInstructorReviewPlugin,
     safety_manager: SafetyManagerReviewPlugin
 }
-
 const PLUGIN_ONLY_REPORTS = [
     'plant_production',
     'general_manager',
@@ -28,14 +26,11 @@ const PLUGIN_ONLY_REPORTS = [
     'district_manager',
     'ready_mix_instructor'
 ]
-
 const getFieldIcon = (fieldName) => {
     const iconMap = { total_hours: 'fa-clock', total_yards_lost: 'fa-exclamation-triangle', yardage: 'fa-box' }
     return iconMap[fieldName] || 'fa-recycle'
 }
-
 const getFieldLabel = (field) => (field.name === 'yardage' ? 'Total Yardage' : field.label)
-
 const StatusBadge = ({ isSubmitted }) => (
     <div
         className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold ${isSubmitted ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}
@@ -44,7 +39,6 @@ const StatusBadge = ({ isSubmitted }) => (
         <span className="hidden xs:inline">{isSubmitted ? 'Submitted' : 'Draft'}</span>
     </div>
 )
-
 const MetaItem = ({ icon, label, value }) => (
     <div className="flex items-center gap-2 text-sm text-slate-500">
         <i className={`${icon} text-slate-400`}></i>
@@ -52,7 +46,6 @@ const MetaItem = ({ icon, label, value }) => (
         <strong className="text-slate-800 font-semibold">{value}</strong>
     </div>
 )
-
 /**
  * Read-only review view for a submitted report. Delegates rendering to a
  * type-specific review plugin (e.g. GeneralManagerReviewPlugin). Shows
@@ -61,7 +54,6 @@ const MetaItem = ({ icon, label, value }) => (
  */
 function ReportsReviewView({ report, initialData, onBack, user, completedByUser, onManagerEdit }) {
     const containerRef = useRef(null)
-
     useEffect(() => {
         const el = containerRef.current
         if (!el) return
@@ -72,7 +64,6 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
         const target = scrollable || window
         target.scrollTo(0, 0)
     }, [])
-
     const {
         assignedPlant,
         form,
@@ -99,13 +90,10 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
     } = useReviewData({ completedByUser, initialData, report, user })
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-
     const [summaryTab, setSummaryTab] = useState('summary')
     const [exporting, setExporting] = useState(false)
     const [exportError, setExportError] = useState('')
-
     const PluginComponent = PLUGINS[report.name]
-
     const handleExport = async () => {
         if (exporting || loadingPlants || !plants.length) return
         setExportError('')
@@ -117,7 +105,6 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
         }
         setExporting(false)
     }
-
     const renderPlantManagerForm = () => (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
             <div className="mb-5">
@@ -150,7 +137,6 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
             </div>
         </div>
     )
-
     const renderDefaultForm = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 bg-white rounded-xl border border-gray-200 p-6 mb-6">
             {report.fields
@@ -196,7 +182,6 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
                 ))}
         </div>
     )
-
     const renderAggregateTable = () => (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
             <table className="w-full border-collapse">
@@ -225,7 +210,6 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
             </table>
         </div>
     )
-
     return (
         <div ref={containerRef} className="bg-slate-50 min-h-screen w-full">
             <div className="flex items-center justify-between flex-wrap gap-4 bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
@@ -321,5 +305,4 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
         </div>
     )
 }
-
 export default ReportsReviewView

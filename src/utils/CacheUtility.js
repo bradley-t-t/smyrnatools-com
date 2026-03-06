@@ -26,6 +26,5 @@ const CacheUtility = {
         return value
     }
 }
-
 export default CacheUtility
 export { CacheUtility }

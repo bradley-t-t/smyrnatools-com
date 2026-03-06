@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 /** Formula component definitions used to render the efficiency calculation breakdown. */
 const FORMULA_COMPONENTS = [
     { description: 'Average yards produced per hour worked', isOperator: false, label: 'YPH Score', weight: '90%' },
@@ -15,7 +14,6 @@ const FORMULA_COMPONENTS = [
         weight: null
     }
 ]
-
 /**
  * Collapsible info card explaining the leaderboard efficiency formula.
  * Displays a visual formula breakdown with weighted components
@@ -24,7 +22,6 @@ const FORMULA_COMPONENTS = [
 export default function EfficiencyInfoCard() {
     const isMobile = useIsMobile()
     const [isExpanded, setIsExpanded] = useState(false)
-
     return (
         <div className="mb-6 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 md:mb-8">
             <button
@@ -49,7 +46,6 @@ export default function EfficiencyInfoCard() {
                     className={`fas fa-chevron-down text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
-
             {isExpanded && (
                 <div className="border-t border-blue-100 px-5 pb-5 pt-4 md:px-6 md:pb-6">
                     <div className="mb-5 flex flex-wrap items-center justify-center gap-2 rounded-xl bg-white p-4 shadow-sm">
@@ -73,7 +69,6 @@ export default function EfficiencyInfoCard() {
                             )
                         )}
                     </div>
-
                     <div className="space-y-2">
                         {FORMULA_COMPONENTS.filter((c) => !c.isOperator).map((item, idx) => (
                             <div key={idx} className="flex items-start gap-3 rounded-lg bg-white/60 px-3 py-2">
@@ -87,7 +82,6 @@ export default function EfficiencyInfoCard() {
                             </div>
                         ))}
                     </div>
-
                     <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
                         <i className="fas fa-lightbulb mt-0.5" />
                         <span>

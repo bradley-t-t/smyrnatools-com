@@ -15,9 +15,7 @@ import {
 } from '../utils/BaseAssetUtility'
 import EquipmentUtility from '../utils/EquipmentUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
-
 const SERVICE_PREFIX = '/equipment-service'
-
 /** Attaches a lazy isVerified() method to an equipment instance using EquipmentUtility logic. */
 function attachIsVerified(equipment) {
     if (!equipment) return equipment
@@ -33,7 +31,6 @@ function attachIsVerified(equipment) {
     }
     return equipment
 }
-
 /**
  * Heavy equipment CRUD, history, comments, issues, and verification service.
  * Delegates shared asset operations to BaseAssetUtility.
@@ -43,43 +40,36 @@ class EquipmentServiceImpl {
     static async fetchAllCommentsCounts(equipmentIds) {
         return fetchAllCountsFromTable('heavy_equipment_comments', 'equipment_id', equipmentIds)
     }
-
     /** Fetches open issue counts for multiple equipment IDs in a single query. */
     static async fetchAllIssuesCounts(equipmentIds) {
         return fetchAllOpenIssueCountsFromTable('heavy_equipment_maintenance', 'equipment_id', equipmentIds)
     }
-
     /** Fetches all equipment records. */
     static async getAllEquipments() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch equipment')
         return (json?.data ?? []).map((row) => new Equipment(row))
     }
-
     /** Alias for getAllEquipments for backward compatibility. */
     static async fetchEquipments() {
         return this.getAllEquipments()
     }
-
     /** Fetches a single equipment record by UUID with model instantiation. */
     static async getEquipmentById(id) {
         ValidationUtility.requireUUID(id, 'Equipment ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id }, 'Failed to fetch equipment')
         return json?.data ? new Equipment(json.data) : null
     }
-
     /** Fetches equipment by ID with verification status attached. */
     static async fetchEquipmentById(id) {
         ValidationUtility.requireUUID(id, 'Invalid equipment ID')
         const equipment = await this.getEquipmentById(id)
         return equipment ? attachIsVerified(equipment) : null
     }
-
     /** Fetches only active-status equipment records. */
     static async getActiveEquipments() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active equipment')
         return (json?.data ?? []).map((row) => new Equipment(row))
     }
-
     /** Fetches change history for a specific equipment, optionally limited. */
     static async getEquipmentHistory(equipmentId, limit = null) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -92,7 +82,6 @@ class EquipmentServiceImpl {
         )
         return (json?.data ?? []).map((entry) => EquipmentHistory.fromApiFormat(entry))
     }
-
     /** Creates a new equipment record via the edge function. */
     static async addEquipment(equipment, userId) {
         const json = await apiPostOrThrow(
@@ -102,14 +91,12 @@ class EquipmentServiceImpl {
         )
         return json?.data ? new Equipment(json.data) : null
     }
-
     /** Creates equipment with user ID resolution and ID cleanup. */
     static async createEquipment(equipment, userId) {
         const resolvedUserId = await requireUserId(userId, 'Authentication required')
         if (equipment.id) delete equipment.id
         return this.addEquipment(equipment, resolvedUserId)
     }
-
     /**
      * Updates an equipment record and dispatches a notifications refresh
      * so verification status badges update across the UI.
@@ -129,13 +116,11 @@ class EquipmentServiceImpl {
         }
         return updated
     }
-
     /** Soft-deletes an equipment record. */
     static async deleteEquipment(id) {
         ValidationUtility.requireUUID(id, 'Equipment ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete equipment')
     }
-
     /** Records a field-level change in the equipment history audit trail. */
     static async createHistoryEntry(equipmentId, fieldName, oldValue, newValue, changedBy) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -154,7 +139,6 @@ class EquipmentServiceImpl {
         )
         return json?.data
     }
-
     /** Fetches cleanliness rating history, optionally filtered by equipment ID and time range. */
     static async getCleanlinessHistory(equipmentId = null, months = 6) {
         const payload = {}
@@ -167,7 +151,6 @@ class EquipmentServiceImpl {
         )
         return json?.data ?? []
     }
-
     /** Fetches condition rating history, optionally filtered by equipment ID and time range. */
     static async getConditionHistory(equipmentId = null, months = 6) {
         const payload = {}
@@ -180,7 +163,6 @@ class EquipmentServiceImpl {
         )
         return json?.data ?? []
     }
-
     /** Fetches all equipment with a specific status value. */
     static async getEquipmentsByStatus(status) {
         if (!status) throw new Error('Status is required')
@@ -191,7 +173,6 @@ class EquipmentServiceImpl {
         )
         return (json?.data ?? []).map((row) => new Equipment(row))
     }
-
     /** Searches equipment by identifying number (partial match). */
     static async searchEquipmentsByIdentifyingNumber(query) {
         if (!query?.trim()) throw new Error('Search query is required')
@@ -202,7 +183,6 @@ class EquipmentServiceImpl {
         )
         return (json?.data ?? []).map((row) => new Equipment(row))
     }
-
     /** Fetches equipment that hasn't been serviced within the given day threshold. */
     static async getEquipmentsNeedingService(dayThreshold = 30) {
         const json = await apiPostOrThrow(
@@ -212,7 +192,6 @@ class EquipmentServiceImpl {
         )
         return (json?.data ?? []).map((row) => new Equipment(row))
     }
-
     /** Fetches all comments for a specific equipment record. */
     static async fetchComments(equipmentId) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -223,7 +202,6 @@ class EquipmentServiceImpl {
         )
         return (json?.data ?? []).map((row) => EquipmentComment.fromRow(row))
     }
-
     /** Adds a text comment to an equipment record. */
     static async addComment(equipmentId, text, author) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -240,20 +218,17 @@ class EquipmentServiceImpl {
         )
         return json?.data ? EquipmentComment.fromRow(json.data) : null
     }
-
     /** Deletes a comment by its UUID. */
     static async deleteComment(commentId) {
         ValidationUtility.requireUUID(commentId, 'Comment ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
-
     /** Fetches all open issues for a specific equipment record. */
     static async fetchIssues(equipmentId) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { equipmentId }, 'Failed to fetch issues')
         return json?.data ?? []
     }
-
     /** Reports a new maintenance issue with severity classification. */
     static async addIssue(equipmentId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -270,19 +245,16 @@ class EquipmentServiceImpl {
         )
         return json?.data
     }
-
     /** Deletes an issue by its UUID. */
     static async deleteIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     }
-
     /** Marks an issue as completed/resolved. */
     static async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     }
-
     /**
      * Fetches all equipment with enriched details (comments count, issues count, status history).
      * Optionally filtered by region codes.
@@ -295,7 +267,6 @@ class EquipmentServiceImpl {
             regionCodes
         })
     }
-
     /** Marks equipment as verified by the given user and refreshes notification badges. */
     static async verifyEquipment(equipmentId, userId) {
         ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
@@ -310,5 +281,4 @@ class EquipmentServiceImpl {
         return attachIsVerified(equipment)
     }
 }
-
 export const EquipmentService = EquipmentServiceImpl

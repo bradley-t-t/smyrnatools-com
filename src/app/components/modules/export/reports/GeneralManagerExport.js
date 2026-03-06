@@ -28,7 +28,6 @@ import {
     truncateToTenth
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExport } from '../ExportModule'
-
 /**
  * Generates a multi-sheet General Manager Report Excel workbook.
  * Fetches asset data, efficiency reports, RMI snapshots, and aggregate production
@@ -37,9 +36,7 @@ import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExpor
  */
 export async function exportGeneralManagerReport({ form, plants, weekIso, filename }) {
     if (typeof window === 'undefined') return
-
     const finalFilename = filename || generateFilename('General Manager Report', weekIso)
-
     const sortedPlantsEarly = sortPlants(plants)
     let totalOpsEarly = 0,
         totalRunnableEarly = 0,
@@ -56,13 +53,11 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
         totalRunnableEarly + totalDownEarly > 0
             ? Math.round((totalRunnableEarly / (totalRunnableEarly + totalDownEarly)) * 100)
             : 0
-
     const plantIssuesEarly = []
     sortedPlantsEarly.forEach((p) => {
         const down = ensure(form[`down_trucks_${p.plant_code}`], true)
         if (down >= 2) plantIssuesEarly.push(`${p.plant_code}: ${down} down`)
     })
-
     const aiSummaryPromise = AIService.generateGMReportExportSummary({
         allocationPct: allocationPctEarly,
         fleetUtilization: fleetUtilizationEarly,
@@ -77,7 +72,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
         console.warn('AI summary generation failed:', err)
         return null
     })
-
     const [initData, allMonthlyData, assetResults] = await Promise.all([
         initExport({ subject: 'Weekly General Manager Report' }),
         fetchAllMonthlyGMReports(),
@@ -89,10 +83,8 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
             PickupTruckService.getAll().catch(() => [])
         ])
     ])
-
     const { wb, ExcelLib, logoBase64 } = initData
     const [mixers, tractors, trailers, equipment, pickups] = assetResults
-
     const plantCodes = new Set(
         plants.map((p) =>
             String(p.plant_code || '')
@@ -107,7 +99,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
                 .toUpperCase()
             return plantCodes.has(plantCode)
         })
-
     const assetData = {
         equipment: filterByPlant(equipment),
         mixers: filterByPlant(mixers),
@@ -115,7 +106,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
         tractors: filterByPlant(tractors),
         trailers: filterByPlant(trailers)
     }
-
     const weeksToExport = [{ form, weekIso }]
     let checkWeek = getPreviousWeekIso(weekIso)
     const weekIsos = [weekIso]
@@ -132,7 +122,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
             break
         }
     }
-
     const [effReportsMap, rmiDataMap, aggReportsMap, allAggReportsMap] = await Promise.all([
         Promise.all(
             weekIsos.map(async (w) => {
@@ -183,7 +172,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
             return map
         })
     ])
-
     for (let i = 0; i < weeksToExport.length; i++) {
         const weekData = weeksToExport[i]
         const prevWeekData = weeksToExport[i + 1] || null
@@ -194,7 +182,6 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
         const aggregateReport = aggReportsMap[weekData.weekIso] || null
         const prevAggregateReport = prevWeekData ? aggReportsMap[prevWeekData.weekIso] || null : null
         const allAggReports = allAggReportsMap[weekData.weekIso] || { monthly: [], yearly: [] }
-
         await createWeekSheet(
             wb,
             ExcelLib,
@@ -217,10 +204,8 @@ export async function exportGeneralManagerReport({ form, plants, weekIso, filena
             }
         )
     }
-
     await exportWorkbook(wb, finalFilename)
 }
-
 /** Builds a single week's GM report sheet with production, efficiency, fleet, RMI, and aggregate sections. */
 async function createWeekSheet(
     wb,
@@ -244,11 +229,9 @@ async function createWeekSheet(
         allAggReports = { monthly: [], yearly: [] },
         aiSummaryPromise = null
     } = prefetchedData
-
     const sortedPlants = sortPlants(plants)
     const sortedEffReports = sortPlants(effReports)
     const sortedPrevEffReports = sortPlants(prevEffReports)
-
     const rmiSnapshot = rmiData?.snapshot_data || {}
     const mixerTrainers = rmiSnapshot.mixer_trainers || []
     const tractorTrainers = rmiSnapshot.tractor_trainers || []
@@ -257,7 +240,6 @@ async function createWeekSheet(
     const mixerTraining = rmiSnapshot.mixer_training || []
     const tractorTraining = rmiSnapshot.tractor_training || []
     const hiringGoals = rmiData?.hiring_goals || {}
-
     const allTrainers = [
         ...mixerTrainers.map((t) => ({ ...t, type: 'Mixer' })),
         ...tractorTrainers.map((t) => ({
@@ -279,7 +261,6 @@ async function createWeekSheet(
             type: 'Tractor'
         }))
     ]
-
     let totalHiringNeeded = 0
     sortedPlants.forEach((p) => {
         const goal = Number(hiringGoals[p.plant_code]) || 0
@@ -287,18 +268,14 @@ async function createWeekSheet(
         const needed = goal - currentOps
         if (needed > 0) totalHiringNeeded += needed
     })
-
     const sheetName = weekIso ? ReportService.getWeekRangeFromIso(weekIso).replace(' through ', ' - ') : 'Weekly Report'
     const ws = createSheet(wb, sheetName)
-
     const weekRange = weekIso ? ReportService.getWeekRangeFromIso(weekIso) : ''
-
     let r = addReportHeader(ws, wb, {
         logoBase64,
         subtitle: weekRange || 'Weekly Summary',
         title: 'General Manager Report'
     })
-
     let totalOps = 0,
         totalRunnable = 0,
         totalDown = 0,
@@ -311,11 +288,9 @@ async function createWeekSheet(
         totalYardage += ensure(form[`total_yardage_${p.plant_code}`], true)
         totalHours += ensure(form[`total_hours_${p.plant_code}`], true)
     })
-
     const allocationPct = totalRunnable > 0 ? Math.round((totalOps / totalRunnable) * 100) : 0
     const fleetUtilization =
         totalRunnable + totalDown > 0 ? Math.round((totalRunnable / (totalRunnable + totalDown)) * 100) : 0
-
     if (aiSummaryPromise) {
         const aiSummary = await aiSummaryPromise
         if (aiSummary) {
@@ -340,7 +315,6 @@ async function createWeekSheet(
                 }
             }
             ws.getRow(2).height = 22
-
             ws.mergeCells(3, 18, 5, 27)
             const aiCell = ws.getCell(3, 18)
             aiCell.value = aiSummary
@@ -375,25 +349,19 @@ async function createWeekSheet(
             ws.getRow(5).height = 20
         }
     }
-
     const overviewStartRow = r
     const overviewCol = 18
-
     ws.getColumn(overviewCol).width = 14
     ws.getColumn(overviewCol + 1).width = 8
     ws.getColumn(overviewCol + 2).width = 10
     ws.getColumn(overviewCol + 3).width = 1
-
     const totalLoads = Math.round(totalYardage / 10)
-
     const workDays = 6
     const dailyYardage = Math.round(totalYardage / workDays)
     const dailyLoads = Math.round(totalLoads / workDays)
     const dailyHours = (totalHours / workDays).toFixed(1)
-
     const loadsPerOpPerDay = totalOps > 0 ? (totalLoads / totalOps / workDays).toFixed(1) : '0.0'
     const hoursPerOpPerDay = totalOps > 0 ? (totalHours / totalOps / workDays).toFixed(1) : '0.0'
-
     let prevTotalOpsOv = 0,
         prevTotalRunnableOv = 0,
         prevTotalDownOv = 0,
@@ -419,9 +387,7 @@ async function createWeekSheet(
     const prevDailyHours = (prevTotalHoursOv / workDays).toFixed(1)
     const prevLoadsPerOpPerDay = prevTotalOpsOv > 0 ? (prevTotalLoads / prevTotalOpsOv / workDays).toFixed(1) : '0.0'
     const prevHoursPerOpPerDay = prevTotalOpsOv > 0 ? (prevTotalHoursOv / prevTotalOpsOv / workDays).toFixed(1) : '0.0'
-
     let ovRow = overviewStartRow
-
     ws.mergeCells(ovRow, overviewCol, ovRow, overviewCol + 2)
     const overviewTitleCell = ws.getCell(ovRow, overviewCol)
     overviewTitleCell.value = 'Weekly Overview'
@@ -432,7 +398,6 @@ async function createWeekSheet(
     ws.getCell(ovRow, overviewCol + 2).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
     ws.getRow(ovRow).height = 28
     ovRow += 2
-
     const addOverviewGroup = (title, metrics) => {
         ws.mergeCells(ovRow, overviewCol, ovRow, overviewCol + 2)
         const groupCell = ws.getCell(ovRow, overviewCol)
@@ -452,17 +417,14 @@ async function createWeekSheet(
         }
         ws.getRow(ovRow).height = 20
         ovRow++
-
         metrics.forEach((metric, idx) => {
             const isAlt = idx % 2 === 1
             const bgColor = isAlt ? COLORS.snow : null
-
             const labelCell = ws.getCell(ovRow, overviewCol)
             labelCell.value = metric.label
             labelCell.font = { color: { argb: COLORS.slate500 }, name: 'Calibri', size: 10 }
             labelCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (bgColor) labelCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
             const changeInfo =
                 metric.prev !== undefined
                     ? metric.useValue
@@ -474,7 +436,6 @@ async function createWeekSheet(
             if (bgColor && (!changeInfo || !changeInfo.text)) {
                 changeCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
             }
-
             const valueCell = ws.getCell(ovRow, overviewCol + 2)
             if (metric.suffix) {
                 valueCell.value = metric.value + metric.suffix
@@ -485,13 +446,11 @@ async function createWeekSheet(
             valueCell.font = { bold: true, color: { argb: metric.color || COLORS.brand }, name: 'Calibri', size: 12 }
             valueCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (bgColor) valueCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
             ws.getRow(ovRow).height = 20
             ovRow++
         })
         ovRow++
     }
-
     addOverviewGroup('Fleet', [
         { label: 'Plants', value: sortedPlants.length },
         { label: 'Runnable', prev: prevTotalRunnableOv, useValue: true, value: totalRunnable },
@@ -511,7 +470,6 @@ async function createWeekSheet(
             value: fleetUtilization
         }
     ])
-
     addOverviewGroup('Operators', [
         { label: 'Total', prev: prevTotalOpsOv, useValue: true, value: totalOps },
         {
@@ -522,7 +480,6 @@ async function createWeekSheet(
             value: allocationPct
         }
     ])
-
     addOverviewGroup('Training', [
         { label: 'Trainers', value: allTrainers.length },
         {
@@ -537,30 +494,25 @@ async function createWeekSheet(
             value: totalHiringNeeded
         }
     ])
-
     addOverviewGroup('Weekly Production', [
         { format: '#,##0', label: 'Yardage', prev: prevTotalYardageOv, value: totalYardage },
         { format: '#,##0', label: 'Loads', prev: prevTotalLoads, value: totalLoads },
         { format: '#,##0.0', label: 'Hours', prev: prevTotalHoursOv, value: totalHours }
     ])
-
     addOverviewGroup('Daily Averages', [
         { format: '#,##0', label: 'Yardage', prev: prevDailyYardage, value: dailyYardage },
         { format: '#,##0', label: 'Loads', prev: prevDailyLoads, value: dailyLoads },
         { label: 'Hours', prev: parseFloat(prevDailyHours), value: dailyHours }
     ])
-
     addOverviewGroup('Per Operator/Day', [
         { label: 'Loads', prev: parseFloat(prevLoadsPerOpPerDay), value: loadsPerOpPerDay },
         { label: 'Hours', prev: parseFloat(prevHoursPerOpPerDay), value: hoursPerOpPerDay }
     ])
-
     const monthlyCol = overviewCol + 4
     ws.getColumn(monthlyCol).width = 14
     ws.getColumn(monthlyCol + 1).width = 8
     ws.getColumn(monthlyCol + 2).width = 10
     ws.getColumn(monthlyCol + 3).width = 1
-
     const calcMonthlyTotals = (reports) => {
         let ops = 0,
             runnable = 0,
@@ -584,21 +536,17 @@ async function createWeekSheet(
         const avgDown = weekCount > 0 ? Math.round(down / weekCount) : 0
         return { avgDown, avgOps, avgRunnable, hours, loads: Math.round(yardage / 10), weekCount, yardage }
     }
-
     const filteredMonthlyForSidebar = allMonthlyData
         .map((m) => {
             const filtered = m.reports.filter((r) => r.weekIso <= weekIso)
             return { ...m, reports: filtered, weekIsos: new Set(filtered.map((r) => r.weekIso)) }
         })
         .filter((m) => m.reports.length > 0)
-
     const monthlyTotals = filteredMonthlyForSidebar.map((m) => ({
         ...m,
         totals: calcMonthlyTotals(m.reports)
     }))
-
     let moRow = overviewStartRow
-
     ws.mergeCells(moRow, monthlyCol, moRow, monthlyCol + 2)
     const monthlyTitleCell = ws.getCell(moRow, monthlyCol)
     monthlyTitleCell.value = 'Monthly Overview'
@@ -608,7 +556,6 @@ async function createWeekSheet(
     ws.getCell(moRow, monthlyCol + 1).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
     ws.getCell(moRow, monthlyCol + 2).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
     moRow += 2
-
     const addMonthlyGroup = (title, metrics) => {
         ws.mergeCells(moRow, monthlyCol, moRow, monthlyCol + 2)
         const groupCell = ws.getCell(moRow, monthlyCol)
@@ -628,17 +575,14 @@ async function createWeekSheet(
         }
         ws.getRow(moRow).height = 20
         moRow++
-
         metrics.forEach((metric, idx) => {
             const isAlt = idx % 2 === 1
             const bgColor = isAlt ? COLORS.snow : null
-
             const labelCell = ws.getCell(moRow, monthlyCol)
             labelCell.value = metric.label
             labelCell.font = { color: { argb: COLORS.slate500 }, name: 'Calibri', size: 10 }
             labelCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (bgColor) labelCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
             const changeInfo =
                 metric.prev !== undefined
                     ? metric.useValue
@@ -650,7 +594,6 @@ async function createWeekSheet(
             if (bgColor && (!changeInfo || !changeInfo.text)) {
                 changeCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
             }
-
             const valueCell = ws.getCell(moRow, monthlyCol + 2)
             if (metric.suffix) {
                 valueCell.value = metric.value + metric.suffix
@@ -661,20 +604,17 @@ async function createWeekSheet(
             valueCell.font = { bold: true, color: { argb: metric.color || COLORS.brand }, name: 'Calibri', size: 12 }
             valueCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (bgColor) valueCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
             ws.getRow(moRow).height = 20
             moRow++
         })
         moRow++
     }
-
     monthlyTotals.forEach((monthData, idx) => {
         const prevMonthData = monthlyTotals[idx + 1]
         const prevTotals = prevMonthData ? prevMonthData.totals : null
         const weeksReported = monthData.weekIsos ? monthData.weekIsos.size : monthData.totals.weekCount
         const totalWeeks = monthData.totalWeeks || 4
         const weeksLabel = weeksReported === 0 ? `0 of ${totalWeeks} weeks` : `${weeksReported}/${totalWeeks} weeks`
-
         addMonthlyGroup(monthData.monthName, [
             { label: 'Weeks', value: weeksLabel },
             { format: '#,##0', label: 'Yardage', prev: prevTotals?.yardage, value: monthData.totals.yardage },
@@ -682,12 +622,10 @@ async function createWeekSheet(
             { format: '#,##0.0', label: 'Hours', prev: prevTotals?.hours, value: monthData.totals.hours }
         ])
     })
-
     if (assetData) {
         const assetCol = monthlyCol + 4
         ws.getColumn(assetCol).width = 14
         ws.getColumn(assetCol + 1).width = 10
-
         const countByStatus = (items) => {
             const counts = { active: 0, retired: 0, shop: 0, spare: 0, total: 0 }
             items.forEach((item) => {
@@ -699,7 +637,6 @@ async function createWeekSheet(
             })
             return counts
         }
-
         const countTractorsByType = (tractors) => {
             const cement = tractors.filter((t) => t.freight === 'Cement' || !t.freight)
             const endDump = tractors.filter((t) => t.freight === 'Aggregate')
@@ -710,15 +647,12 @@ async function createWeekSheet(
                 endDump: countByStatus(endDump)
             }
         }
-
         const mixerCounts = countByStatus(assetData.mixers || [])
         const tractorBreakdown = countTractorsByType(assetData.tractors || [])
         const trailerCounts = countByStatus(assetData.trailers || [])
         const equipmentCounts = countByStatus(assetData.equipment || [])
         const pickupCounts = countByStatus(assetData.pickups || [])
-
         let asRow = overviewStartRow
-
         ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
         const assetTitleCell = ws.getCell(asRow, assetCol)
         assetTitleCell.value = 'Asset Overview'
@@ -728,7 +662,6 @@ async function createWeekSheet(
         ws.getCell(asRow, assetCol + 1).fill = { fgColor: { argb: COLORS.brand }, pattern: 'solid', type: 'pattern' }
         ws.getRow(asRow).height = 28
         asRow++
-
         ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
         const assetNoteCell = ws.getCell(asRow, assetCol)
         assetNoteCell.value = 'As of report generation'
@@ -736,7 +669,6 @@ async function createWeekSheet(
         assetNoteCell.alignment = { horizontal: 'center', vertical: 'middle' }
         ws.getRow(asRow).height = 16
         asRow++
-
         const addAssetGroup = (title, counts) => {
             ws.mergeCells(asRow, assetCol, asRow, assetCol + 1)
             const groupCell = ws.getCell(asRow, assetCol)
@@ -751,18 +683,15 @@ async function createWeekSheet(
             }
             ws.getRow(asRow).height = 20
             asRow++
-
             const statusRows = [
                 { color: COLORS.success, label: 'Active', value: counts.active },
                 { color: COLORS.brand, label: 'Spare', value: counts.spare },
                 { color: counts.shop > 0 ? COLORS.warning : COLORS.brand, label: 'In Shop', value: counts.shop },
                 { bold: true, color: COLORS.slate700, label: 'Total', value: counts.total }
             ]
-
             statusRows.forEach((row, idx) => {
                 const isAlt = idx % 2 === 1
                 const bgColor = isAlt ? COLORS.snow : null
-
                 const labelCell = ws.getCell(asRow, assetCol)
                 labelCell.value = row.label
                 labelCell.font = {
@@ -773,19 +702,16 @@ async function createWeekSheet(
                 }
                 labelCell.alignment = { horizontal: 'left', vertical: 'middle' }
                 if (bgColor) labelCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
                 const valueCell = ws.getCell(asRow, assetCol + 1)
                 valueCell.value = row.value
                 valueCell.font = { bold: row.bold || false, color: { argb: row.color }, name: 'Calibri', size: 12 }
                 valueCell.alignment = { horizontal: 'left', vertical: 'middle' }
                 if (bgColor) valueCell.fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
-
                 ws.getRow(asRow).height = 20
                 asRow++
             })
             asRow++
         }
-
         addAssetGroup('Mixers', mixerCounts)
         addAssetGroup('Cement Haulers', tractorBreakdown.cement)
         addAssetGroup('End Dump', tractorBreakdown.endDump)
@@ -794,10 +720,8 @@ async function createWeekSheet(
         addAssetGroup('Equipment', equipmentCounts)
         addAssetGroup('Pickup Trucks', pickupCounts)
     }
-
     addSectionTitle(ws, r, 'Plant Summary')
     r += 2
-
     const plantHeaders = [
         { label: 'Plant', merge: false },
         { align: 'left', label: 'Name', merge: false },
@@ -810,52 +734,43 @@ async function createWeekSheet(
     ]
     addMergedTableHeaders(ws, r, plantHeaders)
     r++
-
     sortedPlants.forEach((p, idx) => {
         const ops = ensure(form[`active_operators_${p.plant_code}`], true)
         const runnable = ensure(form[`runnable_trucks_${p.plant_code}`], true)
         const down = ensure(form[`down_trucks_${p.plant_code}`], true)
         const yardage = ensure(form[`total_yardage_${p.plant_code}`], true)
         const hours = ensure(form[`total_hours_${p.plant_code}`], true)
-
         const prevOps = prevGMData ? ensure(prevGMData[`active_operators_${p.plant_code}`], true) : null
         const prevRunnable = prevGMData ? ensure(prevGMData[`runnable_trucks_${p.plant_code}`], true) : null
         const prevDown = prevGMData ? ensure(prevGMData[`down_trucks_${p.plant_code}`], true) : null
         const prevYardage = prevGMData ? ensure(prevGMData[`total_yardage_${p.plant_code}`], true) : null
         const prevHours = prevGMData ? ensure(prevGMData[`total_hours_${p.plant_code}`], true) : null
-
         const opsChange = prevGMData ? getChangeValue(ops, prevOps, false) : { color: null, text: '' }
         const runnableChange = prevGMData ? getChangeValue(runnable, prevRunnable, false) : { color: null, text: '' }
         const downChange = prevGMData ? getChangeValue(down, prevDown, true) : { color: null, text: '' }
         const yardageChange = prevGMData ? getChangeText(yardage, prevYardage, false) : { color: null, text: '' }
         const hoursChange = prevGMData ? getChangeText(hours, prevHours, false) : { color: null, text: '' }
-
         const isAlt = idx % 2 === 1
-
         const rowData = [{ align: 'center', value: ensure(p.plant_code, false) }, ensure(p.plant_name, false)]
         addDataRow(ws, r, rowData, 2, isAlt)
-
         addChangePct(ws.getCell(r, 4), opsChange, isAlt)
         const opsCell = ws.getCell(r, 5)
         opsCell.value = ops
         opsCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         opsCell.alignment = { horizontal: 'left', vertical: 'middle' }
         if (isAlt) opsCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
         addChangePct(ws.getCell(r, 6), runnableChange, isAlt)
         const runnableCell = ws.getCell(r, 7)
         runnableCell.value = runnable
         runnableCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         runnableCell.alignment = { horizontal: 'left', vertical: 'middle' }
         if (isAlt) runnableCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
         addChangePct(ws.getCell(r, 8), downChange, isAlt)
         const downCell = ws.getCell(r, 9)
         downCell.value = down
         downCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         downCell.alignment = { horizontal: 'left', vertical: 'middle' }
         if (isAlt) downCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
         addChangePct(ws.getCell(r, 10), yardageChange, isAlt)
         const yardageCell = ws.getCell(r, 11)
         yardageCell.value = yardage
@@ -863,7 +778,6 @@ async function createWeekSheet(
         yardageCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         yardageCell.alignment = { horizontal: 'left', vertical: 'middle' }
         if (isAlt) yardageCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
         addChangePct(ws.getCell(r, 12), hoursChange, isAlt)
         const hoursCell = ws.getCell(r, 13)
         hoursCell.value = hours
@@ -871,7 +785,6 @@ async function createWeekSheet(
         hoursCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
         hoursCell.alignment = { horizontal: 'left', vertical: 'middle' }
         if (isAlt) hoursCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
         ws.mergeCells(r, 14, r, 16)
         const notesCell = ws.getCell(r, 14)
         notesCell.value = ensure(form[`notes_${p.plant_code}`], false)
@@ -882,11 +795,9 @@ async function createWeekSheet(
             ws.getCell(r, 15).fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
             ws.getCell(r, 16).fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
         }
-
         ws.getRow(r).height = 20
         r++
     })
-
     let prevTotalOps = 0,
         prevTotalRunnable = 0,
         prevTotalDown = 0,
@@ -901,7 +812,6 @@ async function createWeekSheet(
             prevTotalHours += ensure(prevGMData[`total_hours_${p.plant_code}`], true)
         })
     }
-
     const totalOpsChange = prevGMData ? getChangeValue(totalOps, prevTotalOps, false) : { color: null, text: '' }
     const totalRunnableChange = prevGMData
         ? getChangeValue(totalRunnable, prevTotalRunnable, false)
@@ -917,32 +827,24 @@ async function createWeekSheet(
               text: ''
           }
     const totalHoursChange = prevGMData ? getChangeText(totalHours, prevTotalHours, false) : { color: null, text: '' }
-
     ws.getCell(r, 2).value = ''
     ws.getCell(r, 2).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
     ws.getCell(r, 2).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-
     ws.getCell(r, 3).value = 'TOTAL'
     ws.getCell(r, 3).font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 11 }
     ws.getCell(r, 3).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
     ws.getCell(r, 3).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
     ws.getCell(r, 3).alignment = { horizontal: 'right', vertical: 'middle' }
-
     applyTotalChangeCell(ws.getCell(r, 4), totalOpsChange)
     applyTotalCell(ws.getCell(r, 5), totalOps)
-
     applyTotalChangeCell(ws.getCell(r, 6), totalRunnableChange)
     applyTotalCell(ws.getCell(r, 7), totalRunnable)
-
     applyTotalChangeCell(ws.getCell(r, 8), totalDownChange)
     applyTotalCell(ws.getCell(r, 9), totalDown)
-
     applyTotalChangeCell(ws.getCell(r, 10), totalYardageChange)
     applyTotalCell(ws.getCell(r, 11), totalYardage, '#,##0')
-
     applyTotalChangeCell(ws.getCell(r, 12), totalHoursChange)
     applyTotalCell(ws.getCell(r, 13), totalHours, '#,##0.0')
-
     ws.mergeCells(r, 14, r, 16)
     ws.getCell(r, 14).value = ''
     ws.getCell(r, 14).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
@@ -951,14 +853,11 @@ async function createWeekSheet(
     ws.getCell(r, 15).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
     ws.getCell(r, 16).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
     ws.getCell(r, 16).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-
     ws.getRow(r).height = 24
     r++
-
     const currentWeekDate = weekIso ? new Date(weekIso + 'T00:00:00Z') : new Date()
     const currentMonthKey = `${currentWeekDate.getUTCFullYear()}-${String(currentWeekDate.getUTCMonth() + 1).padStart(2, '0')}`
     const currentYear = currentWeekDate.getUTCFullYear()
-
     const filterReportsUpToWeek = (monthlyDataArray) => {
         return monthlyDataArray
             .map((m) => {
@@ -968,11 +867,9 @@ async function createWeekSheet(
             })
             .filter((m) => m.reports.length > 0)
     }
-
     const filteredMonthlyData = filterReportsUpToWeek(allMonthlyData)
     const currentMonthData = filteredMonthlyData.find((m) => m.monthKey === currentMonthKey)
     const currentYearData = filteredMonthlyData.filter((m) => m.monthKey.startsWith(String(currentYear)))
-
     const calcPlantSummaryTotals = (reports) => {
         let ops = 0,
             runnable = 0,
@@ -990,7 +887,6 @@ async function createWeekSheet(
         })
         return { down, hours, ops, runnable, yardage }
     }
-
     const addSummaryTotalRow = (label, totals, bgColor) => {
         ws.getCell(r, 2).value = ''
         ws.getCell(r, 2).fill = { fgColor: { argb: bgColor }, pattern: 'solid', type: 'pattern' }
@@ -1038,24 +934,19 @@ async function createWeekSheet(
         ws.getRow(r).height = 20
         r++
     }
-
     if (currentMonthData && currentMonthData.reports.length > 0) {
         const monthTotals = calcPlantSummaryTotals(currentMonthData.reports)
         addSummaryTotalRow(`MTD (${currentMonthData.monthName})`, monthTotals, COLORS.snow)
     }
-
     if (currentYearData.length > 0) {
         const allYearReports = currentYearData.flatMap((m) => m.reports)
         const yearTotals = calcPlantSummaryTotals(allYearReports)
         addSummaryTotalRow(`YTD (${currentYear})`, yearTotals, COLORS.snow)
     }
-
     r += 2
-
     if (sortedEffReports.length > 0) {
         addSectionTitle(ws, r, 'Efficiency Overview')
         r += 2
-
         const effHeaders = [
             { label: 'Plant', merge: false },
             { align: 'left', label: 'Name', merge: false },
@@ -1068,7 +959,6 @@ async function createWeekSheet(
         ]
         addMergedTableHeaders(ws, r, effHeaders)
         r++
-
         sortedEffReports.forEach((er, idx) => {
             const insights = ReportService.getPlantProductionInsights(er.rows || [])
             const lphBase = truncateToTenth(insights.avgLoadsPerHour)
@@ -1078,7 +968,6 @@ async function createWeekSheet(
             const endMin = truncateToTenth(insights.avgElapsedEnd)
             const plantInfo = sortedPlants.find((p) => String(p.plant_code) === String(er.plant_code))
             const plantName = plantInfo?.plant_name || plantInfo?.name || er.plant_code
-
             const reportDate = er.report_date || ''
             const formattedDate = reportDate
                 ? new Date(reportDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -1086,24 +975,20 @@ async function createWeekSheet(
                       month: 'short'
                   })
                 : ''
-
             const plantOps = ensure(form[`active_operators_${er.plant_code}`], true)
             const lph = truncateToTenth(lphBase * plantOps)
-
             const isAlt = idx % 2 === 1
             const isShutDown =
                 loads === 0 &&
                 (hours === null || hours === 0 || isNaN(hours)) &&
                 (startMin === null || isNaN(startMin)) &&
                 (endMin === null || isNaN(endMin))
-
             const rowData = [
                 { align: 'center', value: ensure(er.plant_code, false) },
                 plantName,
                 { align: 'center', value: formattedDate }
             ]
             addDataRow(ws, r, rowData, 2, isAlt)
-
             if (isShutDown) {
                 ws.mergeCells(r, 5, r, 14)
                 const shutDownCell = ws.getCell(r, 5)
@@ -1120,7 +1005,6 @@ async function createWeekSheet(
                 r++
                 return
             }
-
             const prevEr = sortedPrevEffReports.find((p) => String(p.plant_code) === String(er.plant_code))
             let prevLoads = null,
                 prevHours = null,
@@ -1139,23 +1023,19 @@ async function createWeekSheet(
                 prevStart = truncateToTenth(prevInsights.avgElapsedStart)
                 prevEnd = truncateToTenth(prevInsights.avgElapsedEnd)
             }
-
             const filterNew = (c) => (c.text && c.text.includes('new') ? { color: null, text: '' } : c)
-
             const noChangeResult = { color: COLORS.slate500, text: '0%' }
             const loadsChange = prevEr ? filterNew(getChangeText(loads, prevLoads, false)) : noChangeResult
             const hoursChange = prevEr ? filterNew(getChangeText(hours, prevHours, false)) : noChangeResult
             const lphChange = prevEr ? filterNew(getChangeText(lph, prevLph, false)) : noChangeResult
             const startChange = prevEr ? filterNew(getChangeText(startMin, prevStart, true)) : noChangeResult
             const endChange = prevEr ? filterNew(getChangeText(endMin, prevEnd, true)) : noChangeResult
-
             addChangePct(ws.getCell(r, 5), loadsChange, isAlt)
             const loadsCell = ws.getCell(r, 6)
             loadsCell.value = loads
             loadsCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             loadsCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) loadsCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             addChangePct(ws.getCell(r, 7), hoursChange, isAlt)
             const hoursCell = ws.getCell(r, 8)
             hoursCell.value = hours
@@ -1163,7 +1043,6 @@ async function createWeekSheet(
             hoursCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             hoursCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) hoursCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             addChangePct(ws.getCell(r, 9), lphChange, isAlt)
             const lphCell = ws.getCell(r, 10)
             lphCell.value = lph
@@ -1176,7 +1055,6 @@ async function createWeekSheet(
             }
             lphCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) lphCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             addChangePct(ws.getCell(r, 11), startChange, isAlt)
             const startCell = ws.getCell(r, 12)
             startCell.value = startMin
@@ -1184,7 +1062,6 @@ async function createWeekSheet(
             startCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             startCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) startCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             addChangePct(ws.getCell(r, 13), endChange, isAlt)
             const endCell = ws.getCell(r, 14)
             endCell.value = endMin
@@ -1192,11 +1069,9 @@ async function createWeekSheet(
             endCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             endCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) endCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             ws.getRow(r).height = 20
             r++
         })
-
         let totalLoadsEff = 0,
             totalHoursEff = 0,
             totalLphEff = 0,
@@ -1209,7 +1084,6 @@ async function createWeekSheet(
             prevTotalEndEff = 0
         let effCount = 0,
             prevEffCount = 0
-
         sortedEffReports.forEach((er) => {
             const insights = ReportService.getPlantProductionInsights(er.rows || [])
             const plantOpsEff = ensure(form[`active_operators_${er.plant_code}`], true)
@@ -1220,7 +1094,6 @@ async function createWeekSheet(
             totalEndEff += truncateToTenth(insights.avgElapsedEnd) || 0
             effCount++
         })
-
         sortedPrevEffReports.forEach((er) => {
             const insights = ReportService.getPlantProductionInsights(er.rows || [])
             const prevPlantOpsEff = prevGMData
@@ -1233,14 +1106,12 @@ async function createWeekSheet(
             prevTotalEndEff += truncateToTenth(insights.avgElapsedEnd) || 0
             prevEffCount++
         })
-
         const avgLph = effCount > 0 ? truncateToTenth(totalLphEff / effCount) : 0
         const avgStart = effCount > 0 ? truncateToTenth(totalStartEff / effCount) : 0
         const avgEnd = effCount > 0 ? truncateToTenth(totalEndEff / effCount) : 0
         const prevAvgLph = prevEffCount > 0 ? truncateToTenth(prevTotalLphEff / prevEffCount) : 0
         const prevAvgStart = prevEffCount > 0 ? truncateToTenth(prevTotalStartEff / prevEffCount) : 0
         const prevAvgEnd = prevEffCount > 0 ? truncateToTenth(prevTotalEndEff / prevEffCount) : 0
-
         const effLoadsChange =
             prevEffCount > 0
                 ? getChangeText(totalLoadsEff, prevTotalLoadsEff, false)
@@ -1259,11 +1130,9 @@ async function createWeekSheet(
         const effStartChange =
             prevEffCount > 0 ? getChangeText(avgStart, prevAvgStart, true) : { color: null, text: '' }
         const effEndChange = prevEffCount > 0 ? getChangeText(avgEnd, prevAvgEnd, true) : { color: null, text: '' }
-
         ws.getCell(r, 2).value = ''
         ws.getCell(r, 2).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
         ws.getCell(r, 2).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-
         ws.mergeCells(r, 3, r, 4)
         ws.getCell(r, 3).value = 'AVERAGES'
         ws.getCell(r, 3).font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 11 }
@@ -1272,26 +1141,19 @@ async function createWeekSheet(
         ws.getCell(r, 3).alignment = { horizontal: 'right', vertical: 'middle' }
         ws.getCell(r, 4).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
         ws.getCell(r, 4).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-
         applyTotalChangeCell(ws.getCell(r, 5), effLoadsChange)
         applyTotalCell(ws.getCell(r, 6), totalLoadsEff)
-
         applyTotalChangeCell(ws.getCell(r, 7), effHoursChange)
         applyTotalCell(ws.getCell(r, 8), totalHoursEff, '#,##0.0')
-
         applyTotalChangeCell(ws.getCell(r, 9), effLphChange)
         applyTotalCell(ws.getCell(r, 10), avgLph, '#,##0.0')
-
         applyTotalChangeCell(ws.getCell(r, 11), effStartChange)
         applyTotalCell(ws.getCell(r, 12), avgStart + ' mins')
-
         applyTotalChangeCell(ws.getCell(r, 13), effEndChange)
         applyTotalCell(ws.getCell(r, 14), avgEnd + ' mins')
-
         ws.getRow(r).height = 24
         r += 3
     }
-
     const calcAggregateFromReports = (reports, fields) => {
         const totals = {}
         fields.forEach(([key]) => {
@@ -1307,11 +1169,9 @@ async function createWeekSheet(
         })
         return totals
     }
-
     if (aggregateReport) {
         addSectionTitle(ws, r, 'Aggregate Production')
         r += 2
-
         const aggHeaders = [
             { align: 'left', label: 'Material', mergeCount: 2 },
             { label: 'This Week', merge: true },
@@ -1320,7 +1180,6 @@ async function createWeekSheet(
         ]
         addMergedTableHeaders(ws, r, aggHeaders)
         r++
-
         const aggFields = [
             ['sand', 'Sand'],
             ['fill_dirt', 'Fill Dirt'],
@@ -1341,10 +1200,8 @@ async function createWeekSheet(
             ['washout', 'Washout'],
             ['rip_rap', 'Rip Rap']
         ]
-
         const mtdTotals = calcAggregateFromReports(allAggReports.monthly, aggFields)
         const ytdTotals = calcAggregateFromReports(allAggReports.yearly, aggFields)
-
         const dataSource = aggregateReport?.data || {}
         const prevDataSource = prevAggregateReport?.data || {}
         let aggTotal = 0
@@ -1352,24 +1209,19 @@ async function createWeekSheet(
         let mtdTotal = 0
         let ytdTotal = 0
         let rowIdx = 0
-
         aggFields.forEach(([key, label]) => {
             let raw = dataSource[key]
             raw = raw === undefined || raw === null || raw === '' ? 0 : Number(raw)
             let prevRaw = prevDataSource[key]
             prevRaw = prevRaw === undefined || prevRaw === null || prevRaw === '' ? 0 : Number(prevRaw)
-
             const mtdVal = mtdTotals[key] || 0
             const ytdVal = ytdTotals[key] || 0
-
             aggTotal += raw
             prevAggTotal += prevRaw
             mtdTotal += mtdVal
             ytdTotal += ytdVal
-
             const changeInfo = prevAggregateReport ? getChangeText(raw, prevRaw, false) : { color: null, text: '' }
             const isAlt = rowIdx % 2 === 1
-
             ws.mergeCells(r, 2, r, 3)
             const labelCell = ws.getCell(r, 2)
             labelCell.value = label
@@ -1379,35 +1231,29 @@ async function createWeekSheet(
                 labelCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
                 ws.getCell(r, 3).fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
             }
-
             addChangePct(ws.getCell(r, 4), changeInfo, isAlt)
-
             const valCell = ws.getCell(r, 5)
             valCell.value = raw
             valCell.numFmt = '#,##0.0'
             valCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             valCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) valCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             const mtdCell = ws.getCell(r, 6)
             mtdCell.value = mtdVal
             mtdCell.numFmt = '#,##0.0'
             mtdCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             mtdCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) mtdCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             const ytdCell = ws.getCell(r, 7)
             ytdCell.value = ytdVal
             ytdCell.numFmt = '#,##0.0'
             ytdCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             ytdCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) ytdCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-
             ws.getRow(r).height = 20
             r++
             rowIdx++
         })
-
         if (aggTotal > 0) {
             const totalChangeInfo = prevAggregateReport
                 ? getChangeText(aggTotal, prevAggTotal, false)
@@ -1415,7 +1261,6 @@ async function createWeekSheet(
                       color: null,
                       text: ''
                   }
-
             ws.mergeCells(r, 2, r, 3)
             const totalLabelCell = ws.getCell(r, 2)
             totalLabelCell.value = 'TOTAL'
@@ -1425,7 +1270,6 @@ async function createWeekSheet(
             totalLabelCell.alignment = { horizontal: 'right', vertical: 'middle' }
             ws.getCell(r, 3).fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             ws.getCell(r, 3).border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-
             const totalChangeCell = ws.getCell(r, 4)
             if (totalChangeInfo && totalChangeInfo.text) {
                 totalChangeCell.value = totalChangeInfo.text.trim()
@@ -1436,7 +1280,6 @@ async function createWeekSheet(
             totalChangeCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             totalChangeCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
             totalChangeCell.alignment = { horizontal: 'right', vertical: 'middle' }
-
             const totalValCell = ws.getCell(r, 5)
             totalValCell.value = aggTotal
             totalValCell.numFmt = '#,##0.0'
@@ -1444,7 +1287,6 @@ async function createWeekSheet(
             totalValCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             totalValCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
             totalValCell.alignment = { horizontal: 'left', vertical: 'middle' }
-
             const mtdTotalCell = ws.getCell(r, 6)
             mtdTotalCell.value = mtdTotal
             mtdTotalCell.numFmt = '#,##0.0'
@@ -1452,7 +1294,6 @@ async function createWeekSheet(
             mtdTotalCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             mtdTotalCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
             mtdTotalCell.alignment = { horizontal: 'left', vertical: 'middle' }
-
             const ytdTotalCell = ws.getCell(r, 7)
             ytdTotalCell.value = ytdTotal
             ytdTotalCell.numFmt = '#,##0.0'
@@ -1460,23 +1301,19 @@ async function createWeekSheet(
             ytdTotalCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             ytdTotalCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
             ytdTotalCell.alignment = { horizontal: 'left', vertical: 'middle' }
-
             ws.getRow(r).height = 24
         }
         r += 2
     }
-
     if (rmiData) {
         const getPlantName = (code) => {
             const p = plants?.find((x) => (x.plant_code || x.code) === code)
             return p?.name || code || ''
         }
-
         if (allTrainers.length > 0 || allPending.length > 0 || allTraining.length > 0) {
             addSectionTitle(ws, r, 'Training & Hiring')
             r += 2
         }
-
         if (allTrainers.length > 0) {
             ws.getCell(r, 2).value = 'Active Trainers'
             ws.getCell(r, 2).font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
@@ -1506,7 +1343,6 @@ async function createWeekSheet(
             })
             r++
         }
-
         if (allPending.length > 0) {
             ws.getCell(r, 2).value = 'Pending Start'
             ws.getCell(r, 2).font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
@@ -1545,7 +1381,6 @@ async function createWeekSheet(
             })
             r++
         }
-
         if (allTraining.length > 0) {
             ws.getCell(r, 2).value = 'In Training'
             ws.getCell(r, 2).font = { bold: true, color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
@@ -1577,7 +1412,6 @@ async function createWeekSheet(
             })
             r++
         }
-
         const goalsArr = Object.entries(hiringGoals).filter(([_, v]) => v !== undefined && v !== null && v !== '')
         if (goalsArr.length > 0) {
             r++
@@ -1608,6 +1442,5 @@ async function createWeekSheet(
             })
         }
     }
-
     finalizeSheet(ws)
 }

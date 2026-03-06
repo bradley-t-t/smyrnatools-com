@@ -16,7 +16,6 @@ import { GeneralManagerSubmitPlugin } from './types/WeeklyGeneralManagerReport'
 import { PlantManagerSubmitPlugin } from './types/WeeklyPlantManagerReport'
 import { ReadyMixInstructorSubmitPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerSubmitPlugin } from './types/WeeklySafetyManagerReport'
-
 /** Maps report type keys to their submit-mode plugin components. */
 const PLUGINS = {
     aggregate_production: AggregateProductionSubmitPlugin,
@@ -27,7 +26,6 @@ const PLUGINS = {
     ready_mix_instructor: ReadyMixInstructorSubmitPlugin,
     safety_manager: SafetyManagerSubmitPlugin
 }
-
 const EXCLUDED_REPORT_TYPES = ['district_manager', 'general_manager', 'aggregate_production', 'safety_manager']
 const GM_REQUIRED_FIELD_SUFFIXES = [
     'active_operators',
@@ -39,14 +37,12 @@ const GM_REQUIRED_FIELD_SUFFIXES = [
     'total_yardage',
     'total_hours'
 ]
-
 const validateSafetyManager = (form) => {
     const issues = Array.isArray(form.issues) ? form.issues : []
     return issues.some((i) => !i.description || !i.plant || !i.tag)
         ? 'All issues must have a description, plant, and tag.'
         : null
 }
-
 const validateRequiredFields = (form, fields) => {
     for (const field of fields) {
         const val = form[field.name]
@@ -59,7 +55,6 @@ const validateRequiredFields = (form, fields) => {
     }
     return null
 }
-
 const validateGMFields = (form, plants) => {
     if (!plants.length) return null
     for (const plant of plants) {
@@ -72,18 +67,15 @@ const validateGMFields = (form, plants) => {
     }
     return null
 }
-
 const getEditingUserName = (managerEditUser, userProfiles) => {
     if (!managerEditUser) return ''
     const profile = userProfiles?.[managerEditUser]
     return profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : managerEditUser.slice(0, 8)
 }
-
 const getFieldIcon = (fieldName) => {
     const iconMap = { total_hours: 'fa-clock', total_yards_lost: 'fa-exclamation-triangle', yardage: 'fa-box' }
     return iconMap[fieldName] || 'fa-recycle'
 }
-
 /**
  * Generic report submission form. Delegates rendering to a type-specific
  * plugin component (e.g. EfficiencySubmitPlugin, PlantManagerSubmitPlugin).
@@ -105,7 +97,6 @@ function ReportsSubmitView({
     const PluginComponent = PLUGINS[report.name]
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-
     const {
         fetchHoursReceived,
         fetchOperatorsAndMixers,
@@ -152,7 +143,6 @@ function ReportsSubmitView({
         report,
         user
     })
-
     const [submitting, setSubmitting] = useState(false)
     const [savingDraft, setSavingDraft] = useState(false)
     const [aiValidating, setAiValidating] = useState(false)
@@ -168,7 +158,6 @@ function ReportsSubmitView({
     const [exportError, setExportError] = useState('')
     const [showExclusionReasonModal, setShowExclusionReasonModal] = useState(false)
     const rowsInitializedRef = useRef(false)
-
     const showError = (msg) => {
         setError(msg)
         setShowErrorModal(true)
@@ -179,11 +168,9 @@ function ReportsSubmitView({
         setSuccess(false)
     }
     const editingUserName = getEditingUserName(managerEditUser, userProfiles)
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         clearMessages()
-
         if (report.name === 'plant_manager') {
             setAiValidating(true)
             setAiValidationProgress({ current: 0, total: 1 })
@@ -194,12 +181,10 @@ function ReportsSubmitView({
             setShowConfirmationModal(true)
             return
         }
-
         if (report.name === 'safety_manager') {
             const err = validateSafetyManager(form)
             if (err) return showError(err)
         }
-
         if (report.name !== 'general_manager') {
             const err = validateRequiredFields(form, report.fields)
             if (err) return showError(err)
@@ -207,7 +192,6 @@ function ReportsSubmitView({
             const err = validateGMFields(form, plants)
             if (err) return showError(err)
         }
-
         if (report.name === 'plant_production') {
             const allExcluded = excludedOperators.length === operatorOptions.length && operatorOptions.length > 0
             if (allExcluded) {
@@ -219,7 +203,6 @@ function ReportsSubmitView({
             setAiValidating(false)
             if (v) return showError(v)
         }
-
         setSubmitting(true)
         try {
             await onSubmit(form, 'submit')
@@ -229,7 +212,6 @@ function ReportsSubmitView({
         }
         setSubmitting(false)
     }
-
     const handleConfirmedSubmit = async () => {
         setShowConfirmationModal(false)
         setSubmitting(true)
@@ -245,7 +227,6 @@ function ReportsSubmitView({
         }
         setSubmitting(false)
     }
-
     const handleExclusionReasonConfirm = async (reason) => {
         setShowExclusionReasonModal(false)
         setSubmitting(true)
@@ -258,7 +239,6 @@ function ReportsSubmitView({
         }
         setSubmitting(false)
     }
-
     const handleSaveDraft = async (e) => {
         e.preventDefault()
         clearMessages()
@@ -274,7 +254,6 @@ function ReportsSubmitView({
         }
         setSavingDraft(false)
     }
-
     const handleBackClick = () => {
         if (hasUnsavedChanges) {
             handleSaveDraft({ preventDefault: () => {} })
@@ -283,7 +262,6 @@ function ReportsSubmitView({
             onBack()
         }
     }
-
     const handleExport = async () => {
         if (exporting || loadingPlants || !plants.length) return
         setExportError('')
@@ -295,7 +273,6 @@ function ReportsSubmitView({
         }
         setExporting(false)
     }
-
     useEffect(() => {
         if (report.name !== 'plant_production') return
         if (!form.plant) {
@@ -313,11 +290,9 @@ function ReportsSubmitView({
             }
         })
     }, [report.name, form.plant, readOnly, initialData, clearRows, fetchOperatorsAndMixers, initializeRows, form.rows])
-
     useEffect(() => {
         if (report.name === 'plant_manager') fetchHoursReceived(form.plant || user?.plant_code, report.weekIso)
     }, [report.name, report.weekIso, user?.plant_code, form.plant, fetchHoursReceived])
-
     const renderPlantProductionForm = () => (
         <>
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 mb-4">
@@ -569,7 +544,6 @@ function ReportsSubmitView({
             </div>
         </>
     )
-
     const renderPlantManagerForm = () => (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 col-span-full">
             <div className="mb-5">
@@ -604,7 +578,6 @@ function ReportsSubmitView({
             </div>
         </div>
     )
-
     const renderFieldInput = (field, className = '') => {
         const value = form[field.name] ?? ''
         const baseClass = className || 'px-4 py-3 border border-gray-200 rounded-lg text-sm text-slate-800 bg-white'
@@ -629,7 +602,6 @@ function ReportsSubmitView({
             )
         return <input type={field.type} {...props} />
     }
-
     const renderDefaultForm = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {report.fields
@@ -645,14 +617,12 @@ function ReportsSubmitView({
                 ))}
         </div>
     )
-
     const renderFormSection = () => {
         if (report.name === 'plant_production') return renderPlantProductionForm()
         if (report.name === 'plant_manager') return renderPlantManagerForm()
         if (!EXCLUDED_REPORT_TYPES.includes(report.name)) return renderDefaultForm()
         return null
     }
-
     return (
         <div className="bg-slate-50 min-h-screen w-full">
             <SubmitHeader
@@ -772,7 +742,6 @@ function ReportsSubmitView({
         </div>
     )
 }
-
 const AIValidatingModal = ({ progress, reportName, accentColor }) => (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
@@ -823,5 +792,4 @@ const AIValidatingModal = ({ progress, reportName, accentColor }) => (
         </div>
     </div>
 )
-
 export default ReportsSubmitView

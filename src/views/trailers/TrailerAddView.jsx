@@ -4,7 +4,6 @@ import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import Trailer from '../../models/trailers/Trailer'
 import { TrailerService } from '../../services/TrailerService'
-
 /**
  * Slide-in form for creating a new trailer record. Requires trailer number
  * and plant assignment. Supports trailer type selection (Cement/Aggregate/Flat Bed)
@@ -18,17 +17,14 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
     const [error, setError] = useState('')
     const [cleanlinessRating, setCleanlinessRating] = useState(1)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
-
     useEffect(() => {
         async function loadTrailers() {
             try {
                 await TrailerService.fetchTrailers()
             } catch (error) {}
         }
-
         loadTrailers()
     }, [])
-
     const visiblePlants = useMemo(() => {
         const list = Array.isArray(plants) ? plants : []
         return list
@@ -38,30 +34,25 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                     parseInt(a.plantCode?.replace(/\D/g, '') || '0') - parseInt(b.plantCode?.replace(/\D/g, '') || '0')
             )
     }, [plants])
-
     const selectedPlantObj = visiblePlants.find((p) => p.plantCode === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
         : 'Select Plant'
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
         if (!trailerNumber) return setError('Trailer number is required')
         if (!assignedPlant) return setError('Plant is required')
-
         setIsSaving(true)
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-
             const formatDateForDb = (date) => {
                 if (!date) return null
                 const d = new Date(date)
                 if (isNaN(d.getTime())) return null
                 return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
             }
-
             const now = formatDateForDb(new Date())
             const newTrailer = new Trailer({
                 assigned_plant: assignedPlant,
@@ -74,10 +65,8 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                 updated_by: userId,
                 updated_last: now
             })
-
             const savedTrailer = await TrailerService.createTrailer(newTrailer, userId)
             if (!savedTrailer) throw new Error('Failed to add trailer - no data returned from server')
-
             onTrailerAdded(savedTrailer)
             onClose()
         } catch (error) {
@@ -86,7 +75,6 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title="Add New Trailer" onClose={onClose} error={error}>
@@ -111,7 +99,6 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-building"></i>
@@ -141,7 +128,6 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-star"></i>
@@ -164,7 +150,6 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Trailer'}
@@ -186,5 +171,4 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
         </>
     )
 }
-
 export default TrailerAddView

@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom'
 import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 import LoadingScreen from '../common/LoadingScreen'
-
 /**
  * Portal-rendered modal for managing asset issues.
  * Supports creating, resolving, and deleting issues with severity levels.
@@ -20,13 +19,11 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [userNames, setUserNames] = useState({})
     const [canDelete, setCanDelete] = useState(false)
     const [activeTab, setActiveTab] = useState('open')
-
     useEffect(() => {
         if (itemId) {
             fetchIssues()
         }
     }, [itemId])
-
     useEffect(() => {
         async function checkDeletePermission() {
             try {
@@ -42,11 +39,9 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         }
         checkDeletePermission()
     }, [])
-
     const sortedIssues = [...issues].sort((a, b) => new Date(b.time_created) - new Date(a.time_created))
     const openIssues = sortedIssues.filter((issue) => !issue.time_completed)
     const resolvedIssues = sortedIssues.filter((issue) => issue.time_completed)
-
     const fetchIssues = async () => {
         setIsLoading(true)
         setError(null)
@@ -74,7 +69,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
             setIsLoading(false)
         }
     }
-
     const handleDeleteIssue = async (issueId) => {
         if (!window.confirm('Are you sure you want to delete this issue?')) return
         try {
@@ -84,7 +78,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
             setError('Failed to delete issue. Please try again.')
         }
     }
-
     const handleCompleteIssue = async (issueId) => {
         try {
             await service.completeIssue(issueId)
@@ -93,7 +86,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
             setError('Failed to complete issue. Please try again.')
         }
     }
-
     const handleAddIssue = async (e) => {
         e.preventDefault()
         if (!newIssue.trim()) {
@@ -119,7 +111,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
             setIsSubmitting(false)
         }
     }
-
     const formatDate = (dateString) => {
         if (!dateString) return ''
         const date = new Date(dateString)
@@ -134,19 +125,16 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         if (days < 7) return `${days}d ago`
         return date.toLocaleDateString()
     }
-
     const getCreatorName = (issue) => {
         if (issue.created_by && userNames[issue.created_by]) return userNames[issue.created_by]
         return 'Unknown'
     }
-
     const getInitials = (name) => {
         if (!name || name === 'Unknown') return '?'
         const parts = name.split(' ')
         if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
         return name.slice(0, 2).toUpperCase()
     }
-
     const getAvatarGradient = (name) => {
         const gradients = [
             'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
@@ -165,7 +153,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         }
         return gradients[Math.abs(hash) % gradients.length]
     }
-
     const getSeverityConfig = (sev) => {
         const configs = {
             High: { bg: '#dc2626', color: '#fff', icon: 'fa-fire' },
@@ -174,15 +161,11 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         }
         return configs[sev] || configs.Medium
     }
-
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) onClose()
     }
-
     const displayIssues = activeTab === 'open' ? openIssues : resolvedIssues
-
     if (typeof document === 'undefined' || !document.body) return null
-
     return ReactDOM.createPortal(
         <>
             <style>{`
@@ -378,10 +361,8 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                             </button>
                         </div>
                     </div>
-
                     <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
                         <ErrorMessage message={error} onDismiss={() => setError(null)} />
-
                         {activeTab === 'open' && (
                             <form onSubmit={handleAddIssue} style={{ marginBottom: '1.25rem' }}>
                                 <div
@@ -494,7 +475,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 </div>
                             </form>
                         )}
-
                         {isLoading ? (
                             <div
                                 style={{
@@ -720,5 +700,4 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         document.body
     )
 }
-
 export default IssueModalSection

@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 /**
  * Fixed-position toast at the bottom of the viewport displaying the current app version.
  * Renders nothing when no version string is provided.
@@ -10,9 +9,7 @@ import { useAccentColor } from '../../hooks/useAccentColor'
  */
 function VersionPopup({ version, onClick }) {
     const accentColor = useAccentColor()
-
     if (!version) return null
-
     return (
         <div
             className="fixed bottom-5 right-5 z-[1000] flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-white shadow-xl"
@@ -33,5 +30,4 @@ function VersionPopup({ version, onClick }) {
         </div>
     )
 }
-
 export default VersionPopup

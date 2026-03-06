@@ -1,7 +1,6 @@
 import React from 'react'
 
 import LeaderboardsUtility from '../../../utils/LeaderboardsUtility'
-
 /**
  * Resolves the display value, optional suffix, and color for a given leaderboard category.
  * @param {Object} plant - Plant leaderboard data with metric fields.
@@ -39,7 +38,6 @@ function formatMetricValue(plant, category) {
             return { value: '--' }
     }
 }
-
 /**
  * Labeled stat cell displaying a metric label and value, optionally clickable.
  * @param {Object} props
@@ -60,7 +58,6 @@ function StatCell({ label, value, valueColor, onClick }) {
         </div>
     )
 }
-
 /**
  * Expanded stats grid shown below efficiency leaderboard items.
  * Displays YPH, load efficiency, help balance, missing reports,
@@ -77,7 +74,6 @@ function EfficiencyStats({ plant, onHelpClick }) {
     const cleanlinessValue = plant.avgFleetCleanliness ?? 0
     const cleanlinessColor =
         cleanlinessValue >= 4 ? 'text-emerald-600' : cleanlinessValue >= 3 ? 'text-amber-500' : 'text-rose-500'
-
     return (
         <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-3 md:grid-cols-6">
             <StatCell label="YPH" value={plant.avgYPH.toFixed(2)} />
@@ -106,7 +102,6 @@ function EfficiencyStats({ plant, onHelpClick }) {
         </div>
     )
 }
-
 /**
  * Single ranked plant row in the leaderboard list.
  * Shows rank badge, plant name/code, primary metric value,
@@ -119,21 +114,18 @@ function EfficiencyStats({ plant, onHelpClick }) {
  */
 export default function LeaderboardItem({ plant, rank, selectedCategory, onHelpClick }) {
     const metric = formatMetricValue(plant, selectedCategory)
-
     return (
         <div className="rounded-xl border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md">
             <div className="flex items-center gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
                     {rank}
                 </div>
-
                 <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                         <span className="text-base font-semibold text-slate-900">Plant {plant.plantCode}</span>
                         <span className="truncate text-sm text-slate-500">{plant.plantName}</span>
                     </div>
                 </div>
-
                 <div className="flex flex-col items-end">
                     <span
                         className="text-xl font-bold text-slate-900"
@@ -148,7 +140,6 @@ export default function LeaderboardItem({ plant, rank, selectedCategory, onHelpC
                     )}
                 </div>
             </div>
-
             {selectedCategory === 'efficiency' && (
                 <div className="mt-3">
                     <EfficiencyStats plant={plant} onHelpClick={onHelpClick} />
@@ -157,7 +148,6 @@ export default function LeaderboardItem({ plant, rank, selectedCategory, onHelpC
         </div>
     )
 }
-
 /**
  * Shimmer placeholder skeleton matching the LeaderboardItem layout.
  * Rendered while leaderboard data is loading.

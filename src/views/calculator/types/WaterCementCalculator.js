@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
-
 /**
  * Water-to-cementitious (W/C) ratio calculator. Converts water from gallons
  * to pounds (at 8.34 lbs/gal) and divides by total cementitious content
@@ -17,35 +16,27 @@ const WaterCementCalculator = () => {
         supplementalLbs: '',
         waterGallons: ''
     })
-
     const [result, setResult] = useState(null)
-
     /** Standard weight of water: 8.34 lbs per gallon at 60°F. */
     const WATER_LBS_PER_GALLON = 8.34
-
     const handleChange = (field, value) => {
         setValues((prev) => ({ ...prev, [field]: value }))
     }
-
     const clearForm = () => {
         setValues({ batchSize: '', cementLbs: '', supplementalLbs: '', waterGallons: '' })
         setResult(null)
     }
-
     useEffect(() => {
         const batchSize = parseFloat(values.batchSize) || 0
         const waterGal = parseFloat(values.waterGallons) || 0
         const cement = parseFloat(values.cementLbs) || 0
         const supplemental = parseFloat(values.supplementalLbs) || 0
         const totalCite = cement + supplemental
-
         if (waterGal > 0 && totalCite > 0) {
             const waterLbs = waterGal * WATER_LBS_PER_GALLON
             const ratio = waterLbs / totalCite
-
             const waterPerYd = batchSize > 0 ? Math.round(waterLbs / batchSize) : null
             const citePerYd = batchSize > 0 ? Math.round(totalCite / batchSize) : null
-
             setResult({
                 batchSize: batchSize > 0 ? batchSize : null,
                 citePerYd,
@@ -58,7 +49,6 @@ const WaterCementCalculator = () => {
             setResult(null)
         }
     }, [values])
-
     /**
      * Classifies the W/C ratio into quality tiers per ACI 318 guidelines:
      * < 0.35 Low (very stiff), 0.35-0.45 Optimal, 0.45-0.55 Standard, > 0.55 High (weak).
@@ -71,14 +61,11 @@ const WaterCementCalculator = () => {
         if (r <= 0.55) return { color: 'info', label: 'Standard' }
         return { color: 'error', label: 'High' }
     }
-
     const status = getRatioStatus()
-
     const waterGal = parseFloat(values.waterGallons) || 0
     const waterLbs = waterGal * WATER_LBS_PER_GALLON
     const totalCite = (parseFloat(values.cementLbs) || 0) + (parseFloat(values.supplementalLbs) || 0)
     const hasData = waterGal > 0 && totalCite > 0
-
     const styles = {
         breakdown: {
             alignItems: 'center',
@@ -335,7 +322,6 @@ const WaterCementCalculator = () => {
             paddingBottom: '1rem'
         }
     }
-
     const inputFocusHandlers = {
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
@@ -346,7 +332,6 @@ const WaterCementCalculator = () => {
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.section}>
@@ -425,7 +410,6 @@ const WaterCementCalculator = () => {
                     )}
                 </div>
             </div>
-
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
                     <i className="fas fa-truck" style={{ color: 'var(--accent)' }}></i>
@@ -459,7 +443,6 @@ const WaterCementCalculator = () => {
                     </div>
                 )}
             </div>
-
             <div style={styles.footer}>
                 <button
                     onClick={clearForm}
@@ -480,5 +463,4 @@ const WaterCementCalculator = () => {
         </div>
     )
 }
-
 export default WaterCementCalculator

@@ -12,13 +12,10 @@ export class TractorHistory {
         this.changedAt = data.changed_at ?? ''
         this.changedBy = data.changed_by ?? ''
     }
-
     static fromApiFormat(data) {
         if (!data) return null
-
         let oldValue = data.old_value
         let newValue = data.new_value
-
         if (['last_service_date'].includes(data.field_name)) {
             try {
                 if (oldValue?.includes('T')) oldValue = oldValue.split('T')[0]
@@ -27,7 +24,6 @@ export class TractorHistory {
                 console.error('Error formatting date in history:', error)
             }
         }
-
         return new TractorHistory({
             changed_at: data.changed_at,
             changed_by: data.changed_by,
@@ -38,7 +34,6 @@ export class TractorHistory {
             tractor_id: data.tractor_id
         })
     }
-
     toApiFormat() {
         return {
             changed_at: this.changedAt,
@@ -50,16 +45,13 @@ export class TractorHistory {
             tractor_id: this.tractorId
         }
     }
-
     getFormattedOldValue() {
         return TractorHistoryUtils.formatValueForDisplay(this.fieldName, this.oldValue)
     }
-
     getFormattedNewValue() {
         return TractorHistoryUtils.formatValueForDisplay(this.fieldName, this.newValue)
     }
 }
-
 /**
  * Display formatting helpers for tractor history values:
  * date localization, cleanliness rating labels, blower boolean formatting,
@@ -68,14 +60,12 @@ export class TractorHistory {
 export class TractorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''
-
         if (['last_service_date'].includes(fieldName)) {
             try {
                 const date = new Date(value)
                 if (!isNaN(date.getTime())) return date.toLocaleDateString()
             } catch (error) {}
         }
-
         if (fieldName === 'cleanliness_rating') {
             const rating = parseInt(value, 10)
             if (!isNaN(rating)) {
@@ -89,24 +79,18 @@ export class TractorHistoryUtils {
                 return ratingLabels[rating] || `${rating}`
             }
         }
-
         if (['assigned_operator', 'assigned_plant'].includes(fieldName)) {
             if (['0', 'null', 'undefined'].includes(value)) return 'None'
         }
-
         if (fieldName === 'status' && value === '0') return 'None'
-
         if (fieldName === 'has_blower') {
             return value ? 'Yes' : 'No'
         }
-
         return value
     }
-
     static areSameDates(date1, date2) {
         if (!date1 && !date2) return true
         if (!date1 || !date2) return false
-
         try {
             return new Date(date1).toISOString().split('T')[0] === new Date(date2).toISOString().split('T')[0]
         } catch (error) {

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 
 import { supabase } from '../../../services/DatabaseService'
 import { usePreferences } from '../../context/PreferencesContext'
-
 /**
  * Verification status card shown in asset detail views.
  * Displays verification checklist items, verify/unverify button,
@@ -25,12 +24,10 @@ function VerificationCardSection({
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [recentHistory, setRecentHistory] = useState([])
     const [resolvedNames, setResolvedNames] = useState({})
-
     useEffect(() => {
         if (!assetId || !assetType) return
         const tableName = assetType === 'mixer' ? 'mixers_history' : assetType === 'tractor' ? 'tractors_history' : null
         if (!tableName) return
-
         const fetchHistory = async () => {
             const idCol = assetType === 'mixer' ? 'mixer_id' : 'tractor_id'
             const { data } = await supabase
@@ -47,21 +44,16 @@ function VerificationCardSection({
         }
         fetchHistory()
     }, [assetId, assetType])
-
     const resolveUUIDs = async (historyData) => {
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
         const uuidsToResolve = new Set()
-
         historyData.forEach((entry) => {
             if (entry.old_value && uuidPattern.test(entry.old_value)) uuidsToResolve.add(entry.old_value)
             if (entry.new_value && uuidPattern.test(entry.new_value)) uuidsToResolve.add(entry.new_value)
         })
-
         if (uuidsToResolve.size === 0) return {}
-
         const uuidArray = Array.from(uuidsToResolve)
         const names = {}
-
         try {
             const { data: operators } = await supabase
                 .from('operators')
@@ -73,7 +65,6 @@ function VerificationCardSection({
                 })
             }
         } catch {}
-
         try {
             const { data: plants } = await supabase
                 .from('plants')
@@ -85,7 +76,6 @@ function VerificationCardSection({
                 })
             }
         } catch {}
-
         try {
             const { data: users } = await supabase
                 .from('users_profiles')
@@ -99,10 +89,8 @@ function VerificationCardSection({
                 })
             }
         } catch {}
-
         return names
     }
-
     const formatFieldName = (fieldName) => {
         if (!fieldName) return 'Unknown'
         const fieldLabels = {
@@ -111,24 +99,22 @@ function VerificationCardSection({
             cleanliness_rating: 'Cleanliness',
             drum_type: 'Drum Type',
             last_service: 'Last Service',
-            status: 'Status',
-            truck_number: 'Truck #',
-            tractor_number: 'Tractor #',
-            vin: 'VIN',
             make: 'Make',
             model: 'Model',
+            status: 'Status',
+            tractor_number: 'Tractor #',
+            truck_number: 'Truck #',
+            vin: 'VIN',
             year: 'Year'
         }
         return fieldLabels[fieldName] || fieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     }
-
     const formatValue = (value, fieldName) => {
         if (!value || value === 'null') return 'None'
         if (resolvedNames[value]) return resolvedNames[value]
         if (fieldName === 'cleanliness_rating') return `${value} stars`
         return value
     }
-
     const getDaysSince = (dateStr) => {
         if (!dateStr) return null
         const date = new Date(dateStr)
@@ -136,7 +122,6 @@ function VerificationCardSection({
         const diffMs = now - date
         return Math.floor(diffMs / (1000 * 60 * 60 * 24))
     }
-
     const formatRelativeTime = (dateStr) => {
         if (!dateStr) return 'Never'
         const days = getDaysSince(dateStr)
@@ -146,7 +131,6 @@ function VerificationCardSection({
         if (days < 30) return `${Math.floor(days / 7)} week${Math.floor(days / 7) > 1 ? 's' : ''} ago`
         return new Date(dateStr).toLocaleDateString()
     }
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between' }}>
@@ -203,9 +187,7 @@ function VerificationCardSection({
                     </button>
                 )}
             </div>
-
             <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {verificationItems.map((item, index) => (
                     <div
@@ -228,7 +210,6 @@ function VerificationCardSection({
                     </div>
                 ))}
             </div>
-
             {recentHistory.length > 0 && (
                 <>
                     <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
@@ -275,7 +256,6 @@ function VerificationCardSection({
                     </div>
                 </>
             )}
-
             {noticeText && (
                 <>
                     <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
@@ -291,5 +271,4 @@ function VerificationCardSection({
         </div>
     )
 }
-
 export default VerificationCardSection

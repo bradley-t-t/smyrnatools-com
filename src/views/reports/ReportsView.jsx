@@ -13,7 +13,6 @@ import { supabase } from '../../services/DatabaseService'
 import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
-
 /**
  * Top-level reports hub. Shows the user's submitted reports grouped by week
  * and a reviewable reports list (for managers with review permissions).
@@ -51,13 +50,11 @@ function ReportsView() {
         userProfiles,
         weeksToShow
     } = useReportsData()
-
     const { submitReport, submitManagerEdit, fetchReportForEdit } = useReportSubmission({
         setLoadError,
         updateLocalReport,
         user
     })
-
     const [showForm, setShowForm] = useState(null)
     const [showReview, setShowReview] = useState(null)
     const [reviewData, setReviewData] = useState(null)
@@ -68,9 +65,7 @@ function ReportsView() {
     const [managerEditUser, setManagerEditUser] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [searchInput, setSearchInput] = useState('')
-
     const searchLower = searchInput.trim().toLowerCase()
-
     const allMyItems = useMemo(() => {
         const items = Object.values(myReportsByWeek).flat()
         if (!searchLower) return items
@@ -78,7 +73,6 @@ function ReportsView() {
             (item) => item.title?.toLowerCase().includes(searchLower) || item.name?.toLowerCase().includes(searchLower)
         )
     }, [myReportsByWeek, searchLower])
-
     const visibleReviewReports = useMemo(
         () =>
             reviewableReports.filter((report) => {
@@ -109,7 +103,6 @@ function ReportsView() {
             getUserName
         ]
     )
-
     const myPagination = usePagination({
         initialPageSize: 25,
         items: allMyItems,
@@ -120,7 +113,6 @@ function ReportsView() {
         items: visibleReviewReports,
         resetDependencies: [filterReportType, filterPlant, searchInput]
     })
-
     const regionalPlants = useMemo(
         () =>
             plants.filter(
@@ -132,19 +124,15 @@ function ReportsView() {
     const plantDisplayText = filterPlant
         ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
         : 'All Plants'
-
     const isMyReportsLoading = isLoadingUser || isLoadingMy || isLoadingPermissions
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
-
     useEffect(() => {
         if (tab === 'review') loadReviewReports()
     }, [tab, loadReviewReports])
-
     const handleSubmitReport = async (formData, completed = true) => {
         const result = await submitReport({ completed, formData, showForm })
         if (result.success) setShowForm(null)
     }
-
     const handleManagerEditSubmit = async (formData) => {
         const result = await submitManagerEdit({ formData, managerEditUser, showForm })
         if (result.success) {
@@ -152,7 +140,6 @@ function ReportsView() {
             setManagerEditUser(null)
         }
     }
-
     const handleReview = async (report) => {
         if (report.userId !== user?.id) {
             const { error } = await supabase
@@ -166,7 +153,6 @@ function ReportsView() {
         setReviewData(report)
         setShowReview(reportTypes.find((rt) => rt.name === report.name))
     }
-
     const handleManagerEdit = (reportType, reportData) => {
         setShowReview(null)
         setReviewData(null)
@@ -174,7 +160,6 @@ function ReportsView() {
         setSubmitInitialData({ ...reportData, data: reportData.data })
         setManagerEditUser(reportData.userId)
     }
-
     const handleShowForm = async (item) => {
         setSubmitInitialData(null)
         if (user && item?.name && item.weekIso) {
@@ -183,7 +168,6 @@ function ReportsView() {
         }
         setShowForm(item)
     }
-
     const handleBack = () => {
         setShowForm(null)
         setManagerEditUser(null)
@@ -192,11 +176,9 @@ function ReportsView() {
         setShowReview(null)
         setReviewData(null)
     }
-
     const handleFormSubmit = (form, submitType) => {
         managerEditUser ? handleManagerEditSubmit(form) : handleSubmitReport(form, submitType === 'submit')
     }
-
     if (showForm) {
         const report = reportTypeMap[showForm.name]
             ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
@@ -216,7 +198,6 @@ function ReportsView() {
             </div>
         )
     }
-
     if (showReview) {
         return (
             <div className="bg-slate-50 min-h-screen w-full pb-16">
@@ -231,9 +212,7 @@ function ReportsView() {
             </div>
         )
     }
-
     const isCurrentTabLoading = tab === 'all' ? isMyReportsLoading : isReviewLoading
-
     const statsContent = (() => {
         if (isCurrentTabLoading) return null
         if (tab === 'all') return <ReportsStatsCards items={allMyItems} tab={tab} />
@@ -241,7 +220,6 @@ function ReportsView() {
             <ReportsStatsCards items={visibleReviewReports} tab={tab} reviewedByCurrentUser={reviewedByCurrentUser} />
         )
     })()
-
     const statsSkeleton = (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-2">
             <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-slate-100 rounded-xl px-4 sm:px-5 py-3 animate-pulse">
@@ -264,7 +242,6 @@ function ReportsView() {
             </div>
         </div>
     )
-
     return (
         <div className="bg-slate-50 min-h-screen w-full pb-16">
             {loadError && (
@@ -310,7 +287,6 @@ function ReportsView() {
                             onShowForm={handleShowForm}
                         />
                     ))}
-
                 {tab === 'review' &&
                     (visibleReviewReports.length === 0 && !isReviewLoading ? (
                         <ReportsEmptyState tab={tab} />
@@ -329,7 +305,6 @@ function ReportsView() {
                         />
                     ))}
             </div>
-
             {isPlantModalOpen && (
                 <PlantDropdownModal
                     isOpen={isPlantModalOpen}
@@ -345,5 +320,4 @@ function ReportsView() {
         </div>
     )
 }
-
 export default ReportsView

@@ -1,12 +1,10 @@
 import APIUtility from './APIUtility'
-
 /**
  * Edge-function-backed authentication helpers for email validation,
  * password strength checking, and name normalization.
  * Password hashing and salt generation are now server-side only.
  */
 const AUTH_FUNCTION = '/auth-service'
-
 const AuthUtility = {
     async emailIsValid(email) {
         const { res, json } = await APIUtility.post(`${AUTH_FUNCTION}/email-is-valid`, { email })
@@ -21,6 +19,5 @@ const AuthUtility = {
         return res.ok ? json.value || 'weak' : 'weak'
     }
 }
-
 export default AuthUtility
 export { AuthUtility }

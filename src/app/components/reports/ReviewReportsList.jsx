@@ -4,15 +4,12 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
-
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
-
 const BADGE_COLORS = {
     'Last Week': 'bg-amber-100 text-amber-800',
     Older: 'bg-slate-100 text-slate-600',
     'This Week': 'bg-blue-100 text-blue-800'
 }
-
 const PageSizeSelect = ({ value, onChange }) => (
     <div className="flex items-center gap-2 text-sm text-slate-500">
         <label className="hidden sm:inline">Show:</label>
@@ -29,7 +26,6 @@ const PageSizeSelect = ({ value, onChange }) => (
         </select>
     </div>
 )
-
 const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPageChange }) => (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-slate-50">
         <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
@@ -54,7 +50,6 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     </div>
 )
-
 /** Reviewed/Pending status indicator badge. */
 const ReviewStatus = ({ isReviewed }) =>
     isReviewed ? (
@@ -68,13 +63,11 @@ const ReviewStatus = ({ isReviewed }) =>
             Pending
         </span>
     )
-
 /** Mobile card layout for a single report in the review list. */
 const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onReview }) => {
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const badge = ReportUtility.getWeekBadge(weekIso)
-
     return (
         <div className="p-4 border-b border-slate-100 last:border-b-0">
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -110,13 +103,11 @@ const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onRevi
         </div>
     )
 }
-
 /** Desktop table row for a single report in the review list. */
 const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onReview }) => {
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const badge = ReportUtility.getWeekBadge(weekIso)
-
     return (
         <div className="flex items-center py-3 px-4 lg:px-7 border-b border-slate-100 hover:bg-slate-50 transition-colors">
             <div className="flex-1 min-w-0 pr-3">
@@ -151,14 +142,12 @@ const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onRevi
         </div>
     )
 }
-
 const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
         <i className="fas fa-user-check text-4xl mb-3" />
         <div className="text-sm">No reports to review</div>
     </div>
 )
-
 /** Paginated list of submitted reports awaiting review, with responsive mobile/desktop layouts. */
 function ReviewReportsList({
     isLoading,
@@ -174,7 +163,6 @@ function ReviewReportsList({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-
     if (items.length === 0 && !isLoading) {
         return (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -182,7 +170,6 @@ function ReviewReportsList({
             </div>
         )
     }
-
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             {isLoading ? (
@@ -233,5 +220,4 @@ function ReviewReportsList({
         </div>
     )
 }
-
 export default ReviewReportsList

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
 import { PlantService } from '../../services/PlantService'
-
 /** Detail/edit view for a single plant record. Supports renaming, saving, and deletion. */
 function PlantsDetailView({ plant, onClose, onDelete }) {
     const [plantName, setPlantName] = useState(plant.plant_name || plant.plantName || '')
@@ -10,7 +9,6 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
     const [message, setMessage] = useState('')
     const [isDeleting, setIsDeleting] = useState(false)
     const [deleteError, setDeleteError] = useState('')
-
     async function handleSave() {
         setIsSaving(true)
         setMessage('')
@@ -25,7 +23,6 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         setDeleteError('')
         setIsDeleting(true)
@@ -42,7 +39,6 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
             setIsDeleting(false)
         }
     }
-
     return (
         <div className="plant-detail-view">
             <div className="detail-header">
@@ -105,5 +101,4 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
         </div>
     )
 }
-
 export default PlantsDetailView

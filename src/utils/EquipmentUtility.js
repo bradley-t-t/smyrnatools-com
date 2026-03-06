@@ -1,5 +1,4 @@
 import VerifiedUtility from './VerifiedUtility'
-
 /**
  * Equipment-specific fleet statistics: status counts, plant distribution,
  * cleanliness/condition averages, service-overdue detection, and verification checks.
@@ -59,5 +58,4 @@ const equipmentUtility = {
         return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
     }
 }
-
 export default equipmentUtility

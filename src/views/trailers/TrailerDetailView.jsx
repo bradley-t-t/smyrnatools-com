@@ -14,7 +14,6 @@ import TractorSelectModal from './TractorSelectModal'
 import TrailerCommentModal from './TrailerCommentModal'
 import TrailerHistoryView from './TrailerHistoryView'
 import TrailerIssueModal from './TrailerIssueModal'
-
 /**
  * Full detail/edit view for a single trailer. Handles tractor assignment/
  * unassignment, region-scoped plant transfer, deletion, trailer type,
@@ -57,7 +56,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [canDeleteTrailer, setCanDeleteTrailer] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
-
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true)
@@ -89,9 +87,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                     trailerNumber: trailerData?.trailerNumber || '',
                     trailerType: trailerData?.trailerType || ''
                 })
-
                 document.documentElement.style.setProperty('--rating-value', trailerData?.cleanlinessRating || 0)
-
                 if (trailerData?.updatedBy) {
                     try {
                         const userName = await UserService.getUserDisplayName(trailerData.updatedBy)
@@ -107,10 +103,8 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 setHasUnsavedChanges(false)
             }
         }
-
         fetchData()
     }, [trailerId, initialTrailer])
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -128,10 +122,8 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         }
         checkDeletePermission()
     }, [])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -171,13 +163,11 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter((p) =>
@@ -188,12 +178,10 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     useEffect(() => {
         if (!originalValues.trailerNumber || isLoading) return
         const hasChanges =
@@ -215,7 +203,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         isLoading,
         lastUnassignedTractorId
     ])
-
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (hasUnsavedChanges) {
@@ -226,7 +213,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         window.addEventListener('beforeunload', handleBeforeUnload)
         return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }, [hasUnsavedChanges])
-
     useEffect(() => {
         if (trailer?.assignedPlant) {
             RegionService.fetchRegionsByPlantCode(trailer.assignedPlant)
@@ -240,29 +226,23 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [trailer?.assignedPlant])
-
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!trailer?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid trailer, region, or plant')
         }
-
         const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedTrailer = {
                 ...trailer,
                 assignedPlant: newPlantCode
             }
-
             const result = await TrailerService.updateTrailer(trailer.id, updatedTrailer, userId, trailer)
             setTrailer(result)
             setAssignedPlant(newPlantCode)
@@ -280,7 +260,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             setIsSaving(false)
         }
     }
-
     async function handleSave(overrideValues = {}) {
         if (!trailer?.id) {
             alert('Error: Cannot save trailer with undefined ID')
@@ -299,14 +278,12 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             let statusValue = Object.prototype.hasOwnProperty.call(overrideValues, 'status')
                 ? overrideValues.status
                 : status
-
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
                 const { data: openIssues } = await supabase
                     .from('trailers_maintenance')
                     .select('id')
                     .eq('trailer_id', trailer.id)
                     .is('time_completed', null)
-
                 if (!openIssues || openIssues.length === 0) {
                     setIsSaving(false)
                     setMessage(
@@ -316,7 +293,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                     return
                 }
             }
-
             if (!['Cement', 'End Dump'].includes(trailerTypeValue)) {
                 trailerTypeValue = 'Cement'
             }
@@ -338,10 +314,8 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                     ? overrideValues.prevAssignedTractor
                     : trailer.assignedTractor
             }
-
             let cleanlinessValue = overrideValues.cleanlinessRating ?? cleanlinessRating
             if (!cleanlinessValue || isNaN(cleanlinessValue) || cleanlinessValue < 1) cleanlinessValue = 1
-
             const updatedTrailer = new Trailer({
                 assigned_plant: overrideValues.assignedPlant ?? assignedPlant,
                 assigned_tractor: assignedTractorValue || null,
@@ -376,7 +350,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             setHasUnsavedChanges(false)
         } catch (error) {
             let errorMessage = 'Unknown error'
-
             if (error.message && typeof error.message === 'string') {
                 if (error.message.includes('duplicate key') && error.message.includes('trailers_trailer_number_key')) {
                     errorMessage = `This trailer number already exists. Please use a different trailer number.`
@@ -384,13 +357,11 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                     errorMessage = error.message
                 }
             }
-
             alert(`Error saving changes: ${errorMessage}`)
         } finally {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!trailer) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
@@ -404,7 +375,6 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     async function handleBackClick() {
         if (hasUnsavedChanges) {
             await handleSave()
@@ -412,18 +382,15 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         }
         onClose()
     }
-
     function getTractorName(tractorId) {
         if (!tractorId || tractorId === '0') return 'None'
         const tractor = tractors.find((t) => t.id === tractorId)
         return tractor && tractor.truckNumber ? `Tractor #${tractor.truckNumber}` : 'Unknown'
     }
-
     function getPlantName(plantCode) {
         const plant = plants.find((p) => p.plantCode === plantCode)
         return plant ? plant.plantName : plantCode
     }
-
     async function fetchTractorsForModal() {
         try {
             let dbTractors = await TractorService.fetchTractors()
@@ -438,12 +405,10 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
             console.error('Error fetching tractors for modal:', error)
         }
     }
-
     async function refreshTractors() {
         const updatedTractors = await TractorService.fetchTractors()
         setTractors(updatedTractors)
     }
-
     useEffect(() => {
         async function fetchCommentsAndIssues() {
             const id = trailer?.id || trailerId
@@ -463,23 +428,19 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 Array.isArray(issueData) ? issueData.filter((i) => i && (i.issue || i.title || i.description)) : []
             )
         }
-
         fetchCommentsAndIssues()
     }, [trailer, trailerId])
-
     function _handleExportEmail() {
         if (!trailer) return
         const hasComments = comments && comments.length > 0
         const openIssues = (issues || []).filter((issue) => !issue.time_completed)
         let summary = `Trailer Summary for Trailer #${trailer.trailerNumber || ''}
-
 Basic Information
 Trailer Number: ${trailer.trailerNumber || ''}
 Assigned Plant: ${getPlantName(trailer.assignedPlant)}
 Trailer Type: ${trailer.trailerType || ''}
 Assigned Tractor: ${getTractorName(trailer.assignedTractor)}
 Cleanliness Rating: ${trailer.cleanlinessRating || 'N/A'}
-
 Comments
 ${
     hasComments
@@ -491,7 +452,6 @@ ${
               .join('\n')
         : 'No comments.'
 }
-
 Issues (${openIssues.length})
 ${
     openIssues.length > 0
@@ -508,7 +468,6 @@ ${
         const body = encodeURIComponent(summary)
         window.location.href = `mailto:?subject=${subject}&body=${body}`
     }
-
     if (isLoading) {
         return (
             <DetailViewSection
@@ -519,7 +478,6 @@ ${
             />
         )
     }
-
     if (!trailer) {
         return (
             <DetailViewSection
@@ -531,7 +489,6 @@ ${
             />
         )
     }
-
     return (
         <>
             {showComments && (
@@ -746,7 +703,6 @@ ${
                             </select>
                         </div>
                     </DetailViewSection.Card>
-
                     <DetailViewSection.Card title="Assignment" icon="fas fa-link">
                         <div className="form-group">
                             <label>Assigned Tractor</label>
@@ -872,7 +828,6 @@ ${
                         </div>
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
-
                 <DetailViewSection.Section id="maintenance" title="Maintenance" icon="fas fa-wrench">
                     <DetailViewSection.Card title="Cleanliness Rating" icon="fas fa-broom">
                         <div className="form-group">
@@ -917,5 +872,4 @@ ${
         </>
     )
 }
-
 export default TrailerDetailView

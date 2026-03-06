@@ -1,11 +1,9 @@
 import React from 'react'
 
 import CardSection from '../../app/components/sections/CardSection'
-
 /** Grid-mode card for a single manager displaying email, plant, and role badge. */
 function ManagerCard({ manager, plantName, onSelect }) {
     const roleColor = 'var(--accent)'
-
     return (
         <CardSection
             item={manager}
@@ -39,5 +37,4 @@ function ManagerCard({ manager, plantName, onSelect }) {
         </CardSection>
     )
 }
-
 export default ManagerCard

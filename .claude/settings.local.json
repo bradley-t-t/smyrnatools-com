@@ -12,7 +12,10 @@
       "Bash(git status -u)",
       "Bash(xargs git:*)",
       "Bash(ls:*)",
-      "Bash(npx react-scripts:*)"
+      "Bash(npx react-scripts:*)",
+      "Bash(CI=false npx react-app-rewired:*)",
+      "Bash(npm install:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }

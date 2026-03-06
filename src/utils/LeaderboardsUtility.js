@@ -6,65 +6,54 @@
 const LeaderboardsUtility = {
     calculateFleetCounts(plantCodesInRegion, mixersData, tractorsData, trailersData, equipmentData, operatorsData) {
         const fleetCountsByPlant = {}
-
         plantCodesInRegion.forEach((plantCode) => {
             const plantMixers = mixersData.filter((m) => {
                 const plant = m.assignedPlant || m.assigned_plant
                 return plant === plantCode && m.status !== 'Retired'
             })
             const mixerCount = plantMixers.length
-
             const plantTractors = tractorsData.filter((t) => {
                 const plant = t.assignedPlant || t.assigned_plant
                 return plant === plantCode && t.status !== 'Retired'
             })
             const tractorCount = plantTractors.length
-
             const trailerCount = trailersData.filter((t) => {
                 const plant = t.assignedPlant || t.assigned_plant
                 return plant === plantCode && t.status !== 'Retired'
             }).length
-
             const equipmentCount = equipmentData.filter((e) => {
                 const plant = e.assignedPlant || e.assigned_plant
                 return plant === plantCode && e.status !== 'Retired'
             }).length
-
             const mixerOperatorIds = new Set(
                 plantMixers
                     .filter((m) => m.assignedOperator && m.assignedOperator !== '0')
                     .map((m) => m.assignedOperator)
             )
-
             const tractorOperatorIds = new Set(
                 plantTractors
                     .filter((t) => t.assignedOperator && t.assignedOperator !== '0')
                     .map((t) => t.assignedOperator)
             )
-
             const mixerOperatorCount = operatorsData.filter((o) => {
                 const plant = o.plantCode || o.plant_code
                 const opId = o.employeeId || o.employee_id
                 return plant === plantCode && o.status === 'Active' && mixerOperatorIds.has(opId)
             }).length
-
             const tractorOperatorCount = operatorsData.filter((o) => {
                 const plant = o.plantCode || o.plant_code
                 const opId = o.employeeId || o.employee_id
                 return plant === plantCode && o.status === 'Active' && tractorOperatorIds.has(opId)
             }).length
-
             const totalOperators = operatorsData.filter((o) => {
                 const plant = o.plantCode || o.plant_code
                 return plant === plantCode && o.status === 'Active'
             }).length
-
             const activeMixers = plantMixers.filter((m) => m.status === 'Active')
             const mixersWithCleanliness = activeMixers.filter((m) => {
                 const rating = m.cleanlinessRating || m.cleanliness_rating
                 return rating !== null && rating !== undefined && rating > 0
             })
-
             const avgMixerCleanliness =
                 mixersWithCleanliness.length > 0
                     ? mixersWithCleanliness.reduce((sum, m) => {
@@ -72,7 +61,6 @@ const LeaderboardsUtility = {
                           return sum + (parseFloat(rating) || 0)
                       }, 0) / mixersWithCleanliness.length
                     : 0
-
             fleetCountsByPlant[plantCode] = {
                 avgFleetCleanliness: avgMixerCleanliness,
                 avgFleetCleanlinessForEfficiency: Math.floor(avgMixerCleanliness),
@@ -86,13 +74,10 @@ const LeaderboardsUtility = {
                 trailers: trailerCount
             }
         })
-
         return fleetCountsByPlant
     },
-
     calculateHoursAdjustments(reports, profilesData, plantCodesInRegion) {
         const hoursAdjustmentsByPlant = {}
-
         plantCodesInRegion.forEach((plantCode) => {
             hoursAdjustmentsByPlant[plantCode] = {
                 details: [],
@@ -100,21 +85,15 @@ const LeaderboardsUtility = {
                 hoursSubtracted: 0
             }
         })
-
         reports.forEach((report) => {
             if (!report.data?.operators_sent_to_help) return
-
             const sendingPlantProfile = profilesData.find((p) => p.id === report.user_id)
             if (!sendingPlantProfile) return
-
             const sendingPlantCode = sendingPlantProfile.plant_code
-
             report.data.operators_sent_to_help.forEach((entry) => {
                 const { destination_plant, operators } = entry
                 if (!operators || operators.length === 0) return
-
                 const totalHours = operators.reduce((sum, op) => sum + (parseFloat(op.hours) || 0), 0)
-
                 if (hoursAdjustmentsByPlant[sendingPlantCode]) {
                     hoursAdjustmentsByPlant[sendingPlantCode].hoursSubtracted += totalHours
                     hoursAdjustmentsByPlant[sendingPlantCode].details.push({
@@ -125,7 +104,6 @@ const LeaderboardsUtility = {
                         week: report.week
                     })
                 }
-
                 if (hoursAdjustmentsByPlant[destination_plant]) {
                     hoursAdjustmentsByPlant[destination_plant].hoursAdded += totalHours
                     hoursAdjustmentsByPlant[destination_plant].details.push({
@@ -138,10 +116,8 @@ const LeaderboardsUtility = {
                 }
             })
         })
-
         return hoursAdjustmentsByPlant
     },
-
     calculateMetrics(
         reportsList,
         _avgFleetCleanlinessActual = 0,
@@ -153,18 +129,14 @@ const LeaderboardsUtility = {
         if (reportsList.length === 0) {
             return null
         }
-
         const reportsByWeek = new Map()
         const allReportDates = []
-
         reportsList.forEach((report) => {
             const weekStr = report.week.split('T')[0]
             const weekDate = new Date(weekStr + 'T12:00:00')
-
             if (weekDate >= currentWeekStart) {
                 return
             }
-
             if (reportsByWeek.has(weekStr)) {
                 const existing = reportsByWeek.get(weekStr)
                 if (report.completed && !existing.completed) {
@@ -181,30 +153,23 @@ const LeaderboardsUtility = {
                 allReportDates.push(weekStr)
             }
         })
-
         if (allReportDates.length === 0) return null
-
         allReportDates.sort()
         const firstDate = allReportDates[0]
-
         const allWeeks = []
         let currentDate = new Date(firstDate + 'T12:00:00')
         const lastSunday = new Date(currentWeekStart)
         lastSunday.setDate(currentWeekStart.getDate() - 7)
-
         while (currentDate < currentWeekStart) {
             const year = currentDate.getFullYear()
             const month = String(currentDate.getMonth() + 1).padStart(2, '0')
             const day = String(currentDate.getDate()).padStart(2, '0')
             const weekStr = `${year}-${month}-${day}`
-
             const report = reportsByWeek.get(weekStr)
-
             if (report) {
                 const yardage = parseFloat(report.data?.yardage || 0)
                 const hours = parseFloat(report.data?.total_hours || 0)
                 const lost = parseFloat(report.data?.total_yards_lost || 0)
-
                 allWeeks.push({
                     hours,
                     isMissing: false,
@@ -221,20 +186,15 @@ const LeaderboardsUtility = {
                     yardage: 0
                 })
             }
-
             currentDate.setDate(currentDate.getDate() + 7)
         }
-
         const submittedWeeks = allWeeks.filter((w) => !w.isMissing && !w.isNotSubmitted)
         const totalExpectedReports = allWeeks.length
-
         const missingReports = allWeeks.filter((w) => w.isMissing)
         const incompleteReports = allWeeks.filter((w) => w.isNotSubmitted)
         const missingCount = missingReports.length
         const incompleteCount = incompleteReports.length
-
         if (submittedWeeks.length === 0) return null
-
         const totals = submittedWeeks.reduce(
             (acc, week) => ({
                 reportCount: acc.reportCount + 1,
@@ -244,19 +204,15 @@ const LeaderboardsUtility = {
             }),
             { reportCount: 0, totalHours: 0, totalLost: 0, totalYards: 0 }
         )
-
         let adjustedTotalHours = totals.totalHours
         let helpGiven = 0
         let helpReceived = 0
         let helpRatio = 0
-
         if (hoursAdjustments) {
             const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
             adjustedTotalHours = totals.totalHours + netAdjustment
-
             helpGiven = hoursAdjustments.hoursSubtracted || 0
             helpReceived = hoursAdjustments.hoursAdded || 0
-
             if (helpReceived > 0) {
                 helpRatio = helpGiven / helpReceived
             } else if (helpGiven > 0) {
@@ -265,51 +221,37 @@ const LeaderboardsUtility = {
                 helpRatio = 0
             }
         }
-
         const weeksWithHours = submittedWeeks.filter((w) => w.hours > 0)
         const yardsWithHours = weeksWithHours.reduce((sum, w) => sum + w.yardage, 0)
         const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
-
         let adjustedHoursTotal = hoursTotal
         if (hoursAdjustments) {
             const netAdjustment = hoursAdjustments.hoursAdded - hoursAdjustments.hoursSubtracted
             adjustedHoursTotal = hoursTotal + netAdjustment
         }
-
         const rawYPH = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
         const avgYPH = adjustedHoursTotal > 0 ? yardsWithHours / adjustedHoursTotal : 0
-
         const avgYardageWeekly = totals.reportCount > 0 ? totals.totalYards / totals.reportCount : 0
         const avgYardageDaily = avgYardageWeekly / 6
         const avgWeeklyHours = totals.reportCount > 0 ? adjustedTotalHours / totals.reportCount : 0
         const avgHoursDaily = avgWeeklyHours / 6
         const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
-
         const avgMonthlyYards = avgYardageWeekly * 4.33
         const avgMonthlyHours = avgWeeklyHours * 4.33
-
         const yardsPerLoad = 10
         const avgLoadsWeekly = totals.reportCount > 0 ? totals.totalYards / yardsPerLoad / totals.reportCount : 0
         const avgLoadsDaily = avgLoadsWeekly / 6
-
         const targetYPH = 3.0
         const yphEfficiency = avgYPH > 0 ? Math.min((avgYPH / targetYPH) * 100, 100) : 0
-
         const loadsPerOperatorPerDay = mixerOperatorCount > 0 ? avgLoadsDaily / mixerOperatorCount : 0
         const targetLoadsPerOperatorPerDay = 3
         const loadsEfficiency = Math.min((loadsPerOperatorPerDay / targetLoadsPerOperatorPerDay) * 100, 100)
-
         const baseEfficiency = yphEfficiency * 0.9 + loadsEfficiency * 0.1
-
         const reportDeduction = (missingCount + incompleteCount) * 10
-
         const impactfulIncidents = safetyIncidents?.impactfulIncidents || 0
         const totalSafetyIncidents = safetyIncidents?.totalIncidents || 0
-
         const avgEfficiency = avgYPH > 0 ? Math.min(Math.max(baseEfficiency - reportDeduction, 0), 100) : 0
-
         const dataIntegrity = totalExpectedReports > 0 ? (totals.reportCount / totalExpectedReports) * 100 : 100
-
         return {
             avgEfficiency,
             avgHoursDaily,
@@ -338,10 +280,8 @@ const LeaderboardsUtility = {
             totalYardage: totals.totalYards
         }
     },
-
     calculateSafetyIncidents(safetyReports, plantCodesInRegion) {
         const safetyByPlant = {}
-
         plantCodesInRegion.forEach((plantCode) => {
             safetyByPlant[plantCode] = {
                 details: [],
@@ -349,16 +289,12 @@ const LeaderboardsUtility = {
                 totalIncidents: 0
             }
         })
-
         safetyReports.forEach((report) => {
             if (!report.data?.issues || !Array.isArray(report.data.issues)) return
-
             report.data.issues.forEach((issue) => {
                 const plantCode = issue.plant
                 if (!plantCode || plantCode === 'All' || !safetyByPlant[plantCode]) return
-
                 safetyByPlant[plantCode].totalIncidents++
-
                 if (issue.affectsEfficiency === true) {
                     safetyByPlant[plantCode].impactfulIncidents++
                     safetyByPlant[plantCode].details.push({
@@ -370,10 +306,8 @@ const LeaderboardsUtility = {
                 }
             })
         })
-
         return safetyByPlant
     },
-
     getCategoryData(plantMetrics, category) {
         switch (category) {
             case 'efficiency':
@@ -416,7 +350,6 @@ const LeaderboardsUtility = {
                 return []
         }
     },
-
     getCategoryTitle(category) {
         switch (category) {
             case 'efficiency':
@@ -445,12 +378,10 @@ const LeaderboardsUtility = {
                 return 'Leaderboard'
         }
     },
-
     getEfficiencyColor(efficiency) {
         if (efficiency >= 90) return 'var(--success)'
         if (efficiency >= 80) return 'var(--warning)'
         return 'var(--danger)'
     }
 }
-
 export default LeaderboardsUtility

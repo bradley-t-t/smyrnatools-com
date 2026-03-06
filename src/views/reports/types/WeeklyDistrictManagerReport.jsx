@@ -4,7 +4,6 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { RegionService } from '../../../services/RegionService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { filterMaintenanceItemsByPlant, useAllowedPlantCodes } from './shared'
-
 const WEEKDAYS = [
     { icon: 'fa-calendar-day', key: 'monday', label: 'Monday' },
     { icon: 'fa-calendar-day', key: 'tuesday', label: 'Tuesday' },
@@ -13,7 +12,6 @@ const WEEKDAYS = [
     { icon: 'fa-calendar-day', key: 'friday', label: 'Friday' },
     { icon: 'fa-calendar-week', key: 'saturday', label: 'Saturday' }
 ]
-
 function DailyRecapSection({ form, handleChange, readOnly }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -52,7 +50,6 @@ function DailyRecapSection({ form, handleChange, readOnly }) {
         </div>
     )
 }
-
 function MaintenanceItemsStats({ completedCount, overdueCount }) {
     return (
         <div className="flex gap-4">
@@ -79,30 +76,25 @@ function MaintenanceItemsStats({ completedCount, overdueCount }) {
         </div>
     )
 }
-
 const ITEM_ICON_CLASSES = {
     completed: { className: 'text-emerald-600', icon: 'fa-check-circle' },
     overdue: { className: 'text-red-600', icon: 'fa-exclamation-triangle' },
     pending: { className: 'text-amber-500', icon: 'fa-clock' }
 }
-
 function getItemIcon(item) {
     if (item.completed) return ITEM_ICON_CLASSES.completed
     if (item.isOverdue) return ITEM_ICON_CLASSES.overdue
     return ITEM_ICON_CLASSES.pending
 }
-
 function truncateText(text, maxLength) {
     if (!text) return ''
     return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
 }
-
 function MaintenanceItemsTable({ items, plants }) {
     const getPlantName = (plantCode) => {
         const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)
         return plant?.name || plantCode || ''
     }
-
     if (items.length === 0) {
         return (
             <div className="py-12 px-8 text-center text-slate-500">
@@ -111,7 +103,6 @@ function MaintenanceItemsTable({ items, plants }) {
             </div>
         )
     }
-
     return (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
             <div className="overflow-x-auto">
@@ -164,7 +155,6 @@ function MaintenanceItemsTable({ items, plants }) {
         </div>
     )
 }
-
 function DistrictManagerPlugin({ maintenanceItems, plants, form, setForm, readOnly }) {
     const { preferences } = usePreferences()
     const regionCode = preferences?.selectedRegion?.code || ''
@@ -172,11 +162,9 @@ function DistrictManagerPlugin({ maintenanceItems, plants, form, setForm, readOn
     const filteredItems = filterMaintenanceItemsByPlant(maintenanceItems, plants, allowedCodes)
     const completedCount = filteredItems.length
     const overdueCount = filteredItems.filter((item) => item.isOverdue).length
-
     const handleChange = (e, name) => {
         if (setForm) setForm((prev) => ({ ...prev, [name]: e.target.value }))
     }
-
     return (
         <div>
             <DailyRecapSection form={form} handleChange={handleChange} readOnly={readOnly} />
@@ -188,12 +176,10 @@ function DistrictManagerPlugin({ maintenanceItems, plants, form, setForm, readOn
         </div>
     )
 }
-
 /** Submit-mode wrapper for the District Manager report plugin. */
 export function DistrictManagerSubmitPlugin(props) {
     return <DistrictManagerPlugin {...props} />
 }
-
 /** Review-mode wrapper for the District Manager report plugin (read-only). */
 export function DistrictManagerReviewPlugin({ maintenanceItems, plants, form }) {
     return <DistrictManagerPlugin maintenanceItems={maintenanceItems} plants={plants} form={form} readOnly />

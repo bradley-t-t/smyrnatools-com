@@ -7,7 +7,6 @@ import { OperatorService } from '../../services/OperatorService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import UserUtility from '../../utils/UserUtility'
-
 /**
  * Slide-in form for creating a new operator record. Supports name, phone,
  * plant assignment (region-scoped), status (with permission-gated Training/
@@ -36,7 +35,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [automaticRestriction, setAutomaticRestriction] = useState(false)
-
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
             if (assignedPlant && !allowedPlantCodes.has(String(assignedPlant).trim().toUpperCase())) {
@@ -44,7 +42,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
             }
         }
     }, [allowedPlantCodes])
-
     useEffect(() => {
         async function checkPermission() {
             const userId = sessionStorage.getItem('userId')
@@ -53,14 +50,11 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                 setHasTrainingPermission(hasPermission)
             }
         }
-
         checkPermission()
     }, [])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -76,13 +70,11 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                 setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, assignedPlant])
-
     const filteredPlants = plants
         .filter((p) => {
             const code = String(p.plantCode || '')
@@ -95,12 +87,10 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
             const bCode = parseInt(b.plantCode?.replace(/\D/g, '') || '0')
             return aCode - bCode
         })
-
     const selectedPlantObj = filteredPlants.find((p) => p.plantCode === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
         : 'Select Plant'
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError('')
@@ -163,7 +153,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title="Add New Operator" onClose={onClose} error={error}>
@@ -197,7 +186,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-building"></i>
@@ -240,7 +228,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         )}
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-briefcase"></i>
@@ -302,7 +289,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         )}
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-car"></i>
@@ -322,7 +308,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </span>
                         </div>
                     </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Operator'}
@@ -344,5 +329,4 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
         </>
     )
 }
-
 export default OperatorAddView

@@ -20,9 +20,7 @@ import { useTutorial } from './context/TutorialContext'
 import { useAuthSession } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
 import { useVersionCheck } from './hooks/useVersionCheck'
-
 const CHUNK_RELOAD_KEY = 'chunk_reload_attempted'
-
 /** Retries a failed dynamic import once by forcing a full page reload to clear stale chunk hashes. */
 const lazyWithRetry = (importer) =>
     lazy(() =>
@@ -34,7 +32,6 @@ const lazyWithRetry = (importer) =>
             return importer()
         })
     )
-
 const AppInstallPromptModal = lazyWithRetry(() => import('./components/common/AppInstallPromptModal'))
 const CalculatorView = lazyWithRetry(() => import('../views/calculator/CalculatorView'))
 const DashboardView = lazyWithRetry(() => import('../views/dashboard/DashboardView'))
@@ -57,14 +54,12 @@ const ReportsView = lazyWithRetry(() => import('../views/reports/ReportsView'))
 const RolesView = lazyWithRetry(() => import('../views/roles/RolesView'))
 const TractorsView = lazyWithRetry(() => import('../views/tractors/TractorsView'))
 const TrailersView = lazyWithRetry(() => import('../views/trailers/TrailersView'))
-
 /** Views only available when region type is "Office". */
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 /** Views hidden when region type is "Aggregate". */
 const AGGREGATE_HIDDEN_VIEWS = new Set(['Mixers', 'Plants', 'Regions'])
 /** Views hidden by default (non-Office, non-Aggregate). */
 const DEFAULT_HIDDEN_VIEWS = new Set(['Plants', 'Regions'])
-
 /**
  * Main application shell managing authentication state, view routing,
  * region-based view filtering, role checks, and offline/terminated overlays.
@@ -84,62 +79,50 @@ function AppContent() {
     const [terminatedMode, setTerminatedMode] = useState(false)
     const [regionKey, setRegionKey] = useState(0)
     const [sessionChecked, setSessionChecked] = useState(false)
-
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
     useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
     const { triggerTutorial } = useTutorial()
-
     useEffect(() => {
         sessionStorage.removeItem(CHUNK_RELOAD_KEY)
     }, [])
-
     useEffect(() => {
         if (userId && rolesLoaded) {
             triggerTutorial('account-nav-hint', 2000)
         }
     }, [userId, rolesLoaded, triggerTutorial])
-
     useEffect(() => {
         UserService.getCurrentUser().catch(() => {})
     }, [userId])
-
     useEffect(() => {
         const handleRegionChange = (event) => {
             const regionType = event?.detail?.type
             const view = selectedView?.view
-
             const isViewAllowed = (v, t) => {
                 if (!v || v === 'MyAccount') return true
                 if (t === 'Office') return OFFICE_VISIBLE_VIEWS.has(v)
                 if (t === 'Aggregate') return !AGGREGATE_HIDDEN_VIEWS.has(v)
                 return !DEFAULT_HIDDEN_VIEWS.has(v)
             }
-
             if (!isViewAllowed(view, regionType)) {
                 setSelectedView({ initialStatusFilter: null, view: 'Dashboard' })
             }
             setRegionKey((prev) => prev + 1)
         }
-
         window.addEventListener('region-changed', handleRegionChange)
         return () => window.removeEventListener('region-changed', handleRegionChange)
     }, [selectedView])
-
     useEffect(() => {
         if (!userId || rolesLoaded) return
         let cancelled = false
-
         const loadRoles = async () => {
             try {
                 const roles = await UserService.getUserRoles(userId)
                 if (cancelled) return
-
                 if (roles?.some((r) => r?.name?.toLowerCase() === 'terminated')) {
                     setTerminatedMode(true)
                     setRolesLoaded(true)
                     return
                 }
-
                 const guestOnly = roles.length > 0 && roles.every((r) => r?.name?.toLowerCase() === 'guest')
                 setIsGuestOnly(guestOnly)
                 setRolesLoaded(true)
@@ -151,16 +134,13 @@ function AppContent() {
                 }
             }
         }
-
         loadRoles()
         return () => {
             cancelled = true
         }
     }, [userId, rolesLoaded])
-
     useEffect(() => {
         if (!userId) return
-
         supabase
             .from('users_profiles')
             .select('first_name, last_name')
@@ -178,7 +158,6 @@ function AppContent() {
                 }
             })
     }, [userId])
-
     const handleViewSelection = useCallback(
         (viewId) => {
             if (isGuestOnly && viewId !== 'Guest') return
@@ -190,14 +169,12 @@ function AppContent() {
         },
         [isGuestOnly]
     )
-
     const handleSetSelectedView = useCallback(
         (view, initialStatusFilter = null, initialSelectedPlant = null, initialPositionFilter = null) => {
             setSelectedView({ initialPositionFilter, initialSelectedPlant, initialStatusFilter, view })
         },
         []
     )
-
     const handleRetryConnection = useCallback(async () => {
         if (!navigator.onLine) return
         const ok = await NetworkUtility.checkConnection()
@@ -208,7 +185,6 @@ function AppContent() {
             setOfflineMode(false)
         }
     }, [onlineStreakRef, offlineStreakRef, offlineSinceRef])
-
     const handleReloadIfOnline = useCallback(async () => {
         if (!navigator.onLine) return
         const ok = await NetworkUtility.checkConnection()
@@ -220,15 +196,12 @@ function AppContent() {
             window.location.reload()
         }
     }, [onlineStreakRef, offlineStreakRef, offlineSinceRef])
-
     const handleCloseWebView = useCallback(() => setWebViewURL(null), [])
-
     const renderCurrentView = () => {
         if (!userId) return <LoginView />
         if (!rolesLoaded) return null
         if (isGuestOnly) return null
         if (webViewURL) return <WebOverlay url={webViewURL} onClose={handleCloseWebView} />
-
         switch (selectedView.view) {
             case 'Dashboard':
                 return <DashboardView />
@@ -323,12 +296,10 @@ function AppContent() {
                 )
         }
     }
-
     if (terminatedMode) return <TerminatedOverlay />
     if (!sessionChecked) return null
     if (!userId) return <div className="App">{renderCurrentView()}</div>
     if (!rolesLoaded) return null
-
     return (
         <div className="App">
             <Navigation
@@ -348,14 +319,12 @@ function AppContent() {
         </div>
     )
 }
-
 /**
  * Root application component wrapping AppContent with global providers,
  * analytics, speed insights, install prompt, and tutorial manager.
  */
 function App() {
     const { hasUpdate, dismiss } = useVersionCheck()
-
     useEffect(() => {
         document.documentElement.style.overflowX = 'hidden'
         document.body.style.overflowX = 'hidden'
@@ -364,7 +333,6 @@ function App() {
             document.body.style.overflowX = ''
         }
     }, [])
-
     return (
         <>
             <AppContent />
@@ -378,5 +346,4 @@ function App() {
         </>
     )
 }
-
 export default App

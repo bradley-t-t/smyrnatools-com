@@ -10,9 +10,7 @@ import {
     resolveEntityId
 } from '../utils/BaseAssetUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
-
 const SERVICE_PREFIX = '/pickup-truck-service'
-
 /**
  * Pickup truck CRUD, comments, issues, history, and verification service.
  * Delegates shared asset operations to BaseAssetUtility.
@@ -21,16 +19,13 @@ class PickupTruckServiceImpl {
     static async fetchAllCommentsCounts(pickupTruckIds) {
         return fetchAllCountsFromTable('pickup_trucks_comments', 'truck_id', pickupTruckIds)
     }
-
     static async fetchAllIssuesCounts(pickupTruckIds) {
         return fetchAllOpenIssueCountsFromTable('pickup_trucks_maintenance', 'truck_id', pickupTruckIds)
     }
-
     static async getAll() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch pickup trucks')
         return (json?.data ?? []).map(PickupTruck.fromApiFormat)
     }
-
     /** Fetches all pickup trucks with enriched details, optionally filtered by region. */
     static async fetchAll(regionCodes = null) {
         return fetchWithDetailsBase({
@@ -40,13 +35,11 @@ class PickupTruckServiceImpl {
             regionCodes
         })
     }
-
     static async getById(id) {
         ValidationUtility.requireUUID(id, 'Pickup Truck ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-by-id`, { id }, 'Failed to fetch pickup truck')
         return json?.data ? PickupTruck.fromApiFormat(json.data) : null
     }
-
     static async create(pickup, userId) {
         const resolvedUserId = await requireUserId(userId, 'Authentication required')
         if (pickup?.id) delete pickup.id
@@ -57,7 +50,6 @@ class PickupTruckServiceImpl {
         )
         return PickupTruck.fromApiFormat(json?.data)
     }
-
     static async update(id, pickup, userId) {
         const pickupId = resolveEntityId(id)
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
@@ -69,12 +61,10 @@ class PickupTruckServiceImpl {
         )
         return PickupTruck.fromApiFormat(json?.data)
     }
-
     static async remove(id) {
         ValidationUtility.requireUUID(id, 'Pickup Truck ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete pickup truck')
     }
-
     static async searchByVin(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -84,7 +74,6 @@ class PickupTruckServiceImpl {
         )
         return (json?.data ?? []).map(PickupTruck.fromApiFormat)
     }
-
     static async searchByAssigned(query) {
         if (!query?.trim()) throw new Error('Search query is required')
         const json = await apiPostOrThrow(
@@ -94,7 +83,6 @@ class PickupTruckServiceImpl {
         )
         return (json?.data ?? []).map(PickupTruck.fromApiFormat)
     }
-
     /** Verifies a pickup truck by updating its last-verified timestamp. */
     static async verify(pickupId, userId) {
         const id = resolveEntityId(pickupId)
@@ -104,7 +92,6 @@ class PickupTruckServiceImpl {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/update`, payload, 'Failed to verify pickup truck')
         return PickupTruck.fromApiFormat(json?.data)
     }
-
     /** Detects duplicate VINs across pickup trucks for data quality alerts. */
     static getDuplicateVINs(pickups) {
         return getDuplicateFieldValues(pickups, (p) => {
@@ -115,7 +102,6 @@ class PickupTruckServiceImpl {
             return key || null
         })
     }
-
     /** Detects duplicate assignee names for data quality alerts. */
     static getDuplicateAssigned(pickups) {
         return getDuplicateFieldValues(pickups, (p) => {
@@ -125,13 +111,11 @@ class PickupTruckServiceImpl {
             return key || null
         })
     }
-
     static async fetchComments(pickupId) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { pickupId }, 'Failed to fetch comments')
         return json?.data ?? []
     }
-
     static async addComment(pickupId, text, author) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         if (!text?.trim()) throw new Error('Comment text is required')
@@ -143,24 +127,20 @@ class PickupTruckServiceImpl {
         )
         return json?.data
     }
-
     static async deleteComment(commentId) {
         ValidationUtility.requireUUID(commentId, 'Comment ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
         return json?.success ?? false
     }
-
     static async fetchIssues(pickupId) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { pickupId }, 'Failed to fetch issues')
         return json?.data ?? []
     }
-
     static async completeIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
     }
-
     static async addIssue(pickupId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         if (!issue?.trim()) throw new Error('Issue description is required')
@@ -177,12 +157,10 @@ class PickupTruckServiceImpl {
         )
         return json?.data
     }
-
     static async deleteIssue(issueId) {
         ValidationUtility.requireUUID(issueId, 'Issue ID is required')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
     }
-
     static async fetchHistory(pickupId, limit = null) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         const payload = { pickupId }
@@ -191,6 +169,5 @@ class PickupTruckServiceImpl {
         return json?.data ?? []
     }
 }
-
 export const PickupTruckService = PickupTruckServiceImpl
 export default PickupTruckServiceImpl

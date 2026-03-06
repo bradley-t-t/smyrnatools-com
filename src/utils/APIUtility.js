@@ -1,11 +1,9 @@
 import { supabase } from '../services/DatabaseService'
-
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 const REQUEST_TIMEOUT_MS = 30_000
 const DEFAULT_MAX_RETRIES = 2
 const DEFAULT_RETRY_DELAY_MS = 1_000
-
 /**
  * Resolves the current session's JWT. Falls back to the anon key if the
  * user is unauthenticated or the session cannot be read.
@@ -17,7 +15,6 @@ const getAuthToken = async () => {
     } catch {}
     return SUPABASE_ANON_KEY
 }
-
 /**
  * Builds a plain error response in the same shape as a successful response,
  * so callers never need to handle two different return shapes.
@@ -26,7 +23,6 @@ const errorResponse = (message) => ({
     json: { error: message },
     res: { ok: false, status: 0 }
 })
-
 /**
  * Authenticated HTTP client for Supabase Edge Functions.
  *
@@ -40,17 +36,13 @@ const APIUtility = {
         const url = `${EDGE_FUNCTIONS_URL}${path}`
         const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES
         const retryDelay = options.retryDelay ?? DEFAULT_RETRY_DELAY_MS
-
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const isLastAttempt = attempt === maxRetries
-
             // Fetch a fresh token on every attempt so an expired JWT doesn't
             // cause all retries to fail with the same auth error.
             const token = await getAuthToken()
-
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-
             try {
                 const res = await fetch(url, {
                     body: JSON.stringify(data),
@@ -63,14 +55,11 @@ const APIUtility = {
                     method: 'POST',
                     signal: controller.signal
                 })
-
                 clearTimeout(timeoutId)
-
                 const json = await res.json().catch(() => ({}))
                 return { json, res }
             } catch (error) {
                 clearTimeout(timeoutId)
-
                 if (isLastAttempt) {
                     const message =
                         error.name === 'AbortError'
@@ -78,14 +67,11 @@ const APIUtility = {
                             : error.message || 'Network request failed. Please check your connection.'
                     return errorResponse(message)
                 }
-
                 await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
             }
         }
-
         return errorResponse('Network request failed after multiple attempts.')
     }
 }
-
 export default APIUtility
 export { APIUtility }

@@ -1,5 +1,4 @@
 import React from 'react'
-
 const cardStyles = `
     .detail-row {
         display: flex;
@@ -45,7 +44,6 @@ const cardStyles = `
         padding: 4px 8px;
     }
 `
-
 /**
  * Asset summary card used in grid view mode.
  * Displays a colored status bar, item number, subtitle, verification flag,
@@ -66,15 +64,12 @@ function CardSection({
     children
 }) {
     const accentColor = 'var(--accent)'
-
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {
             onSelect(item.id)
         }
     }
-
     const cardProps = onSelect ? { onClick: handleCardClick } : {}
-
     const styles = {
         card: {
             background: 'white',
@@ -152,7 +147,6 @@ function CardSection({
             marginLeft: '8px'
         }
     }
-
     return (
         <>
             <style>{cardStyles}</style>
@@ -178,7 +172,6 @@ function CardSection({
                 }}
             >
                 <div style={styles.statusBar} />
-
                 {isVerified !== undefined && (
                     <div
                         style={styles.verificationFlag(isVerified)}
@@ -190,7 +183,6 @@ function CardSection({
                         ></i>
                     </div>
                 )}
-
                 <div style={styles.cardContent}>
                     <div style={styles.cardHeader}>
                         <h3 style={styles.itemName}>
@@ -207,12 +199,10 @@ function CardSection({
                             </div>
                         )}
                     </div>
-
                     <div style={styles.cardDetails}>{children}</div>
                 </div>
             </div>
         </>
     )
 }
-
 export default CardSection

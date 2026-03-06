@@ -3,7 +3,6 @@ import React from 'react'
 import CardSection from '../../app/components/sections/CardSection'
 import formatUtility from '../../utils/FormatUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
-
 /** Maps operator lifecycle statuses to their card accent colors. */
 const operatorStatusColors = {
     active: '#10b981',
@@ -11,7 +10,6 @@ const operatorStatusColors = {
     inactive: '#ef4444',
     terminated: '#6b7280'
 }
-
 /**
  * Grid-mode card for a single operator. Displays plant, status, employee ID,
  * phone, trainer badge, position, star rating, scheduled-off icon, and a
@@ -29,13 +27,11 @@ function OperatorCard({
 }) {
     if (!operator) return null
     const statusColor = operatorStatusColors[operator.status] || operatorStatusColors.default
-
     let trainerName = 'None'
     if (operator.assignedTrainer && operator.assignedTrainer !== '0' && Array.isArray(trainers)) {
         const trainerObj = trainers.find((t) => t.employeeId === operator.assignedTrainer)
         trainerName = trainerObj ? trainerObj.name : 'Unknown'
     }
-
     const hasScheduledOff = Array.isArray(operator.daysOff) && operator.daysOff.length > 0
     const displayRating =
         typeof rating === 'number'
@@ -43,7 +39,6 @@ function OperatorCard({
             : typeof operator.rating === 'number'
               ? operator.rating
               : Number(operator.rating) || 0
-
     return (
         <CardSection
             item={operator}
@@ -126,5 +121,4 @@ function OperatorCard({
         </CardSection>
     )
 }
-
 export default OperatorCard

@@ -1,12 +1,10 @@
 import React from 'react'
-
 /** Circular icon container used in empty state illustrations. */
 const IconWrapper = ({ icon, iconColorClass = 'text-slate-400' }) => (
     <div className="w-20 h-20 sm:w-24 sm:h-24 bg-slate-100 rounded-full flex items-center justify-center mb-5 sm:mb-6">
         <i className={`fas ${icon} text-4xl sm:text-5xl ${iconColorClass}`} />
     </div>
 )
-
 const TipCard = ({ icon, title, text }) => (
     <div className="flex items-center gap-3 bg-slate-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-left">
         <i className={`fas ${icon} text-indigo-500 text-lg sm:text-xl shrink-0`} />
@@ -16,7 +14,6 @@ const TipCard = ({ icon, title, text }) => (
         </div>
     </div>
 )
-
 const NoAssignmentsState = () => (
     <div className="flex flex-col items-center bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-6 sm:p-12 text-center">
         <IconWrapper icon="fa-clipboard-list" />
@@ -36,7 +33,6 @@ const NoAssignmentsState = () => (
         </div>
     </div>
 )
-
 const AllCaughtUpState = () => (
     <div className="flex flex-col items-center bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-6 sm:p-12 text-center">
         <IconWrapper icon="fa-check-circle" iconColorClass="text-emerald-500" />
@@ -54,7 +50,6 @@ const AllCaughtUpState = () => (
         </div>
     </div>
 )
-
 const ReviewEmptyState = () => (
     <div className="flex flex-col items-center bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-6 sm:p-12 text-center">
         <IconWrapper icon="fa-eye" />
@@ -70,7 +65,6 @@ const ReviewEmptyState = () => (
         </div>
     </div>
 )
-
 /**
  * Contextual empty state for the reports view.
  * Shows "No Reports Assigned", "All Caught Up", or "No Reports to Review"
@@ -81,5 +75,4 @@ function ReportsEmptyState({ tab, hasAssigned }) {
     const hasAnyAssignment = Object.values(hasAssigned || {}).some(Boolean)
     return hasAnyAssignment ? <AllCaughtUpState /> : <NoAssignmentsState />
 }
-
 export default ReportsEmptyState

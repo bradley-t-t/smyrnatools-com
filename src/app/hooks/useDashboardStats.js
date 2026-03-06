@@ -4,9 +4,7 @@ import { RegionService } from '../../services/RegionService'
 import DashboardUtility from '../../utils/DashboardUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
 import { INITIAL_STATS } from '../constants/dashboardConstants'
-
 const CALC_PERCENT = (numerator, denominator) => (denominator ? Math.round((numerator / denominator) * 100) : 0)
-
 const createBaseTotals = () => ({
     active: 0,
     comments: 0,
@@ -17,7 +15,6 @@ const createBaseTotals = () => ({
     total: 0,
     verified: 0
 })
-
 /**
  * Computes dashboard statistics (totals, allocation percentages, verification rates)
  * from fleet asset refs, filtered by the active region/plant scope.
@@ -26,21 +23,18 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
     const [stats, setStats] = useState(INITIAL_STATS)
     const prevSnapshotRef = useRef(null)
     const countsRef = useRef({ equipment: {}, mixers: {}, tractors: {}, trailers: {} })
-
     const allMixersRef = useRef([])
     const allTractorsRef = useRef([])
     const allTrailersRef = useRef([])
     const allEquipmentRef = useRef([])
     const allPickupsRef = useRef([])
     const allOperatorsRef = useRef([])
-
     const computeStats = useCallback(() => {
         const region = RegionService.getRegionByCode(dashboardRegionCode)
         const isAggregate = region?.type === 'Aggregate'
         const plantSet = updatePlantSet(region?.type)
         const consider = createFilterFn(plantSet)
         const counts = countsRef.current
-
         const mixersTotals = createBaseTotals()
         const tractorsTotals = {
             ...createBaseTotals(),
@@ -70,16 +64,13 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             tractorAssigned: 0,
             unassigned: 0
         }
-
         const mixerAssignedIds = new Set()
         const tractorAssignedIds = new Set()
-
         let mixersAvailable = 0
         let tractorsAvailable = 0
         let trailersAvailable = 0
         let equipmentAvailable = 0
         let pickupsAvailable = 0
-
         const processAssetStatus = (asset, totals, countsKey, hasVerification = false) => {
             if (asset.status === 'Retired') return false
             totals.total++
@@ -97,7 +88,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             }
             return true
         }
-
         const incrementStatusSubtype = (totals, subtypeObj, subtypeKey, status) => {
             subtypeObj[subtypeKey].total++
             if (status === 'Active') {
@@ -111,7 +101,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 subtypeObj[subtypeKey].shop++
             }
         }
-
         if (!isAggregate) {
             allMixersRef.current.forEach((m) => {
                 if (!consider(m.plantCode)) return
@@ -121,7 +110,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 }
             })
         }
-
         allTractorsRef.current.forEach((t) => {
             if (!consider(t.plantCode) || t.status === 'Retired') return
             tractorsTotals.total++
@@ -137,7 +125,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 tractorsTotals.comments += tc.comments || 0
             }
         })
-
         allTrailersRef.current.forEach((r) => {
             if (!consider(r.plantCode) || r.status === 'Retired') return
             trailersTotals.total++
@@ -151,12 +138,10 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 trailersTotals.comments += rc.comments || 0
             }
         })
-
         allEquipmentRef.current.forEach((e) => {
             if (!consider(e.plantCode)) return
             if (processAssetStatus(e, equipmentTotals)) equipmentAvailable++
         })
-
         allPickupsRef.current.forEach((p) => {
             if (!consider(p.plantCode)) return
             if (p.status !== 'Retired') {
@@ -170,7 +155,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             else if (p.status === 'Sold') pickupsTotals.sold++
             else if (p.status === 'Retired') pickupsTotals.retired++
         })
-
         allOperatorsRef.current.forEach((o) => {
             if (!consider(o.plantCode)) return
             operatorsTotals.total++
@@ -191,32 +175,25 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 operatorsTotals.lightDuty++
             }
         })
-
         const mixersVerifiedPercent = CALC_PERCENT(mixersTotals.verified, mixersAvailable)
         const tractorsVerifiedPercent = CALC_PERCENT(tractorsTotals.verified, tractorsAvailable)
-
         const verifiedValues = []
         if (!isAggregate && mixersTotals.total) verifiedValues.push(mixersVerifiedPercent)
         if (tractorsTotals.total) verifiedValues.push(tractorsVerifiedPercent)
         const verificationAvg = verifiedValues.length
             ? Math.round(verifiedValues.reduce((a, b) => a + b, 0) / verifiedValues.length)
             : 0
-
         let openIssuesTotal = isAggregate ? 0 : mixersTotals.issues
         openIssuesTotal += tractorsTotals.issues + trailersTotals.issues + equipmentTotals.issues
-
         let overdueTotal = isAggregate ? 0 : mixersTotals.overdue
         overdueTotal += tractorsTotals.overdue + trailersTotals.overdue + equipmentTotals.overdue
-
         let fleetTotal = isAggregate ? 0 : mixersTotals.total
         fleetTotal += tractorsTotals.total + trailersTotals.total + equipmentTotals.total + pickupsTotals.total
-
         const mixersAllocationPercent = CALC_PERCENT(mixersTotals.active, mixersAvailable)
         const tractorsAllocationPercent = CALC_PERCENT(tractorsTotals.active, tractorsAvailable)
         const trailersAllocationPercent = CALC_PERCENT(trailersTotals.active, trailersAvailable)
         const equipmentAllocationPercent = CALC_PERCENT(equipmentTotals.active, equipmentAvailable)
         const pickupsAllocationPercent = CALC_PERCENT(pickupsTotals.active + pickupsTotals.stationary, pickupsAvailable)
-
         let overallAvailable = tractorsAvailable + trailersAvailable + equipmentAvailable + pickupsAvailable
         let overallActiveNumerator =
             tractorsTotals.active +
@@ -228,7 +205,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             overallAvailable += mixersAvailable
             overallActiveNumerator += mixersTotals.active
         }
-
         setStats({
             equipment: { ...equipmentTotals, allocationPercent: equipmentAllocationPercent },
             fleetTotal,
@@ -252,7 +228,6 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
         })
         prevSnapshotRef.current = { fleet: fleetTotal }
     }, [dashboardRegionCode, updatePlantSet, createFilterFn])
-
     return {
         allEquipmentRef,
         allMixersRef,

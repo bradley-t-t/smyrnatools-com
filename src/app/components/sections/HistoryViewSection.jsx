@@ -42,7 +42,6 @@ import TimelineItem, {
     TimelineMeta,
     TimelineSectionTitle
 } from '../ui/TimelineItem'
-
 /**
  * Full-screen history view for an asset showing AI summary, status timeline,
  * operator history, service/maintenance records, issues, and cleanliness ratings.
@@ -50,7 +49,6 @@ import TimelineItem, {
  */
 function HistoryViewSection({ item, type, onClose }) {
     const [activeTab, setActiveTab] = useState('ai-summary')
-
     const {
         aiSummary,
         aiSummaryError,
@@ -81,22 +79,18 @@ function HistoryViewSection({ item, type, onClose }) {
         statusData,
         userNames
     } = useHistoryData(item, type)
-
     useEffect(() => {
         if (!isLoading && activeTab === 'ai-summary' && !aiSummary && !aiSummaryLoading) {
             generateAISummary()
         }
     }, [isLoading, activeTab, aiSummary, aiSummaryLoading, generateAISummary])
-
     const itemName = resolveItemName(type, item)
-
     const formatValue = (fieldName, value) => {
         const key = fieldName?.includes('_')
             ? fieldName
             : String(fieldName ?? '')
                   .replace(/([A-Z])/g, '_$1')
                   .toLowerCase()
-
         if (key === 'created') return value ?? ''
         if (value === null || value === undefined || value === '') return 'Not Assigned'
         if (key === 'assigned_operator') return getOperatorName(value)
@@ -111,10 +105,8 @@ function HistoryViewSection({ item, type, onClose }) {
         if (key === 'assigned_trainer') return getUserName(value)
         return value
     }
-
     const getCreatorName = (issue) =>
         issue.created_by && userNames[issue.created_by] ? userNames[issue.created_by] : 'Unknown'
-
     const onDeleteIssue = async (issueId) => {
         if (!window.confirm('Are you sure you want to delete this issue?')) return
         try {
@@ -123,7 +115,6 @@ function HistoryViewSection({ item, type, onClose }) {
             setError('Failed to delete issue. Please try again.')
         }
     }
-
     const onCompleteIssue = async (issueId) => {
         try {
             await handleCompleteIssue(issueId)
@@ -131,7 +122,6 @@ function HistoryViewSection({ item, type, onClose }) {
             setError('Failed to complete issue. Please try again.')
         }
     }
-
     const renderAISummary = () => {
         if (aiSummaryLoading) {
             return (
@@ -144,7 +134,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-
         if (aiSummaryError) {
             return (
                 <div className="flex flex-col items-center justify-center py-16 px-6">
@@ -161,7 +150,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-
         if (!aiSummary) {
             return (
                 <div className="flex flex-col items-center justify-center py-16 px-6">
@@ -172,7 +160,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-
         return (
             <div className="space-y-4">
                 <div className="bg-gradient-to-br from-accent to-accent/70 rounded-xl p-5 text-white">
@@ -217,7 +204,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderOperatorChart = () => {
         if (operatorData.length === 0) {
             return (
@@ -227,9 +213,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const operatorCounts = countByKey(operatorData, (e) => e.operator)
-
         const calculateDuration = (startIndex, operatorName) => {
             let endIndex = startIndex + 1
             while (endIndex < operatorData.length && operatorData[endIndex].operator === operatorName) endIndex++
@@ -241,7 +225,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 endIndex
             }
         }
-
         const operatorDurations = {}
         let i = 0
         while (i < operatorData.length) {
@@ -249,7 +232,6 @@ function HistoryViewSection({ item, type, onClose }) {
             operatorDurations[operatorData[i].operator] = (operatorDurations[operatorData[i].operator] ?? 0) + days
             i = endIndex
         }
-
         const totalAssignments = operatorData.length
         const uniqueOperators = Object.keys(operatorCounts).filter((op) => op !== 'Empty').length
         const lastEntry = operatorData[operatorData.length - 1]
@@ -257,13 +239,11 @@ function HistoryViewSection({ item, type, onClose }) {
         const mostFrequentOperator =
             findMostFrequent(Object.fromEntries(Object.entries(operatorDurations).filter(([op]) => op !== 'Empty'))) ??
             'Not Assigned'
-
         const consolidatedTimeline = []
         let j = 0
         while (j < operatorData.length) {
             const entry = operatorData[j]
             const { days, endIndex } = calculateDuration(j, entry.operator)
-
             let statusPeriods = []
             if (entry.isEmpty) {
                 const periodStart = new Date(entry.timestamp)
@@ -273,12 +253,10 @@ function HistoryViewSection({ item, type, onClose }) {
                     const d = new Date(s.timestamp)
                     return d >= periodStart && d < periodEnd
                 })
-
                 if (statusChangesInPeriod.length > 0) {
                     const statusDaysMap = {}
                     let currentStatus = statusChangesInPeriod[0]
                     let statusStart = periodStart
-
                     for (let k = 1; k < statusChangesInPeriod.length; k++) {
                         const nextStatus = statusChangesInPeriod[k]
                         const statusEnd = new Date(nextStatus.timestamp)
@@ -287,7 +265,6 @@ function HistoryViewSection({ item, type, onClose }) {
                         currentStatus = nextStatus
                         statusStart = statusEnd
                     }
-
                     statusDaysMap[currentStatus.status] =
                         (statusDaysMap[currentStatus.status] ?? 0) + daysBetween(statusStart, periodEnd)
                     statusPeriods = Object.entries(statusDaysMap).map(([status, totalDays]) => ({
@@ -298,7 +275,6 @@ function HistoryViewSection({ item, type, onClose }) {
                     statusPeriods.push({ days, status: item.status ?? 'Unknown' })
                 }
             }
-
             consolidatedTimeline.push({
                 days,
                 isCurrent: endIndex >= operatorData.length,
@@ -309,7 +285,6 @@ function HistoryViewSection({ item, type, onClose }) {
             })
             j = endIndex
         }
-
         return (
             <div className="flex flex-col gap-2.5">
                 <StatCardGrid>
@@ -370,7 +345,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderOverviewChart = () => {
         const currentStatus = item.status ?? 'Unknown'
         const oldestEntry =
@@ -378,11 +352,9 @@ function HistoryViewSection({ item, type, onClose }) {
                 ? new Date(Math.min(...history.map((h) => new Date(h.changedAt ?? h.changed_at))))
                 : new Date()
         const totalDaysSinceCreation = daysBetween(oldestEntry, new Date())
-
         let statusDaysMap = {}
         let statusPercentages
         let totalShopDays = 0
-
         if (allStatusPeriodsData.length === 0) {
             statusDaysMap[currentStatus] = totalDaysSinceCreation > 0 ? totalDaysSinceCreation : 1
             statusPercentages = [{ days: statusDaysMap[currentStatus], percentage: '100.0', status: currentStatus }]
@@ -401,7 +373,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 }))
                 .sort((a, b) => b.days - a.days)
         }
-
         return (
             <div className="flex flex-col gap-2.5">
                 <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
@@ -440,14 +411,12 @@ function HistoryViewSection({ item, type, onClose }) {
                         ))}
                     </div>
                 </div>
-
                 <StatCardGrid>
                     <StatCard label="Current Status" value={currentStatus} />
                     <StatCard label="Total Status Changes" value={allStatusPeriodsData.length} />
                     <StatCard label="Total Shop Days" value={totalShopDays} />
                     <StatCard label="Days Since Creation" value={totalDaysSinceCreation} />
                 </StatCardGrid>
-
                 <TimelineSectionTitle title="Status Timeline" />
                 <div className="flex flex-col gap-0">
                     {allStatusPeriodsData.length === 0 ? (
@@ -499,12 +468,10 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderServiceHistory = () => {
         const sortedIssues = [...issues].sort((a, b) => new Date(b.time_created) - new Date(a.time_created))
         const openIssues = sortedIssues.filter((issue) => !issue.time_completed)
         const resolvedIssues = sortedIssues.filter((issue) => issue.time_completed)
-
         if (serviceData.length === 0 && issues.length === 0) {
             return (
                 <HistoryEmptyState
@@ -513,11 +480,9 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const actualServices = serviceData.filter((s) => s.serviceType === 'Service')
         const lastService = actualServices[actualServices.length - 1] ?? null
         const daysSinceLastService = lastService ? daysBetween(new Date(lastService.serviceDate), new Date()) : null
-
         const combinedTimeline = [
             ...serviceData.map((s) => ({
                 changedBy: s.changedBy,
@@ -535,7 +500,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 type: 'issue'
             }))
         ].sort((a, b) => new Date(b.date) - new Date(a.date))
-
         return (
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap gap-4 pb-4 border-b border-gray-200">
@@ -566,10 +530,8 @@ function HistoryViewSection({ item, type, onClose }) {
                         </div>
                     </div>
                 </div>
-
                 <h3 className="m-0 text-xs font-bold text-slate-800 uppercase tracking-wide">Timeline</h3>
                 <ErrorMessage message={error} onDismiss={() => setError(null)} />
-
                 <div className="flex flex-col gap-0">
                     {combinedTimeline.map((entry, index) => {
                         if (entry.type === 'service') {
@@ -592,12 +554,10 @@ function HistoryViewSection({ item, type, onClose }) {
                                 </TimelineItem>
                             )
                         }
-
                         const issue = entry.issue
                         const severityColor = entry.isCompleted
                             ? RESOLVED_ISSUE_COLOR
                             : (SEVERITY_COLORS[issue.severity] ?? '#3b82f6')
-
                         return (
                             <div key={`issue-${issue.id}`} className="flex gap-3 py-2">
                                 <div className="flex flex-col items-center w-5 flex-shrink-0">
@@ -683,16 +643,13 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderSimpleTimeline = (data, valueKey, title, emptyTitle, emptySubtitle, statsConfig) => {
         if (data.length === 0) {
             return <HistoryEmptyState title={emptyTitle} subtitle={emptySubtitle} />
         }
-
         const counts = countByKey(data, (e) => e[valueKey])
         const timeline = buildConsolidatedTimeline(data, valueKey, (e) => e[valueKey])
         const currentValue = data[data.length - 1][valueKey]
-
         return (
             <div className="flex flex-col gap-2.5">
                 <StatCardGrid>
@@ -722,7 +679,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderPlantAssignments = () =>
         renderSimpleTimeline(
             plantData,
@@ -737,7 +693,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 { label: 'Most Frequent', value: ({ counts }) => findMostFrequent(counts) }
             ]
         )
-
     const renderStatusHistory = () =>
         renderSimpleTimeline(
             statusData,
@@ -752,7 +707,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 { label: 'Most Frequent', value: ({ counts }) => findMostFrequent(counts) }
             ]
         )
-
     const renderPositionHistory = () => {
         if (positionData.length === 0) {
             return (
@@ -762,16 +716,13 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const positionCounts = countByKey(positionData, (e) => e.position)
         const totalChanges = positionData.length
         const currentPosition = positionData[positionData.length - 1].position
         const chartData = Object.entries(positionCounts)
             .map(([position, count]) => ({ count, percentage: ((count / totalChanges) * 100).toFixed(1), position }))
             .sort((a, b) => b.count - a.count)
-
         const timeline = buildConsolidatedTimeline(positionData, 'position', (e) => e.position)
-
         return (
             <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -802,7 +753,6 @@ function HistoryViewSection({ item, type, onClose }) {
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                         <i className="fas fa-clock text-blue-500" /> Position Timeline
@@ -853,7 +803,6 @@ function HistoryViewSection({ item, type, onClose }) {
                             ))}
                     </div>
                 </div>
-
                 <div>
                     <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                         <i className="fas fa-chart-bar text-blue-500" /> Position Distribution
@@ -886,7 +835,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderRatingsHistory = () => {
         if (ratingsData.length === 0) {
             return (
@@ -896,11 +844,9 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const avgRating = ratingsData.reduce((sum, d) => sum + d.rating, 0) / ratingsData.length
         const currentRating = ratingsData[ratingsData.length - 1].rating
         const highestRating = Math.max(...ratingsData.map((d) => d.rating))
-
         return (
             <div className="flex flex-col gap-4">
                 <StatCardGrid>
@@ -934,7 +880,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderMileageTracking = () => {
         if (mileageData.length === 0) {
             return (
@@ -944,12 +889,10 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const currentMileage = mileageData[mileageData.length - 1].mileage
         const totalMileageChange = currentMileage - mileageData[0].mileage
         const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length
         const milestone = getMaintenanceMilestone(currentMileage)
-
         return (
             <div className="flex flex-col gap-4">
                 <StatCardGrid>
@@ -977,7 +920,6 @@ function HistoryViewSection({ item, type, onClose }) {
                                 reversedIndex > 0 ? entry.mileage - mileageData[reversedIndex - 1].mileage : 0
                             const daysSince =
                                 reversedIndex > 0 ? daysBetween(mileageData[reversedIndex - 1].date, entry.date) : 0
-
                             return (
                                 <TimelineItem
                                     key={index}
@@ -1003,7 +945,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderAssignmentsHistory = () => {
         if (assignmentsData.length === 0) {
             return (
@@ -1013,36 +954,28 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         const mixerAssignments = assignmentsData.filter((a) => a.assignmentType === 'Mixer')
         const tractorAssignments = assignmentsData.filter((a) => a.assignmentType === 'Tractor')
         const totalAssignments = assignmentsData.filter((a) => a.isAssignment).length
-
         const currentMixer = mixerAssignments[mixerAssignments.length - 1]?.vehicleNumber ?? null
         const currentTractor = tractorAssignments[tractorAssignments.length - 1]?.vehicleNumber ?? null
-
         const buildAssignmentTimeline = () => {
             const timeline = []
             let currentMixerEntry = null
             let currentTractorEntry = null
-
             const calcDuration = (startDate, endDate) =>
                 daysBetween(new Date(startDate), endDate ? new Date(endDate) : new Date())
-
             const finalizeEntry = (current, newTimestamp) => {
                 if (!current?.vehicleNumber) return null
                 current.endDate = newTimestamp
                 current.duration = calcDuration(current.startDate, current.endDate)
                 return { ...current }
             }
-
             assignmentsData.forEach((entry, idx) => {
                 const isMixer = entry.assignmentType === 'Mixer'
                 const currentEntry = isMixer ? currentMixerEntry : currentTractorEntry
-
                 const finalized = finalizeEntry(currentEntry, entry.timestamp)
                 if (finalized) timeline.push(finalized)
-
                 if (entry.vehicleNumber) {
                     const newEntry = {
                         assignmentType: entry.assignmentType,
@@ -1068,12 +1001,9 @@ function HistoryViewSection({ item, type, onClose }) {
                     timeline.push(e)
                 }
             })
-
             return timeline.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
         }
-
         const consolidatedTimeline = buildAssignmentTimeline()
-
         return (
             <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1106,7 +1036,6 @@ function HistoryViewSection({ item, type, onClose }) {
                         <div className="text-2xl font-bold text-slate-800">{assignmentsData.length}</div>
                     </div>
                 </div>
-
                 <div>
                     <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
                         <i className="fas fa-clock text-blue-500" /> Assignment Timeline
@@ -1162,7 +1091,6 @@ function HistoryViewSection({ item, type, onClose }) {
             </div>
         )
     }
-
     const renderContent = () => {
         if (isLoading) {
             return (
@@ -1171,7 +1099,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-
         if (error) {
             return (
                 <div className="text-center py-8 text-red-600">
@@ -1185,7 +1112,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-
         if (history.length === 0 && activeTab !== 'ai-summary') {
             return (
                 <HistoryEmptyState
@@ -1194,7 +1120,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-
         switch (activeTab) {
             case 'ai-summary':
                 return renderAISummary()
@@ -1204,7 +1129,6 @@ function HistoryViewSection({ item, type, onClose }) {
                         {sortedHistory.map((entry, index) => {
                             const fieldName = entry.fieldName ?? entry.field_name
                             const isCreatedEntry = fieldName === 'created'
-
                             return (
                                 <div
                                     key={entry.id ?? index}
@@ -1289,7 +1213,6 @@ function HistoryViewSection({ item, type, onClose }) {
                 return null
         }
     }
-
     const tabs = [
         { id: 'timeline', label: 'Timeline', show: true },
         { id: 'overview', label: 'Overview', show: ASSET_TYPES_WITH_OVERVIEW.includes(type) },
@@ -1304,9 +1227,7 @@ function HistoryViewSection({ item, type, onClose }) {
         { id: 'condition', label: 'Condition', show: type === 'equipment' },
         { id: 'cleanliness', label: 'Cleanliness', show: ASSET_TYPES_WITH_CLEANLINESS.includes(type) }
     ]
-
     if (typeof document === 'undefined' || !document.body) return null
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000] p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] flex flex-col border border-gray-200">
@@ -1327,7 +1248,6 @@ function HistoryViewSection({ item, type, onClose }) {
                         <i className="fas fa-times" />
                     </button>
                 </div>
-
                 <div className="flex gap-2 px-6 py-4 overflow-x-auto border-b border-gray-200 bg-slate-50 flex-shrink-0">
                     {tabs
                         .filter((t) => t.show)
@@ -1340,9 +1260,7 @@ function HistoryViewSection({ item, type, onClose }) {
                             />
                         ))}
                 </div>
-
                 <div className="flex-1 overflow-y-auto p-6 bg-white">{renderContent()}</div>
-
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end bg-slate-50 rounded-b-2xl">
                     <button
                         className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300"
@@ -1356,5 +1274,4 @@ function HistoryViewSection({ item, type, onClose }) {
         document.body
     )
 }
-
 export default HistoryViewSection

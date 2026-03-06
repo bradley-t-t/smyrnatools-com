@@ -2,7 +2,6 @@ import React from 'react'
 
 import IssueModalSection from '../../app/components/sections/IssueModalSection'
 import { TractorService } from '../../services/TractorService'
-
 /** Thin wrapper connecting the shared IssueModalSection to TractorService. */
 function TractorIssueModal({ tractorId, tractorNumber, onClose }) {
     return (
@@ -15,5 +14,4 @@ function TractorIssueModal({ tractorId, tractorNumber, onClose }) {
         />
     )
 }
-
 export default TractorIssueModal

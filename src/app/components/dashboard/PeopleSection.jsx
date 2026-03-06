@@ -2,7 +2,6 @@ import React from 'react'
 
 import { CollapsibleTable } from '../ui/CollapsibleTable'
 import { DashboardCard, MetricCard, SectionTitle, StatusPill } from '../ui/DashboardCards'
-
 /**
  * Dashboard section for operator workforce metrics and collapsible detail tables.
  * Shows total/active/assigned operator counts, plus expandable tables for
@@ -55,7 +54,6 @@ export default function PeopleSection({
                 <StatusPill>Tractors {displayStats.operators.tractorAssigned}</StatusPill>
                 <StatusPill>Unassigned {displayStats.operators.unassigned}</StatusPill>
             </MetricCard>
-
             <CollapsibleTable
                 title={`Operators In Training (${filteredTrainingOperators.length})`}
                 collapsed={trainingCollapsed}
@@ -72,7 +70,6 @@ export default function PeopleSection({
                 ]}
                 accentColor={accentColor}
             />
-
             <CollapsibleTable
                 title={`Pending Start Operators (${filteredPendingStartOperators.length})`}
                 collapsed={pendingCollapsed}
@@ -88,7 +85,6 @@ export default function PeopleSection({
                 ]}
                 accentColor={accentColor}
             />
-
             <CollapsibleTable
                 title={`Light Duty Operators (${filteredLightDutyOperators.length})`}
                 collapsed={lightDutyCollapsed}

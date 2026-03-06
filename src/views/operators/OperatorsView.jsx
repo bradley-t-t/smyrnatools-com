@@ -20,7 +20,6 @@ import OperatorAddView from './OperatorAddView'
 import OperatorCard from './OperatorCard'
 import OperatorCommentModal from './OperatorCommentModal'
 import OperatorDetailView from './OperatorDetailView'
-
 /**
  * Main list/grid view for the operator roster. Handles data fetching,
  * Supabase realtime subscriptions for live INSERT/UPDATE/DELETE,
@@ -109,7 +108,6 @@ function OperatorsView({
     const [modalOperatorId, setModalOperatorId] = useState(null)
     const [modalOperatorName, setModalOperatorName] = useState('')
     const [isExporting, setIsExporting] = useState(false)
-
     const handleExportRatings = async () => {
         setIsExporting(true)
         try {
@@ -120,7 +118,6 @@ function OperatorsView({
             setIsExporting(false)
         }
     }
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -129,7 +126,6 @@ function OperatorsView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     // Subscribe to Supabase realtime changes on the operators table to keep the list in sync without refetching.
     useEffect(() => {
         const channel = supabase
@@ -190,12 +186,10 @@ function OperatorsView({
                 setOperators((prev) => prev.filter((operator) => operator.employeeId !== payload.old.employee_id))
             })
             .subscribe()
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [])
-
     useEffect(() => {
         const fetchCurrentUser = async () => {
             const user = await UserService.getCurrentUser()
@@ -203,11 +197,9 @@ function OperatorsView({
         }
         fetchCurrentUser()
     }, [])
-
     useEffect(() => {
         fetchAllData()
     }, [reloadFlag])
-
     useEffect(() => {
         if (preferences.operatorFilters) {
             setSearchText(preferences.operatorFilters.searchText || '')
@@ -217,11 +209,9 @@ function OperatorsView({
             setViewMode(preferences.operatorFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
     }, [preferences.operatorFilters, preferences.defaultViewMode])
-
     useEffect(() => {
         if (initialStatusFilter !== undefined) setStatusFilter(initialStatusFilter)
     }, [initialStatusFilter])
-
     useEffect(() => {
         if (initialSelectedPlant !== undefined) {
             const timeout = setTimeout(() => {
@@ -230,7 +220,6 @@ function OperatorsView({
             return () => clearTimeout(timeout)
         }
     }, [initialSelectedPlant])
-
     useEffect(() => {
         if (initialPositionFilter !== undefined) {
             const timeout = setTimeout(() => {
@@ -239,10 +228,8 @@ function OperatorsView({
             return () => clearTimeout(timeout)
         }
     }, [initialPositionFilter])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadRegionPlants() {
             try {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
@@ -259,20 +246,17 @@ function OperatorsView({
                 if (!cancelled) setRegionPlantCodes(null)
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, selectedPlant])
-
     useEffect(() => {
         if (selectedPlant && plants.length > 0 && !plants.some((p) => p.plantCode === selectedPlant)) {
             setSelectedPlant('')
             updateOperatorFilter('selectedPlant', '')
         }
     }, [plants, selectedPlant])
-
     const fetchAllData = async () => {
         setIsLoading(true)
         try {
@@ -290,7 +274,6 @@ function OperatorsView({
             setIsLoading(false)
         }
     }
-
     /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */
     const fetchOperators = async (codes) => {
         try {
@@ -298,7 +281,6 @@ function OperatorsView({
             setOperators(data)
             localStorage.setItem('cachedOperators', JSON.stringify(data))
             localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
-
             fetchCommentCounts(data)
         } catch {
             const cachedData = localStorage.getItem('cachedOperators')
@@ -314,15 +296,12 @@ function OperatorsView({
             }
         }
     }
-
     const fetchCommentCounts = async (operatorsList) => {
         if (!operatorsList || operatorsList.length === 0) return
         const operatorIds = operatorsList.map((op) => op.employeeId).filter(Boolean)
         if (operatorIds.length === 0) return
-
         try {
             const commentsCounts = await OperatorService.fetchAllCommentsCounts(operatorIds)
-
             setOperators((prevOperators) => {
                 return prevOperators.map((op) => ({
                     ...op,
@@ -333,7 +312,6 @@ function OperatorsView({
             console.error('Error loading operator comment counts:', e)
         }
     }
-
     const fetchPlants = async (codes) => {
         try {
             const data = await PlantService.fetchPlants(codes)
@@ -342,7 +320,6 @@ function OperatorsView({
             setPlants([])
         }
     }
-
     const fetchTrainers = async () => {
         try {
             const data = await OperatorService.fetchTrainers()
@@ -351,7 +328,6 @@ function OperatorsView({
             setTrainers([])
         }
     }
-
     const fetchMixers = async (codes) => {
         try {
             const data = await MixerService.fetchMixers(codes)
@@ -360,7 +336,6 @@ function OperatorsView({
             setMixers([])
         }
     }
-
     const fetchTractors = async (codes) => {
         try {
             const data = await TractorService.fetchTractors(codes)
@@ -369,15 +344,12 @@ function OperatorsView({
             setTractors([])
         }
     }
-
     const reloadAll = async () => {
         await fetchAllData()
     }
-
     const duplicateNamesSet = React.useMemo(() => {
         return OperatorService.getDuplicateNames(operators)
     }, [operators])
-
     const assignedOperatorsSet = React.useMemo(() => {
         const assigned = new Set()
         let eqs = []
@@ -393,7 +365,6 @@ function OperatorsView({
         })
         return assigned
     }, [mixers, tractors, selectedPlant, positionFilter])
-
     const filteredOperators = (() => {
         const filtered = operators.filter((operator) => {
             let matchesSearch = true
@@ -437,7 +408,6 @@ function OperatorsView({
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesPosition
         })
-
         const sortFn = (a, b) => {
             if (!sortKey) {
                 if (a.status === 'Active' && b.status !== 'Active') return -1
@@ -471,11 +441,9 @@ function OperatorsView({
                 return 0
             }
         }
-
         const terminatedStatuses = ['Terminated', 'No Hire']
         const nonTerminated = []
         const terminated = []
-
         filtered.forEach((op) => {
             if (terminatedStatuses.includes(op.status)) {
                 terminated.push(op)
@@ -483,10 +451,8 @@ function OperatorsView({
                 nonTerminated.push(op)
             }
         })
-
         return [...nonTerminated.sort(sortFn), ...terminated.sort(sortFn)]
     })()
-
     const handleSelectOperator = (operator) => {
         setSelectedOperator(operator)
         if (onSelectOperator) {
@@ -495,7 +461,6 @@ function OperatorsView({
             setShowDetailView(true)
         }
     }
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -507,7 +472,6 @@ function OperatorsView({
             localStorage.setItem('operators_last_view_mode', mode)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -516,7 +480,6 @@ function OperatorsView({
             setSortDirection('asc')
         }
     }
-
     function handleResetFilters() {
         const currentViewMode = viewMode
         setSearchText('')
@@ -525,7 +488,6 @@ function OperatorsView({
         setPositionFilter('')
         resetOperatorFilters({ currentViewMode, keepViewMode: true })
     }
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -533,14 +495,11 @@ function OperatorsView({
             const root = document.querySelector('.global-dashboard-container.operators-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchText, selectedPlant, statusFilter, positionFilter])
-
     const showReset = searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || positionFilter
-
     const renderStars = (val) => {
         const rating = Math.round(Number(val) || 0)
         if (!rating || rating <= 0) {
@@ -562,7 +521,6 @@ function OperatorsView({
         }
         return <div style={{ alignItems: 'center', display: 'flex', gap: '2px' }}>{stars}</div>
     }
-
     const renderStarsOrNA = (operator) => {
         const allowedStatuses = ['Active', 'Light Duty', 'Training']
         if (!allowedStatuses.includes(operator.status)) {
@@ -570,7 +528,6 @@ function OperatorsView({
         }
         return renderStars(operator.rating)
     }
-
     return (
         <>
             <div
@@ -1021,5 +978,4 @@ function OperatorsView({
         </>
     )
 }
-
 export default OperatorsView

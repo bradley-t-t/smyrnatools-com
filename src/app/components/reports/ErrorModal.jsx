@@ -1,12 +1,10 @@
 import React from 'react'
-
 /** Red circular icon badge for validation error modals. */
 const ErrorIconBadge = () => (
     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
         <i className="fas fa-exclamation-triangle text-red-600 text-base sm:text-lg" />
     </div>
 )
-
 /** Renders pipe-delimited issue strings as red badge chips. */
 const CommentIssuesBadges = ({ issuesString }) => {
     const issues =
@@ -25,7 +23,6 @@ const CommentIssuesBadges = ({ issuesString }) => {
         </div>
     )
 }
-
 /** Side-by-side grid showing valid vs invalid comment examples. */
 const CommentExamplesGrid = () => (
     <div className="grid grid-cols-2 gap-2 sm:gap-3 bg-green-50 rounded-lg p-3 sm:p-4 mb-4">
@@ -53,7 +50,6 @@ const CommentExamplesGrid = () => (
         </div>
     </div>
 )
-
 /** Extracts comment text, issues, and actionable message from a comment validation error string. */
 const parseCommentError = (error) => ({
     comment: error.split('Your comment:')[1]?.split('\n\n')[0]?.trim() ?? '',
@@ -62,13 +58,11 @@ const parseCommentError = (error) => ({
     issuesString: error.split('Issues:')[1] ?? '',
     message: error.split('\n\n')[1] ?? 'Provide a specific reason for the timing issues.'
 })
-
 /** Modal displaying validation errors, with special formatting for comment quality issues. */
 function ErrorModal({ error, onClose }) {
     const isCommentError = error.includes('Comment needs improvement')
     const errorTitle = isCommentError ? error.split(':')[0] : 'Validation Error'
     const parsed = isCommentError ? parseCommentError(error) : null
-
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4">
             <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl">
@@ -83,7 +77,6 @@ function ErrorModal({ error, onClose }) {
                         )}
                     </div>
                 </div>
-
                 {isCommentError ? (
                     <>
                         <div className="bg-red-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
@@ -105,7 +98,6 @@ function ErrorModal({ error, onClose }) {
                         <div className="text-red-800 text-xs sm:text-sm font-medium">{error}</div>
                     </div>
                 )}
-
                 <div className="text-right">
                     <button
                         type="button"
@@ -119,5 +111,4 @@ function ErrorModal({ error, onClose }) {
         </div>
     )
 }
-
 export default ErrorModal

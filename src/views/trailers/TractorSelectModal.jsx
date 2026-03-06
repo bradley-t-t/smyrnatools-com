@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
-
 /**
  * Portal-rendered modal for selecting a tractor to assign to a trailer.
  * Filters by the trailer's assigned plant, highlights already-assigned
@@ -22,7 +21,6 @@ function TractorSelectModal({
     const [searchText, setSearchText] = useState('')
     const [sortAvailableFirst, setSortAvailableFirst] = useState(true)
     const modalRef = useRef(null)
-
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
@@ -33,7 +31,6 @@ function TractorSelectModal({
             document.body.style.overflow = 'auto'
         }
     }, [isOpen])
-
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (modalRef.current && !modalRef.current.contains(e.target)) onClose()
@@ -41,12 +38,10 @@ function TractorSelectModal({
         if (isOpen) document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
-
     function isTractorAssigned(tractorId) {
         if (!tractorId || tractorId === '0' || !Array.isArray(trailers)) return false
         return trailers.some((trailer) => trailer.assignedTractor === tractorId && trailer.id !== trailerId)
     }
-
     const filteredTractors = (tractors || [])
         .filter(
             (tractor) =>
@@ -64,9 +59,7 @@ function TractorSelectModal({
             }
             return (a.truckNumber || '').localeCompare(b.truckNumber || '')
         })
-
     if (!isOpen) return null
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
@@ -83,7 +76,6 @@ function TractorSelectModal({
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-
                 <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
                     <div className="relative mb-3">
                         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -125,7 +117,6 @@ function TractorSelectModal({
                         </button>
                     </div>
                 </div>
-
                 <div className="flex-1 overflow-y-auto">
                     <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center gap-2">
                         <span className="text-sm text-slate-600">
@@ -151,7 +142,6 @@ function TractorSelectModal({
                             </span>
                         )}
                     </div>
-
                     {filteredTractors.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                             <i className="fas fa-truck text-5xl text-slate-300 mb-4"></i>
@@ -202,7 +192,6 @@ function TractorSelectModal({
                                 const isUnavailable = isAssigned && !readOnly
                                 const isSelected = tractor.id === currentValue
                                 if (isAssigned && !readOnly && tractor.id !== currentValue) return null
-
                                 return (
                                     <div
                                         key={tractor.id}
@@ -256,7 +245,6 @@ function TractorSelectModal({
                         </div>
                     )}
                 </div>
-
                 <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
                     <button
                         className="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
@@ -270,5 +258,4 @@ function TractorSelectModal({
         document.body
     )
 }
-
 export default TractorSelectModal

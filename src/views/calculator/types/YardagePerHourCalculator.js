@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
-
 /**
  * Real-time yardage production rate calculator. Supports two modes:
  * - Live: auto-updates current time every 60s to track in-progress pours.
@@ -22,18 +21,15 @@ const YardagePerHourCalculator = () => {
     })
     const [isOngoing, setIsOngoing] = useState(true)
     const [result, setResult] = useState(null)
-
     const getCurrentTimeString = () => {
         const now = new Date()
         return now.toTimeString().slice(0, 5)
     }
-
     useEffect(() => {
         if (!values.completionTime) {
             setValues((prev) => ({ ...prev, completionTime: getCurrentTimeString() }))
         }
     }, [])
-
     // In live mode, refresh the current time every 60s to keep the rate calculation current.
     useEffect(() => {
         if (isOngoing) {
@@ -44,11 +40,9 @@ const YardagePerHourCalculator = () => {
             return () => clearInterval(interval)
         }
     }, [isOngoing])
-
     const handleChange = (field, value) => {
         setValues((prev) => ({ ...prev, [field]: value }))
     }
-
     const parseTimeToMinutes = (timeStr) => {
         if (!timeStr) return null
         const parts = timeStr.split(':')
@@ -58,31 +52,25 @@ const YardagePerHourCalculator = () => {
         if (isNaN(hours) || isNaN(mins)) return null
         return hours * 60 + mins
     }
-
     const calculate = useCallback(() => {
         const firstLoadMins = parseTimeToMinutes(values.firstLoadTime)
         const completionMins = parseTimeToMinutes(values.completionTime)
         const yards = isOngoing ? parseFloat(values.yardsPoured) : parseFloat(values.totalYards)
-
         if (firstLoadMins === null || completionMins === null || isNaN(yards) || yards <= 0) {
             setResult(null)
             return
         }
-
         let elapsedMins = completionMins - firstLoadMins
         // Handle overnight pours where completion time is past midnight.
         if (elapsedMins <= 0) {
             elapsedMins += 24 * 60
         }
-
         const elapsedHours = elapsedMins / 60
         const yardsPerHour = yards / elapsedHours
         // Standard mixer truck capacity is ~10 yards per load.
         const loadsPerHour = yardsPerHour / 10
-
         const hours = Math.floor(elapsedMins / 60)
         const mins = elapsedMins % 60
-
         setResult({
             elapsedMins,
             elapsedTime: `${hours}h ${mins}m`,
@@ -91,11 +79,9 @@ const YardagePerHourCalculator = () => {
             yardsPerHour: yardsPerHour.toFixed(1)
         })
     }, [values, isOngoing])
-
     useEffect(() => {
         calculate()
     }, [calculate])
-
     const clearForm = () => {
         setValues({
             completionTime: getCurrentTimeString(),
@@ -106,7 +92,6 @@ const YardagePerHourCalculator = () => {
         setIsOngoing(false)
         setResult(null)
     }
-
     /**
      * Grades production rate based on typical ready-mix plant benchmarks:
      * 40+ yd/hr Excellent, 30+ Good, 20+ Average, 10+ Below Avg, <10 Slow.
@@ -120,9 +105,7 @@ const YardagePerHourCalculator = () => {
         if (yph >= 10) return { color: 'warning', label: 'Below Avg' }
         return { color: 'error', label: 'Slow' }
     }
-
     const status = getPerformanceStatus()
-
     const styles = {
         container: {
             background: 'white',
@@ -415,7 +398,6 @@ const YardagePerHourCalculator = () => {
             fontWeight: 600
         }
     }
-
     return (
         <div style={styles.container}>
             <style>
@@ -459,7 +441,6 @@ const YardagePerHourCalculator = () => {
                     </button>
                 </div>
             </div>
-
             <div style={styles.mainLayout}>
                 <div style={styles.equation}>
                     <div style={styles.fraction}>
@@ -540,9 +521,7 @@ const YardagePerHourCalculator = () => {
                             </div>
                         </div>
                     </div>
-
                     <span style={styles.equals}>=</span>
-
                     <div style={styles.resultBox(!!result, status?.color)}>
                         {result ? (
                             <>
@@ -554,7 +533,6 @@ const YardagePerHourCalculator = () => {
                         )}
                     </div>
                 </div>
-
                 {result && (
                     <div style={styles.statsRow}>
                         <div style={styles.statItem}>
@@ -580,7 +558,6 @@ const YardagePerHourCalculator = () => {
                     </div>
                 )}
             </div>
-
             {!result && (
                 <div style={styles.emptyState}>
                     <div style={styles.emptyIcon}>
@@ -589,7 +566,6 @@ const YardagePerHourCalculator = () => {
                     <span style={styles.emptyText}>Enter yardage and times to calculate production rate</span>
                 </div>
             )}
-
             <div style={styles.footer}>
                 <button
                     onClick={clearForm}
@@ -610,5 +586,4 @@ const YardagePerHourCalculator = () => {
         </div>
     )
 }
-
 export default YardagePerHourCalculator

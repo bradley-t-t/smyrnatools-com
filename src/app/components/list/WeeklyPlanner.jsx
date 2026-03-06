@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 
 import { ListService } from '../../../services/ListService'
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 /** Monday-through-Saturday day configuration for the planner grid. */
 const DAYS = [
     { fullLabel: 'Monday', key: 'monday', label: 'Mon' },
@@ -13,7 +12,6 @@ const DAYS = [
     { fullLabel: 'Friday', key: 'friday', label: 'Fri' },
     { fullLabel: 'Saturday', key: 'saturday', label: 'Sat' }
 ]
-
 /** Color, icon, and border styling per task status. */
 const STATUS_COLORS = {
     blocked: { bg: '#fef2f2', border: '#fecaca', icon: 'fa-ban', text: '#dc2626' },
@@ -24,7 +22,6 @@ const STATUS_COLORS = {
     pending: { bg: '#fffbeb', border: '#fde68a', icon: 'fa-clock', text: '#d97706' },
     waiting: { bg: '#fefce8', border: '#fef08a', icon: 'fa-hourglass-half', text: '#ca8a04' }
 }
-
 /**
  * Computes an array of day objects for the Mon-Sat week at the given offset.
  * @param {number} [weekOffset=0] - Number of weeks relative to the current week.
@@ -35,7 +32,6 @@ const getWeekDates = (weekOffset = 0) => {
     const monday = new Date(today)
     monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + weekOffset * 7)
     monday.setHours(0, 0, 0, 0)
-
     return DAYS.map((day, index) => {
         const date = new Date(monday)
         date.setDate(monday.getDate() + index)
@@ -48,13 +44,11 @@ const getWeekDates = (weekOffset = 0) => {
         }
     })
 }
-
 /** Draggable task card showing description, plant code, status, and completed/overdue overlays. */
 function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
     const statusColor = STATUS_COLORS[item.status] || STATUS_COLORS.pending
     const isCompleted = item.status === 'completed' || item.completed
     const needsFollowUp = isPast && !isCompleted
-
     return (
         <div
             onClick={() => onSelect?.(item)}
@@ -193,11 +187,9 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
         </div>
     )
 }
-
 /** Portal-rendered modal for selecting an available list item to add to a day's plan. */
 function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
     const [search, setSearch] = useState('')
-
     const filteredItems = useMemo(() => {
         const available = items.filter((item) => !item.completed && item.status !== 'completed')
         if (!search.trim()) return available
@@ -206,13 +198,10 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
             (item) => item.description?.toLowerCase().includes(lower) || item.plant_code?.toLowerCase().includes(lower)
         )
     }, [items, search])
-
     useEffect(() => {
         if (!isOpen) setSearch('')
     }, [isOpen])
-
     if (!isOpen) return null
-
     return ReactDOM.createPortal(
         <>
             <div
@@ -452,7 +441,6 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
         document.body
     )
 }
-
 /** Single day column in the planner grid with task list, add button, and task selector modal. */
 function DayColumn({
     day,
@@ -468,7 +456,6 @@ function DayColumn({
     const [showModal, setShowModal] = useState(false)
     const dayPlannedItems = plannedItems.filter((pi) => pi.planned_date === day.dateStr)
     const taskCount = dayPlannedItems.length
-
     return (
         <div
             style={{
@@ -538,7 +525,7 @@ function DayColumn({
                         fontWeight: 500
                     }}
                 >
-                    {day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {day.date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                 </span>
                 {taskCount > 0 && (
                     <div
@@ -556,7 +543,6 @@ function DayColumn({
                     </div>
                 )}
             </div>
-
             <div
                 style={{
                     flex: 1,
@@ -578,7 +564,6 @@ function DayColumn({
                         />
                     )
                 })}
-
                 {taskCount === 0 && (
                     <div
                         style={{
@@ -597,7 +582,6 @@ function DayColumn({
                     </div>
                 )}
             </div>
-
             <div style={{ padding: '10px' }}>
                 <button
                     onClick={() => setShowModal(true)}
@@ -635,7 +619,6 @@ function DayColumn({
                     Add Task
                 </button>
             </div>
-
             <TaskSelectorModal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
@@ -646,7 +629,6 @@ function DayColumn({
         </div>
     )
 }
-
 /**
  * Shared team weekly planner grid (Mon-Sat) for scheduling list items.
  * Supports week navigation, task add/remove, and bulk clear.
@@ -660,9 +642,7 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const [plannedItems, setPlannedItems] = useState([])
     const [loading, setLoading] = useState(true)
     const isMobile = useIsMobile()
-
     const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset])
-
     const weekLabel = useMemo(() => {
         const start = weekDates[0].date
         const end = weekDates[5].date
@@ -672,10 +652,8 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
         if (startMonth === endMonth) return `${startMonth} ${start.getDate()} - ${end.getDate()}, ${year}`
         return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${year}`
     }, [weekDates])
-
     const startDate = weekDates[0].dateStr
     const endDate = weekDates[5].dateStr
-
     const loadPlannedItems = useCallback(async () => {
         setLoading(true)
         try {
@@ -687,11 +665,9 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             setLoading(false)
         }
     }, [startDate, endDate])
-
     useEffect(() => {
         loadPlannedItems()
     }, [loadPlannedItems])
-
     const handleAddItem = useCallback(
         async (plannedDate, itemId) => {
             try {
@@ -703,7 +679,6 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
         },
         [loadPlannedItems]
     )
-
     const handleRemoveItem = useCallback(
         async (plannedDate, itemId) => {
             try {
@@ -715,7 +690,6 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
         },
         [loadPlannedItems]
     )
-
     const handleClearAll = useCallback(async () => {
         if (!window.confirm('Clear all planned tasks for this week?')) return
         try {
@@ -725,9 +699,7 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             console.error('Failed to clear planned items:', err)
         }
     }, [startDate, endDate, loadPlannedItems])
-
     const totalPlanned = plannedItems.length
-
     return (
         <div
             style={{
@@ -849,7 +821,6 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                         </button>
                     )}
                 </div>
-
                 <div
                     style={{
                         alignItems: 'center',
@@ -925,15 +896,14 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     )}
                 </div>
             </div>
-
             <div
                 style={{
+                    WebkitOverflowScrolling: 'touch',
                     display: 'flex',
                     gap: isMobile ? '8px' : '14px',
                     overflowX: 'auto',
                     paddingBottom: '8px',
-                    scrollSnapType: isMobile ? 'x mandatory' : 'none',
-                    WebkitOverflowScrolling: 'touch'
+                    scrollSnapType: isMobile ? 'x mandatory' : 'none'
                 }}
             >
                 {weekDates.map((day) => (
@@ -951,7 +921,6 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     />
                 ))}
             </div>
-
             {!isMobile && (
                 <div
                     style={{

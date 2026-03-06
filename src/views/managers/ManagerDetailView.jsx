@@ -8,7 +8,6 @@ import { DatabaseService, supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import APIUtility from '../../utils/APIUtility'
-
 /**
  * Detail/edit view for a single manager. Provides name, email, plant,
  * and role editing with inline password reset. Enforces role-weight-based
@@ -43,18 +42,15 @@ function ManagerDetailView({ managerId, onClose }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [canEditManager, setCanEditManager] = useState(false)
     const [canDeleteManager, setCanDeleteManager] = useState(false)
-
     useEffect(() => {
         document.body.classList.add('in-detail-view')
         return () => document.body.classList.remove('in-detail-view')
     }, [])
-
     useEffect(() => {
         if (managerId) {
             Promise.all([fetchManagerDetails(), fetchPlants(), fetchRoles(), fetchCurrentUserRole()]).catch(() => {})
         }
     }, [managerId])
-
     useEffect(() => {
         if (!manager || isLoading) return
         const hasChanges =
@@ -66,7 +62,6 @@ function ManagerDetailView({ managerId, onClose }) {
             (showPasswordField && password)
         setHasUnsavedChanges(hasChanges)
     }, [firstName, lastName, email, plantCode, roleName, password, showPasswordField, originalValues, isLoading])
-
     // Enforce read-only mode unless the current user outranks this manager (or has weight > 75).
     useEffect(() => {
         if (!manager) return
@@ -74,10 +69,8 @@ function ManagerDetailView({ managerId, onClose }) {
         const canEditByWeight = currentUserRoleWeight > (manager.roleWeight || 0)
         setIsReadOnly(!(canEditAny || canEditByWeight))
     }, [manager, currentUserRoleWeight])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadRegionPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -118,14 +111,11 @@ function ManagerDetailView({ managerId, onClose }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
-
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, plantCode])
-
     const filteredPlants = useMemo(() => {
         const regionType = preferences.selectedRegion?.type
         const allPlants = plants
@@ -151,7 +141,6 @@ function ManagerDetailView({ managerId, onClose }) {
                     parseInt(b.plant_code?.replace(/\D/g, '') || '0')
             )
     }, [plants, regionPlantCodes, preferences.selectedRegion?.type])
-
     async function fetchCurrentUserRole() {
         try {
             if (!user?.id) return
@@ -161,7 +150,6 @@ function ManagerDetailView({ managerId, onClose }) {
             setCurrentUserRoleWeight(0)
         }
     }
-
     async function fetchRoles() {
         try {
             const rolesData = await DatabaseService.getAllRecords('users_roles')
@@ -169,7 +157,6 @@ function ManagerDetailView({ managerId, onClose }) {
                 setAvailableRoles(rolesData)
                 return
             }
-
             const { data, error } = await supabase.from('users_roles').select('*')
             if (error) throw error
             setAvailableRoles(data || [])
@@ -177,7 +164,6 @@ function ManagerDetailView({ managerId, onClose }) {
             setAvailableRoles([])
         }
     }
-
     async function fetchManagerDetails() {
         setIsLoading(true)
         try {
@@ -190,11 +176,9 @@ function ManagerDetailView({ managerId, onClose }) {
                 supabase.from('users_profiles').select('*').eq('id', managerId).single(),
                 supabase.from('users_permissions').select('role_id').eq('user_id', managerId).single()
             ])
-
             if (userError) throw userError
             if (profileError) throw profileError
             if (permissionError && permissionError.code !== 'PGRST116') throw permissionError
-
             let rName = 'User',
                 roleId = null,
                 roleWeight = 0
@@ -210,7 +194,6 @@ function ManagerDetailView({ managerId, onClose }) {
                     roleWeight = roleData.weight || 0
                 }
             }
-
             const managerData = {
                 createdAt: profileData.created_at,
                 email: userData.email,
@@ -223,7 +206,6 @@ function ManagerDetailView({ managerId, onClose }) {
                 roleWeight,
                 updatedAt: profileData.updated_at
             }
-
             setManager(managerData)
             setFirstName(managerData.firstName)
             setLastName(managerData.lastName)
@@ -246,7 +228,6 @@ function ManagerDetailView({ managerId, onClose }) {
             setIsLoading(false)
         }
     }
-
     async function fetchPlants() {
         try {
             const { data, error } = await supabase.from('plants').select('*')
@@ -254,19 +235,16 @@ function ManagerDetailView({ managerId, onClose }) {
             setPlants(data || [])
         } catch {}
     }
-
     async function handleSave() {
         if (isReadOnly) return
         if (!manager?.id) {
             alert('Error: Cannot save manager with undefined ID')
             throw new Error('Cannot save manager with undefined ID')
         }
-
         if (!plantCode || !plantCode.trim()) {
             setMessage('Plant must be assigned before saving.')
             return
         }
-
         setIsSaving(true)
         try {
             const { data: checkManager } = await supabase
@@ -275,7 +253,6 @@ function ManagerDetailView({ managerId, onClose }) {
                 .eq('id', manager.id)
                 .single()
             if (!checkManager) throw new Error(`Manager with ID ${manager.id} not found`)
-
             const [{ error: profileError }, { error: userError }] = await Promise.all([
                 supabase
                     .from('users_profiles')
@@ -294,13 +271,10 @@ function ManagerDetailView({ managerId, onClose }) {
                     })
                     .eq('id', manager.id)
             ])
-
             if (profileError) throw profileError
             if (userError) throw userError
-
             const selectedRole = availableRoles.find((role) => role.name === roleName)
             if (!selectedRole) throw new Error(`Role '${roleName}' not found in available roles.`)
-
             // Upsert the role assignment — insert if this is the user's first role, otherwise update.
             const { data: existingPermission } = await supabase
             const updateData = {
@@ -315,15 +289,13 @@ function ManagerDetailView({ managerId, onClose }) {
                       user_id: managerId
                   })
             if (permError) throw permError
-
             if (showPasswordField && password) {
                 const { res: pwRes, json: pwJson } = await APIUtility.post('/auth-service/admin-update-password', {
-                    userId: managerId,
-                    password
+                    password,
+                    userId: managerId
                 })
                 if (!pwRes.ok) throw new Error(pwJson?.error || 'Failed to update password')
             }
-
             setMessage('Changes saved successfully!')
             setTimeout(() => setMessage(''), 3000)
             setOriginalValues({ email, firstName, lastName, plantCode, roleName })
@@ -339,14 +311,12 @@ function ManagerDetailView({ managerId, onClose }) {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!manager) return
         if (!showDeleteConfirmation) {
             setShowDeleteConfirmation(true)
             return
         }
-
         try {
             const { error } = await supabase.from('users').delete().eq('id', managerId)
             if (error) throw error
@@ -358,24 +328,20 @@ function ManagerDetailView({ managerId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-
     const handleBackClick = async () => {
         if (!isReadOnly && hasUnsavedChanges) {
             await handleSave()
         }
         onClose()
     }
-
     const getPlantName = (plantCode) => {
         const plant = plants.find((p) => p.plant_code === plantCode)
         return plant ? plant.plant_name : plantCode || 'No Plant'
     }
-
     const selectedPlantObj = plants.find((p) => p.plant_code === plantCode)
     const plantDisplayText = plantCode
         ? `(${selectedPlantObj?.plant_code || plantCode}) ${selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     return (
         <DetailViewSection
             title={manager ? `${manager.firstName} ${manager.lastName || 'Manager Details'}` : 'Manager Details'}
@@ -540,7 +506,6 @@ function ManagerDetailView({ managerId, onClose }) {
                     </div>
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
-
             {!isReadOnly && canEditManager && (
                 <DetailViewSection.Section id="security" title="Security" icon="fas fa-shield-alt">
                     <DetailViewSection.Card title="Password Management" icon="fas fa-key">
@@ -593,5 +558,4 @@ function ManagerDetailView({ managerId, onClose }) {
         </DetailViewSection>
     )
 }
-
 export default ManagerDetailView

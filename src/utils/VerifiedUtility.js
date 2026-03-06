@@ -28,5 +28,4 @@ const VerifiedUtility = {
         }
     }
 }
-
 export default VerifiedUtility

@@ -26,7 +26,6 @@ import MixerCard from './MixerCard'
 import MixerCommentModal from './MixerCommentModal'
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
-
 /**
  * Main list/grid view for the mixer (concrete truck) fleet. Handles data
  * fetching, Supabase realtime subscriptions for live updates, region-scoped
@@ -121,7 +120,6 @@ function MixersView({
         VIN: 'vinNumber',
         Verified: null
     }
-
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -131,7 +129,6 @@ function MixersView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-
     const unassignedActiveOperatorsCount = useMemo(
         () =>
             FleetUtility.countUnassignedActiveOperators(mixers, operators, searchText, {
@@ -144,7 +141,6 @@ function MixersView({
             }),
         [operators, mixers, selectedPlant, searchText, regionPlantCodes]
     )
-
     /** Attaches a bound `isVerified` method to a mixer object so cards can call it with history context. */
     const attachIsVerified = useCallback((obj) => {
         if (!obj) return obj
@@ -158,7 +154,6 @@ function MixersView({
         }
         return obj
     }, [])
-
     /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep both mixers and allMixers in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
@@ -253,7 +248,6 @@ function MixersView({
         },
         [regionPlantCodes, attachIsVerified]
     )
-
     useEffect(() => {
         const channel = supabase
             .channel('mixers-realtime-changes')
@@ -267,12 +261,10 @@ function MixersView({
                     console.error('Realtime subscription error')
                 }
             })
-
         return () => {
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -284,7 +276,6 @@ function MixersView({
                 setIsLoading(false)
             }
         }
-
         fetchAllData()
         if (preferences?.mixerFilters) {
             setSearchText(preferences.mixerFilters.searchText || '')
@@ -301,10 +292,8 @@ function MixersView({
             if (lastUsed) setViewMode(lastUsed)
         }
     }, [preferences])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             setIsRegionLoading(!!preferences.selectedRegion?.code)
             try {
@@ -324,13 +313,11 @@ function MixersView({
                 if (!cancelled) setIsRegionLoading(false)
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     async function fetchOperators() {
         try {
             const data = await OperatorService.fetchOperators()
@@ -340,25 +327,21 @@ function MixersView({
             setOperators([])
         }
     }
-
     async function fetchPlants(codes) {
         try {
             const data = await PlantService.fetchPlants(codes)
             setPlants(data)
         } catch (error) {}
     }
-
     const loadDetailsForMixers = async (mixersList) => {
         if (!mixersList || mixersList.length === 0) return
         const mixerIds = mixersList.map((m) => m.id).filter(Boolean)
         if (mixerIds.length === 0) return
-
         try {
             const [commentsCounts, issuesCounts] = await Promise.all([
                 MixerService.fetchAllCommentsCounts(mixerIds),
                 MixerService.fetchAllIssuesCounts(mixerIds)
             ])
-
             setMixers((prev) =>
                 prev.map((m) => ({
                     ...m,
@@ -377,20 +360,16 @@ function MixersView({
             console.error('Error loading mixer details:', e)
         }
     }
-
     async function fetchMixersWithDetails(codes) {
         try {
             const processedBase = await MixerService.fetchMixersWithDetails(codes)
-
             const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
-
             if (cleanupResult.fixed > 0) {
                 const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
                 setMixers(refreshedMixers)
                 setAllMixers(refreshedMixers)
                 setMixersLoaded(true)
                 loadDetailsForMixers(refreshedMixers)
-
                 setTimeout(() => {
                     runVerificationCheck(refreshedMixers)
                 }, 1000)
@@ -399,7 +378,6 @@ function MixersView({
                 setAllMixers(processedBase)
                 setMixersLoaded(true)
                 loadDetailsForMixers(processedBase)
-
                 setTimeout(() => {
                     runVerificationCheck(processedBase)
                 }, 1000)
@@ -408,10 +386,8 @@ function MixersView({
             console.error('[MIXERS VIEW] Error fetching mixers:', error)
         }
     }
-
     async function runVerificationCheck(mixersToCheck) {
         if (!mixersToCheck || mixersToCheck.length === 0) return
-
         try {
             const verificationResult = await CleanupUtility.verificationCheck(
                 mixersToCheck,
@@ -419,7 +395,6 @@ function MixersView({
                 'mixer',
                 operators
             )
-
             if (verificationResult.fixed > 0) {
                 const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
@@ -429,7 +404,6 @@ function MixersView({
             }
         } catch (error) {}
     }
-
     function handleSelectMixer(mixerId) {
         const mixer = mixers.find((m) => m.id === mixerId)
         if (mixer) {
@@ -438,7 +412,6 @@ function MixersView({
             onSelectMixer?.(mixerId)
         }
     }
-
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -450,7 +423,6 @@ function MixersView({
             localStorage.setItem('mixers_last_view_mode', mode)
         }
     }
-
     async function handleExportIssues() {
         setIsExportingIssues(true)
         try {
@@ -467,7 +439,6 @@ function MixersView({
             setIsExportingIssues(false)
         }
     }
-
     function handleHeaderClick(label) {
         if (sortKey === label) {
             setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
@@ -476,7 +447,6 @@ function MixersView({
             setSortDirection('asc')
         }
     }
-
     const handleVerifyMixer = useCallback(
         async (mixerId) => {
             const mixer = mixers.find((m) => m.id === mixerId)
@@ -496,10 +466,8 @@ function MixersView({
         },
         [mixers]
     )
-
     const handleSaveAndVerify = useCallback(async () => {
         if (!verifyMixer) return
-
         try {
             const updates = {}
             if (verifyVin && verifyVin.trim() !== '' && verifyVin !== (verifyMixer.vin || '')) {
@@ -520,16 +488,12 @@ function MixersView({
             if (verifyLastChipDate && verifyLastChipDate !== verifyMixer.lastChipDate) {
                 updates.lastChipDate = verifyLastChipDate
             }
-
             if (Object.keys(updates).length > 0) {
                 await MixerService.updateMixer(verifyMixer.id, updates)
             }
-
             const verified = await MixerService.verifyMixer(verifyMixer.id)
-
             setMixers((prevMixers) => prevMixers.map((m) => (m.id === verifyMixer.id ? verified : m)))
             setAllMixers((prevMixers) => prevMixers.map((m) => (m.id === verifyMixer.id ? verified : m)))
-
             setShowVerifyModal(false)
             setVerifyMixer(null)
         } catch (error) {
@@ -537,7 +501,6 @@ function MixersView({
             alert('Failed to verify mixer. Please try again.')
         }
     }, [verifyMixer, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate, verifyLastChipDate])
-
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -562,14 +525,12 @@ function MixersView({
                 setMixers(allMixers)
             }
         }
-
         if (searchText.trim().length >= 1) {
             searchByVin()
         } else {
             setMixers(allMixers)
         }
     }, [searchText, allMixers, regionPlantCodes])
-
     const filteredOperatorsForRecap = useMemo(() => {
         return operators.filter((op) => {
             if (op.position !== 'Mixer Operator') return false
@@ -583,7 +544,6 @@ function MixersView({
             return String(opPlant) === String(selectedPlant)
         })
     }, [operators, selectedPlant, regionPlantCodes])
-
     const filteredMixers = useMemo(() => {
         const filtered = mixers.filter((mixer) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -641,7 +601,6 @@ function MixersView({
             }
             return matchesSearch && matchesPlant && matchesRegion && matchesStatus
         })
-
         return FleetUtility.sortWithRetiredLast(
             filtered,
             (a, b) => {
@@ -726,7 +685,6 @@ function MixersView({
         plants,
         exactMatch
     ])
-
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
@@ -734,9 +692,7 @@ function MixersView({
         }, 300),
         []
     )
-
     const canShowUnassignedOverlay = mixersLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
-
     const content = useMemo(() => {
         if (isLoading || isRegionLoading) {
             return <AssetListSkeleton viewMode={viewMode} />
@@ -1243,7 +1199,6 @@ function MixersView({
         mixers,
         handleVerifyMixer
     ])
-
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -1251,18 +1206,14 @@ function MixersView({
             const root = document.querySelector('.global-dashboard-container.mixers-view')
             if (root && h) root.style.setProperty('--sticky-cover-height', h + 'px')
         }
-
         updateStickyCoverHeight()
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchInput, selectedPlant, statusFilter])
-
     const showReset = searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses')
-
     useEffect(() => {
         document.documentElement.style.setProperty('--star-color', '#f59e0b')
     }, [])
-
     return (
         <>
             <div
@@ -1447,5 +1398,4 @@ function MixersView({
         </>
     )
 }
-
 export default MixersView

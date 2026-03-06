@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 
 import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
-
 /**
  * Detail/edit view for a single region.
  * Allows editing the region name, type, and associated plants via a searchable plant picker.
@@ -23,12 +22,9 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
     const [isDeleting, setIsDeleting] = useState(false)
-
     const [plantQuery, setPlantQuery] = useState('')
-
     useEffect(() => {
         setLoading(true)
-
         async function fetchPlants() {
             let normalizedAll = []
             let regionPlants
@@ -67,10 +63,8 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             setPlantQuery('')
             setLoading(false)
         }
-
         fetchPlants()
     }, [region])
-
     const handleSave = async () => {
         setSaving(true)
         setMessage('')
@@ -92,7 +86,6 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             setSaving(false)
         }
     }
-
     const handleDelete = async () => {
         setError('')
         setIsDeleting(true)
@@ -106,36 +99,28 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             setIsDeleting(false)
         }
     }
-
     const visiblePlants = Array.isArray(allPlants) ? allPlants : []
-
     const filteredPlants = visiblePlants.filter((p) => {
         const q = plantQuery.trim().toLowerCase()
         if (!q) return true
         return p.plant_code.toLowerCase().includes(q) || (p.plant_name || '').toLowerCase().includes(q)
     })
-
     const togglePlant = (code) => {
         setPlantCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
     }
-
     const selectAllFiltered = () => {
         if (!filteredPlants.length) return
         const codes = filteredPlants.map((p) => p.plant_code)
         setPlantCodes((prev) => Array.from(new Set([...prev, ...codes])))
     }
-
     const clearAllSelected = () => {
         if (!plantCodes.length) return
         setPlantCodes([])
     }
-
     const removeChip = (code) => {
         setPlantCodes((prev) => prev.filter((c) => c !== code))
     }
-
     const noPlantsAvailable = !loading && visiblePlants.length === 0
-
     return (
         <div className="region-detail-view">
             <div className="detail-header">
@@ -287,5 +272,4 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         </div>
     )
 }
-
 export default RegionsDetailView

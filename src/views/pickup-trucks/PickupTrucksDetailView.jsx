@@ -10,7 +10,6 @@ import { UserService } from '../../services/UserService'
 import PickupTruckCommentModal from './PickupTruckCommentModal'
 import PickupTruckHistoryView from './PickupTruckHistoryView'
 import PickupTruckIssueModal from './PickupTruckIssueModal'
-
 /**
  * Full detail/edit view for a single pickup truck. Supports editing VIN,
  * make, model, year, assigned person, mileage, comments, plant (region-scoped),
@@ -48,7 +47,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
     const [showHistory, setShowHistory] = useState(false)
     const [showComments, setShowComments] = useState(false)
     const [showIssues, setShowIssues] = useState(false)
-
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true)
@@ -81,10 +79,8 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 setIsLoading(false)
             }
         }
-
         fetchData()
     }, [pickupId])
-
     useEffect(() => {
         async function loadPlants() {
             try {
@@ -94,13 +90,10 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 setPlants([])
             }
         }
-
         loadPlants()
     }, [])
-
     useEffect(() => {
         let cancelled = false
-
         async function loadAllowedPlants() {
             let regionCode = preferences.selectedRegion?.code || ''
             try {
@@ -140,13 +133,11 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
-
         loadAllowedPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code])
-
     const filteredPlants = useMemo(() => {
         if (!regionPlantCodes || regionPlantCodes.size === 0) return []
         return plants.filter((p) =>
@@ -157,12 +148,10 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             )
         )
     }, [plants, regionPlantCodes])
-
     const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
         : 'Select Plant'
-
     useEffect(() => {
         if (!originalValues) return
         const changed =
@@ -177,7 +166,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             (comments || '') !== (originalValues.comments || '')
         setHasUnsavedChanges(changed)
     }, [vin, make, model, year, assigned, assignedPlant, status, mileage, comments, originalValues])
-
     useEffect(() => {
         if (pickup?.assignedPlant) {
             RegionService.fetchRegionsByPlantCode(pickup.assignedPlant)
@@ -191,30 +179,24 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 .catch(() => setCurrentRegion(null))
         }
     }, [pickup?.assignedPlant])
-
     /** Transfers the pickup truck to a different region/plant, persists via PickupTruckService, then updates local state. */
     async function handleRegionTransfer(newRegionCode, newPlantCode) {
         if (!pickup?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid pickup truck, region, or plant')
         }
-
         const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }
-
         setIsSaving(true)
         setMessage('')
-
         try {
             const userObj = await UserService.getCurrentUser()
             const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
-
             const updatedPickup = {
                 ...pickup,
                 assignedPlant: newPlantCode
             }
-
             const result = await PickupTruckService.updatePickupTruck(pickup.id, updatedPickup, userId)
             setPickup(result)
             setAssignedPlant(newPlantCode)
@@ -232,7 +214,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             setIsSaving(false)
         }
     }
-
     async function handleSave() {
         if (!pickup?.id) return null
         setIsSaving(true)
@@ -267,7 +248,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             return updated
         } catch (e) {
             let errorMessage = 'Error saving changes'
-
             if (e?.message && typeof e.message === 'string') {
                 if (e.message.includes('duplicate key') && e.message.includes('pickup_trucks_truck_number_key')) {
                     errorMessage = `This truck number already exists. Please use a different truck number.`
@@ -275,7 +255,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                     errorMessage = e.message
                 }
             }
-
             setMessage(errorMessage)
             setTimeout(() => setMessage(''), 4000)
             return null
@@ -283,7 +262,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             setIsSaving(false)
         }
     }
-
     async function handleDelete() {
         if (!pickup?.id) return
         try {
@@ -291,7 +269,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             onClose?.()
         } catch {}
     }
-
     async function handleBackClick() {
         if (hasUnsavedChanges) {
             const updated = await handleSave()
@@ -303,7 +280,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         if (typeof onSaved === 'function') onSaved()
         else onClose?.()
     }
-
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -321,7 +297,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         }
         checkDeletePermission()
     }, [])
-
     return (
         <>
             {showHistory && <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)} />}
@@ -558,5 +533,4 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         </>
     )
 }
-
 export default PickupTrucksDetailView

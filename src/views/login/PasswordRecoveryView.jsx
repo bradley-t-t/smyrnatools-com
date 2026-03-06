@@ -3,7 +3,6 @@ import { useState } from 'react'
 import VideoBackground from '../../app/components/common/VideoBackground'
 import SrmLogo from '../../assets/images/srm-logo.svg'
 import APIUtility from '../../utils/APIUtility'
-
 /**
  * Password recovery form. Sends the user's email to the backend which
  * generates and emails a new password if the account exists. Uses a
@@ -16,7 +15,6 @@ function PasswordRecoveryView({ onBackToLogin }) {
     const [submitting, setSubmitting] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
-
     async function handleSubmit(e) {
         e.preventDefault()
         if (submitting) return
@@ -40,7 +38,6 @@ function PasswordRecoveryView({ onBackToLogin }) {
             setSubmitting(false)
         }
     }
-
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-[#1e3a5f] p-4">
             <VideoBackground />
@@ -51,7 +48,6 @@ function PasswordRecoveryView({ onBackToLogin }) {
                         <h1 className="text-xl font-bold text-white">Password Recovery</h1>
                         <p className="text-slate-300 text-sm">Enter your email to receive a new password</p>
                     </div>
-
                     <div className="p-6">
                         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                             <div className="relative">
@@ -67,21 +63,18 @@ function PasswordRecoveryView({ onBackToLogin }) {
                                     required
                                 />
                             </div>
-
                             {error && (
                                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                                     <i className="fas fa-exclamation-circle" />
                                     <span>{error}</span>
                                 </div>
                             )}
-
                             {message && (
                                 <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
                                     <i className="fas fa-check-circle" />
                                     <span>{message}</span>
                                 </div>
                             )}
-
                             <button
                                 type="submit"
                                 className="w-full py-3 bg-[#1e3a5f] hover:bg-[#15304f] text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -97,7 +90,6 @@ function PasswordRecoveryView({ onBackToLogin }) {
                                 )}
                             </button>
                         </form>
-
                         <div className="mt-6 text-center">
                             <button
                                 type="button"
@@ -114,5 +106,4 @@ function PasswordRecoveryView({ onBackToLogin }) {
         </div>
     )
 }
-
 export default PasswordRecoveryView

@@ -3,13 +3,10 @@ import ReactDOM from 'react-dom'
 
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { ReportUtility } from '../../../utils/ReportUtility'
-
 const SAFETY_INPUT =
     'w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-[0.9375rem] text-slate-800 box-border disabled:bg-slate-50 disabled:text-slate-500'
 const SAFETY_TEXTAREA = `${SAFETY_INPUT} min-h-[120px] resize-y`
-
 const TAG_OPTIONS = ['Accident', 'Injury', 'Non-DOT', 'DOT', 'Compliance', 'Environmental', 'Reprimand', 'Safety']
-
 const TAG_COLORS = {
     Accident: { bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', icon: 'fas fa-car-crash' },
     Compliance: { bg: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', icon: 'fas fa-clipboard-check' },
@@ -20,32 +17,26 @@ const TAG_COLORS = {
     Reprimand: { bg: 'rgba(168, 85, 247, 0.15)', color: '#a855f7', icon: 'fas fa-exclamation-triangle' },
     Safety: { bg: 'rgba(14, 165, 233, 0.15)', color: '#0ea5e9', icon: 'fas fa-shield-alt' }
 }
-
 function TagPicker({ value, options, disabled, placeholder, onChange }) {
     const [open, setOpen] = useState(false)
     const [query, setQuery] = useState('')
     const btnRef = useRef(null)
-
     const lower = query.toLowerCase()
     const filtered = options.filter((o) => o.toLowerCase().includes(lower))
-
     function toggle(val) {
         if (disabled) return
         const has = value.includes(val)
         const next = has ? value.filter((v) => v !== val) : [...value, val]
         onChange(next)
     }
-
     function selectAll() {
         if (disabled) return
         onChange(options)
     }
-
     function clearAll() {
         if (disabled) return
         onChange([])
     }
-
     const modalContent = open ? (
         <div
             style={{
@@ -250,7 +241,6 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
             </div>
         </div>
     ) : null
-
     return (
         <div className="relative w-full">
             <button
@@ -273,12 +263,10 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
         </div>
     )
 }
-
 /** Submit-mode plugin for the Safety Manager report — manages safety issues with plant/tag/severity tagging and photo uploads. */
 export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [selectedIssueIdForPlant, setSelectedIssueIdForPlant] = useState(null)
-
     useEffect(() => {
         if (typeof form.issues === 'string') {
             const today = ReportUtility.getTodayISODate()
@@ -326,7 +314,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
             }))
         }
     }, [form.issues, setForm])
-
     useEffect(() => {
         if (!Array.isArray(form.issues)) return
         let needsUpdate = false
@@ -348,9 +335,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
         })
         if (needsUpdate) setForm((f) => ({ ...f, issues: migrated }))
     }, [form.issues, setForm])
-
     const issues = Array.isArray(form.issues) ? form.issues : []
-
     function updateIssue(id, patch) {
         const updated = issues.map((i) => {
             if (i.id === id) {
@@ -364,23 +349,19 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
         })
         setForm((f) => ({ ...f, issues: updated }))
     }
-
     function updateIssueTagsArray(id, nextArray) {
         updateIssue(id, { tag: nextArray[0] || '', tags: nextArray })
     }
-
     function removeIssueTag(id, tagToRemove) {
         const issue = issues.find((i) => i.id === id)
         if (!issue) return
         const next = (issue.tags || []).filter((t) => t !== tagToRemove)
         updateIssue(id, { tag: next[0] || '', tags: next })
     }
-
     function removeIssue(id) {
         const updated = issues.filter((i) => i.id !== id)
         setForm((f) => ({ ...f, issues: updated }))
     }
-
     function addIssue() {
         const today = ReportUtility.getTodayISODate()
         const newIssue = {
@@ -394,7 +375,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
         }
         setForm((f) => ({ ...f, issues: [...(f.issues || []), newIssue] }))
     }
-
     return (
         <>
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -421,7 +401,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                         </button>
                     )}
                 </div>
-
                 {issues.length === 0 ? (
                     <div className="text-center py-12 px-8 text-slate-500">
                         <div className="text-5xl text-slate-300 mb-4 block">
@@ -470,7 +449,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                             </button>
                                         )}
                                     </div>
-
                                     <div className="flex flex-col gap-4 p-5">
                                         <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
                                             <div className="flex flex-col gap-2">
@@ -511,7 +489,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                 />
                                             </div>
                                         </div>
-
                                         <div className="flex flex-col gap-2">
                                             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                                 <i className="text-slate-500 text-[0.8125rem] fas fa-tags"></i>
@@ -558,7 +535,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                 </div>
                                             )}
                                         </div>
-
                                         <div className="flex flex-col gap-2">
                                             <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                                 <i className="text-slate-500 text-[0.8125rem] fas fa-align-left"></i>
@@ -572,7 +548,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                 placeholder="Describe the incident in detail including what happened, who was involved, and any actions taken..."
                                             />
                                         </div>
-
                                         <div className="mt-2">
                                             <label
                                                 className={`flex items-center gap-3 cursor-pointer ${readOnly || !issue.plant || issue.plant === 'All' ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -606,7 +581,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                         })}
                     </div>
                 )}
-
                 <PlantDropdownModal
                     isOpen={showPlantModal}
                     onClose={() => {
@@ -627,7 +601,6 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
         </>
     )
 }
-
 function normalizeIssues(formIssues) {
     if (Array.isArray(formIssues)) return formIssues
     if (typeof formIssues === 'string' && formIssues) {
@@ -635,11 +608,9 @@ function normalizeIssues(formIssues) {
     }
     return []
 }
-
 function getIssueTags(issue) {
     return Array.isArray(issue.tags) ? issue.tags : issue.tag ? [issue.tag] : []
 }
-
 function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
     return (
         <div className="flex items-center justify-between gap-4 p-4 bg-slate-100 border-b border-gray-200 flex-wrap">
@@ -685,7 +656,6 @@ function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
         </div>
     )
 }
-
 function TagsDisplay({ tags, onRemoveTag, readOnly }) {
     if (!tags?.length) return null
     return (
@@ -719,7 +689,6 @@ function TagsDisplay({ tags, onRemoveTag, readOnly }) {
         </div>
     )
 }
-
 function SafetyEmptyState({ success }) {
     return (
         <div className={`text-center py-12 px-8 text-slate-500 ${success ? 'bg-green-50 rounded-lg' : ''}`}>
@@ -737,11 +706,9 @@ function SafetyEmptyState({ success }) {
         </div>
     )
 }
-
 /** Review-mode plugin for the Safety Manager report — read-only view of submitted safety issues with photos. */
 export function SafetyManagerReviewPlugin({ form }) {
     const issues = normalizeIssues(form.issues)
-
     if (issues.length === 0) {
         return (
             <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -762,7 +729,6 @@ export function SafetyManagerReviewPlugin({ form }) {
             </div>
         )
     }
-
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
             <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
@@ -782,11 +748,9 @@ export function SafetyManagerReviewPlugin({ form }) {
                     {issues.length} Incident{issues.length > 1 ? 's' : ''}
                 </div>
             </div>
-
             <div className="flex flex-col gap-4">
                 {issues.map((issue, idx) => {
                     const tags = getIssueTags(issue)
-
                     return (
                         <div
                             key={issue.id || idx}

@@ -41,7 +41,6 @@ const ACRONYMS = new Set([
     'OEM',
     'OEE'
 ])
-
 function normalizeWhitespace(text) {
     if (!text) return ''
     return String(text)
@@ -50,7 +49,6 @@ function normalizeWhitespace(text) {
         .replace(/\s{2,}/g, ' ')
         .trim()
 }
-
 function splitIntoSegments(text) {
     if (!text) return []
     const withNormalizedNewlines = text.replace(/\r\n?/g, '\n')
@@ -74,14 +72,12 @@ function splitIntoSegments(text) {
     if (buffer.trim()) parts.push(buffer)
     return parts
 }
-
 function mostlyUppercase(s) {
     const letters = s.replace(/[^A-Za-z]/g, '')
     if (!letters) return false
     const uppers = (letters.match(/[A-Z]/g) || []).length
     return uppers / letters.length >= 0.7
 }
-
 function restoreAcronyms(text) {
     return text.replace(/\b([A-Za-z]{2,6})\b/g, (m, w) => {
         const up = w.toUpperCase()
@@ -89,7 +85,6 @@ function restoreAcronyms(text) {
         return m
     })
 }
-
 function sentenceCase(sentence) {
     let s = sentence.trim()
     if (!s) return ''
@@ -108,7 +103,6 @@ function sentenceCase(sentence) {
     s = s.replace(/\s*\.(\s*\.)+/g, '.')
     return s
 }
-
 function cleanText(text) {
     const base = normalizeWhitespace(text)
     if (!base) return ''
@@ -119,18 +113,15 @@ function cleanText(text) {
         .replace(/\s{2,}/g, ' ')
         .trim()
 }
-
 function cleanDescription(text) {
     return cleanText(text)
 }
-
 function cleanComments(text) {
     const t = typeof text === 'string' ? text : ''
     const lines = t.replace(/\r\n?/g, '\n').split('\n')
     const cleanedLines = lines.map((l) => cleanText(l))
     return cleanedLines.join('\n').trim()
 }
-
 function formatPhone(input) {
     const raw = input == null ? '' : String(input)
     const digits = raw.replace(/\D/g, '')
@@ -143,8 +134,6 @@ function formatPhone(input) {
     }
     return raw.trim()
 }
-
 const GrammarUtility = { cleanComments, cleanDescription, formatPhone }
-
 export default GrammarUtility
 export { cleanText, formatPhone, GrammarUtility }

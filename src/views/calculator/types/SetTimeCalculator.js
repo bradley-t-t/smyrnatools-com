@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
-
 /**
  * Concrete set time estimator. Uses real-time geolocation weather data
  * (or manual entry) combined with mix design parameters to predict
@@ -20,7 +19,6 @@ const SetTimeCalculator = () => {
         humidity: '',
         temperature: ''
     })
-
     const [mixData, setMixData] = useState({
         addedWater: '',
         batchSize: '',
@@ -31,9 +29,7 @@ const SetTimeCalculator = () => {
         supplemental: '',
         water: ''
     })
-
     const [result, setResult] = useState(null)
-
     const fetchWeather = useCallback(async (lat, lon) => {
         setLoading(true)
         setLocationError(null)
@@ -55,7 +51,6 @@ const SetTimeCalculator = () => {
         }
         setLoading(false)
     }, [])
-
     const getLocation = useCallback(() => {
         if (!navigator.geolocation) {
             setLocationError('Geolocation not supported')
@@ -72,20 +67,16 @@ const SetTimeCalculator = () => {
             }
         )
     }, [fetchWeather])
-
     useEffect(() => {
         if (!useManual) {
             getLocation()
         }
     }, [useManual, getLocation])
-
     const handleManualWeatherChange = (field, value) => {
         setManualWeather((prev) => ({ ...prev, [field]: value }))
     }
-
     /** Standard weight of water: 8.34 lbs per gallon at 60°F. */
     const WATER_LBS_PER_GALLON = 8.34
-
     const calculateSetTime = useCallback(() => {
         const temp = useManual ? parseFloat(manualWeather.temperature) : weather?.temperature
         const batchSize = parseFloat(mixData.batchSize)
@@ -93,7 +84,6 @@ const SetTimeCalculator = () => {
         const cement = parseFloat(mixData.cement)
         const designWaterGalPerYd = parseFloat(mixData.water)
         const addedWaterGal = parseFloat(mixData.addedWater) || 0
-
         if (
             !temp ||
             isNaN(batchSize) ||
@@ -107,25 +97,19 @@ const SetTimeCalculator = () => {
             setResult(null)
             return
         }
-
         const supplemental = parseFloat(mixData.supplemental) || 0
         const totalCementPerYd = cement + supplemental
-
         const designWaterLbsPerYd = designWaterGalPerYd * WATER_LBS_PER_GALLON
         const addedWaterLbs = addedWaterGal * WATER_LBS_PER_GALLON
         const addedWaterLbsPerYd = addedWaterLbs / batchSize
         const totalWaterLbsPerYd = designWaterLbsPerYd + addedWaterLbsPerYd
-
         const wc = totalCementPerYd > 0 ? totalWaterLbsPerYd / totalCementPerYd : 0
-
         const cloudCover = useManual ? parseFloat(manualWeather.cloudCover) || 50 : weather?.cloudCover || 50
         const humidity = useManual ? parseFloat(manualWeather.humidity) || 50 : weather?.humidity || 50
         const windSpeed = weather?.windSpeed || 5
-
         // Base set times in minutes under standard conditions (70°F, 0.45 W/C, 4" slump).
         let baseInitialSet = 120
         let baseFinalSet = 480
-
         // Temperature factor: cold delays hydration, hot accelerates it.
         if (temp < 50) {
             const coldFactor = 1 + (50 - temp) * 0.03
@@ -136,7 +120,6 @@ const SetTimeCalculator = () => {
             baseInitialSet *= Math.max(hotFactor, 0.5)
             baseFinalSet *= Math.max(hotFactor, 0.5)
         }
-
         // Higher W/C ratio dilutes cement paste, delaying set.
         if (wc > 0.5) {
             const wcFactor = 1 + (wc - 0.5) * 0.5
@@ -147,7 +130,6 @@ const SetTimeCalculator = () => {
             baseInitialSet *= wcFactor
             baseFinalSet *= wcFactor
         }
-
         // Higher slump (wetter mix) generally extends set time.
         if (slump > 6) {
             const slumpFactor = 1 + (slump - 6) * 0.04
@@ -158,7 +140,6 @@ const SetTimeCalculator = () => {
             baseInitialSet *= Math.max(slumpFactor, 0.85)
             baseFinalSet *= Math.max(slumpFactor, 0.9)
         }
-
         // More cementitious content generates more heat, accelerating set.
         if (totalCementPerYd > 600) {
             const cementFactor = 1 - (totalCementPerYd - 600) * 0.0003
@@ -169,7 +150,6 @@ const SetTimeCalculator = () => {
             baseInitialSet *= Math.min(cementFactor, 1.3)
             baseFinalSet *= Math.min(cementFactor, 1.25)
         }
-
         // SCMs (fly ash, slag) react more slowly than Portland cement, extending set.
         if (cement > 0 && supplemental > 0) {
             const supplementalRatio = supplemental / totalCementPerYd
@@ -178,14 +158,12 @@ const SetTimeCalculator = () => {
                 baseFinalSet *= 1 + supplementalRatio * 0.2
             }
         }
-
         // Solar radiation and ambient cooling effects by time of day.
         const currentHour = new Date().getHours()
         const isPeakSun = currentHour >= 10 && currentHour < 16
         const isMorning = currentHour >= 6 && currentHour < 10
         const isEvening = currentHour >= 16 && currentHour < 20
         const isNight = currentHour >= 20 || currentHour < 6
-
         // Direct sun with clear skies significantly accelerates surface set.
         if (isPeakSun && cloudCover < 25 && temp > 70) {
             baseInitialSet *= 0.85
@@ -200,27 +178,22 @@ const SetTimeCalculator = () => {
             baseInitialSet *= 1.1
             baseFinalSet *= 1.08
         }
-
         // Low humidity accelerates surface drying; high humidity retards evaporation.
         if (humidity < 40) {
             baseInitialSet *= 0.95
         } else if (humidity > 80) {
             baseInitialSet *= 1.05
         }
-
         // High wind increases evaporation rate, accelerating surface set.
         if (windSpeed > 15) {
             baseInitialSet *= 0.9
         }
-
         const initialSetHours = Math.floor(baseInitialSet / 60)
         const initialSetMins = Math.round(baseInitialSet % 60)
         const finalSetHours = Math.floor(baseFinalSet / 60)
         const finalSetMins = Math.round(baseFinalSet % 60)
-
         let riskLevel = 'normal'
         let riskMessage = ''
-
         if (temp < 40) {
             riskLevel = 'cold'
             riskMessage = 'Cold weather may significantly delay set. Consider heated enclosures or accelerators.'
@@ -237,12 +210,10 @@ const SetTimeCalculator = () => {
             riskLevel = 'cool'
             riskMessage = 'Nighttime placement with cooler temps will extend set time.'
         }
-
         let timeOfDay = 'night'
         if (isPeakSun) timeOfDay = 'peak-sun'
         else if (isMorning) timeOfDay = 'morning'
         else if (isEvening) timeOfDay = 'evening'
-
         setResult({
             conditions: {
                 cloudCover,
@@ -265,15 +236,12 @@ const SetTimeCalculator = () => {
             timeOfDay
         })
     }, [weather, mixData, manualWeather, useManual])
-
     useEffect(() => {
         calculateSetTime()
     }, [calculateSetTime])
-
     const handleMixChange = (field, value) => {
         setMixData((prev) => ({ ...prev, [field]: value }))
     }
-
     const clearForm = () => {
         setMixData({
             addedWater: '',
@@ -288,7 +256,6 @@ const SetTimeCalculator = () => {
         setManualWeather({ cloudCover: '', humidity: '', temperature: '' })
         setResult(null)
     }
-
     const getRiskColor = (level) => {
         switch (level) {
             case 'cold':
@@ -303,7 +270,6 @@ const SetTimeCalculator = () => {
                 return 'success'
         }
     }
-
     const styles = {
         container: {
             background: 'white',
@@ -703,7 +669,6 @@ const SetTimeCalculator = () => {
             justifyContent: 'center'
         }
     }
-
     const inputFocusHandlers = {
         onBlur: (e) => {
             e.target.style.borderColor = '#e5e7eb'
@@ -714,7 +679,6 @@ const SetTimeCalculator = () => {
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
-
     return (
         <div style={styles.container}>
             <div style={styles.section}>
@@ -874,7 +838,6 @@ const SetTimeCalculator = () => {
                     )}
                 </div>
             </div>
-
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
                     <i className="fas fa-flask" style={{ color: 'var(--accent)' }}></i>
@@ -905,7 +868,6 @@ const SetTimeCalculator = () => {
                     ))}
                 </div>
             </div>
-
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
                     <i className="fas fa-truck" style={{ color: 'var(--accent)' }}></i>
@@ -949,7 +911,6 @@ const SetTimeCalculator = () => {
                     const cement = parseFloat(mixData.cement) || 0
                     const supplemental = parseFloat(mixData.supplemental) || 0
                     const totalCite = cement + supplemental
-
                     if (designWaterGal > 0 && totalCite > 0 && batchSize > 0) {
                         const designWaterLbsPerYd = designWaterGal * 8.34
                         const addedLbsPerYd = (addedGal * 8.34) / batchSize
@@ -968,7 +929,6 @@ const SetTimeCalculator = () => {
                     return null
                 })()}
             </div>
-
             {result ? (
                 <div style={styles.resultContainer(result.riskLevel)}>
                     <div style={styles.resultHeader}>
@@ -1080,7 +1040,6 @@ const SetTimeCalculator = () => {
                     </div>
                 </div>
             )}
-
             <div style={styles.footer}>
                 <button
                     onClick={clearForm}
@@ -1105,5 +1064,4 @@ const SetTimeCalculator = () => {
         </div>
     )
 }
-
 export default SetTimeCalculator

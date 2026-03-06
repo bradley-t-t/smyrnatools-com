@@ -1,5 +1,4 @@
 import { DateUtility } from '../../utils/DateUtility'
-
 /**
  * Pickup truck domain model. Maps snake_case API data to camelCase properties
  * with safe mileage coercion and database timestamp serialization.
@@ -26,12 +25,10 @@ export class PickupTruck {
         this.updatedLast = data.updated_last ?? null
         this.updatedBy = data.updated_by ?? null
     }
-
     static fromApiFormat(data) {
         if (!data) return null
         return new PickupTruck(data)
     }
-
     toApiFormat() {
         const apiObject = {
             assigned: this.assigned || null,
@@ -52,5 +49,4 @@ export class PickupTruck {
         return apiObject
     }
 }
-
 export default PickupTruck

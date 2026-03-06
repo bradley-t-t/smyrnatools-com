@@ -1,12 +1,10 @@
 import React from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 const DEFAULT_GRID_COUNT = 8
 const DEFAULT_LIST_COUNT = 10
 const SKELETON_ROW_WIDTHS = ['60%', '40%', '50%', '70%', '45%']
 const MOBILE_DETAIL_ROW_COUNT = 3
-
 /** Single shimmer card matching the CardSection layout (status bar, title, subtitle, detail rows). */
 function SkeletonAssetCard({ compact }) {
     const rows = compact ? SKELETON_ROW_WIDTHS.slice(0, MOBILE_DETAIL_ROW_COUNT) : SKELETON_ROW_WIDTHS
@@ -33,7 +31,6 @@ function SkeletonAssetCard({ compact }) {
         </div>
     )
 }
-
 /** Single shimmer table row matching the ListViewModeSection row layout. */
 function SkeletonAssetRow({ columnCount, isEven, compact }) {
     return (
@@ -49,7 +46,6 @@ function SkeletonAssetRow({ columnCount, isEven, compact }) {
         </tr>
     )
 }
-
 /** Single shimmer task row matching the ListView grouped-item layout. */
 function SkeletonTaskRow({ compact }) {
     // Heights derived from real item font sizes × 1.5 line-height:
@@ -82,7 +78,6 @@ function SkeletonTaskRow({ compact }) {
         </div>
     )
 }
-
 /** Skeleton group card mimicking a status-group section in the task ListView. */
 function SkeletonTaskGroup({ rowCount, compact }) {
     return (
@@ -100,7 +95,6 @@ function SkeletonTaskGroup({ rowCount, compact }) {
         </div>
     )
 }
-
 /**
  * Skeleton placeholder for the ListView (task list) while data loads.
  * Renders grouped shimmer cards matching the status-grouped task layout.
@@ -117,7 +111,6 @@ export function TaskListSkeleton({ groupCount = 3 }) {
         </div>
     )
 }
-
 /** Single shimmer row matching the report list desktop table layout. */
 function SkeletonReportRow({ columnWidths }) {
     return (
@@ -142,7 +135,6 @@ function SkeletonReportRow({ columnWidths }) {
         </div>
     )
 }
-
 /**
  * Skeleton placeholder for report lists (MyReportsList / ReviewReportsList).
  * Mimics the header row + data rows layout with shimmer rectangles.
@@ -199,7 +191,6 @@ export function ReportsListSkeleton({ rowCount = 25, columnCount = 5 }) {
         </>
     )
 }
-
 /**
  * Skeleton placeholder rendered while asset list/grid data is loading.
  * Mimics the grid (CardSection) or list (table row) layout with shimmer rectangles.
@@ -209,7 +200,6 @@ export function ReportsListSkeleton({ rowCount = 25, columnCount = 5 }) {
  */
 export default function AssetListSkeleton({ viewMode, count, columnCount = 8 }) {
     const isMobile = useIsMobile()
-
     if (viewMode === 'list') {
         const rowCount = count ?? DEFAULT_LIST_COUNT
         return (
@@ -236,7 +226,6 @@ export default function AssetListSkeleton({ viewMode, count, columnCount = 8 }) 
             </div>
         )
     }
-
     const cardCount = count ?? (isMobile ? 4 : DEFAULT_GRID_COUNT)
     return (
         <div

@@ -1,5 +1,4 @@
 import React from 'react'
-
 /** Centered empty state message used inside history view tabs. */
 export default function HistoryEmptyState({ title, subtitle }) {
     return (

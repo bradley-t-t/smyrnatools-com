@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { DashboardCard, MetricCard, SkeletonMetricCard } from '../ui/DashboardCards'
-
 /**
  * Top-level dashboard hero card showing region-wide KPIs.
  * Displays fleet total, allocation rate, overdue services, and verification percentage.
@@ -29,7 +28,6 @@ export default function RegionOverviewCard({ showSkeleton, regionDisplayName, he
                     </>
                 )}
             </div>
-
             <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-4'}`}>
                 {showSkeleton ? (
                     [1, 2, 3, 4].map((i) => <SkeletonMetricCard key={i} />)

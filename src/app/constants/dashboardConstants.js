@@ -4,7 +4,6 @@ export const DASHBOARD_CACHE_KEY = 'dashboard_assets_cache_v1'
 export const DASHBOARD_CACHE_TTL_MS = 120000
 /** Auto-refresh interval: 10 minutes. */
 export const DASHBOARD_REFRESH_INTERVAL_MS = 600000
-
 /** Color mapping for asset status badges and charts. */
 export const STATUS_COLORS = {
     Active: '#22c55e',
@@ -13,13 +12,11 @@ export const STATUS_COLORS = {
     Spare: '#a855f7',
     Stationary: '#eab308'
 }
-
 /** Percentage thresholds for fleet allocation health indicators. */
 export const ALLOCATION_THRESHOLDS = {
     HIGH: 80,
     MEDIUM: 50
 }
-
 /** Zero-state structure for all dashboard statistics categories. */
 export const INITIAL_STATS = {
     equipment: { active: 0, allocationPercent: 0, comments: 0, issues: 0, overdue: 0, shop: 0, spare: 0, total: 0 },
@@ -84,7 +81,6 @@ export const INITIAL_STATS = {
     },
     verificationAverage: 0
 }
-
 /** Zero-state structure for per-plant notification/alert data. */
 export const INITIAL_PLANT_NOTIFICATIONS = {
     aiSummary: null,
@@ -102,7 +98,6 @@ export const INITIAL_PLANT_NOTIFICATIONS = {
     unassignedOperators: [],
     unverifiedMixers: []
 }
-
 /** Default collapsed state for plant notification accordion sections. */
 export const INITIAL_EXPANDED_SECTIONS = {
     assetsWithIssues: false,
@@ -113,7 +108,6 @@ export const INITIAL_EXPANDED_SECTIONS = {
     unassignedOperators: false,
     unverifiedMixers: false
 }
-
 /** Available date range filter options for status history charts. */
 export const DATE_FILTER_OPTIONS = [
     'last-week',
@@ -126,12 +120,10 @@ export const DATE_FILTER_OPTIONS = [
     'last-year',
     'all'
 ]
-
 /** Known tractor freight type categories. */
 export const TRACTOR_FREIGHT_TYPES = ['Cement', 'Aggregate', 'Dump Truck', 'Other']
 /** Known trailer type categories. */
 export const TRAILER_TYPES = ['Cement', 'End Dump']
-
 /** FontAwesome icon class mapping for tractor freight types. */
 export const FREIGHT_ICONS = {
     Aggregate: 'fa-mountain',
@@ -139,7 +131,6 @@ export const FREIGHT_ICONS = {
     'Dump Truck': 'fa-truck-loading',
     Other: 'fa-truck'
 }
-
 /** FontAwesome icon class mapping for asset type categories. */
 export const ASSET_ICONS = {
     Equipment: 'fa-snowplow',

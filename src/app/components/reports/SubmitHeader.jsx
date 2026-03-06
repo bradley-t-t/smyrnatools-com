@@ -1,5 +1,4 @@
 import React from 'react'
-
 /** Amber banner shown when a manager is editing another user's report. */
 const ManagerEditBanner = ({ editingUserName }) => (
     <div className="flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-800 font-medium text-sm">
@@ -7,14 +6,12 @@ const ManagerEditBanner = ({ editingUserName }) => (
         {`Editing ${editingUserName}'s Report`}
     </div>
 )
-
 const StatusBadge = ({ isCompleted, readOnly }) => {
     const completed = isCompleted
     const bgClass = completed ? 'bg-emerald-100' : 'bg-amber-100'
     const textClass = completed ? 'text-emerald-700' : 'text-amber-700'
     const icon = completed ? 'fa-check-circle' : 'fa-edit'
     const label = readOnly ? 'View Only' : completed ? 'Submitted' : 'Editing'
-
     return (
         <div
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold ${bgClass} ${textClass}`}
@@ -24,7 +21,6 @@ const StatusBadge = ({ isCompleted, readOnly }) => {
         </div>
     )
 }
-
 const ExportButton = ({ exporting, loadingPlants, onClick }) => {
     const label = loadingPlants ? 'Loading...' : exporting ? 'Exporting...' : 'Export'
     return (
@@ -39,7 +35,6 @@ const ExportButton = ({ exporting, loadingPlants, onClick }) => {
         </button>
     )
 }
-
 const MetaItem = ({ icon, label, value }) => (
     <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
         <i className={`${icon} text-slate-400`} />
@@ -47,7 +42,6 @@ const MetaItem = ({ icon, label, value }) => (
         <strong className="text-slate-800 font-semibold">{value}</strong>
     </div>
 )
-
 /** Sticky header bar for the report submission form with title, status, export, and metadata. */
 function SubmitHeader({
     report,
@@ -103,5 +97,4 @@ function SubmitHeader({
         </div>
     )
 }
-
 export default SubmitHeader

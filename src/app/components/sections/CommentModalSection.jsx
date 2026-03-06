@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom'
 import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 import LoadingScreen from '../common/LoadingScreen'
-
 /**
  * Portal-rendered modal for viewing, adding, and deleting comments on an asset.
  * Resolves author UUIDs to display names and shows relative timestamps.
@@ -22,13 +21,11 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState(null)
     const [userNames, setUserNames] = useState({})
-
     useEffect(() => {
         if (itemId) {
             fetchComments()
         }
     }, [itemId])
-
     const fetchComments = async () => {
         setIsLoading(true)
         setError(null)
@@ -56,7 +53,6 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
             setIsLoading(false)
         }
     }
-
     const handleDeleteComment = async (commentId) => {
         if (!window.confirm('Are you sure you want to delete this comment?')) return
         try {
@@ -66,7 +62,6 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
             setError('Failed to delete comment. Please try again.')
         }
     }
-
     const handleAddComment = async (e) => {
         e.preventDefault()
         if (!newComment.trim()) {
@@ -91,7 +86,6 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
             setIsSubmitting(false)
         }
     }
-
     const formatDate = (dateString) => {
         if (!dateString) return ''
         const date = new Date(dateString)
@@ -106,19 +100,16 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
         if (days < 7) return `${days}d ago`
         return date.toLocaleDateString()
     }
-
     const getAuthorName = (comment) => {
         if (comment.author && userNames[comment.author]) return userNames[comment.author]
         return 'Loading...'
     }
-
     const getInitials = (name) => {
         if (!name || name === 'Loading...') return '?'
         const parts = name.split(' ')
         if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
         return name.slice(0, 2).toUpperCase()
     }
-
     const getAvatarGradient = (name) => {
         const gradients = [
             'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
@@ -137,19 +128,15 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
         }
         return gradients[Math.abs(hash) % gradients.length]
     }
-
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) onClose()
     }
-
     const sortedComments = [...comments].sort((a, b) => {
         const dateA = new Date(a.createdAt || a.created_at)
         const dateB = new Date(b.createdAt || b.created_at)
         return dateB - dateA
     })
-
     if (typeof document === 'undefined' || !document.body) return null
-
     return ReactDOM.createPortal(
         <>
             <style>{`
@@ -279,10 +266,8 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                             </span>
                         </div>
                     </div>
-
                     <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
                         <ErrorMessage message={error} onDismiss={() => setError(null)} />
-
                         <form onSubmit={handleAddComment} style={{ marginBottom: '1.25rem' }}>
                             <div
                                 style={{
@@ -352,7 +337,6 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 </div>
                             </div>
                         </form>
-
                         {isLoading ? (
                             <div
                                 style={{
@@ -506,5 +490,4 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
         document.body
     )
 }
-
 export default CommentModalSection

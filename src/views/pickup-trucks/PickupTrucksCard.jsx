@@ -1,7 +1,6 @@
 import React from 'react'
 
 import CardSection from '../../app/components/sections/CardSection'
-
 /**
  * Grid-mode card for a single pickup truck. Displays VIN (with duplicate
  * warning), make, model, year, and mileage (with high-mileage warning).
@@ -16,9 +15,7 @@ function PickupTrucksCard({ pickup, onSelect, isDuplicateVin, isHighMileage }) {
     else if (pickup.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (pickup.status === 'Retired') statusColor = 'var(--status-retired)'
     else if (pickup.status === 'Sold') statusColor = 'var(--status-sold)'
-
     const assignedLabel = pickup.assigned || 'Not Assigned'
-
     return (
         <CardSection
             item={pickup}
@@ -64,5 +61,4 @@ function PickupTrucksCard({ pickup, onSelect, isDuplicateVin, isHighMileage }) {
         </CardSection>
     )
 }
-
 export default PickupTrucksCard

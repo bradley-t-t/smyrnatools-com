@@ -5,14 +5,11 @@
 const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 }
-
 const PING_TIMEOUT = isMobileDevice() ? 15000 : 5000
-
 const NetworkUtility = {
     async checkConnection() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), PING_TIMEOUT)
-
         if (!isMobileDevice()) {
             try {
                 await fetch('https://clients3.google.com/generate_204', {
@@ -26,7 +23,6 @@ const NetworkUtility = {
                 return true
             } catch {}
         }
-
         try {
             const res = await fetch(`/turl.json?cb=${Date.now()}`, {
                 cache: 'reload',
@@ -44,6 +40,5 @@ const NetworkUtility = {
         return isMobileDevice()
     }
 }
-
 export default NetworkUtility
 export { NetworkUtility }

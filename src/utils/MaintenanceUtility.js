@@ -21,7 +21,6 @@ export function getStatusBadgeClass(status) {
             return 'status-badge-neutral'
     }
 }
-
 export function formatMaintenanceDate(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
@@ -31,7 +30,6 @@ export function formatMaintenanceDate(dateStr) {
         year: 'numeric'
     })
 }
-
 export function formatMaintenanceDateShort(dateStr) {
     if (!dateStr) return ''
     const date = new Date(dateStr)
@@ -41,7 +39,6 @@ export function formatMaintenanceDateShort(dateStr) {
         weekday: 'short'
     })
 }
-
 export function formatFrequency(frequency, value = 1) {
     const labels = {
         biweekly: 'Bi-weekly',
@@ -53,7 +50,6 @@ export function formatFrequency(frequency, value = 1) {
     }
     return labels[frequency] || frequency
 }
-
 export function getFieldTypeIcon(type) {
     switch (type) {
         case 'short_answer':
@@ -68,7 +64,6 @@ export function getFieldTypeIcon(type) {
             return 'fa-question'
     }
 }
-
 export function getFieldTypeName(type) {
     switch (type) {
         case 'short_answer':
@@ -83,11 +78,9 @@ export function getFieldTypeName(type) {
             return type
     }
 }
-
 export function initializeFormResponses(fields) {
     const initialResponses = {}
     const initialChecklists = {}
-
     fields.forEach((field) => {
         if (field.field_type === 'checklist' && field.options?.items) {
             initialChecklists[field.id] = field.options.items.reduce((acc, item) => {
@@ -98,19 +91,15 @@ export function initializeFormResponses(fields) {
             initialResponses[field.id] = ''
         }
     })
-
     return { checklists: initialChecklists, responses: initialResponses }
 }
-
 export function parseSubmissionResponses(submissionResponses) {
     const responses = {}
     const checklists = {}
     const comments = {}
-
     if (!submissionResponses || submissionResponses.length === 0) {
         return { checklists, comments, responses }
     }
-
     submissionResponses.forEach((resp) => {
         if (resp.checklist_values) {
             checklists[resp.field_id] = resp.checklist_values
@@ -121,41 +110,32 @@ export function parseSubmissionResponses(submissionResponses) {
             comments[resp.field_id] = resp.checklist_comments
         }
     })
-
     return { checklists, comments, responses }
 }
-
 function safeParseJson(value) {
     return typeof value === 'string' ? JSON.parse(value) : value
 }
-
 export function parseSubmissionResponsesWithImages(submissionResponses) {
     const responses = {}
     const checklists = {}
     const comments = {}
     const images = {}
-
     if (!submissionResponses?.length) {
         return { checklists, comments, images, responses }
     }
-
     submissionResponses.forEach((resp) => {
         const fieldId = String(resp.field_id)
-
         if (resp.checklist_values) {
             checklists[fieldId] = safeParseJson(resp.checklist_values)
         } else {
             responses[fieldId] = resp.response_value || ''
         }
-
         if (resp.checklist_comments) {
             comments[fieldId] = safeParseJson(resp.checklist_comments)
         }
-
         if (resp.image_url) {
             images[fieldId] = { uploaded: true, uploadedUrl: resp.image_url }
         }
-
         if (resp.checklist_images) {
             const checkImages = safeParseJson(resp.checklist_images)
             if (checkImages && typeof checkImages === 'object') {
@@ -165,13 +145,10 @@ export function parseSubmissionResponsesWithImages(submissionResponses) {
             }
         }
     })
-
     return { checklists, comments, images, responses }
 }
-
 export function validateChecklistField(field, checkState, comments) {
     if (!field.is_required) return true
-
     const checkItems = field.options?.items || []
     return checkItems.every((item) => {
         const isChecked = checkState?.[item] === true
@@ -179,12 +156,10 @@ export function validateChecklistField(field, checkState, comments) {
         return isChecked || hasComment
     })
 }
-
 export function validateRequiredField(field, value) {
     if (!field.is_required) return true
     return value && value.trim() !== ''
 }
-
 export function buildResponseData(fields, responses, checklistStates, checklistComments, fieldImages = {}) {
     return fields.map((field) => {
         if (field.field_type === 'checklist') {
@@ -210,14 +185,11 @@ export function buildResponseData(fields, responses, checklistStates, checklistC
         }
     })
 }
-
 function hasUploadedImage(fieldImages, key) {
     return fieldImages[key]?.uploaded || fieldImages[key]?.uploadedUrl
 }
-
 export function validateFieldErrors(field, responses, checklistStates, checklistComments, fieldImages) {
     const errors = {}
-
     if (field.is_required) {
         if (field.field_type === 'checklist') {
             if (!validateChecklistField(field, checklistStates[field.id], checklistComments[field.id])) {
@@ -227,7 +199,6 @@ export function validateFieldErrors(field, responses, checklistStates, checklist
             errors[field.id] = 'This field is required'
         }
     }
-
     if (field.image_required) {
         if (field.field_type === 'checklist') {
             const checkState = checklistStates[field.id] || {}
@@ -240,10 +211,8 @@ export function validateFieldErrors(field, responses, checklistStates, checklist
             errors[`${field.id}_image`] = 'An image is required for this field'
         }
     }
-
     return errors
 }
-
 export function validateAllFieldErrors(fields, responses, checklistStates, checklistComments, fieldImages) {
     let allErrors = {}
     fields.forEach((field) => {

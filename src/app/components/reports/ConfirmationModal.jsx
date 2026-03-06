@@ -1,18 +1,14 @@
 import React from 'react'
-
 /** Checklist items the user must acknowledge before report submission. */
 const CONFIRMATION_ITEMS = [
     'Total yardage includes all yardage we can bill for and does not include lost yardage.',
     'Total hours only includes hours from operators and not from plant managers, loader operators or any other roles.'
 ]
-
 /** Pre-submission confirmation modal requiring all checklist items to be acknowledged. */
 function ConfirmationModal({ confirmationChecks, setConfirmationChecks, onCancel, onConfirm }) {
     const updateCheck = (index, checked) =>
         setConfirmationChecks(confirmationChecks.map((c, i) => (i === index ? checked : c)))
-
     const allChecked = confirmationChecks.every(Boolean)
-
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
             <div className="bg-white rounded-2xl p-5 sm:p-8 max-w-md w-full shadow-2xl">
@@ -54,5 +50,4 @@ function ConfirmationModal({ confirmationChecks, setConfirmationChecks, onCancel
         </div>
     )
 }
-
 export default ConfirmationModal

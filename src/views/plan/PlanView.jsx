@@ -5,23 +5,18 @@ import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { PlanService } from '../../services/PlanService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
-
 const PRE_TRIP_MINUTES = 15
 const BUFFER_MINUTES = 5
 const AUTOSAVE_DELAY_MS = 1000
 const DEFAULT_STAGGER_MINUTES = 10
 const DROPDOWN_ARROW_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`
-
 const getTomorrowDate = () => {
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     return tomorrow.toISOString().split('T')[0]
 }
-
 const formatTime = (hours, minutes) => `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-
 const parseTime = (timeString) => timeString?.split(':').map(Number) ?? [0, 0]
-
 const addMinutesToTime = (time, mins) => {
     if (!time) return null
     const [hours, minutes] = parseTime(time)
@@ -30,13 +25,11 @@ const addMinutesToTime = (time, mins) => {
     date.setMinutes(date.getMinutes() + mins)
     return formatTime(date.getHours(), date.getMinutes())
 }
-
 const formatTimeInput = (value) => {
     const digits = value.replace(/[^0-9]/g, '')
     if (digits.length <= 2) return digits
     return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`
 }
-
 const createEmptyAssignment = () => ({
     customTimes: [],
     driverCount: 1,
@@ -48,7 +41,6 @@ const createEmptyAssignment = () => ({
     timeMode: 'stagger',
     toPlant: ''
 })
-
 const baseInputStyle = {
     background: '#fff',
     border: '1px solid #e2e8f0',
@@ -57,9 +49,7 @@ const baseInputStyle = {
     outline: 'none',
     padding: '10px 12px'
 }
-
 const timeInputBaseStyle = { ...baseInputStyle, fontFamily: 'monospace', textAlign: 'center', width: 80 }
-
 const selectBaseStyle = {
     ...baseInputStyle,
     appearance: 'none',
@@ -69,11 +59,9 @@ const selectBaseStyle = {
     cursor: 'pointer',
     paddingRight: 32
 }
-
 const Pill = ({ background, color, children }) => (
     <div style={{ background, borderRadius: 6, color, fontSize: 12, padding: '6px 10px' }}>{children}</div>
 )
-
 const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, style }) => (
     <select value={value} onChange={onChange} style={{ ...selectBaseStyle, ...style }}>
         <option value="">{placeholder}</option>
@@ -86,7 +74,6 @@ const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, style
             ))}
     </select>
 )
-
 /**
  * Interactive daily dispatch planning tool. Users build driver assignments
  * between plants with configurable stagger times, auto-calculated leave
@@ -109,7 +96,6 @@ function PlanView() {
     const [isLoading, setIsLoading] = useState(true)
     const [showSettings, setShowSettings] = useState(false)
     const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
-
     const isMobile = useIsMobile()
     const btnStyle = {
         background: accentColor,
@@ -123,9 +109,7 @@ function PlanView() {
     }
     const mobilePadding = isMobile ? '8px 10px' : '10px 12px'
     const mobileFontSize = isMobile ? 13 : 14
-
     const getTravelTime = (from, to) => travelTimes[`${from}->${to}`] ?? null
-
     const calcClockIn = (arrivalTime, fromPlant, toPlant) => {
         if (!arrivalTime || !fromPlant || !toPlant) return null
         const travelTime = getTravelTime(fromPlant, toPlant)
@@ -136,7 +120,6 @@ function PlanView() {
         date.setMinutes(date.getMinutes() - travelTime - BUFFER_MINUTES - PRE_TRIP_MINUTES)
         return formatTime(date.getHours(), date.getMinutes())
     }
-
     const refreshTravelTimes = async () => {
         await PlanService.fetchTravelTimes()
         setTravelTimes(PlanService.getTravelTimesMap())
@@ -162,7 +145,6 @@ function PlanView() {
         }
         loadInitialData()
     }, [])
-
     useEffect(() => {
         if (!userId || !planDate || isLoading) return
         const loadPlan = async () => {
@@ -174,7 +156,6 @@ function PlanView() {
         }
         loadPlan()
     }, [userId, planDate, isLoading])
-
     useEffect(() => {
         if (!userId || !planDate || isLoading) return
         const timeout = setTimeout(async () => {
@@ -184,10 +165,8 @@ function PlanView() {
         }, AUTOSAVE_DELAY_MS)
         return () => clearTimeout(timeout)
     }, [userId, planDate, assignments, notes, isLoading])
-
     const updateAssignment = (id, field, value) =>
         setAssignments((prev) => prev.map((a) => (a.id === id ? { ...a, [field]: value } : a)))
-
     const updateCustomTime = (assignmentId, idx, field, value) => {
         setAssignments((prev) =>
             prev.map((a) => {
@@ -199,7 +178,6 @@ function PlanView() {
             })
         )
     }
-
     const switchToCustom = (id) => {
         setAssignments((prev) =>
             prev.map((a) => {
@@ -214,7 +192,6 @@ function PlanView() {
             })
         )
     }
-
     const getStats = () => {
         const statsMap = Object.fromEntries(
             plants.map((p) => [
@@ -233,22 +210,18 @@ function PlanView() {
             .map((x) => ({ ...x, eff: x.base - x.send + x.recv }))
             .sort((a, b) => a.code.localeCompare(b.code))
     }
-
     const generatePlanMessage = () => {
         const validAssignments = assignments.filter((a) => a.fromPlant && a.toPlant && a.driverCount > 0)
         if (!validAssignments.length) return setGeneratedMessage('Add at least one assignment.')
-
         const dateStr = new Date(planDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'long' })
         const operatorWord = (count) => (count === 1 ? 'operator' : 'operators')
         const loadNote = (a) => (a.loadFromPlant ? ' [Load from Plant]' : '')
         const header = (a) =>
             `${a.fromPlant} → ${a.toPlant} (${a.driverCount} ${operatorWord(a.driverCount)}${a.timeMode !== 'custom' && a.driverCount > 1 ? `, ${a.staggerMinutes}min stagger` : ''})${loadNote(a)}\n`
-
         let msg = `Plan - ${dateStr}\n`
         validAssignments.forEach((a, i) => {
             if (i > 0) msg += '\n─────────────\n'
             msg += '\n' + header(a)
-
             if (a.driverCount > 1 && a.timeMode === 'custom' && a.customTimes?.length) {
                 a.customTimes.slice(0, a.driverCount).forEach((ct, idx) => {
                     const clockIn = ct.time ? calcClockIn(ct.time, a.fromPlant, a.toPlant) : null
@@ -273,14 +246,12 @@ function PlanView() {
         if (notes) msg += `\n─────────────\n\nNotes: ${notes}\n`
         setGeneratedMessage(msg.trim())
     }
-
     const copyToClipboard = async () => {
         if (!generatedMessage) return
         await navigator.clipboard.writeText(generatedMessage)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
     }
-
     const addTravelTime = async () => {
         const { from, to, minutes } = newTravelTime
         if (!from || !to || !minutes || from === to) return
@@ -290,16 +261,13 @@ function PlanView() {
         await refreshTravelTimes()
         setNewTravelTime({ from: '', minutes: '', to: '' })
     }
-
     const removeTravelTime = async (key) => {
         const [from, to] = key.split('->')
         await PlanService.deleteTravelTime(from, to)
         await PlanService.deleteTravelTime(to, from)
         await refreshTravelTimes()
     }
-
     const stats = getStats()
-
     if (isLoading) {
         return (
             <div style={{ alignItems: 'center', display: 'flex', height: '100vh', justifyContent: 'center' }}>
@@ -307,7 +275,6 @@ function PlanView() {
             </div>
         )
     }
-
     return (
         <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: isMobile ? 12 : 24 }}>
             <div style={{ margin: '0 auto', maxWidth: 900 }}>
@@ -355,7 +322,6 @@ function PlanView() {
                         <i className="fas fa-cog"></i>
                     </button>
                 </div>
-
                 {showSettings && (
                     <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: 20 }}>
                         <div
@@ -448,7 +414,6 @@ function PlanView() {
                         </div>
                     </div>
                 )}
-
                 {stats.length > 0 && (
                     <div
                         style={{
@@ -495,7 +460,6 @@ function PlanView() {
                         ))}
                     </div>
                 )}
-
                 <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: isMobile ? 12 : 20 }}>
                     <div
                         style={{
@@ -519,7 +483,6 @@ function PlanView() {
                             <i className="fas fa-plus" style={{ marginRight: 6 }}></i>Add
                         </button>
                     </div>
-
                     {!assignments.length ? (
                         <div
                             style={{
@@ -550,7 +513,6 @@ function PlanView() {
                                 const hasCapacityWarning =
                                     a.fromPlant && a.driverCount > (mixerCountsByPlant[a.fromPlant] || 0)
                                 const missingTravelTime = travelTime === null && a.fromPlant && a.toPlant
-
                                 return (
                                     <div key={a.id} style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
                                         <div
@@ -601,7 +563,6 @@ function PlanView() {
                                                 <i className="fas fa-trash" style={{ fontSize: 12 }}></i>
                                             </button>
                                         </div>
-
                                         <div
                                             style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 12 }}
                                         >
@@ -696,7 +657,6 @@ function PlanView() {
                                                 </Pill>
                                             )}
                                         </div>
-
                                         {a.driverCount > 1 && (
                                             <div
                                                 style={{
@@ -783,7 +743,6 @@ function PlanView() {
                                                         </div>
                                                     )}
                                                 </div>
-
                                                 {a.timeMode === 'custom' ? (
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                                         {Array.from({ length: a.driverCount }, (_, i) => {
@@ -947,7 +906,6 @@ function PlanView() {
                             })}
                         </div>
                     )}
-
                     {assignments.length > 0 && (
                         <textarea
                             value={notes}
@@ -963,7 +921,6 @@ function PlanView() {
                         />
                     )}
                 </div>
-
                 <div style={{ background: '#fff', borderRadius: 12, padding: 20 }}>
                     <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginBottom: 16 }}>
                         <span style={{ color: '#1e293b', flex: 1, fontSize: 16, fontWeight: 600 }}>
@@ -1013,5 +970,4 @@ function PlanView() {
         </div>
     )
 }
-
 export default PlanView

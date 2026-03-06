@@ -2,7 +2,6 @@ import React from 'react'
 
 import CardSection from '../../app/components/sections/CardSection'
 import EquipmentUtility from '../../utils/EquipmentUtility'
-
 /**
  * Grid-mode card for a single equipment item. Displays key details
  * (plant, status, type, service date, hours/mileage, cleanliness, condition)
@@ -21,21 +20,18 @@ function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onS
                   equipment.updatedBy,
                   equipment.latestHistoryDate
               )
-
     let statusColor = 'var(--accent)'
     if (equipment.status === 'Active') statusColor = 'var(--status-active)'
     else if (equipment.status === 'Spare') statusColor = 'var(--status-spare)'
     else if (equipment.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (equipment.status === 'Retired') statusColor = 'var(--status-retired)'
     else if (EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)) statusColor = 'var(--error)'
-
     const verificationTooltip =
         !equipment.updatedLast || !equipment.updatedBy
             ? 'Equipment never verified'
             : equipment.latestHistoryDate && new Date(equipment.latestHistoryDate) > new Date(equipment.updatedLast)
               ? 'Changes recorded in history since last verification'
               : 'Equipment not verified since last Monday'
-
     return (
         <CardSection
             item={equipment}
@@ -109,5 +105,4 @@ function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onS
         </CardSection>
     )
 }
-
 export default EquipmentCard

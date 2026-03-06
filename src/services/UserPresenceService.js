@@ -1,7 +1,6 @@
 import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 import { UserService } from './UserService'
-
 /**
  * Real-time user presence tracking service using Supabase.
  * Maintains online status via heartbeats (30s), detects stale sessions (5min),
@@ -24,7 +23,6 @@ class UserPresenceService {
         this.onOffline = this.handleOnlineStatusChange.bind(this, false)
         this.onUserActivity = this.handleUserActivity.bind(this)
     }
-
     /**
      * Initializes presence tracking: subscribes to realtime changes,
      * sets the user online, starts heartbeat/cleanup intervals, and
@@ -63,19 +61,16 @@ class UserPresenceService {
             return false
         }
     }
-
     /** Registers DOM event listeners for user activity detection. */
     setupActivityTracking() {
         document.addEventListener('click', this.onUserActivity)
         document.addEventListener('keydown', this.onUserActivity)
         document.addEventListener('mousemove', this.onUserActivity, { passive: true })
     }
-
     /** Handles Supabase realtime presence change events by refreshing the online user list. */
     handlePresenceChange() {
         this.notifyListeners()
     }
-
     /** Throttled handler that updates last-activity timestamp (max once per 30s). */
     handleUserActivity() {
         const now = Date.now()
@@ -83,7 +78,6 @@ class UserPresenceService {
         this.lastActivityUpdate = now
         this.updateActivity()
     }
-
     /** Writes the current timestamp to last_activity and last_seen in the database. */
     async updateActivity() {
         if (!this.currentUserId) return false
@@ -98,7 +92,6 @@ class UserPresenceService {
             return false
         }
     }
-
     /** Starts a 60-second interval that notifies listeners of presence changes. */
     startActivityRefresh() {
         if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
@@ -106,7 +99,6 @@ class UserPresenceService {
             this.notifyListeners()
         }, 60000)
     }
-
     /** Ensures the current user has an online presence record, resolving the user ID if needed. */
     async ensureCurrentUserOnline() {
         if (!this.currentUserId) {
@@ -124,7 +116,6 @@ class UserPresenceService {
         }
         return !!this.currentUserId
     }
-
     /** Upserts a presence record marking the user as online. */
     async setUserOnline(userId) {
         if (!userId) return false
@@ -145,7 +136,6 @@ class UserPresenceService {
             return false
         }
     }
-
     /** Updates the presence record to mark the user as offline. */
     async setUserOffline(userId) {
         if (!userId) return false
@@ -160,7 +150,6 @@ class UserPresenceService {
             return false
         }
     }
-
     /** Updates the heartbeat timestamp to prevent stale session cleanup. */
     async updateHeartbeat() {
         if (!this.currentUserId) return false
@@ -175,13 +164,11 @@ class UserPresenceService {
             return false
         }
     }
-
     /** Starts a 30-second heartbeat interval. */
     startHeartbeat() {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
         this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), 30000)
     }
-
     /** Starts a 60-second cleanup interval that marks stale sessions (>5min) as offline. */
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
@@ -197,24 +184,22 @@ class UserPresenceService {
             } catch {}
         }, 60000)
     }
-
     /** Uses fetch with keepalive to mark the user offline on page unload (best-effort). */
     handleBeforeUnload() {
         if (this.currentUserId) {
             const now = new Date().toISOString()
             fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users_presence?user_id=eq.${this.currentUserId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    apikey: process.env.REACT_APP_SUPABASE_ANON_KEY,
-                    Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
-                },
                 body: JSON.stringify({ is_online: false, last_seen: now, updated_at: now }),
-                keepalive: true
+                headers: {
+                    Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    apikey: process.env.REACT_APP_SUPABASE_ANON_KEY
+                },
+                keepalive: true,
+                method: 'PATCH'
             }).catch(() => {})
         }
     }
-
     /** Handles browser online/offline events by toggling presence and heartbeat. */
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
@@ -229,7 +214,6 @@ class UserPresenceService {
             }
         }
     }
-
     /**
      * Fetches all currently online users with their display names, roles, and region codes.
      * Ensures the current user is always included in the result set.
@@ -237,19 +221,15 @@ class UserPresenceService {
     async getOnlineUsers() {
         try {
             await this.ensureCurrentUserOnline()
-
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-
             const { data: presences, error } = await supabase
                 .from('users_presence')
                 .select('user_id, last_seen, last_activity, is_online')
                 .or(`is_online.eq.true,last_activity.gte.${fiveMinutesAgo}`)
                 .order('last_activity', { ascending: false })
             if (error) return []
-
             const currentUserId = this.currentUserId
             let presenceList = presences || []
-
             if (currentUserId && !presenceList.some((p) => p.user_id === currentUserId)) {
                 presenceList = [
                     ...presenceList,
@@ -261,7 +241,6 @@ class UserPresenceService {
                     }
                 ]
             }
-
             const results = await Promise.all(
                 presenceList.map(async (presence) => {
                     try {
@@ -271,7 +250,6 @@ class UserPresenceService {
                             UserService.getUserProfile(presence.user_id).catch(() => null),
                             UserService.getUserWeight(presence.user_id).catch(() => 0)
                         ])
-
                         let roleNames = []
                         if (Array.isArray(rolesData)) {
                             roleNames = rolesData
@@ -282,7 +260,6 @@ class UserPresenceService {
                                 })
                                 .filter(Boolean)
                         }
-
                         let regionCode = null
                         if (profile) {
                             if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
@@ -300,7 +277,6 @@ class UserPresenceService {
                                 } catch {}
                             }
                         }
-
                         return {
                             id: presence.user_id,
                             lastActivity: presence.last_activity,
@@ -320,16 +296,13 @@ class UserPresenceService {
             return []
         }
     }
-
     /** Registers a callback to be invoked when the online user list changes. */
     addListener(callback) {
         if (typeof callback === 'function') this.listeners.push(callback)
     }
-
     removeListener(callback) {
         this.listeners = this.listeners.filter((listener) => listener !== callback)
     }
-
     /** Fetches online users and broadcasts to all registered listeners. */
     notifyListeners() {
         this.getOnlineUsers().then((users) => {
@@ -340,7 +313,6 @@ class UserPresenceService {
             })
         })
     }
-
     /**
      * Tears down all intervals, event listeners, and Supabase subscriptions.
      * Should be called on app unmount or user sign-out.
@@ -375,7 +347,6 @@ class UserPresenceService {
         this.currentUserId = null
     }
 }
-
 const instance = new UserPresenceService()
 export { instance as UserPresenceService }
 export default instance

@@ -2,14 +2,12 @@ import React, { useState } from 'react'
 
 import AddViewSection from '../../app/components/sections/AddViewSection'
 import { PlantService } from '../../services/PlantService'
-
 /** Slide-in form for creating a new plant record with a unique plant code and name. */
 function PlantsAddView({ onClose, onPlantAdded }) {
     const [plantCode, setPlantCode] = useState('')
     const [plantName, setPlantName] = useState('')
     const [isSaving, setIsSaving] = useState(false)
     const [error, setError] = useState('')
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
@@ -45,7 +43,6 @@ function PlantsAddView({ onClose, onPlantAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <AddViewSection title="Add New Plant" onClose={onClose} error={error}>
             <form onSubmit={handleSubmit} autoComplete="off">
@@ -89,5 +86,4 @@ function PlantsAddView({ onClose, onPlantAdded }) {
         </AddViewSection>
     )
 }
-
 export default PlantsAddView

@@ -10,5 +10,4 @@ const vitalsUtility = (onPerfEntry) => {
         })
     }
 }
-
 export default vitalsUtility

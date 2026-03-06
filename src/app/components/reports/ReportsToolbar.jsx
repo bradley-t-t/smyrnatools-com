@@ -3,9 +3,7 @@ import React from 'react'
 import TopSection from '../../../app/components/sections/TopSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { reportTypes } from '../../../types/ReportTypes'
-
 const TAB_LABELS = { all: 'My Reports', review: 'Review' }
-
 const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
     <button
         className="flex items-center gap-1.5 px-3 py-2.5 sm:px-4 rounded-lg text-white text-xs sm:text-sm font-semibold transition-all"
@@ -17,7 +15,6 @@ const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
         <span className="hidden sm:inline">Refresh</span>
     </button>
 )
-
 const ReportTypeFilter = ({ value, onChange, options }) => (
     <select
         value={value}
@@ -32,7 +29,6 @@ const ReportTypeFilter = ({ value, onChange, options }) => (
         ))}
     </select>
 )
-
 const TabButton = ({ isActive, accentColor, label, onClick }) => (
     <button
         className={`px-3 py-2 sm:px-3.5 rounded-md text-xs sm:text-sm font-medium transition-all ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
@@ -43,7 +39,6 @@ const TabButton = ({ isActive, accentColor, label, onClick }) => (
         {label}
     </button>
 )
-
 /** Toolbar with refresh, report type filter, plant selector, and My Reports / Review tabs. */
 function ReportsToolbar({
     tab,
@@ -67,13 +62,11 @@ function ReportsToolbar({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-
     const filteredReportTypes = reportTypes.filter(
         (rt) =>
             (tab === 'all' ? hasAssigned[rt.name] : hasReviewPermission[rt.name]) &&
             (regionType !== 'office' || rt.name === 'general_manager')
     )
-
     return (
         <TopSection
             isLoading={isLoading}
@@ -124,5 +117,4 @@ function ReportsToolbar({
         />
     )
 }
-
 export default ReportsToolbar

@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 /**
  * Grid-based view mode rendering asset cards with staggered fade-in animation.
  * Resolves operator, plant, and tractor references for each item.
@@ -28,7 +27,6 @@ function GridViewModeSection({
     plants = plants || []
     tractors = tractors || []
     const isMobile = useIsMobile()
-
     const styles = {
         cardWrapper: {
             animationFillMode: 'both'
@@ -53,7 +51,6 @@ function GridViewModeSection({
             padding: isMobile ? '0.75rem' : '1rem'
         }
     }
-
     return (
         <div style={styles.container}>
             <style>{`
@@ -85,9 +82,7 @@ function GridViewModeSection({
                         const minDelay = baseDelay / 2
                         const delayDecrement = Math.max(0, (baseDelay - minDelay) / filteredItems.length)
                         const delay = Math.max(minDelay, baseDelay - delayDecrement * index)
-
                         const additionalProps = getCardProps ? getCardProps(item) : {}
-
                         const cardElement = (
                             <Card
                                 key={item.id}
@@ -103,7 +98,6 @@ function GridViewModeSection({
                                 {...additionalProps}
                             />
                         )
-
                         return (
                             <div
                                 key={item.id}
@@ -118,5 +112,4 @@ function GridViewModeSection({
         </div>
     )
 }
-
 export default GridViewModeSection

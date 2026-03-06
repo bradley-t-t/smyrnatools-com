@@ -12,7 +12,6 @@ export function compareByStatusThenNumber(a, b, statusField = 'status', numberFi
     if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum
     return String(a?.[numberField] ?? '').localeCompare(String(b?.[numberField] ?? ''))
 }
-
 export function countUnassignedActiveOperators(
     items,
     operators,
@@ -55,14 +54,11 @@ export function countUnassignedActiveOperators(
     }
     return count
 }
-
 export function sortWithRetiredLast(items, sortFn, statusField = 'status') {
     if (!items || items.length === 0) return items
-
     const retiredStatuses = ['Retired', 'Terminated']
     const retiredItems = []
     const activeItems = []
-
     items.forEach((item) => {
         const status = item?.[statusField]
         if (retiredStatuses.includes(status)) {
@@ -71,12 +67,9 @@ export function sortWithRetiredLast(items, sortFn, statusField = 'status') {
             activeItems.push(item)
         }
     })
-
     const sortedActive = sortFn ? activeItems.sort(sortFn) : activeItems
     const sortedRetired = sortFn ? retiredItems.sort(sortFn) : retiredItems
-
     return [...sortedActive, ...sortedRetired]
 }
-
 const FleetUtility = { compareByStatusThenNumber, countUnassignedActiveOperators, sortWithRetiredLast }
 export default FleetUtility

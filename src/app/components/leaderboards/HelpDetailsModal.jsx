@@ -1,7 +1,6 @@
 import React from 'react'
 
 import Modal, { ModalBody, ModalSummary, ModalSummaryItem } from '../common/Modal'
-
 /**
  * Single help transaction row showing direction (sent/received), plant,
  * date, operator count, and hours.
@@ -14,7 +13,6 @@ function HelpEntry({ entry }) {
     const borderClass = isSent ? 'border-emerald-200' : 'border-rose-200'
     const indicatorClass = isSent ? 'bg-emerald-500' : 'bg-rose-500'
     const plantLabel = isSent ? `To Plant ${entry.to}` : `From Plant ${entry.from}`
-
     return (
         <div className={`mb-3 overflow-hidden rounded-xl border ${borderClass} ${bgClass}`}>
             <div className="flex items-center gap-3 p-4">
@@ -48,7 +46,6 @@ function HelpEntry({ entry }) {
         </div>
     )
 }
-
 /**
  * Modal displaying the full breakdown of help hours exchanged by a plant.
  * Shows a summary bar with given/received/net totals and a chronological
@@ -60,15 +57,12 @@ function HelpEntry({ entry }) {
  */
 export default function HelpDetailsModal({ details, plant, onClose }) {
     if (!details || !plant) return null
-
     const { hoursAdded = 0, hoursSubtracted = 0, details: entries = [] } = details
     const netBalance = hoursSubtracted - hoursAdded
     const netColorClass = netBalance > 0 ? 'text-emerald-600' : netBalance < 0 ? 'text-rose-500' : 'text-slate-700'
-
     const filteredEntries = entries
         .filter((e) => e.hours > 0 && e.operatorCount > 0)
         .sort((a, b) => new Date(b.week) - new Date(a.week))
-
     return (
         <Modal title={`Help Details - Plant ${plant.plantCode}`} titleIcon="fas fa-exchange-alt" onClose={onClose}>
             <ModalSummary>
@@ -80,7 +74,6 @@ export default function HelpDetailsModal({ details, plant, onClose }) {
                     valueClassName={netColorClass}
                 />
             </ModalSummary>
-
             <ModalBody>
                 {filteredEntries.length > 0 ? (
                     filteredEntries.map((entry, idx) => <HelpEntry key={idx} entry={entry} />)

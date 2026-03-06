@@ -6,7 +6,6 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { PickupTruckService } from '../../services/PickupTruckService'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
-
 /**
  * Slide-in form for creating a new pickup truck record. Supports VIN
  * (with I/O/Q letter stripping), make, model, year, assigned person,
@@ -31,10 +30,8 @@ function PickupTrucksAddView({ onClose, onAdded }) {
     const [plants, setPlants] = useState([])
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
-
     useEffect(() => {
         let cancelled = false
-
         async function loadPlants() {
             try {
                 const data = await PlantService.fetchPlants()
@@ -43,17 +40,14 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                 if (!cancelled) setPlants([])
             }
         }
-
         loadPlants()
         return () => {
             cancelled = true
         }
     }, [])
-
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false
-
         async function loadRegionPlants() {
             if (!code) {
                 setRegionPlantCodes(null)
@@ -69,13 +63,11 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                 setRegionPlantCodes(new Set())
             }
         }
-
         loadRegionPlants()
         return () => {
             cancelled = true
         }
     }, [preferences.selectedRegion?.code, assignedPlant])
-
     const sortedFilteredPlants = useMemo(() => {
         const list = plants
         const filtered =
@@ -96,12 +88,10 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                     parseInt(String(b.plantCode || b.plant_code || '').replace(/\D/g, '') || '0')
             )
     }, [plants, regionPlantCodes, preferences.selectedRegion?.code])
-
     const selectedPlantObj = sortedFilteredPlants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name}`
         : 'Select Plant'
-
     async function handleSubmit(e) {
         e.preventDefault()
         setError('')
@@ -134,7 +124,6 @@ function PickupTrucksAddView({ onClose, onAdded }) {
             setIsSaving(false)
         }
     }
-
     return (
         <>
             <AddViewSection title="Add Pickup Truck" onClose={onClose} error={error}>
@@ -168,7 +157,6 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-car"></i>
@@ -216,7 +204,6 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-section">
                         <div className="form-section-title">
                             <i className="fas fa-user"></i>
@@ -254,7 +241,6 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-
                     <div className="form-actions">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Pickup'}
@@ -276,5 +262,4 @@ function PickupTrucksAddView({ onClose, onAdded }) {
         </>
     )
 }
-
 export default PickupTrucksAddView

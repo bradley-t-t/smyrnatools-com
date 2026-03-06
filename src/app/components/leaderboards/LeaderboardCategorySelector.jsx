@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { CATEGORY_GROUPS, LEADERBOARD_CATEGORIES } from '../../constants/leaderboardConstants'
-
 /**
  * Individual category tab button with light/dark variant styling.
  * @param {Object} props
@@ -18,7 +17,6 @@ function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
     const unselectedClasses = isDark
         ? 'bg-white/10 text-white/90 hover:bg-white/20 hover:text-white'
         : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-
     return (
         <button
             type="button"
@@ -37,7 +35,6 @@ function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
         </button>
     )
 }
-
 /**
  * Labeled group of category tabs under a section header.
  * @param {Object} props
@@ -72,7 +69,6 @@ function CategoryGroup({ group, categories, selectedId, onSelect, variant, accen
         </div>
     )
 }
-
 /**
  * Category selector for leaderboard metrics.
  * Supports grouped mode (categories organized by group headers) or flat mode.
@@ -110,7 +106,6 @@ export default function LeaderboardCategorySelector({
             </div>
         )
     }
-
     return (
         <div className="flex flex-wrap gap-2">
             {LEADERBOARD_CATEGORIES.map((cat) => (

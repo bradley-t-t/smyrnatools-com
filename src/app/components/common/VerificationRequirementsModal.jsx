@@ -8,7 +8,6 @@ import GrammarUtility from '../../../utils/GrammarUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import LoadingScreen from './LoadingScreen'
-
 /**
  * Multi-section verification checklist modal for asset verification workflows.
  * Collects and validates required fields (VIN, make, model, year, service dates),
@@ -85,14 +84,12 @@ export default function VerificationRequirementsModal({
         issues: false,
         operator: false
     })
-
     const openIssues = issues.filter((issue) => !issue.time_completed)
     const phoneOk = assignedOperator ? operatorPhone && operatorPhone.trim().length > 0 : true
     const ratingOk = assignedOperator ? operatorRating > 0 : true
     const operatorOk = phoneOk && ratingOk
     const serviceOverdue =
         lastServiceDate && typeof isServiceOverdue === 'function' ? isServiceOverdue(lastServiceDate) : false
-
     useEffect(() => {
         async function checkDeletePermission() {
             try {
@@ -106,10 +103,8 @@ export default function VerificationRequirementsModal({
                 setCanDelete(false)
             }
         }
-
         checkDeletePermission()
     }, [])
-
     useEffect(() => {
         if (!open) {
             setSectionsReady({
@@ -121,17 +116,14 @@ export default function VerificationRequirementsModal({
             setExpandedSection([])
             return
         }
-
         const timers = []
         const delay = (fn, ms) => {
             const id = setTimeout(fn, ms)
             timers.push(id)
         }
-
         delay(() => {
             setSectionsReady((prev) => ({ ...prev, checklist: true }))
         }, 50)
-
         if (assignedOperator) {
             fetchOperatorData().then(() => {
                 delay(() => {
@@ -143,7 +135,6 @@ export default function VerificationRequirementsModal({
                 setSectionsReady((prev) => ({ ...prev, operator: true }))
             }, 150)
         }
-
         if (itemId && service) {
             fetchIssues().then(() => {
                 delay(() => {
@@ -160,34 +151,25 @@ export default function VerificationRequirementsModal({
                 setSectionsReady((prev) => ({ ...prev, comments: true, issues: true }))
             }, 250)
         }
-
         return () => timers.forEach(clearTimeout)
     }, [open, assignedOperator, itemId])
-
     useEffect(() => {
         if (!open) return
-
         const allSectionsReady = Object.values(sectionsReady).every((ready) => ready)
         if (!allSectionsReady) return
-
         const sectionsToExpand = []
-
         if (missingFields.length > 0 || serviceOverdue) {
             sectionsToExpand.push('checklist')
         }
-
         if (!operatorOk) {
             sectionsToExpand.push('operator')
         }
-
         if (openIssues.length > 0) {
             sectionsToExpand.push('issues')
         }
-
         if (comments.length > 0) {
             sectionsToExpand.push('comments')
         }
-
         sectionsToExpand.forEach((section, index) => {
             setTimeout(
                 () => {
@@ -210,7 +192,6 @@ export default function VerificationRequirementsModal({
         serviceOverdue,
         comments.length
     ])
-
     const fetchOperatorData = async () => {
         setIsLoadingOperator(true)
         try {
@@ -234,20 +215,17 @@ export default function VerificationRequirementsModal({
             setIsLoadingOperator(false)
         }
     }
-
     const fetchIssues = async () => {
         setIsLoadingIssues(true)
         try {
             const fetchedIssues = await service.fetchIssues(itemId)
             setIssues(Array.isArray(fetchedIssues) ? fetchedIssues : [])
-
             const userIds = new Set()
             fetchedIssues.forEach((issue) => {
                 if (issue.created_by) {
                     userIds.add(issue.created_by)
                 }
             })
-
             const names = {}
             for (const userId of userIds) {
                 try {
@@ -265,20 +243,17 @@ export default function VerificationRequirementsModal({
             setIsLoadingIssues(false)
         }
     }
-
     const fetchComments = async () => {
         setIsLoadingComments(true)
         try {
             const fetchedComments = await service.fetchComments(itemId)
             setComments(Array.isArray(fetchedComments) ? fetchedComments : [])
-
             const userIds = new Set()
             fetchedComments.forEach((comment) => {
                 if (comment.author) {
                     userIds.add(comment.author)
                 }
             })
-
             const names = {}
             for (const userId of userIds) {
                 try {
@@ -296,7 +271,6 @@ export default function VerificationRequirementsModal({
             setIsLoadingComments(false)
         }
     }
-
     const handleSaveOperatorPhone = async () => {
         if (!operatorPhone || !assignedOperator) return
         setIsSavingPhone(true)
@@ -318,7 +292,6 @@ export default function VerificationRequirementsModal({
             setIsSavingPhone(false)
         }
     }
-
     const handleSaveOperatorRating = async (rating) => {
         if (!assignedOperator) return
         try {
@@ -335,7 +308,6 @@ export default function VerificationRequirementsModal({
             console.error('Failed to save rating:', error)
         }
     }
-
     const handleCompleteIssue = async (issueId) => {
         try {
             await service.completeIssue(issueId)
@@ -344,7 +316,6 @@ export default function VerificationRequirementsModal({
             console.error('Failed to complete issue:', error)
         }
     }
-
     const handleDeleteIssue = async (issueId) => {
         if (!window.confirm('Are you sure you want to delete this issue?')) {
             return
@@ -356,7 +327,6 @@ export default function VerificationRequirementsModal({
             console.error('Failed to delete issue:', error)
         }
     }
-
     const handleDeleteComment = async (commentId) => {
         if (!window.confirm('Are you sure you want to delete this comment?')) {
             return
@@ -368,18 +338,14 @@ export default function VerificationRequirementsModal({
             console.error('Failed to delete comment:', error)
         }
     }
-
     const handleSaveAndVerify = async () => {
         if (assignedOperator && operatorPhone && operatorPhone.trim().length > 0) {
             await handleSaveOperatorPhone()
         }
         onSaveAndVerify()
     }
-
     const vinInfo = useMemo(() => ValidationUtility.explainVIN(vin || ''), [vin])
-
     if (!open) return null
-
     const needsVin = missingFields.includes('VIN')
     const needsMake = missingFields.includes('Make')
     const needsModel = missingFields.includes('Model')
@@ -389,25 +355,20 @@ export default function VerificationRequirementsModal({
     const modelOk = needsModel ? !!String(model).trim() : true
     const yearOk = needsYear ? !!String(year).trim() : true
     const requiredFieldsOk = vinOk && makeOk && modelOk && yearOk
-
     const hasHighSeverityIssues = openIssues.some((issue) => issue.severity === 'High')
     const isMixerInShopWithoutIssues =
         itemType?.toLowerCase() === 'mixer' && status === 'In Shop' && openIssues.length === 0
     const canVerify = requiredFieldsOk && operatorOk && !isMixerInShopWithoutIssues
-
     const formatDate = (dateString) => {
         if (!dateString) return ''
         const date = new Date(dateString)
         return date.toLocaleString()
     }
-
     const ratingLabels = [null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent']
-
     const toggleSection = (sectionName) => {
         setExpandedSection((prev) => {
             const isArray = Array.isArray(prev)
             const currentExpanded = isArray ? prev : [prev]
-
             if (currentExpanded.includes(sectionName)) {
                 return currentExpanded.filter((s) => s !== sectionName)
             } else {
@@ -415,15 +376,12 @@ export default function VerificationRequirementsModal({
             }
         })
     }
-
     const isSectionExpanded = (sectionName) => {
         return Array.isArray(expandedSection) ? expandedSection.includes(sectionName) : expandedSection === sectionName
     }
-
     if (typeof document === 'undefined' || !document.body) {
         return null
     }
-
     const styles = {
         actions: {
             backgroundColor: '#f8fafc',
@@ -811,7 +769,6 @@ export default function VerificationRequirementsModal({
             marginTop: '4px'
         }
     }
-
     const getSeverityStyle = (severityLevel) => {
         switch (severityLevel) {
             case 'High':
@@ -824,7 +781,6 @@ export default function VerificationRequirementsModal({
                 return {}
         }
     }
-
     return ReactDOM.createPortal(
         <div style={styles.overlay} role="dialog" aria-modal="true">
             <div style={styles.modal}>
@@ -842,7 +798,6 @@ export default function VerificationRequirementsModal({
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-
                 <div style={styles.content}>
                     {sectionsReady.checklist && (
                         <div style={styles.section}>
@@ -1020,7 +975,6 @@ export default function VerificationRequirementsModal({
                             )}
                         </div>
                     )}
-
                     {assignedOperator && sectionsReady.operator && (
                         <div style={styles.section}>
                             <button style={styles.sectionHeader} onClick={() => toggleSection('operator')}>
@@ -1172,7 +1126,6 @@ export default function VerificationRequirementsModal({
                             )}
                         </div>
                     )}
-
                     {itemId && service && sectionsReady.issues && (
                         <div style={styles.section}>
                             <button style={styles.sectionHeader} onClick={() => toggleSection('issues')}>
@@ -1280,7 +1233,6 @@ export default function VerificationRequirementsModal({
                             )}
                         </div>
                     )}
-
                     {itemId && service && sectionsReady.comments && (
                         <div style={styles.section}>
                             <button style={styles.sectionHeader} onClick={() => toggleSection('comments')}>
@@ -1356,7 +1308,6 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
                 </div>
-
                 {isMixerInShopWithoutIssues && (
                     <div
                         style={{
@@ -1373,7 +1324,6 @@ export default function VerificationRequirementsModal({
                         </span>
                     </div>
                 )}
-
                 <div style={styles.actions}>
                     <button style={styles.cancelButton} onClick={onClose}>
                         Cancel
