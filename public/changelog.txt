@@ -2,6 +2,12 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [21.4] - 2026-03-06
+
+- Enhanced the VersionPopup component with a refreshed design, including a flex layout for better alignment, updated spacing, and rounded corners.
+- Added icons and improved text styling in the VersionPopup, with distinct formatting for the version number and label.
+- Introduced a "View Changelog" hint with an icon in the VersionPopup when the onClick prop is provided, guiding users to access version history.
+
 ## [21.3] - 2026-03-06
 
 - Made the VersionPopup component clickable by adding an onClick prop and setting a pointer cursor when the prop is provided. This allows users to interact with the version display to access additional information.
