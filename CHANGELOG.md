@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.1] - 2026-03-06
+
+- Updated the AIInsightsServiceClass in AIService.js to route API calls through an edge function (/ai-service/generate) to avoid CORS restrictions, replacing the direct call to the Grok API.
+- Removed hardcoded API key and URL handling from AIService.js, now leveraging the APIUtility for secure and managed API interactions.
+
 ## [23.0] - 2026-03-06
 
 - Updated the VersionUpdateBanner component to use the "bg-accent" class instead of "bg-slate-800" for the header background, aligning it with the app's accent color scheme.

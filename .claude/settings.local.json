@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''scripts'',{}\\), indent=2\\)\\)\")",
-      "Bash(npx eslint --fix src/app/App.js)"
+      "Bash(npx eslint --fix src/app/App.js)",
+      "Bash(curl -s -I -X OPTIONS https://api.x.ai/v1/chat/completions -H \"Origin: https://smyrnatools.com\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: Authorization, Content-Type\")",
+      "Bash(npx supabase secrets list)",
+      "Bash(node scripts/supabase.js secrets list)",
+      "Bash(echo \"run: npm run supabase:secrets:set GROK_API_KEY=<value>\")"
     ]
   }
 }

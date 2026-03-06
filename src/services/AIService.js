@@ -1,7 +1,5 @@
 import { getRoleContext, getToneModifier, PLANT_SUMMARY_BASE, PROMPTS } from '../app/ai'
-
-const GROK_API_KEY = process.env.REACT_APP_GROK_API_KEY
-const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
+import { APIUtility } from '../utils/APIUtility'
 
 const DEFAULT_MODEL = 'grok-4'
 const FAST_MODEL = 'grok-3-mini-fast'
@@ -15,20 +13,6 @@ const CLEANLINESS_THRESHOLDS = [
     { min: 3, points: '-5', label: 'Average - hurting rankings', impact: 'hurting' },
     { min: 0, points: '-10', label: 'Poor - significantly hurting rankings', impact: 'significantly hurting' }
 ]
-
-/** Builds authorization and content-type headers for the Grok API. */
-const buildHeaders = () => ({
-    Authorization: `Bearer ${GROK_API_KEY}`,
-    'Content-Type': 'application/json'
-})
-
-/** Constructs the request body with a system prompt prepended to the conversation. */
-const buildRequestBody = (systemPrompt, messages, { model = DEFAULT_MODEL, temperature = 0.3 }) => ({
-    messages: [{ content: systemPrompt, role: 'system' }, ...messages],
-    model,
-    stream: false,
-    temperature
-})
 
 /** Maps a cleanliness score to its threshold tier for ranking impact assessment. */
 const getCleanlinessImpact = (score) => {
@@ -66,28 +50,22 @@ const filterByTruckNumber = (list, truckNum) =>
  */
 class AIInsightsServiceClass {
     /**
-     * Core API call with retry/error handling.
+     * Core API call routed through the ai-service edge function to avoid CORS restrictions.
      * @returns Parsed response content, or an error descriptor object.
      */
     async fetchFromAPI(systemPrompt, messages, options = {}) {
-        if (!GROK_API_KEY) return null
-
         try {
-            const response = await fetch(GROK_API_URL, {
-                body: JSON.stringify(buildRequestBody(systemPrompt, messages, options)),
-                headers: buildHeaders(),
-                method: 'POST'
+            const { model = DEFAULT_MODEL, temperature = 0.3 } = options
+            const { res, json } = await APIUtility.post('/ai-service/generate', {
+                messages,
+                model,
+                systemPrompt,
+                temperature
             })
 
-            if (response.status === 429) return { error: 'rate_limited' }
-            if (!response.ok) {
-                const errorText = await response.text()
-                console.error('API Error:', response.status, errorText)
-                return { error: 'api_error', status: response.status }
-            }
-
-            const data = await response.json()
-            return { content: data.choices?.[0]?.message?.content ?? null }
+            if (res.status === 429) return { error: 'rate_limited' }
+            if (!res.ok) return { error: 'api_error', status: res.status }
+            return { content: json?.content ?? null }
         } catch (error) {
             console.error('AI API Error:', error)
             return { error: 'network_error' }
