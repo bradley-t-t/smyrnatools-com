@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.5] - 2026-03-06
+
+- Improved the `useNotifications` hook by refactoring the table subscription logic to use a constant `NOTIFICATION_TABLES` for better readability and maintainability.
+- Simplified the `useMultiTableSubscription` callback in `useNotifications` by directly passing the `refresh` function instead of wrapping it in an anonymous function.
+
 ## [22.4] - 2026-03-06
 
 - Improved version checking logic in useVersionCheck hook to track the latest version and only show update notifications if the user hasn't dismissed that specific version.

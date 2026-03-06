@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import NotificationsService from '../../services/NotificationsService'
 import { useMultiTableSubscription } from './useRealtimeSubscription'
 
+const NOTIFICATION_TABLES = ['list_items', 'mixers', 'equipment', 'tractors']
+
 /**
  * Manages notification badge data, fetching from NotificationsService on mount
  * and auto-refreshing via Supabase realtime subscriptions and custom events.
@@ -57,11 +59,9 @@ export function useNotifications(userId, selectedRegion) {
         refresh()
     }, [refresh])
 
-    useMultiTableSubscription(['list_items', 'mixers', 'equipment', 'tractors'], {
+    useMultiTableSubscription(NOTIFICATION_TABLES, {
         enabled: !!userId,
-        onAnyChange: (_payload) => {
-            refresh()
-        }
+        onAnyChange: refresh
     })
 
     useEffect(() => {
