@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.6] - 2026-03-06
+
+- Updated the `documents` table to reference `users(id)` instead of `auth.users(id)` for the `uploaded_by` field.
+- Removed row-level security policies from the `documents` table, including policies for viewing, inserting, and deleting documents.
+
 ## [24.5] - 2026-03-06
 
 - Added a new "Documents" feature to the application, including a dedicated view for managing documents.
