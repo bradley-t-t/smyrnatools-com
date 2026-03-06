@@ -2,6 +2,13 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.3] - 2026-03-06
+
+- Improved date handling in the changelog view by introducing a new `parseLocalDate` function to parse dates as local midnight instead of UTC, ensuring accurate date display.
+- Enhanced relative time calculations in the changelog view to compare dates based on local midnight, providing more precise "Today", "Yesterday", and "days ago" labels.
+- Added grouping of changelog entries by date, displaying entries under date headers with relative time and formatted date for better organization and readability.
+- Updated the UI layout of the changelog view to visually separate entries by date groups, with clear headers and dividers for improved user experience.
+
 ## [23.2] - 2026-03-06
 
 - Updated the efficiency score calculation explanation in AIInsightsServiceClass to include detailed breakdowns: adjusted YPH now clearly targets 3.0 for 100% (90% of score), added loads per operator per day targeting 3.0 (10% of score), and introduced report compliance penalties for missing or incomplete reports (10 points deduction each).
