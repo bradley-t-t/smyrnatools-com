@@ -435,7 +435,7 @@ const SetTimeCalculator = () => {
             alignItems: 'center',
             background: '#eff6ff',
             borderRadius: '8px',
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             display: 'flex',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem',
             fontWeight: 600,
@@ -585,15 +585,15 @@ const SetTimeCalculator = () => {
             fontSize: isMobile ? '0.625rem' : '0.75rem'
         },
         settimeValue: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700
         },
         toggleButton: (active) => ({
             background: active ? '#f0f7ff' : 'white',
-            border: active ? '2px solid #1e3a5f' : '1px solid #e5e7eb',
+            border: active ? '2px solid var(--accent)' : '1px solid #e5e7eb',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#64748b',
+            color: active ? 'var(--accent)' : '#64748b',
             cursor: 'pointer',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
@@ -689,7 +689,7 @@ const SetTimeCalculator = () => {
         },
         weatherStat: (isMain) => ({
             alignItems: 'center',
-            color: isMain ? '#1e3a5f' : '#64748b',
+            color: isMain ? 'var(--accent)' : '#64748b',
             display: 'flex',
             flexDirection: 'column',
             fontSize: isMain ? (isMobile ? '1.25rem' : '1.5rem') : isMobile ? '0.8125rem' : '0.9375rem',
@@ -710,7 +710,7 @@ const SetTimeCalculator = () => {
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.borderColor = 'var(--accent)'
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
@@ -719,7 +719,7 @@ const SetTimeCalculator = () => {
         <div style={styles.container}>
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-cloud-sun" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-cloud-sun" style={{ color: 'var(--accent)' }}></i>
                     <span>Weather Conditions</span>
                     <button
                         style={styles.toggleButton(useManual)}
@@ -877,7 +877,7 @@ const SetTimeCalculator = () => {
 
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-flask" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-flask" style={{ color: 'var(--accent)' }}></i>
                     <span>Mix Design (per yard)</span>
                 </div>
                 <div style={styles.inputsGrid}>
@@ -908,7 +908,7 @@ const SetTimeCalculator = () => {
 
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-truck" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-truck" style={{ color: 'var(--accent)' }}></i>
                     <span>Batch Info</span>
                 </div>
                 <div style={styles.inputsGrid}>

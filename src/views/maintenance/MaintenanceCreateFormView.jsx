@@ -258,7 +258,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             background: '#f1f5f9',
             border: 'none',
             borderRadius: '8px',
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '1rem',
@@ -318,7 +318,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             background: 'white',
             border: '2px solid #e5e7eb',
             borderRadius: '8px',
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -384,7 +384,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             background: '#eff6ff',
             border: '1px solid #3b82f6',
             borderRadius: '6px',
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             display: 'inline-flex',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -427,7 +427,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         roleCheckboxChecked: {
             background: '#f0f7ff',
-            border: '2px solid #1e3a5f'
+            border: '2px solid var(--accent)'
         },
         rolesGrid: {
             display: 'grid',
@@ -529,7 +529,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             placeholder="Enter form title"
                             onFocus={(e) => {
                                 if (!errors.title) {
-                                    e.target.style.borderColor = '#1e3a5f'
+                                    e.target.style.borderColor = 'var(--accent)'
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }
                             }}
@@ -580,7 +580,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 onClick={() => setShowPlantModal(true)}
                                 onMouseEnter={(e) => {
                                     if (!errors.plants) {
-                                        e.currentTarget.style.borderColor = '#1e3a5f'
+                                        e.currentTarget.style.borderColor = 'var(--accent)'
                                         e.currentTarget.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                     }
                                 }}

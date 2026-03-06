@@ -376,7 +376,7 @@ function ListDetailView({ itemId, onClose }) {
                                         style={{
                                             backgroundColor: '#eff6ff',
                                             border: 'none',
-                                            color: '#1e3a5f',
+                                            color: 'var(--accent)',
                                             cursor: isImprovingDescription ? 'not-allowed' : 'pointer'
                                         }}
                                         title="AI will improve and add ready-mix context to your description"

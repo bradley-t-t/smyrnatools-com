@@ -58,7 +58,7 @@ function Toolbar({ filterText, setFilterText, sortKey, sortDir, setSort, onExpan
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
                 placeholder="Filter operators or trucks..."
-                className="min-w-[200px] flex-1 rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/10"
+                className="min-w-[200px] flex-1 rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/10"
             />
             <div className="flex flex-wrap gap-2">
                 <button

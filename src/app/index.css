@@ -209,10 +209,11 @@ body {
     --bg-hover: #e9ecef;
     --text-primary: #212529;
     --text-secondary: #6c757d;
-    --accent: #003896;
-    --accent-light: #e7f5ff;
-    --accent-dark: #002d77;
-    --accent-transparent: rgba(0, 56, 150, 0.1);
+    --accent: #1e3a5f;
+    --accent-light: color-mix(in srgb, var(--accent) 10%, white);
+    --accent-dark: color-mix(in srgb, var(--accent) 85%, black);
+    --accent-hover: color-mix(in srgb, var(--accent) 80%, black);
+    --accent-transparent: color-mix(in srgb, var(--accent) 10%, transparent);
     --border-light: #dee2e6;
     --border-medium: #ced4da;
     --border-dark: #adb5bd;

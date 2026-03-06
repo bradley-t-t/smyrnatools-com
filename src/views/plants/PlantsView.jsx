@@ -200,7 +200,7 @@ function PlantsView({ title = 'Plants' }) {
                                 : 'There are no plants in the system yet.'}
                         </p>
                         <button
-                            className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                            className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
                             onClick={() => setShowAddSheet(true)}
                         >
                             Add Plant
@@ -222,7 +222,7 @@ function PlantsView({ title = 'Plants' }) {
                                             className={`cursor-pointer hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}
                                             onClick={() => handleSelectPlant(code)}
                                         >
-                                            <td className="px-5 py-4 text-sm font-bold text-[#1e3a5f]">{code}</td>
+                                            <td className="px-5 py-4 text-sm font-bold text-accent">{code}</td>
                                             <td className="px-5 py-4 text-sm font-medium text-slate-800">
                                                 {getPlantName(plant)}
                                             </td>

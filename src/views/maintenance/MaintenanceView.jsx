@@ -173,7 +173,7 @@ export default function MaintenanceView() {
         },
         createBtn: {
             alignItems: 'center',
-            background: '#1e3a5f',
+            background: 'var(--accent)',
             border: 'none',
             borderRadius: '8px',
             color: 'white',
@@ -212,9 +212,9 @@ export default function MaintenanceView() {
         filterButton: (active) => ({
             alignItems: 'center',
             background: 'white',
-            border: active ? '2px solid #1e3a5f' : '2px solid #e5e7eb',
+            border: active ? '2px solid var(--accent)' : '2px solid #e5e7eb',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#1e293b',
+            color: active ? 'var(--accent)' : '#1e293b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -357,9 +357,9 @@ export default function MaintenanceView() {
         reviewSubTab: (active) => ({
             alignItems: 'center',
             background: active ? '#f0f7ff' : 'transparent',
-            border: active ? '1px solid #1e3a5f' : '1px solid transparent',
+            border: active ? '1px solid var(--accent)' : '1px solid transparent',
             borderRadius: '8px',
-            color: active ? '#1e3a5f' : '#64748b',
+            color: active ? 'var(--accent)' : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -407,7 +407,7 @@ export default function MaintenanceView() {
         },
         subTabBadge: {
             alignItems: 'center',
-            background: '#1e3a5f',
+            background: 'var(--accent)',
             borderRadius: '10px',
             color: 'white',
             display: 'inline-flex',
@@ -422,8 +422,8 @@ export default function MaintenanceView() {
             alignItems: 'center',
             background: 'transparent',
             border: 'none',
-            borderBottom: active ? '2px solid #1e3a5f' : '2px solid transparent',
-            color: active ? '#1e3a5f' : '#64748b',
+            borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
+            color: active ? 'var(--accent)' : '#64748b',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -498,8 +498,8 @@ export default function MaintenanceView() {
                             <button
                                 style={styles.createBtn}
                                 onClick={() => setShowCreateForm(true)}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = '#162d4a')}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = '#1e3a5f')}
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--accent-hover)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--accent)')}
                             >
                                 <i className="fas fa-plus"></i>
                                 <span>Create Form</span>
@@ -511,7 +511,7 @@ export default function MaintenanceView() {
                             style={styles.tab(activeTab === 'due')}
                             onClick={() => setActiveTab('due')}
                             onMouseEnter={(e) => {
-                                if (activeTab !== 'due') e.currentTarget.style.color = '#1e3a5f'
+                                if (activeTab !== 'due') e.currentTarget.style.color = 'var(--accent)'
                             }}
                             onMouseLeave={(e) => {
                                 if (activeTab !== 'due') e.currentTarget.style.color = '#64748b'
@@ -530,7 +530,7 @@ export default function MaintenanceView() {
                                 style={styles.tab(activeTab === 'review')}
                                 onClick={() => setActiveTab('review')}
                                 onMouseEnter={(e) => {
-                                    if (activeTab !== 'review') e.currentTarget.style.color = '#1e3a5f'
+                                    if (activeTab !== 'review') e.currentTarget.style.color = 'var(--accent)'
                                 }}
                                 onMouseLeave={(e) => {
                                     if (activeTab !== 'review') e.currentTarget.style.color = '#64748b'
@@ -548,7 +548,7 @@ export default function MaintenanceView() {
                                 style={styles.tab(activeTab === 'manage')}
                                 onClick={() => setActiveTab('manage')}
                                 onMouseEnter={(e) => {
-                                    if (activeTab !== 'manage') e.currentTarget.style.color = '#1e3a5f'
+                                    if (activeTab !== 'manage') e.currentTarget.style.color = 'var(--accent)'
                                 }}
                                 onMouseLeave={(e) => {
                                     if (activeTab !== 'manage') e.currentTarget.style.color = '#64748b'

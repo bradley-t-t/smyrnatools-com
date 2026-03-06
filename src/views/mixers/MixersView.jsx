@@ -754,7 +754,7 @@ function MixersView({
                             : 'There are no mixers in the system yet.'}
                     </p>
                     <button
-                        className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
                         onClick={() => setShowAddSheet(true)}
                     >
                         Add Mixer
@@ -804,7 +804,7 @@ function MixersView({
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        color: '#1e3a5f',
+                        color: 'var(--accent)',
                         fontSize: '15px',
                         fontWeight: 700
                     }

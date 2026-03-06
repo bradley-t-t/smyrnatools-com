@@ -415,7 +415,7 @@ function MyAccountView({ userId }) {
                     <div
                         className="absolute inset-0 opacity-[0.03]"
                         style={{
-                            backgroundImage: `linear-gradient(to right, #1e3a5f 1px, transparent 1px), linear-gradient(to bottom, #1e3a5f 1px, transparent 1px)`,
+                            backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
                             backgroundSize: '20px 20px'
                         }}
                     ></div>
@@ -482,7 +482,7 @@ function MyAccountView({ userId }) {
             <Suspense
                 fallback={
                     <div className="flex h-screen items-center justify-center">
-                        <i className="fas fa-spinner fa-spin text-2xl text-[#1e3a5f]" />
+                        <i className="fas fa-spinner fa-spin text-2xl text-accent" />
                     </div>
                 }
             >
@@ -497,7 +497,7 @@ function MyAccountView({ userId }) {
                 <div
                     className="absolute inset-0 opacity-[0.03]"
                     style={{
-                        backgroundImage: `linear-gradient(to right, #1e3a5f 1px, transparent 1px), linear-gradient(to bottom, #1e3a5f 1px, transparent 1px)`,
+                        backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
                         backgroundSize: '20px 20px'
                     }}
                 ></div>
@@ -546,7 +546,7 @@ function MyAccountView({ userId }) {
                                         <p className="mt-1 text-center text-sm text-gray-500">{email || 'No email'}</p>
                                         {userRole && (
                                             <div className="mt-3 flex justify-center">
-                                                <span className="rounded-full bg-[#1e3a5f]/10 px-3 py-1 text-xs font-semibold text-[#1e3a5f]">
+                                                <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
                                                     {userRole}
                                                 </span>
                                             </div>
@@ -624,8 +624,8 @@ function MyAccountView({ userId }) {
                             <>
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a5f]/10">
-                                            <i className="fas fa-id-card text-[#1e3a5f]"></i>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                                            <i className="fas fa-id-card text-accent"></i>
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-900">Personal Information</h3>
@@ -646,7 +646,7 @@ function MyAccountView({ userId }) {
                                                     onChange={(e) => setFirstName(e.target.value)}
                                                     placeholder="Enter first name"
                                                     required
-                                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                                                 />
                                             </div>
                                             <div>
@@ -659,7 +659,7 @@ function MyAccountView({ userId }) {
                                                     onChange={(e) => setLastName(e.target.value)}
                                                     placeholder="Enter last name"
                                                     required
-                                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                                                 />
                                             </div>
                                         </div>
@@ -677,8 +677,8 @@ function MyAccountView({ userId }) {
 
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a5f]/10">
-                                            <i className="fas fa-info-circle text-[#1e3a5f]"></i>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                                            <i className="fas fa-info-circle text-accent"></i>
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-900">Account Details</h3>
@@ -712,7 +712,7 @@ function MyAccountView({ userId }) {
                                                     value={preferences.selectedRegion?.code || ''}
                                                     onChange={handleChangeRegion}
                                                     disabled={!regionsLoaded}
-                                                    className="appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-4 pr-10 text-sm font-semibold text-gray-900 transition-all hover:border-gray-300 focus:border-[#1e3a5f] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="appearance-none rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-4 pr-10 text-sm font-semibold text-gray-900 transition-all hover:border-gray-300 focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
                                                     {permittedRegions.map((r) => (
                                                         <option
@@ -746,8 +746,8 @@ function MyAccountView({ userId }) {
                             <>
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a5f]/10">
-                                            <i className="fas fa-key text-[#1e3a5f]"></i>
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                                            <i className="fas fa-key text-accent"></i>
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-900">Password</h3>
@@ -769,8 +769,8 @@ function MyAccountView({ userId }) {
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a5f]/10">
-                                                <i className="fas fa-laptop text-[#1e3a5f]"></i>
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                                                <i className="fas fa-laptop text-accent"></i>
                                             </div>
                                             <div>
                                                 <h3 className="font-semibold text-gray-900">Active Sessions</h3>
@@ -1033,8 +1033,8 @@ function MyAccountView({ userId }) {
                     >
                         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a5f]/10">
-                                    <i className="fas fa-key text-[#1e3a5f]"></i>
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+                                    <i className="fas fa-key text-accent"></i>
                                 </div>
                                 <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
                             </div>
@@ -1063,7 +1063,7 @@ function MyAccountView({ userId }) {
                                         onChange={(e) => setCurrentPassword(e.target.value)}
                                         placeholder="Enter current password"
                                         required
-                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                                     />
                                 </div>
                                 <div>
@@ -1074,7 +1074,7 @@ function MyAccountView({ userId }) {
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         placeholder="Enter new password"
                                         required
-                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                                     />
                                     <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
                                 </div>
@@ -1088,7 +1088,7 @@ function MyAccountView({ userId }) {
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         placeholder="Confirm new password"
                                         required
-                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-[#1e3a5f] focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]/20"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 transition-all focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                                     />
                                 </div>
                             </div>

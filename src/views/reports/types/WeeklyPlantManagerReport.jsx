@@ -26,7 +26,7 @@ function GradeScale({ grade }) {
             {YPH_GRADES.map((g) => (
                 <span
                     key={g}
-                    className={`rounded px-2 py-1 text-[0.6875rem] font-semibold ${grade === g ? `text-white ${GRADE_COLORS[g] || 'bg-[#1e3a5f]'}` : 'bg-slate-100 text-slate-500'}`}
+                    className={`rounded px-2 py-1 text-[0.6875rem] font-semibold ${grade === g ? `text-white ${GRADE_COLORS[g] || 'bg-accent'}` : 'bg-slate-100 text-slate-500'}`}
                 >
                     {g.charAt(0).toUpperCase() + g.slice(1)}
                 </span>
@@ -39,11 +39,11 @@ function YphMetricCard({ yph, grade, label }) {
     return (
         <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
             <div className="flex items-center gap-2 mb-3">
-                <i className="fas fa-tachometer-alt text-[#1e3a5f]"></i>
+                <i className="fas fa-tachometer-alt text-accent"></i>
                 <span className="text-sm font-semibold text-gray-700">Yards per Man-Hour</span>
             </div>
             <div
-                className="flex items-baseline gap-1 text-2xl font-bold text-[#1e3a5f] mb-1"
+                className="flex items-baseline gap-1 text-2xl font-bold text-accent mb-1"
                 title="Left: Raw YPH / Right: Adjusted for help sent"
             >
                 <span>{formatYphValue(yph?.raw ?? yph)}</span>
@@ -64,10 +64,10 @@ function LostMetricCard({ lost, grade, label }) {
     return (
         <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
             <div className="flex items-center gap-2 mb-3">
-                <i className="fas fa-exclamation-triangle text-[#1e3a5f]"></i>
+                <i className="fas fa-exclamation-triangle text-accent"></i>
                 <span className="text-sm font-semibold text-gray-700">Yardage Lost</span>
             </div>
-            <div className="text-3xl font-bold text-[#1e3a5f] mb-1">{lost !== null ? lost : '--'}</div>
+            <div className="text-3xl font-bold text-accent mb-1">{lost !== null ? lost : '--'}</div>
             <div className="text-sm font-semibold text-emerald-600 mb-2">{label}</div>
             <GradeScale grade={grade} />
         </div>
@@ -741,14 +741,14 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             >
                                 <div className="flex items-center justify-center w-[26px] h-[26px] relative z-[1]">
                                     <div
-                                        className={`w-3 h-3 rounded-full border-[3px] border-white ${report.isPlaceholder ? 'bg-slate-400 shadow-[0_0_0_2px_#94a3b8]' : 'bg-[#1e3a5f] shadow-[0_0_0_2px_#1e3a5f]'}`}
+                                        className={`w-3 h-3 rounded-full border-[3px] border-white ${report.isPlaceholder ? 'bg-slate-400 shadow-[0_0_0_2px_#94a3b8]' : 'bg-accent shadow-[0_0_0_2px_var(--accent)]'}`}
                                     ></div>
                                 </div>
                                 <div className="flex-1 rounded-lg border border-gray-200 bg-slate-50 p-4">
                                     <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-2">
                                         {weekLabel}
                                         {report.isCurrentWeek && (
-                                            <span className="rounded bg-[#1e3a5f] px-2 py-0.5 text-[0.6875rem] font-semibold uppercase text-white">
+                                            <span className="rounded bg-accent px-2 py-0.5 text-[0.6875rem] font-semibold uppercase text-white">
                                                 Current
                                             </span>
                                         )}
@@ -766,7 +766,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                             <div className="flex gap-6 flex-wrap">
                                                 <div className="flex flex-col gap-0.5">
                                                     <span
-                                                        className="flex items-baseline gap-0.5 text-xl font-bold text-[#1e3a5f]"
+                                                        className="flex items-baseline gap-0.5 text-xl font-bold text-accent"
                                                         title="Raw / Adjusted YPH"
                                                     >
                                                         <span>{(report.rawYph ?? report.yph).toFixed(2)}</span>
@@ -788,7 +788,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col gap-0.5">
-                                                    <span className="text-xl font-bold text-[#1e3a5f]">
+                                                    <span className="text-xl font-bold text-accent">
                                                         {report.lost.toFixed(0)}
                                                     </span>
                                                     <span className="text-[0.6875rem] uppercase tracking-wide text-slate-500">
@@ -1178,7 +1178,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
             {!readOnly && (
                 <button
                     type="button"
-                    className="flex items-center gap-2 rounded-lg border-none bg-[#1e3a5f] px-4 py-3 text-sm font-semibold text-white cursor-pointer mb-4 hover:bg-[#15304f]"
+                    className="flex items-center gap-2 rounded-lg border-none bg-accent px-4 py-3 text-sm font-semibold text-white cursor-pointer mb-4 hover:bg-accent-hover"
                     onClick={addEntry}
                 >
                     <i className="fas fa-plus"></i>Add Entry

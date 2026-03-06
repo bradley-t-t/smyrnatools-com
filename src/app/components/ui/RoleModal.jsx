@@ -4,12 +4,12 @@ import ReactDOM from 'react-dom'
 const BACKDROP_CLASSES = 'fixed inset-0 z-[9999] flex items-center justify-center p-4'
 const OVERLAY_CLASSES = 'absolute inset-0 bg-black/50 backdrop-blur-sm'
 const MODAL_BASE_CLASSES = 'relative w-full bg-white rounded-2xl shadow-2xl overflow-hidden'
-const HEADER_CLASSES = 'flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]'
+const HEADER_CLASSES = 'flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-accent'
 const CLOSE_BUTTON_CLASSES = 'size-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white'
 const BODY_CLASSES = 'px-6 py-5'
 const FOOTER_CLASSES = 'flex items-center gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50'
 const PRIMARY_BUTTON_CLASSES =
-    'flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
+    'flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-accent hover:bg-accent-hover text-white font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
 const SECONDARY_BUTTON_CLASSES =
     'px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition-colors text-sm disabled:opacity-50'
 
@@ -114,7 +114,7 @@ export function RoleFormField({ children, label, sublabel }) {
 export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
     return (
         <input
-            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
             onChange={(e) => onChange(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
             placeholder={placeholder}
             type={type}
@@ -127,7 +127,7 @@ export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
 export function RoleTextarea({ disabled, onChange, placeholder, value }) {
     return (
         <textarea
-            className="w-full h-40 px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-700 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 resize-none"
+            className="w-full h-40 px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-700 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 resize-none"
             disabled={disabled}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}

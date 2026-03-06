@@ -491,7 +491,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                 >
                     <div
                         style={{
-                            backgroundImage: `linear-gradient(to right, #1e3a5f 1px, transparent 1px), linear-gradient(to bottom, #1e3a5f 1px, transparent 1px)`,
+                            backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
                             backgroundSize: '20px 20px',
                             inset: 0,
                             opacity: 0.03,

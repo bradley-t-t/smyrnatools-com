@@ -141,7 +141,7 @@ export default function MaintenanceFormReview({
                 <div className="mt-8 rounded-xl border border-gray-200 bg-white p-6">
                     <h3 className="mb-4 text-lg font-bold text-slate-800">Review Decision</h3>
                     <textarea
-                        className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none resize-y min-h-[100px] focus:border-[#1e3a5f] focus:ring-[3px] focus:ring-[#1e3a5f]/10 transition-colors"
+                        className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none resize-y min-h-[100px] focus:border-accent focus:ring-[3px] focus:ring-accent/10 transition-colors"
                         value={reviewNotes}
                         onChange={(e) => setReviewNotes(e.target.value)}
                         placeholder="Add notes (optional)..."

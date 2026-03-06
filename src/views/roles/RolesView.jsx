@@ -13,8 +13,8 @@ import RoleModal, {
 } from '../../app/components/ui/RoleModal'
 import { useRolesData } from '../../app/hooks/useRolesData'
 
-const BRAND_COLOR = '#1e3a5f'
-const BRAND_COLOR_HOVER = '#152d4a'
+const BRAND_COLOR = 'var(--accent)'
+const BRAND_COLOR_HOVER = 'var(--accent-hover)'
 
 const getPermissionCount = (role) => (Array.isArray(role?.permissions) ? role.permissions.length : 0)
 const getSortedPermissions = (permissions) =>
@@ -106,15 +106,15 @@ function RoleCard({ hasITAccess, isExpanded, onEditPermissions, onEditWeight, on
 
     return (
         <div
-            className={`bg-white rounded-xl border ${isExpanded ? 'border-[#1e3a5f]/30 shadow-md' : 'border-slate-200'} overflow-hidden transition-all`}
+            className={`bg-white rounded-xl border ${isExpanded ? 'border-accent/30 shadow-md' : 'border-slate-200'} overflow-hidden transition-all`}
         >
             <div
                 className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors"
                 onClick={onToggle}
             >
                 <div className="flex items-center gap-4">
-                    <div className="size-11 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
-                        <i className="fas fa-user-shield text-[#1e3a5f]" />
+                    <div className="size-11 bg-accent/10 rounded-xl flex items-center justify-center">
+                        <i className="fas fa-user-shield text-accent" />
                     </div>
                     <div>
                         <h3 className="font-bold text-slate-800">{role.name}</h3>
@@ -152,7 +152,7 @@ function RoleMetadata({ hasITAccess, onEditWeight, permissionCount, weight }) {
     return (
         <div className="flex items-center gap-4 mt-1">
             <span
-                className={`flex items-center gap-1.5 text-xs text-slate-500 ${hasITAccess ? 'cursor-pointer hover:text-[#1e3a5f]' : ''}`}
+                className={`flex items-center gap-1.5 text-xs text-slate-500 ${hasITAccess ? 'cursor-pointer hover:text-accent' : ''}`}
                 onClick={(e) => {
                     if (hasITAccess) {
                         e.stopPropagation()
@@ -284,7 +284,7 @@ function EditPermissionsModal({ isOpen, onClose, onSave, role }) {
             <RoleModalBody>
                 <RoleFormField label="Permissions" sublabel="(one per line)">
                     <textarea
-                        className="w-full h-64 px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-700 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 resize-none"
+                        className="w-full h-64 px-4 py-3 bg-white border border-slate-300 rounded-xl text-sm font-mono text-slate-700 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 resize-none"
                         disabled={isSaving}
                         onChange={(e) => setPermissions(e.target.value)}
                         placeholder="Enter permissions (one per line)&#10;Example:&#10;dashboard.view&#10;mixers.view&#10;mixers.edit"
@@ -399,7 +399,7 @@ function BulkAddModal({ isOpen, onClose, onSubmit, roles }) {
                             >
                                 <input
                                     checked={selectedRoles.has(role.id)}
-                                    className="size-4 text-[#1e3a5f] rounded border-slate-300 focus:ring-[#1e3a5f]"
+                                    className="size-4 text-accent rounded border-slate-300 focus:ring-accent"
                                     disabled={isSubmitting}
                                     onChange={() => toggleRole(role.id)}
                                     type="checkbox"

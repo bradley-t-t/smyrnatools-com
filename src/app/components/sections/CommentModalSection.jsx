@@ -121,7 +121,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
 
     const getAvatarGradient = (name) => {
         const gradients = [
-            'linear-gradient(135deg, #1e3a5f 0%, #2d5a8a 100%)',
+            'linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)',
             'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
             'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
             'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
@@ -329,7 +329,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                             background:
                                                 isSubmitting || !newComment.trim()
                                                     ? '#cbd5e1'
-                                                    : 'linear-gradient(135deg, #1e3a5f, #0f172a)',
+                                                    : 'linear-gradient(135deg, var(--accent), #0f172a)',
                                             border: 'none',
                                             borderRadius: '10px',
                                             boxShadow:

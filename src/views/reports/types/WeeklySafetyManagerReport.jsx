@@ -194,7 +194,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                                 <div
                                     style={{
                                         alignItems: 'center',
-                                        background: isSelected ? '#1e3a5f' : 'white',
+                                        background: isSelected ? 'var(--accent)' : 'white',
                                         border: isSelected ? 'none' : '2px solid #e5e7eb',
                                         borderRadius: 6,
                                         color: 'white',
@@ -233,7 +233,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         type="button"
                         onClick={() => setOpen(false)}
                         style={{
-                            background: '#1e3a5f',
+                            background: 'var(--accent)',
                             border: 'none',
                             borderRadius: 8,
                             color: 'white',
@@ -414,7 +414,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                         <button
                             type="button"
                             onClick={addIssue}
-                            className="flex items-center gap-2 rounded-lg border-none bg-[#1e3a5f] px-4 py-2.5 text-sm font-semibold text-white cursor-pointer hover:bg-[#15304f]"
+                            className="flex items-center gap-2 rounded-lg border-none bg-accent px-4 py-2.5 text-sm font-semibold text-white cursor-pointer hover:bg-accent-hover"
                         >
                             <i className="fas fa-plus"></i>
                             <span>Add Issue</span>
@@ -439,7 +439,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                     className="rounded-xl border border-gray-200 bg-slate-50 overflow-hidden"
                                 >
                                     <div className="flex items-center justify-between gap-4 p-4 bg-slate-100 border-b border-gray-200 flex-wrap">
-                                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-[#1e3a5f] text-white text-[0.8125rem] font-semibold">
+                                        <div className="flex items-center justify-center h-7 w-7 rounded-full bg-accent text-white text-[0.8125rem] font-semibold">
                                             <span>{idx + 1}</span>
                                         </div>
                                         <div className="flex flex-wrap gap-2 flex-1">
@@ -587,7 +587,7 @@ export function SafetyManagerSubmitPlugin({ form, setForm, plants, readOnly }) {
                                                     }
                                                 />
                                                 <span
-                                                    className={`relative w-11 h-6 rounded-full transition-colors ${issue.affectsEfficiency ? 'bg-[#1e3a5f]' : 'bg-gray-200'} ${readOnly || !issue.plant || issue.plant === 'All' ? 'opacity-50' : ''}`}
+                                                    className={`relative w-11 h-6 rounded-full transition-colors ${issue.affectsEfficiency ? 'bg-accent' : 'bg-gray-200'} ${readOnly || !issue.plant || issue.plant === 'All' ? 'opacity-50' : ''}`}
                                                 >
                                                     <span
                                                         className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${issue.affectsEfficiency ? 'translate-x-5' : ''}`}
@@ -643,7 +643,7 @@ function getIssueTags(issue) {
 function IssueCardHeader({ issue, idx, onRemove, readOnly }) {
     return (
         <div className="flex items-center justify-between gap-4 p-4 bg-slate-100 border-b border-gray-200 flex-wrap">
-            <div className="flex items-center justify-center h-7 w-7 rounded-full bg-[#1e3a5f] text-white text-[0.8125rem] font-semibold">
+            <div className="flex items-center justify-center h-7 w-7 rounded-full bg-accent text-white text-[0.8125rem] font-semibold">
                 <span>{idx + 1}</span>
             </div>
             <div className="flex flex-wrap gap-2 flex-1">

@@ -65,7 +65,7 @@ function CardSection({
     verificationTooltip,
     children
 }) {
-    const accentColor = '#1e3a5f'
+    const accentColor = 'var(--accent)'
 
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {

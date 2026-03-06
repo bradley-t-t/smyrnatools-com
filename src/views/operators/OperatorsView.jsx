@@ -669,7 +669,7 @@ function OperatorsView({
                                             : 'There are no operators in the system yet.'}
                                     </p>
                                     <button
-                                        className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
                                         onClick={() => setShowAddSheet(true)}
                                     >
                                         Add Operator
@@ -736,7 +736,7 @@ function OperatorsView({
                                         }
                                         const cellHighlightStyle = {
                                             backgroundColor: alternatingBg,
-                                            color: '#1e3a5f',
+                                            color: 'var(--accent)',
                                             fontSize: '16px',
                                             fontWeight: 700,
                                             padding: '20px 24px',
@@ -919,9 +919,9 @@ function OperatorsView({
                                                             title="View comments"
                                                             style={{ ...actionBtnStyle, position: 'relative' }}
                                                             onMouseEnter={(e) => {
-                                                                e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                                e.currentTarget.style.backgroundColor = 'var(--accent)'
                                                                 e.currentTarget.style.color = 'white'
-                                                                e.currentTarget.style.borderColor = '#1e3a5f'
+                                                                e.currentTarget.style.borderColor = 'var(--accent)'
                                                             }}
                                                             onMouseLeave={(e) => {
                                                                 e.currentTarget.style.backgroundColor = 'white'
@@ -966,9 +966,9 @@ function OperatorsView({
                                                             title="View history"
                                                             style={actionBtnStyle}
                                                             onMouseEnter={(e) => {
-                                                                e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                                e.currentTarget.style.backgroundColor = 'var(--accent)'
                                                                 e.currentTarget.style.color = 'white'
-                                                                e.currentTarget.style.borderColor = '#1e3a5f'
+                                                                e.currentTarget.style.borderColor = 'var(--accent)'
                                                             }}
                                                             onMouseLeave={(e) => {
                                                                 e.currentTarget.style.backgroundColor = 'white'

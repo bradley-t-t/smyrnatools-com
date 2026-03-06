@@ -58,7 +58,7 @@ function OperatorExclusionReasonModal({ onConfirm, onCancel }) {
                     </button>
                     <button
                         type="button"
-                        className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#1e3a5f] text-white rounded-lg text-sm font-semibold hover:bg-[#152d4a] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                        className="px-4 sm:px-6 py-2.5 sm:py-3 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
                         disabled={!selectedReason}
                         onClick={() => onConfirm(selectedReason)}
                     >

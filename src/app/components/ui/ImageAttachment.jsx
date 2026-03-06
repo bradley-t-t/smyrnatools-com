@@ -15,8 +15,8 @@ function UploadingSpinner() {
 /** Take Photo and Upload buttons for attaching images. */
 function ImageButtons({ disabled, onCamera, onUpload }) {
     const baseClasses =
-        'flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#1e3a5f] transition-colors'
-    const enabledClasses = disabled ? '' : 'hover:border-[#1e3a5f] hover:bg-blue-50 cursor-pointer'
+        'flex items-center gap-2 rounded-lg border-2 border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-accent transition-colors'
+    const enabledClasses = disabled ? '' : 'hover:border-accent hover:bg-blue-50 cursor-pointer'
 
     return (
         <div className="flex gap-3 mb-4">

@@ -9,7 +9,7 @@ import { useMaintenanceForm } from '../../app/hooks/useMaintenanceForm'
 import { formatMaintenanceDateShort, getFieldTypeIcon } from '../../utils/MaintenanceUtility'
 
 const INPUT_BASE_CLASSES =
-    'w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-[#1e3a5f] focus:ring-[3px] focus:ring-[#1e3a5f]/10'
+    'w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm text-slate-800 outline-none transition-colors focus:border-accent focus:ring-[3px] focus:ring-accent/10'
 const INPUT_ERROR_CLASSES = 'border-red-500'
 
 /** Reusable single-line text input for short-answer and fallback field types. */
@@ -75,7 +75,7 @@ function ChecklistField({
                     <div key={idx} className="flex flex-col gap-3">
                         <label
                             className={`flex items-start gap-3 rounded-lg border p-4 transition-colors ${
-                                isChecked ? 'border-[#1e3a5f] bg-blue-50' : 'border-gray-200 bg-slate-50'
+                                isChecked ? 'border-accent bg-blue-50' : 'border-gray-200 bg-slate-50'
                             } ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
                         >
                             <input
@@ -247,7 +247,7 @@ function StepperHeader({
             <div className="mr-4 flex min-w-[120px] flex-col gap-2 sm:min-w-[150px]">
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
                     <div
-                        className="h-full bg-[#1e3a5f] transition-[width] duration-300"
+                        className="h-full bg-accent transition-[width] duration-300"
                         style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                     />
                 </div>
@@ -257,7 +257,7 @@ function StepperHeader({
             </div>
             <div className="flex shrink-0 gap-2">
                 <button
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-[#1e3a5f] text-white hover:bg-[#162d4a]"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-accent text-white hover:bg-accent-hover"
                     onClick={onPrevious}
                     disabled={isFirstStep}
                     type="button"
@@ -283,7 +283,7 @@ function StepperHeader({
                     </button>
                 ) : (
                     <button
-                        className="flex items-center gap-1.5 rounded-lg bg-[#1e3a5f] px-3 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:bg-[#162d4a] transition-colors"
+                        className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:bg-accent-hover transition-colors"
                         onClick={onNext}
                         type="button"
                     >
@@ -301,7 +301,7 @@ function FieldCard({ field }) {
 
     return (
         <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-[#1e3a5f]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-accent">
                 <i className={`fas ${getFieldTypeIcon(field.field_type)}`} />
             </div>
             <div className="flex-1">
@@ -309,7 +309,7 @@ function FieldCard({ field }) {
                     {field.label}
                     {field.is_required && <span className="text-sm text-red-500">*</span>}
                 </h2>
-                <div className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-blue-500 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1e3a5f]">
+                <div className="mt-1 inline-flex items-center gap-1.5 rounded-md border border-blue-500 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-accent">
                     <i className={`fas ${getFieldTypeIcon(field.field_type)}`} />
                     {fieldTypeName}
                 </div>

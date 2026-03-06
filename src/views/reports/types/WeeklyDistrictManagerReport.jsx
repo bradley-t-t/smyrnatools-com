@@ -30,7 +30,7 @@ function DailyRecapSection({ form, handleChange, readOnly }) {
                 {WEEKDAYS.map((day) => (
                     <div key={day.key} className="rounded-lg border border-gray-200 bg-slate-50 p-4">
                         <div className="flex items-center gap-2 mb-3">
-                            <i className={`fas ${day.icon} text-sm text-[#1e3a5f]`}></i>
+                            <i className={`fas ${day.icon} text-sm text-accent`}></i>
                             <span className="font-semibold text-slate-800">{day.label}</span>
                             <span className="text-red-500">*</span>
                         </div>

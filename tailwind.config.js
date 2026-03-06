@@ -7,6 +7,8 @@ module.exports = {
         extend: {
             colors: {
                 accent: 'var(--accent)',
+                'accent-hover': 'var(--accent-hover)',
+                'accent-dark': 'var(--accent-dark)',
                 'bg-primary': 'var(--bg-primary)',
                 'bg-secondary': 'var(--bg-secondary)',
                 'bg-tertiary': 'var(--bg-tertiary)',

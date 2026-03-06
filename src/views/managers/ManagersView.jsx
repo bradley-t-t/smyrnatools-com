@@ -357,7 +357,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                             verticalAlign: 'middle'
                                         }
                                         const cellHighlightStyle = {
-                                            color: '#1e3a5f',
+                                            color: 'var(--accent)',
                                             fontSize: '16px',
                                             fontWeight: 700,
                                             padding: '20px 24px',

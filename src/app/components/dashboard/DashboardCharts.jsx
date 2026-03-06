@@ -24,7 +24,7 @@ import { RegionService } from '../../../services/RegionService'
 const COLORS = {
     active: '#22c55e',
     danger: '#ef4444',
-    primary: '#1e3a5f',
+    primary: 'var(--accent)',
     secondary: '#3b82f6',
     shop: '#3b82f6',
     spare: '#a855f7',
@@ -51,7 +51,7 @@ const ChartTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
-            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1.5">{label}</p>
+            <p className="text-accent text-sm font-semibold m-0 mb-1.5">{label}</p>
             {payload.map((entry, index) => (
                 <p key={index} className="text-xs m-0.5" style={{ color: entry.color }}>
                     {entry.name}: {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
@@ -69,7 +69,7 @@ const PieChartTooltip = ({ active, payload }) => {
     const percent = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
-            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1">{data.name}</p>
+            <p className="text-accent text-sm font-semibold m-0 mb-1">{data.name}</p>
             <p className="text-xs m-0" style={{ color: data.payload.color || data.fill }}>
                 {data.value} ({percent}%)
             </p>
@@ -80,7 +80,7 @@ const PieChartTooltip = ({ active, payload }) => {
 /** Reusable card wrapper for individual chart panels with icon header and optional footer. */
 const ChartCard = ({ icon, iconColor, title, children, footer }) => (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-        <h4 className="flex items-center gap-2 text-[#1e3a5f] text-[15px] font-semibold mb-4">
+        <h4 className="flex items-center gap-2 text-accent text-[15px] font-semibold mb-4">
             <i className={`fa-solid ${icon}`} style={{ color: iconColor }} />
             {title}
         </h4>
@@ -119,7 +119,7 @@ const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 
         title={title}
         footer={
             <span className="text-slate-500">
-                Total: <strong className="text-[#1e3a5f]">{footerText?.split(': ')[1]}</strong>
+                Total: <strong className="text-accent">{footerText?.split(': ')[1]}</strong>
             </span>
         }
     >
@@ -401,13 +401,13 @@ export default function DashboardCharts({
                             <>
                                 <StatLabel color="#64748b">
                                     Avg:{' '}
-                                    <strong className="text-[#1e3a5f]">
+                                    <strong className="text-accent">
                                         {Math.round(calcAverage(weeklyData, 'yardage')).toLocaleString()}
                                     </strong>{' '}
                                     yards/week
                                 </StatLabel>
                                 <StatLabel color="#64748b">
-                                    Total: <strong className="text-[#1e3a5f]">{totalYardage.toLocaleString()}</strong>{' '}
+                                    Total: <strong className="text-accent">{totalYardage.toLocaleString()}</strong>{' '}
                                     yards
                                 </StatLabel>
                             </>
@@ -454,7 +454,7 @@ export default function DashboardCharts({
                             return (
                                 <>
                                     <StatLabel color="#64748b">
-                                        Avg YPH: <strong className="text-[#1e3a5f]">{avg.toFixed(2)}</strong>
+                                        Avg YPH: <strong className="text-accent">{avg.toFixed(2)}</strong>
                                     </StatLabel>
                                     <StatLabel color={trend >= 0 ? '#10b981' : '#ef4444'}>
                                         <i className={`fa-solid fa-arrow-${trend >= 0 ? 'up' : 'down'} mr-1`} />
@@ -535,9 +535,7 @@ export default function DashboardCharts({
                             </StatLabel>
                             <StatLabel color="#64748b">
                                 Avg/Week:{' '}
-                                <strong className="text-[#1e3a5f]">
-                                    {Math.round(calcAverage(weeklyData, 'lost'))}
-                                </strong>
+                                <strong className="text-accent">{Math.round(calcAverage(weeklyData, 'lost'))}</strong>
                             </StatLabel>
                         </>
                     }
@@ -604,11 +602,11 @@ export default function DashboardCharts({
                     footer={
                         <>
                             <StatLabel color="#64748b">
-                                Total: <strong className="text-[#1e3a5f]">{totalHours.toLocaleString()}</strong> hours
+                                Total: <strong className="text-accent">{totalHours.toLocaleString()}</strong> hours
                             </StatLabel>
                             <StatLabel color="#64748b">
                                 Avg/Week:{' '}
-                                <strong className="text-[#1e3a5f]">
+                                <strong className="text-accent">
                                     {Math.round(calcAverage(weeklyData, 'hours')).toLocaleString()}
                                 </strong>
                             </StatLabel>
@@ -837,7 +835,7 @@ const ProductionTooltip = ({ active, label, payload }) => {
     const weekYph = hours > 0 ? (yards / hours).toFixed(2) : 0
     return (
         <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
-            <p className="text-[#1e3a5f] text-sm font-semibold m-0 mb-1.5">{label}</p>
+            <p className="text-accent text-sm font-semibold m-0 mb-1.5">{label}</p>
             <p className="text-[#0891b2] text-xs m-0.5">Yards: {yards.toLocaleString()}</p>
             <p className="text-[#f97316] text-xs m-0.5">Hours: {hours.toLocaleString()}</p>
             <p className="text-[#10b981] text-xs font-semibold mt-1.5 m-0">YPH: {weekYph}</p>

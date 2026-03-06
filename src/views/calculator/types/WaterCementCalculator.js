@@ -94,7 +94,7 @@ const WaterCementCalculator = () => {
             background: '#eff6ff',
             border: '1px solid #dbeafe',
             borderRadius: '6px',
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 700,
             padding: isMobile ? '0.375rem 0.625rem' : '0.5rem 0.75rem'
@@ -122,7 +122,7 @@ const WaterCementCalculator = () => {
             gap: '1rem'
         },
         formulaOp: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1rem' : '1.25rem',
             fontWeight: 700
         },
@@ -144,7 +144,7 @@ const WaterCementCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         },
         fractionBar: {
-            background: '#1e3a5f',
+            background: 'var(--accent)',
             height: '3px'
         },
         fractionBottom: {
@@ -315,7 +315,7 @@ const WaterCementCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         }),
         resultNum: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: '3rem',
             fontWeight: 700,
             lineHeight: 1
@@ -342,7 +342,7 @@ const WaterCementCalculator = () => {
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.borderColor = 'var(--accent)'
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
@@ -351,7 +351,7 @@ const WaterCementCalculator = () => {
         <div style={styles.container}>
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-percentage" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-percentage" style={{ color: 'var(--accent)' }}></i>
                     <span>W/C Ratio Formula</span>
                 </div>
                 <div style={styles.formulaLayout}>
@@ -428,7 +428,7 @@ const WaterCementCalculator = () => {
 
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-truck" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-truck" style={{ color: 'var(--accent)' }}></i>
                     <span>Per Yard (optional)</span>
                 </div>
                 <div style={styles.inputRow}>

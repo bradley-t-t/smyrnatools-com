@@ -72,11 +72,11 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
                                             y1={y}
                                             x2={((index + 1) / (data.length - 1)) * USABLE_WIDTH}
                                             y2={(MAX_STAR_RATING - nextPoint.rating) * (CHART_HEIGHT / MAX_STAR_RATING)}
-                                            stroke="#1e3a5f"
+                                            stroke="var(--accent)"
                                             strokeWidth="3"
                                         />
                                     )}
-                                    <circle cx={x} cy={y} r="6" fill="#1e3a5f" stroke="white" strokeWidth="2" />
+                                    <circle cx={x} cy={y} r="6" fill="var(--accent)" stroke="white" strokeWidth="2" />
                                     <text
                                         x={x}
                                         y={CHART_HEIGHT + 20}

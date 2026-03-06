@@ -136,8 +136,8 @@ function HistoryViewSection({ item, type, onClose }) {
         if (aiSummaryLoading) {
             return (
                 <div className="flex flex-col items-center justify-center py-16 px-6">
-                    <div className="w-12 h-12 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center mb-4">
-                        <i className="fas fa-robot text-[#1e3a5f] text-xl animate-pulse" />
+                    <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
+                        <i className="fas fa-robot text-accent text-xl animate-pulse" />
                     </div>
                     <p className="text-sm text-slate-600 font-medium">Analyzing history...</p>
                     <p className="text-xs text-slate-400 mt-1">This may take a moment</p>
@@ -154,7 +154,7 @@ function HistoryViewSection({ item, type, onClose }) {
                     <p className="text-sm text-slate-600 font-medium">Failed to generate analysis</p>
                     <button
                         onClick={handleRegenerateAISummary}
-                        className="mt-3 px-4 py-2 bg-[#1e3a5f] text-white text-sm font-medium rounded-lg hover:bg-[#2d5a8a] transition-colors"
+                        className="mt-3 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
                     >
                         Try Again
                     </button>
@@ -175,7 +175,7 @@ function HistoryViewSection({ item, type, onClose }) {
 
         return (
             <div className="space-y-4">
-                <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl p-5 text-white">
+                <div className="bg-gradient-to-br from-accent to-accent/70 rounded-xl p-5 text-white">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                             <i className="fas fa-robot text-lg" />
@@ -189,21 +189,21 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-[#1e3a5f]">{history.length}</div>
+                        <div className="text-2xl font-bold text-accent">{history.length}</div>
                         <div className="text-xs text-slate-500">Total Changes</div>
                     </div>
                     <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-[#1e3a5f]">{statusData.length}</div>
+                        <div className="text-2xl font-bold text-accent">{statusData.length}</div>
                         <div className="text-xs text-slate-500">Status Changes</div>
                     </div>
                     {ASSET_TYPES_WITH_OPERATORS.includes(type) && (
                         <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-[#1e3a5f]">{operatorData.length}</div>
+                            <div className="text-2xl font-bold text-accent">{operatorData.length}</div>
                             <div className="text-xs text-slate-500">Operator Changes</div>
                         </div>
                     )}
                     <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-[#1e3a5f]">{issues.length}</div>
+                        <div className="text-2xl font-bold text-accent">{issues.length}</div>
                         <div className="text-xs text-slate-500">Total Issues</div>
                     </div>
                 </div>
@@ -326,7 +326,7 @@ function HistoryViewSection({ item, type, onClose }) {
                         .map((entry, index) => (
                             <TimelineItem
                                 key={index}
-                                dotClassName="bg-[#1e3a5f]"
+                                dotClassName="bg-accent"
                                 isLast={index >= consolidatedTimeline.length - 1}
                             >
                                 <TimelineHeader
@@ -541,7 +541,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 <div className="flex flex-wrap gap-4 pb-4 border-b border-gray-200">
                     {lastService && (
                         <div className="flex items-center gap-2">
-                            <i className="fas fa-wrench text-[#1e3a5f]" />
+                            <i className="fas fa-wrench text-accent" />
                             <div>
                                 <div className="text-xs text-slate-500">Last Service</div>
                                 <div className="text-sm font-semibold text-slate-800">
@@ -710,7 +710,7 @@ function HistoryViewSection({ item, type, onClose }) {
                         .slice()
                         .reverse()
                         .map((entry, index) => (
-                            <TimelineItem key={index} dotClassName="bg-[#1e3a5f]" isLast={index >= timeline.length - 1}>
+                            <TimelineItem key={index} dotClassName="bg-accent" isLast={index >= timeline.length - 1}>
                                 <TimelineHeader label={entry[valueKey]} isCurrent={entry.isCurrent} />
                                 <TimelineMeta>
                                     <TimelineDate date={FormatUtility.formatDate(entry.startDate)} />
@@ -919,11 +919,7 @@ function HistoryViewSection({ item, type, onClose }) {
                         .slice()
                         .reverse()
                         .map((entry, index) => (
-                            <TimelineItem
-                                key={index}
-                                dotClassName="bg-[#1e3a5f]"
-                                isLast={index >= ratingsData.length - 1}
-                            >
+                            <TimelineItem key={index} dotClassName="bg-accent" isLast={index >= ratingsData.length - 1}>
                                 <TimelineHeader
                                     label={`${entry.rating}\u2605 - ${RATING_LABELS[entry.rating]}`}
                                     isCurrent={index === 0}
@@ -985,7 +981,7 @@ function HistoryViewSection({ item, type, onClose }) {
                             return (
                                 <TimelineItem
                                     key={index}
-                                    dotClassName="bg-[#1e3a5f]"
+                                    dotClassName="bg-accent"
                                     isLast={index >= mileageData.length - 1}
                                 >
                                     <TimelineHeader
@@ -1236,7 +1232,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                                 </span>{' '}
                                                 {formatValue(fieldName, entry.oldValue ?? entry.old_value)}
                                             </div>
-                                            <div className="text-[#1e3a5f] text-sm">{'\u2192'}</div>
+                                            <div className="text-accent text-sm">{'\u2192'}</div>
                                             <div className="text-[13px] text-slate-800 font-semibold">
                                                 <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">
                                                     To:
@@ -1316,7 +1312,7 @@ function HistoryViewSection({ item, type, onClose }) {
             <div className="bg-white rounded-2xl shadow-2xl max-w-[900px] w-full max-h-[85vh] flex flex-col border border-gray-200">
                 <div className="bg-slate-50 flex justify-between items-center px-6 py-5 border-b border-gray-200 rounded-t-2xl">
                     <div className="flex items-center gap-3">
-                        <i className="fas fa-history text-xl text-[#1e3a5f]" />
+                        <i className="fas fa-history text-xl text-accent" />
                         <div>
                             <h2 className="text-lg font-bold text-slate-800 m-0">{itemName}</h2>
                             <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">

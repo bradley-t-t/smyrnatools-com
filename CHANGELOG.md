@@ -2,6 +2,15 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [24.0] - 2026-03-06
+
+- Updated the navigation menu to dynamically use accent colors for active menu items, replacing hardcoded colors with a customizable accent color for better visual consistency.
+- Adjusted the focus styles in the MaintenanceFormReview component to use the accent color for the border and ring on the review decision textarea.
+- Enhanced the useAccentColor hook to support dynamic color application across various UI elements.
+- Applied consistent styling updates across multiple components, including DashboardCharts, HistoryViewSection, and various calculator views, to align with the new accent color scheme.
+- Improved mobile navigation by adding accent color support to mobile menu items for a cohesive look across different screen sizes.
+- Updated various report components, such as WeeklyPlantManagerReport and WeeklyGeneralManagerReport, to reflect styling consistency with the new color scheme.
+
 ## [23.9] - 2023-09-XX
 
 - Updated the VersionUpdateBanner component to change the background color of the banner header and refresh button from the accent color to black for a more consistent and polished look.

@@ -27,7 +27,7 @@ function ConfirmationModal({ confirmationChecks, setConfirmationChecks, onCancel
                                 type="checkbox"
                                 checked={confirmationChecks[index]}
                                 onChange={(e) => updateCheck(index, e.target.checked)}
-                                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#1e3a5f] focus:ring-[#1e3a5f]"
+                                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent"
                             />
                             <span>{text}</span>
                         </label>
@@ -43,7 +43,7 @@ function ConfirmationModal({ confirmationChecks, setConfirmationChecks, onCancel
                     </button>
                     <button
                         type="button"
-                        className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#1e3a5f] text-white rounded-lg text-sm font-semibold hover:bg-[#152d4a] transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+                        className="px-4 sm:px-6 py-2.5 sm:py-3 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent-hover transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
                         disabled={!allChecked}
                         onClick={onConfirm}
                     >

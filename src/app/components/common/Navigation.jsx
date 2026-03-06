@@ -306,9 +306,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     key={item.id}
                                     style={{
                                         alignItems: 'center',
-                                        backgroundColor: isItemActive ? '#f0f7ff' : 'transparent',
+                                        backgroundColor: isItemActive ? `${accentColor}12` : 'transparent',
                                         borderRadius: '8px',
-                                        color: isItemActive ? '#1e3a5f' : '#374151',
+                                        color: isItemActive ? accentColor : '#374151',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         fontWeight: isItemActive ? 600 : 400,
@@ -318,11 +318,13 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     }}
                                     onClick={() => handleMenuClick(item.id)}
                                     onMouseEnter={(e) =>
-                                        (e.currentTarget.style.backgroundColor = isItemActive ? '#f0f7ff' : '#f9fafb')
+                                        (e.currentTarget.style.backgroundColor = isItemActive
+                                            ? `${accentColor}12`
+                                            : '#f9fafb')
                                     }
                                     onMouseLeave={(e) =>
                                         (e.currentTarget.style.backgroundColor = isItemActive
-                                            ? '#f0f7ff'
+                                            ? `${accentColor}12`
                                             : 'transparent')
                                     }
                                 >
@@ -330,7 +332,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         className={`fas ${ICONS[item.id]}`}
                                         style={{ color: '#64748b', fontSize: '14px', width: '18px' }}
                                     ></i>
-                                    <span style={{ color: isItemActive ? '#1e3a5f' : '#374151' }}>{item.text}</span>
+                                    <span style={{ color: isItemActive ? accentColor : '#374151' }}>{item.text}</span>
                                 </div>
                             )
                         })}
@@ -510,6 +512,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             item={standaloneItems.find((i) => i.id === 'Dashboard')}
                                             isActive={selectedView === 'Dashboard'}
                                             onClick={() => handleMenuClick('Dashboard')}
+                                            accentColor={accentColor}
                                         />
                                     )}
 
@@ -524,6 +527,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                                     item={item}
                                                     isActive={selectedView === id}
                                                     onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
                                                 />
                                             )
                                         })}
@@ -541,6 +545,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                                     item={item}
                                                     isActive={selectedView === id}
                                                     onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
                                                 />
                                             )
                                         })}
@@ -558,6 +563,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                                     item={item}
                                                     isActive={selectedView === id}
                                                     onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
                                                 />
                                             )
                                         })}
@@ -572,6 +578,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             item={item}
                                             isActive={selectedView === item.id}
                                             onClick={() => handleMenuClick(item.id)}
+                                            accentColor={accentColor}
                                         />
                                     ))}
 
@@ -580,6 +587,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         item={{ id: 'MyAccount', text: 'My Account' }}
                                         isActive={selectedView === 'MyAccount'}
                                         onClick={() => handleMenuClick('MyAccount')}
+                                        accentColor={accentColor}
                                     />
                                 </MobileSection>
                             </div>
@@ -833,15 +841,15 @@ function MobileSection({ title, children }) {
 }
 
 /** Single tappable row in the mobile navigation drawer. */
-function MobileMenuItem({ item, isActive, onClick }) {
+function MobileMenuItem({ item, isActive, onClick, accentColor = '#1e3a5f' }) {
     return (
         <div
             onClick={onClick}
             style={{
                 alignItems: 'center',
-                backgroundColor: isActive ? '#f0f7ff' : 'transparent',
+                backgroundColor: isActive ? `${accentColor}12` : 'transparent',
                 borderRadius: '10px',
-                color: isActive ? '#1e3a5f' : '#374151',
+                color: isActive ? accentColor : '#374151',
                 cursor: 'pointer',
                 display: 'flex',
                 fontWeight: isActive ? 600 : 400,
@@ -853,7 +861,7 @@ function MobileMenuItem({ item, isActive, onClick }) {
         >
             <i
                 className={`fas ${ICONS[item.id] || 'fa-circle'}`}
-                style={{ color: isActive ? '#1e3a5f' : '#64748b', fontSize: '16px', width: '20px' }}
+                style={{ color: isActive ? accentColor : '#64748b', fontSize: '16px', width: '20px' }}
             ></i>
             <span style={{ fontSize: '15px' }}>{item.text}</span>
         </div>

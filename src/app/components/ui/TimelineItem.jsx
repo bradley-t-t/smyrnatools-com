@@ -43,7 +43,7 @@ export function TimelineDate({ date }) {
 
 /** Accent-colored duration label for timeline entries. */
 export function TimelineDuration({ text }) {
-    return <span className="text-xs text-[#1e3a5f] font-semibold">{text}</span>
+    return <span className="text-xs text-accent font-semibold">{text}</span>
 }
 
 /** Uppercase section divider heading within a timeline. */

@@ -134,7 +134,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             gap: '0.875rem'
         },
         headerIcon: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: '1.25rem'
         },
         modal: {
@@ -309,7 +309,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 }
                 .add-view-form .form-section-title i {
                     font-size: 0.875rem;
-                    color: #1e3a5f;
+                    color: var(--accent);
                     opacity: 0.8;
                 }
                 .add-view-form .form-row {
@@ -395,7 +395,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 .add-view-form button[type="submit"],
                 .add-view-form .form-submit {
                     padding: 0.75rem 1.5rem;
-                    background: #1e3a5f;
+                    background: var(--accent);
                     color: white;
                     border: none;
                     border-radius: 12px;

@@ -68,12 +68,12 @@ const SlumpAdjustmentCalculator = () => {
 
     const styles = {
         adjustValue: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1rem' : '1.25rem',
             fontWeight: 700
         },
         bracket: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700
         },
@@ -88,7 +88,7 @@ const SlumpAdjustmentCalculator = () => {
             padding: isMobile ? '0.75rem' : '1rem'
         },
         constantNum: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.25rem' : '1.5rem',
             fontWeight: 700
         },
@@ -111,7 +111,7 @@ const SlumpAdjustmentCalculator = () => {
             minWidth: isMobile ? '80px' : '100px'
         },
         eqOp: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.25rem' : '1.5rem',
             fontWeight: 700
         },
@@ -215,7 +215,7 @@ const SlumpAdjustmentCalculator = () => {
             fontWeight: 600
         },
         resValue: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700
         },
@@ -325,7 +325,7 @@ const SlumpAdjustmentCalculator = () => {
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
-            e.target.style.borderColor = '#1e3a5f'
+            e.target.style.borderColor = 'var(--accent)'
             e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
         }
     }
@@ -334,7 +334,7 @@ const SlumpAdjustmentCalculator = () => {
         <div style={styles.container}>
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-tint" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-tint" style={{ color: 'var(--accent)' }}></i>
                     <span>Water Adjustment Formula</span>
                 </div>
                 <div style={styles.equation}>
@@ -426,7 +426,7 @@ const SlumpAdjustmentCalculator = () => {
             {hasResult && parseFloat(values.currentWater) > 0 && (
                 <div style={styles.section}>
                     <div style={styles.sectionHeader}>
-                        <i className="fas fa-calculator" style={{ color: '#1e3a5f' }}></i>
+                        <i className="fas fa-calculator" style={{ color: 'var(--accent)' }}></i>
                         <span>New Total</span>
                     </div>
                     <div style={styles.totalEquation}>
@@ -461,7 +461,7 @@ const SlumpAdjustmentCalculator = () => {
             {!hasResult && (
                 <div style={styles.section}>
                     <div style={styles.sectionHeader}>
-                        <i className="fas fa-water" style={{ color: '#1e3a5f' }}></i>
+                        <i className="fas fa-water" style={{ color: 'var(--accent)' }}></i>
                         <span>Current Water (optional)</span>
                     </div>
                     <div style={styles.inputRow}>

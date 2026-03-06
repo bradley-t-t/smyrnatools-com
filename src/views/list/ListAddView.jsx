@@ -225,7 +225,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                                     type="button"
                                                     onClick={handleImproveDescription}
                                                     disabled={isImprovingDescription}
-                                                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#1e3a5f] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                                                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-accent bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
                                                     title="AI will improve and add context to your description"
                                                 >
                                                     {isImprovingDescription ? (
@@ -239,7 +239,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                                     type="button"
                                                     onClick={() => fetchSuggestions(description)}
                                                     disabled={isLoadingSuggestions}
-                                                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#1e3a5f] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                                                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-accent bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
                                                     title="Get AI task suggestions based on your input"
                                                 >
                                                     {isLoadingSuggestions ? (
@@ -272,7 +272,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
                                             <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">
                                                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                                                    <i className="fas fa-robot text-[#1e3a5f]"></i>
+                                                    <i className="fas fa-robot text-accent"></i>
                                                     <span>AI Suggestions</span>
                                                     <button
                                                         type="button"
@@ -459,7 +459,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                     <div className="flex justify-end pt-4">
                         <button
                             type="submit"
-                            className="px-6 py-3 bg-[#1e3a5f] text-white rounded-xl text-sm font-semibold hover:bg-[#2d4a6f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-3 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={isSaving}
                         >
                             {isSaving

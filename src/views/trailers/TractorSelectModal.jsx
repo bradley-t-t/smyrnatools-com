@@ -74,7 +74,7 @@ function TractorSelectModal({
                 ref={modalRef}
                 className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden"
             >
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-[#1e3a5f]">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-accent">
                     <h2 className="text-lg font-bold text-white">Select Tractor</h2>
                     <button
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
@@ -89,7 +89,7 @@ function TractorSelectModal({
                         <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input
                             type="text"
-                            className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10"
+                            className="w-full pl-11 pr-10 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
                             placeholder="Search tractors..."
                             value={searchText}
                             onChange={(e) => setSearchText(e.target.value)}
@@ -108,7 +108,7 @@ function TractorSelectModal({
                         <button
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 sortAvailableFirst
-                                    ? 'bg-[#1e3a5f] text-white'
+                                    ? 'bg-accent text-white'
                                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                             }`}
                             onClick={() => setSortAvailableFirst(!sortAvailableFirst)}
@@ -171,7 +171,7 @@ function TractorSelectModal({
                             <div
                                 className={`px-6 py-4 cursor-pointer transition-colors ${
                                     currentValue === null || currentValue === '' || currentValue === '0'
-                                        ? 'bg-[#1e3a5f]/10 border-l-4 border-l-[#1e3a5f]'
+                                        ? 'bg-accent/10 border-l-4 border-l-accent'
                                         : 'hover:bg-slate-50'
                                 }`}
                                 onClick={() => {
@@ -190,7 +190,7 @@ function TractorSelectModal({
                                         Unassign Tractor
                                     </span>
                                     {(currentValue === null || currentValue === '' || currentValue === '0') && (
-                                        <span className="inline-flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                        <span className="inline-flex items-center gap-1 text-accent font-medium">
                                             <i className="fas fa-check-circle"></i>
                                             Currently Selected
                                         </span>
@@ -208,7 +208,7 @@ function TractorSelectModal({
                                         key={tractor.id}
                                         className={`px-6 py-4 cursor-pointer transition-colors ${
                                             isSelected
-                                                ? 'bg-[#1e3a5f]/10 border-l-4 border-l-[#1e3a5f]'
+                                                ? 'bg-accent/10 border-l-4 border-l-accent'
                                                 : isUnavailable
                                                   ? 'bg-slate-50 opacity-60 cursor-not-allowed'
                                                   : 'hover:bg-slate-50'
@@ -244,7 +244,7 @@ function TractorSelectModal({
                                                 </span>
                                             )}
                                             {isSelected && (
-                                                <span className="inline-flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                                <span className="inline-flex items-center gap-1 text-accent font-medium">
                                                     <i className="fas fa-check-circle"></i>
                                                     Currently Selected
                                                 </span>

@@ -65,7 +65,7 @@ function ListViewModeSection({
             whiteSpace: 'nowrap'
         },
         cellHighlight: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '13px' : '15px',
             fontWeight: 700,
             padding: isMobile ? '10px 8px' : '16px 20px',
@@ -374,9 +374,9 @@ function ListViewModeSection({
                                                 title="Comments"
                                                 style={styles.actionBtn}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                    e.currentTarget.style.backgroundColor = 'var(--accent)'
                                                     e.currentTarget.style.color = 'white'
-                                                    e.currentTarget.style.borderColor = '#1e3a5f'
+                                                    e.currentTarget.style.borderColor = 'var(--accent)'
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     e.currentTarget.style.backgroundColor = 'white'
@@ -394,9 +394,9 @@ function ListViewModeSection({
                                                 title="Issues"
                                                 style={styles.actionBtn}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = '#1e3a5f'
+                                                    e.currentTarget.style.backgroundColor = 'var(--accent)'
                                                     e.currentTarget.style.color = 'white'
-                                                    e.currentTarget.style.borderColor = '#1e3a5f'
+                                                    e.currentTarget.style.borderColor = 'var(--accent)'
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     e.currentTarget.style.backgroundColor = 'white'

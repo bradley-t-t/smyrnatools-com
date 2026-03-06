@@ -145,7 +145,7 @@ function RegionsView({ title = 'Regions' }) {
                                         : 'There are no regions in the system yet.'}
                                 </p>
                                 <button
-                                    className="px-5 py-2.5 bg-[#1e3a5f] hover:bg-[#152d4a] text-white font-semibold rounded-lg transition-colors"
+                                    className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
                                     onClick={() => setShowAddSheet(true)}
                                 >
                                     Add Region
@@ -165,7 +165,7 @@ function RegionsView({ title = 'Regions' }) {
                                                         handleSelectRegion(region.region_code || region.regionCode)
                                                     }
                                                 >
-                                                    <td className="px-5 py-4 text-sm font-bold text-[#1e3a5f]">
+                                                    <td className="px-5 py-4 text-sm font-bold text-accent">
                                                         {region.region_code || region.regionCode}
                                                     </td>
                                                     <td className="px-5 py-4 text-sm font-medium text-slate-800">

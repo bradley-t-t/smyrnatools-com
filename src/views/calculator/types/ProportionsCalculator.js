@@ -256,7 +256,7 @@ const ProportionsCalculator = () => {
             fontWeight: 600
         },
         batchValue: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: '1.5rem',
             fontWeight: 700
         },
@@ -289,7 +289,7 @@ const ProportionsCalculator = () => {
             justifyContent: 'center'
         },
         formulaDivider: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '1.5rem' : '2rem',
             fontWeight: 700
         },
@@ -299,7 +299,7 @@ const ProportionsCalculator = () => {
             gap: '0.5rem'
         },
         formulaLabel: {
-            color: '#1e3a5f',
+            color: 'var(--accent)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -328,7 +328,7 @@ const ProportionsCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         },
         fractionBar: {
-            background: '#1e3a5f',
+            background: 'var(--accent)',
             height: '2px'
         },
         fractionPart: {
@@ -415,7 +415,7 @@ const ProportionsCalculator = () => {
         <div style={styles.container}>
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-bullseye" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-bullseye" style={{ color: 'var(--accent)' }}></i>
                     <span>Target Mix Design</span>
                 </div>
                 <div style={styles.formulaLayout}>
@@ -432,7 +432,7 @@ const ProportionsCalculator = () => {
                                             placeholder="0"
                                             style={styles.input}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = '#1e3a5f'
+                                                e.target.style.borderColor = 'var(--accent)'
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
@@ -456,7 +456,7 @@ const ProportionsCalculator = () => {
                                             placeholder="0"
                                             style={styles.input}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = '#1e3a5f'
+                                                e.target.style.borderColor = 'var(--accent)'
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
@@ -487,7 +487,7 @@ const ProportionsCalculator = () => {
                                             placeholder="0"
                                             style={styles.input}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = '#1e3a5f'
+                                                e.target.style.borderColor = 'var(--accent)'
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
@@ -511,7 +511,7 @@ const ProportionsCalculator = () => {
                                             placeholder="0"
                                             style={styles.input}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = '#1e3a5f'
+                                                e.target.style.borderColor = 'var(--accent)'
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
@@ -531,7 +531,7 @@ const ProportionsCalculator = () => {
 
             <div style={styles.section}>
                 <div style={styles.sectionHeader}>
-                    <i className="fas fa-weight-hanging" style={{ color: '#1e3a5f' }}></i>
+                    <i className="fas fa-weight-hanging" style={{ color: 'var(--accent)' }}></i>
                     <span>Actual Weights</span>
                 </div>
                 <div style={styles.actualGrid}>
@@ -545,7 +545,7 @@ const ProportionsCalculator = () => {
                                 placeholder="0"
                                 style={styles.input}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#1e3a5f'
+                                    e.target.style.borderColor = 'var(--accent)'
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
@@ -566,7 +566,7 @@ const ProportionsCalculator = () => {
                                 placeholder="0"
                                 style={styles.input}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#1e3a5f'
+                                    e.target.style.borderColor = 'var(--accent)'
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
@@ -587,7 +587,7 @@ const ProportionsCalculator = () => {
                                 placeholder="0"
                                 style={styles.input}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#1e3a5f'
+                                    e.target.style.borderColor = 'var(--accent)'
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
@@ -608,7 +608,7 @@ const ProportionsCalculator = () => {
                                 placeholder="0"
                                 style={styles.input}
                                 onFocus={(e) => {
-                                    e.target.style.borderColor = '#1e3a5f'
+                                    e.target.style.borderColor = 'var(--accent)'
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {

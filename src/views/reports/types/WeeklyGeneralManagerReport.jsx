@@ -641,7 +641,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
     return (
         <>
             {aiLoading && (
-                <div className="rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] p-5 mb-6 text-white">
+                <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
                     <div className="flex items-center justify-center gap-2 p-4 text-sm opacity-80">
                         <i className="fas fa-circle-notch fa-spin"></i>
                         <span>Generating AI Analysis...</span>
@@ -663,7 +663,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             )}
 
             {aiAnalysis && !aiLoading && (
-                <div className="rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] p-5 mb-6 text-white">
+                <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-base">
                             <i className="fas fa-robot"></i>
@@ -686,7 +686,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 </div>
             )}
 
-            <div className="rounded-xl border border-gray-200 border-l-4 border-l-[#1e3a5f] bg-white p-6 mb-6">
+            <div className="rounded-xl border border-gray-200 border-l-4 border-l-accent bg-white p-6 mb-6">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                     <div className="text-lg font-semibold text-slate-800 m-0">Per-Plant Summary</div>
                 </div>
@@ -972,7 +972,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                                 <div
                                     key={r.id}
                                     onClick={() => setEffIdx(i)}
-                                    className={`h-3 w-3 rounded-full cursor-pointer transition-all ${i === effIdx ? 'bg-[#1e3a5f] scale-[1.3]' : 'bg-slate-300 hover:bg-slate-400 hover:scale-110'}`}
+                                    className={`h-3 w-3 rounded-full cursor-pointer transition-all ${i === effIdx ? 'bg-accent scale-[1.3]' : 'bg-slate-300 hover:bg-slate-400 hover:scale-110'}`}
                                     aria-label={`Efficiency Report ${i + 1}`}
                                 ></div>
                             ))}
@@ -997,7 +997,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                                             </button>
                                             <button
                                                 type="button"
-                                                className="rounded-md border-none bg-[#1e3a5f] px-4 py-2 text-[0.8125rem] font-semibold text-white cursor-pointer transition-colors hover:bg-[#15304f] disabled:bg-slate-400 disabled:cursor-not-allowed"
+                                                className="rounded-md border-none bg-accent px-4 py-2 text-[0.8125rem] font-semibold text-white cursor-pointer transition-colors hover:bg-accent-hover disabled:bg-slate-400 disabled:cursor-not-allowed"
                                                 onClick={() => setEffIdx((i) => Math.min(i + 1, effReports.length - 1))}
                                                 disabled={effIdx === effReports.length - 1}
                                             >
@@ -1050,7 +1050,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                                                 <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 mb-1">
                                                     {label}
                                                 </div>
-                                                <div className="text-lg font-bold text-[#1e3a5f]">{value}</div>
+                                                <div className="text-lg font-bold text-accent">{value}</div>
                                             </div>
                                         ))}
                                     </div>

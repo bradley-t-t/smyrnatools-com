@@ -25,7 +25,7 @@ export default function YearSelector({
 
     const selectClasses = isDark
         ? 'bg-white/10 border-white/20 text-white hover:bg-white/20 focus:border-white/40 focus:ring-white/20'
-        : 'bg-white border-gray-200 text-[#1e3a5f] focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/10'
+        : 'bg-white border-gray-200 text-accent focus:border-accent focus:ring-accent/10'
 
     return (
         <div className="flex items-center gap-3">
