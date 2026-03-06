@@ -2,6 +2,11 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.7] - 2026-03-06
+
+- Improved the SkeletonTaskRow component in AssetListSkeleton to use dynamic heights for title, subtitle, and metadata elements based on compact or desktop view, ensuring a more accurate loading shimmer effect that matches real content sizes.
+- Adjusted the styling in SkeletonTaskRow by replacing hardcoded height values with calculated ones derived from font sizes and line heights, and added consistent spacing with dynamic gap values for compact and non-compact layouts.
+
 ## [22.6] - 2026-03-06
 
 - Updated the layout of the SkeletonTaskRow component in AssetListSkeleton to improve responsiveness and alignment. Specifically, adjusted the container to use flex-start for compact mode, refined spacing with custom gap values, and restructured the inner layout for better alignment of elements.

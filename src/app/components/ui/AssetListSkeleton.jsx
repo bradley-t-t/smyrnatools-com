@@ -52,25 +52,30 @@ function SkeletonAssetRow({ columnCount, isEven, compact }) {
 
 /** Single shimmer task row matching the ListView grouped-item layout. */
 function SkeletonTaskRow({ compact }) {
+    // Heights derived from real item font sizes × 1.5 line-height:
+    //   Mobile title:    0.8125rem (13px) → 20px   Desktop title:    0.9375rem (15px) → 22px
+    //   Mobile comments: 0.75rem   (12px) → 18px   Desktop comments: 0.8125rem (13px) → 20px
+    //   Mobile metadata: 0.6875rem (11px) → 16px   Desktop metadata: 0.8125rem (13px) → 20px
+    const titleH = compact ? '20px' : '22px'
+    const subtitleH = compact ? '18px' : '20px'
+    const metaH = compact ? '16px' : '20px'
     return (
         <div
             className={`flex border-b border-slate-100 ${compact ? 'items-start gap-3 px-4 py-3' : 'items-center gap-4 px-6 py-4'}`}
         >
             <div className="h-4 w-4 shrink-0 rounded bg-slate-200 animate-pulse" />
             <div className="flex flex-1 flex-col min-w-0" style={{ gap: compact ? '0.375rem' : '0.5rem' }}>
-                <div className={`flex gap-2 ${compact ? 'flex-col' : 'items-start justify-between gap-4'}`}>
+                <div className={`flex ${compact ? 'flex-col gap-[0.375rem]' : 'items-start justify-between gap-4'}`}>
                     <div className="flex flex-col gap-1 flex-1 min-w-0">
-                        <div className="h-4 w-4/5 rounded bg-slate-200 animate-pulse" />
-                        <div className="h-3 w-2/5 rounded bg-slate-200 animate-pulse" />
+                        <div className="w-4/5 rounded bg-slate-200 animate-pulse" style={{ height: titleH }} />
+                        <div className="w-2/5 rounded bg-slate-200 animate-pulse" style={{ height: subtitleH }} />
                     </div>
-                    <div
-                        className={`h-5 rounded-full bg-slate-200 animate-pulse ${compact ? 'w-20 shrink-0' : 'w-20 shrink-0'}`}
-                    />
+                    <div className="w-20 shrink-0 rounded-full bg-slate-200 animate-pulse" style={{ height: '20px' }} />
                 </div>
-                <div className="flex items-center flex-wrap gap-2">
-                    <div className="h-3 w-14 rounded bg-slate-200 animate-pulse" />
-                    <div className="h-3 w-12 rounded bg-slate-200 animate-pulse" />
-                    <div className="h-3 w-16 rounded bg-slate-200 animate-pulse" />
+                <div className="flex items-center flex-wrap" style={{ gap: compact ? '0.5rem' : '0.75rem' }}>
+                    <div className="w-14 rounded bg-slate-200 animate-pulse" style={{ height: metaH }} />
+                    <div className="w-12 rounded bg-slate-200 animate-pulse" style={{ height: metaH }} />
+                    <div className="w-16 rounded bg-slate-200 animate-pulse" style={{ height: metaH }} />
                 </div>
             </div>
             <div className="h-3.5 w-3 shrink-0 rounded bg-slate-200 animate-pulse" />
