@@ -2,6 +2,16 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [22.3] - 2026-03-06
+
+- Added a version update feature with a banner to notify users when a new version is available, implemented using the `useVersionCheck` hook and `VersionUpdateBanner` component in `App.js`.
+- Updated Claude settings to allow a new Bash command for parsing JSON scripts with Python in `settings.local.json`.
+
+## [22.3] - 2026-03-06
+
+- Added a version update feature with a banner to notify users when a new version is available, implemented using the `useVersionCheck` hook and `VersionUpdateBanner` component in `App.js`.
+- Updated Claude settings to allow a new Bash command for parsing JSON scripts with Python in `settings.local.json`.
+
 ## [22.2] - 2026-03-06
 
 - Added session-level caching to the OnlineUsersModal component for faster re-opening of the modal. Now, data like role color mappings, online users, region names, and the current user ID are stored in a session cache to make subsequent opens instant.

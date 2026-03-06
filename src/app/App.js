@@ -14,10 +14,12 @@ import Navigation from './components/common/Navigation'
 import OfflineOverlay from './components/common/OfflineOverlay'
 import TerminatedOverlay from './components/common/TerminatedOverlay'
 import TutorialManager from './components/common/TutorialPopup'
+import VersionUpdateBanner from './components/common/VersionUpdateBanner'
 import WebOverlay from './components/common/WebOverlay'
 import { useTutorial } from './context/TutorialContext'
 import { useAuthSession } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
+import { useVersionCheck } from './hooks/useVersionCheck'
 
 const CHUNK_RELOAD_KEY = 'chunk_reload_attempted'
 
@@ -349,6 +351,8 @@ function AppContent() {
  * analytics, speed insights, install prompt, and tutorial manager.
  */
 function App() {
+    const { hasUpdate, dismiss } = useVersionCheck()
+
     useEffect(() => {
         document.documentElement.style.overflowX = 'hidden'
         document.body.style.overflowX = 'hidden'
@@ -365,6 +369,7 @@ function App() {
                 <AppInstallPromptModal />
             </Suspense>
             <TutorialManager />
+            {hasUpdate && <VersionUpdateBanner onDismiss={dismiss} />}
             <Analytics />
             <SpeedInsights />
         </>
