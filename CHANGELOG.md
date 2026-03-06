@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [24.8] - 2026-03-06
+
+- Updated the navigation component to improve user experience with better link organization.
+- Fixed a minor styling issue in the Navigation component for consistent rendering across browsers.
+
 ## [24.7] - 2026-03-06
 
 - No visible changes to report in the provided diff as the content could not be accessed due to path errors.

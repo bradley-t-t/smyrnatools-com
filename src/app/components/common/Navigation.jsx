@@ -23,10 +23,10 @@ const ICONS = {
     Assets: 'fa-truck',
     Calculators: 'fa-calculator',
     Dashboard: 'fa-tachometer-alt',
+    Documents: 'fa-folder-open',
     'Heavy Equipment': 'fa-snowplow',
     Leaderboards: 'fa-trophy',
     List: 'fa-list',
-    Documents: 'fa-folder-open',
     Logout: 'fa-sign-out-alt',
     Maintenance: 'fa-wrench',
     Managers: 'fa-user-tie',
@@ -451,16 +451,41 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div style={{ marginBottom: '20px' }}>
+                                    <label
+                                        style={{
+                                            color: '#64748b',
+                                            display: 'block',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            letterSpacing: '0.05em',
+                                            marginBottom: '6px',
+                                            textTransform: 'uppercase'
+                                        }}
+                                    >
+                                        Region
+                                    </label>
                                     <select
                                         value={regionCode || ''}
                                         onChange={handleRegionChange}
+                                        onFocus={(e) => {
+                                            e.currentTarget.style.borderColor = accentColor
+                                            e.currentTarget.style.boxShadow = `0 0 0 3px ${accentColor}20`
+                                            e.currentTarget.style.outline = 'none'
+                                        }}
+                                        onBlur={(e) => {
+                                            e.currentTarget.style.borderColor = '#e5e7eb'
+                                            e.currentTarget.style.boxShadow = 'none'
+                                        }}
                                         style={{
                                             backgroundColor: '#f8fafc',
-                                            border: '1px solid #e5e7eb',
+                                            border: '2px solid #e5e7eb',
                                             borderRadius: '10px',
+                                            color: '#1e293b',
+                                            cursor: 'pointer',
                                             fontSize: '14px',
-                                            fontWeight: 500,
+                                            fontWeight: 600,
                                             padding: '12px',
+                                            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                                             width: '100%'
                                         }}
                                     >
@@ -688,6 +713,25 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         <select
                             value={regionCode || ''}
                             onChange={handleRegionChange}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.16)'
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
+                            }}
+                            onFocus={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.16)'
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
+                                e.currentTarget.style.outline = 'none'
+                                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.15)'
+                            }}
+                            onBlur={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
                             style={{
                                 appearance: 'none',
                                 backgroundColor: 'rgba(255,255,255,0.08)',
@@ -701,6 +745,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 cursor: 'pointer',
                                 fontSize: isTablet ? '12px' : '14px',
                                 fontWeight: 600,
+                                letterSpacing: '0.01em',
                                 maxWidth: isTablet ? '120px' : 'none',
                                 overflow: 'hidden',
                                 padding: isTablet ? '6px 24px 6px 10px' : '10px 36px 10px 16px',
@@ -710,10 +755,16 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             }}
                         >
                             {permittedRegions.length === 0 ? (
-                                <option value="">Loading...</option>
+                                <option value="" style={{ backgroundColor: '#1e293b', color: '#f8fafc' }}>
+                                    Loading...
+                                </option>
                             ) : (
                                 permittedRegions.map((r) => (
-                                    <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
+                                    <option
+                                        key={r.regionCode || r.region_code}
+                                        value={r.regionCode || r.region_code}
+                                        style={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
+                                    >
                                         {r.regionName || r.region_name}
                                     </option>
                                 ))
