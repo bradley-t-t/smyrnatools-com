@@ -2,6 +2,10 @@
 
 All notable changes to SmyrnaTools will be documented in this file.
 
+## [23.9] - 2023-09-XX
+
+- Updated the VersionUpdateBanner component to change the background color of the banner header and refresh button from the accent color to black for a more consistent and polished look.
+
 ## [23.8] - 2023-08-01
 
 - Reduced session expiry duration from 7 days to 2 days for improved security.

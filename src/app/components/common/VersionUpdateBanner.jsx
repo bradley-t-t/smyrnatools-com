@@ -8,7 +8,7 @@ import React from 'react'
 function VersionUpdateBanner({ onDismiss }) {
     return (
         <div className="fixed bottom-5 right-5 z-[9999] w-80 bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 bg-accent flex items-center gap-2">
+            <div className="px-4 py-3 bg-black flex items-center gap-2">
                 <i className="fas fa-rotate text-white text-sm" />
                 <span className="text-white text-sm font-semibold">Update Available</span>
             </div>
@@ -24,7 +24,7 @@ function VersionUpdateBanner({ onDismiss }) {
                         Ignore
                     </button>
                     <button
-                        className="px-3 py-1.5 text-xs font-medium bg-accent text-white rounded-lg hover:opacity-90 transition-opacity"
+                        className="px-3 py-1.5 text-xs font-medium bg-black text-white rounded-lg hover:opacity-90 transition-opacity"
                         onClick={() => window.location.reload()}
                     >
                         Refresh
