@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.5] - 2026-03-07
+
+- Improved responsiveness in AddViewSection by adjusting the form layout to a single column on smaller screens (below 480px) and reducing padding and spacing for a better mobile experience.
+- Enhanced mobile display in CommentModalSection with tailored styling for smaller screens (below 480px), including reduced padding, smaller header icons, and adjusted font sizes for better readability.
+- Optimized IssueModalSection for mobile devices (below 480px) by refining the layout with smaller padding, adjusted icon and text sizes, and wrapping severity buttons to prevent overflow, ensuring a cleaner look on smaller screens.
+
 ## [25.4] - 2026-03-07
 
 - Added a new "Cache" section in the My Account view with a button to clear cached data, helping to free up space and resolve issues with stale content.

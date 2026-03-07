@@ -189,6 +189,16 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                     transform: translateX(4px);
                     box-shadow: -4px 0 0 0 #94a3b8, 0 4px 20px rgba(0,0,0,0.08);
                 }
+                @media (max-width: 480px) {
+                    .issue-modal-header { padding: 1rem !important; }
+                    .issue-modal-header-icon { height: 40px !important; width: 40px !important; border-radius: 10px !important; }
+                    .issue-modal-header-icon i { font-size: 1.125rem !important; }
+                    .issue-modal-title { font-size: 1.125rem !important; }
+                    .issue-modal-body { padding: 0.75rem !important; }
+                    .issue-modal-form-inner { padding: 0.75rem !important; }
+                    .issue-severity-row { flex-wrap: wrap !important; }
+                    .issue-severity-btn { padding: 0.375rem 0.5rem !important; font-size: 0.6875rem !important; }
+                }
             `}</style>
             <div
                 onClick={handleBackdropClick}
@@ -224,6 +234,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                     }}
                 >
                     <div
+                        className="issue-modal-header"
                         style={{
                             background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
                             borderBottom: '1px solid #e2e8f0',
@@ -255,8 +266,9 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                         >
                             <i className="fas fa-times"></i>
                         </button>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '1rem' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
                             <div
+                                className="issue-modal-header-icon"
                                 style={{
                                     alignItems: 'center',
                                     background: '#e2e8f0',
@@ -285,7 +297,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 >
                                     {itemType}
                                 </div>
-                                <div style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}>
+                                <div
+                                    className="issue-modal-title"
+                                    style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}
+                                >
                                     {itemNumber || itemId}
                                 </div>
                             </div>
@@ -361,11 +376,12 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                             </button>
                         </div>
                     </div>
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
+                    <div className="issue-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
                         <ErrorMessage message={error} onDismiss={() => setError(null)} />
                         {activeTab === 'open' && (
                             <form onSubmit={handleAddIssue} style={{ marginBottom: '1.25rem' }}>
                                 <div
+                                    className="issue-modal-form-inner"
                                     style={{
                                         background: 'white',
                                         borderRadius: '14px',
@@ -402,6 +418,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                         }}
                                     />
                                     <div
+                                        className="issue-severity-row"
                                         style={{
                                             alignItems: 'center',
                                             display: 'flex',
@@ -410,7 +427,14 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                             marginTop: '0.75rem'
                                         }}
                                     >
-                                        <div style={{ alignItems: 'center', display: 'flex', gap: '0.375rem' }}>
+                                        <div
+                                            style={{
+                                                alignItems: 'center',
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: '0.375rem'
+                                            }}
+                                        >
                                             {['Low', 'Medium', 'High'].map((sev) => {
                                                 const config = getSeverityConfig(sev)
                                                 const isActive = severity === sev
@@ -418,6 +442,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                     <button
                                                         key={sev}
                                                         type="button"
+                                                        className="issue-severity-btn"
                                                         onClick={() => setSeverity(sev)}
                                                         style={{
                                                             alignItems: 'center',

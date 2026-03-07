@@ -152,6 +152,14 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                     transform: translateX(4px);
                     box-shadow: -4px 0 0 0 #94a3b8, 0 4px 20px rgba(0,0,0,0.08);
                 }
+                @media (max-width: 480px) {
+                    .comment-modal-header { padding: 1rem !important; }
+                    .comment-modal-header-icon { height: 40px !important; width: 40px !important; border-radius: 10px !important; }
+                    .comment-modal-header-icon i { font-size: 1.125rem !important; }
+                    .comment-modal-title { font-size: 1.125rem !important; }
+                    .comment-modal-body { padding: 0.75rem !important; }
+                    .comment-modal-form-inner { padding: 0.75rem !important; }
+                }
             `}</style>
             <div
                 onClick={handleBackdropClick}
@@ -187,6 +195,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                     }}
                 >
                     <div
+                        className="comment-modal-header"
                         style={{
                             background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
                             borderBottom: '1px solid #e2e8f0',
@@ -218,8 +227,9 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                         >
                             <i className="fas fa-times"></i>
                         </button>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '1rem' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
                             <div
+                                className="comment-modal-header-icon"
                                 style={{
                                     alignItems: 'center',
                                     background: '#e2e8f0',
@@ -245,7 +255,10 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 >
                                     {itemType}
                                 </div>
-                                <div style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}>
+                                <div
+                                    className="comment-modal-title"
+                                    style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}
+                                >
                                     {itemNumber || itemId}
                                 </div>
                             </div>
@@ -266,10 +279,11 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                             </span>
                         </div>
                     </div>
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
+                    <div className="comment-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
                         <ErrorMessage message={error} onDismiss={() => setError(null)} />
                         <form onSubmit={handleAddComment} style={{ marginBottom: '1.25rem' }}>
                             <div
+                                className="comment-modal-form-inner"
                                 style={{
                                     background: 'white',
                                     borderRadius: '14px',

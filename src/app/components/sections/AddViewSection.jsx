@@ -303,8 +303,13 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 }
                 .add-view-form .form-row {
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    grid-template-columns: 1fr;
                     gap: 1rem;
+                }
+                @media (min-width: 480px) {
+                    .add-view-form .form-row {
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    }
                 }
                 .add-view-form .form-group {
                     display: flex;
@@ -401,6 +406,15 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 .add-view-form .form-submit:disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
+                }
+                @media (max-width: 480px) {
+                    .add-view-form {
+                        gap: 4px !important;
+                        padding: 1rem !important;
+                    }
+                    .add-view-form .form-section {
+                        padding: 0.75rem !important;
+                    }
                 }
                 .add-view-form .form-hint {
                     font-size: 0.75rem;
