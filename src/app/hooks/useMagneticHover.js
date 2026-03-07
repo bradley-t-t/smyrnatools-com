@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react'
-const MAGNETIC_RADIUS_PX = 120
-const MAX_DISPLACEMENT_PX = 16
-const LERP_SPEED = 0.15
-const RESET_LERP_SPEED = 0.2
+const MAGNETIC_RADIUS_PX = 80
+const MAX_DISPLACEMENT_PX = 8
+const LERP_SPEED = 0.08
+const RESET_LERP_SPEED = 0.1
 /**
  * Makes nav items magnetically gravitate toward the mouse cursor when it
  * enters a proximity radius. Each registered element smoothly displaces
@@ -32,6 +32,7 @@ export function useMagneticHover() {
         mouseRef.current = { x: -9999, y: -9999 }
     }, [])
     useEffect(() => {
+        activeRef.current = true
         const animate = () => {
             if (!activeRef.current) return
             const { x: mx, y: my } = mouseRef.current

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.0] - 2026-03-07
+
+- Updated the useMagneticHover hook to improve the magnetic hover effect with refined positioning logic.
+- Adjusted dependencies in package.json to ensure compatibility with the latest libraries used for interactive UI components.
+
 ## [25.9] - 2026-03-07
 
 - I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not visible or accessible in the input (due to the error message about invalid paths), I am unable to describe any specific changes. If you can provide the correct diff content, I will be happy to generate the changelog entry based on the explicit changes shown.
