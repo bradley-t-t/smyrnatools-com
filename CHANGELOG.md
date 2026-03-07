@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.4] - 2026-03-07
+
+- Added a new "Cache" section in the My Account view with a button to clear cached data, helping to free up space and resolve issues with stale content.
+- Changed the background color of the "Export Issues" buttons in the Equipments and Mixers views from orange (#f59e0b) to gray (#6b7280) for a more consistent look.
+- Updated the date calculation logic in the Changelog view to show "Today" for dates that are on or after the current day, ensuring more accurate relative time display.
+
 ## [25.3] - 2026-03-07
 
 - Updated project documentation in README.md to reflect the latest features and usage instructions.

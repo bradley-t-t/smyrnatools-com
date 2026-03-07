@@ -9,6 +9,8 @@ import { useVersion } from '../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../app/utils/BrowserDetection'
 import { supabase } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
+import { CacheUtility } from '../../utils/CacheUtility'
+import DashboardUtility from '../../utils/DashboardUtility'
 const MAX_BRIGHTNESS_HEX = '#D6D6D6'
 const MAX_BRIGHTNESS_VALUE = 214
 /** Parses a 6-digit hex color string into its {r, g, b} components. */
@@ -67,6 +69,7 @@ function MyAccountView({ userId }) {
     const [sessions, setSessions] = useState([])
     const [currentSessionId, setCurrentSessionId] = useState('')
     const [showChangelog, setShowChangelog] = useState(false)
+    const [cacheClearing, setCacheClearing] = useState(false)
     const formatSessionTime = (timestamp) => {
         const date = new Date(timestamp)
         const now = new Date()
@@ -364,6 +367,36 @@ function MyAccountView({ userId }) {
     const getInitials = () => {
         if (firstName && lastName) return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
         return null
+    }
+    const handleClearCache = () => {
+        setCacheClearing(true)
+        try {
+            CacheUtility.clear()
+            UserService.clearCache()
+            DashboardUtility.clearAISummaryCache()
+            sessionStorage.removeItem('dashboard_assets_cache_v1')
+            localStorage.removeItem('srm_history_ai_summaries')
+            localStorage.removeItem('cachedOperators')
+            localStorage.removeItem('cachedOperatorsDate')
+            localStorage.removeItem('cachedManagers')
+            localStorage.removeItem('cachedManagersDate')
+            const keysToRemove = []
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i)
+                if (key.endsWith('_last_view_mode') || key.startsWith('maintenance_draft_')) {
+                    keysToRemove.push(key)
+                }
+            }
+            keysToRemove.forEach((key) => localStorage.removeItem(key))
+            localStorage.removeItem('detailview-sidebar-collapsed')
+            setMessage('All caches cleared successfully!')
+            setTimeout(() => setMessage(''), 3000)
+        } catch {
+            setMessage('Error: Failed to clear some caches')
+            setTimeout(() => setMessage(''), 3000)
+        } finally {
+            setCacheClearing(false)
+        }
     }
     if (loading) {
         return (
@@ -957,6 +990,35 @@ function MyAccountView({ userId }) {
                                         </div>
                                     </div>
                                 )}
+                                <div className="rounded-2xl border border-gray-100 bg-white p-6">
+                                    <div className="mb-6 flex items-center gap-3">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                        >
+                                            <i
+                                                className="fas fa-database"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            ></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">Cache</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Clear cached data to free up space and fix stale content
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleClearCache}
+                                        disabled={cacheClearing}
+                                        className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <i
+                                            className={`fas ${cacheClearing ? 'fa-spinner fa-spin' : 'fa-broom'} text-xs`}
+                                        ></i>
+                                        {cacheClearing ? 'Clearing...' : 'Clear All Caches'}
+                                    </button>
+                                </div>
                             </>
                         )}
                     </div>

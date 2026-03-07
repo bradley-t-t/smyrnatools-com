@@ -1143,7 +1143,7 @@ function TractorsView({
                             customActions={
                                 <button
                                     className="hidden md:flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
-                                    style={{ backgroundColor: '#f59e0b' }}
+                                    style={{ backgroundColor: '#6b7280' }}
                                     onClick={handleExportIssues}
                                     disabled={isExportingIssues || allTractors.length === 0}
                                     type="button"

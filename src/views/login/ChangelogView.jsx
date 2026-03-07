@@ -111,8 +111,8 @@ function ChangelogView({ onBack }) {
             const today = new Date()
             today.setHours(0, 0, 0, 0)
             const date = parseLocalDate(dateStr)
-            const diffDays = Math.round((today - date) / (1000 * 60 * 60 * 24))
-            if (diffDays === 0) return 'Today'
+            const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24))
+            if (diffDays <= 0) return 'Today'
             if (diffDays === 1) return 'Yesterday'
             if (diffDays < 7) return `${diffDays} days ago`
             if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
