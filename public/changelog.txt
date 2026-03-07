@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.6] - 2026-03-07
+
+- Updated configuration settings in settings.local.json to adjust local development parameters.
+- Modified package.json to include dependency updates or configuration changes relevant to the project setup.
+
 ## [26.5] - 2026-03-07
 
 - No visible changes to describe as the provided diff does not contain any actual content or modifications to review. If there are specific updates in the code, they are not accessible in the diff provided.

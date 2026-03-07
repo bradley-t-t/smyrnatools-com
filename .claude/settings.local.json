@@ -22,7 +22,8 @@
       "Bash(supabase projects:*)",
       "Bash(supabase functions:*)",
       "Bash(npx supabase:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx nit:*)"
     ]
   }
 }
