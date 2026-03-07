@@ -622,11 +622,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             gap: isTablet ? '10px' : '28px',
                             minWidth: 0
                         }}
+                        onMouseMove={magneticMove}
+                        onMouseLeave={magneticLeave}
                     >
                         <div
+                            ref={registerMagnetic}
                             style={{
                                 alignItems: 'center',
                                 borderRight: '1px solid rgba(255,255,255,0.1)',
+                                cursor: 'pointer',
                                 display: 'flex',
                                 flexShrink: 0,
                                 paddingRight: isTablet ? '10px' : '24px'
@@ -647,8 +651,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 gap: isTablet ? '2px' : '6px',
                                 minWidth: 0
                             }}
-                            onMouseMove={magneticMove}
-                            onMouseLeave={magneticLeave}
                         >
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div

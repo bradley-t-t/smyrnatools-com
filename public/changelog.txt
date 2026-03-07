@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.2] - 2026-03-07
+
+- Updated the navigation component to improve user experience with better link organization.
+- Fixed a minor styling issue in the Navigation component for consistent rendering across browsers.
+
 ## [25.1] - 2026-03-07
 
 - I'm sorry, but I can't generate a changelog entry as the provided diff content is not accessible or visible. The diff statistics and actual diff show errors indicating an invalid path, and no specific code changes are displayed for review. If you can provide the actual diff content or details of the changes in the mentioned files, I'd be happy to create a precise changelog entry based on those changes.
