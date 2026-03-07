@@ -1,22 +1,114 @@
 import React, { memo, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
-/** LocalStorage key for persisting the plant summary minimized/expanded state. */
+
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
-/**
- * Expandable alert card with icon, count badge, and a collapsible item list.
- * Used for unverified mixers, overdue service, open issues, and long-term shop alerts.
- */
-const AlertItem = ({
+
+const getAssetViewType = (assetType) => {
+    const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
+    return viewMap[assetType] || 'equipment'
+}
+
+/** Skeleton pulse block. */
+const Skeleton = ({ className = '', style }) => (
+    <div className={`bg-slate-200 rounded-lg animate-pulse ${className}`} style={style} />
+)
+
+/** Skeleton for the metrics row. */
+const MetricsSkeleton = () => (
+    <div className="flex flex-wrap gap-2.5 bg-slate-50 border-b border-slate-200 px-6 py-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+            <div
+                key={i}
+                className="flex items-center gap-2.5 bg-white rounded-lg shadow-sm border border-slate-100 px-3.5 py-2.5 min-w-[130px] flex-1"
+            >
+                <Skeleton className="w-8 h-8 rounded-lg" />
+                <div className="flex flex-col gap-1.5">
+                    <Skeleton style={{ width: 50, height: 8 }} />
+                    <Skeleton style={{ width: 40, height: 16 }} />
+                </div>
+            </div>
+        ))}
+    </div>
+)
+
+/** Skeleton for the left pane alerts area. */
+const AlertsSkeleton = () => (
+    <div className="flex flex-col gap-4 py-2">
+        {[1, 2, 3].map((i) => (
+            <div key={i} className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="w-4 h-4 rounded" />
+                    <Skeleton style={{ width: 100 + i * 20, height: 12 }} />
+                    <Skeleton className="w-5 h-5 rounded-full ml-auto" />
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                    {[1, 2, 3].map((j) => (
+                        <Skeleton key={j} style={{ width: 60 + j * 10, height: 24 }} className="rounded-md" />
+                    ))}
+                </div>
+            </div>
+        ))}
+    </div>
+)
+
+/** Skeleton for the right pane AI area. */
+const AISkeleton = ({ accentColor }) => (
+    <div className="flex flex-col">
+        <div
+            className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200"
+            style={{ background: `${accentColor}08` }}
+        >
+            <Skeleton className="w-7 h-7 rounded-lg" />
+            <div className="flex flex-col gap-1">
+                <Skeleton style={{ width: 60, height: 10 }} />
+                <Skeleton style={{ width: 100, height: 8 }} />
+            </div>
+        </div>
+        <div className="px-4 py-3 flex flex-col gap-3">
+            <Skeleton style={{ width: 140, height: 8 }} className="mx-auto" />
+            <div className="bg-slate-100 rounded-xl rounded-tl-sm px-3.5 py-2.5">
+                <Skeleton style={{ width: '100%', height: 10 }} className="mb-2" />
+                <Skeleton style={{ width: '90%', height: 10 }} className="mb-2" />
+                <Skeleton style={{ width: '70%', height: 10 }} />
+            </div>
+        </div>
+    </div>
+)
+
+/** Compact metric pill with label, value, and optional color. */
+const MetricPill = ({ label, value, color, icon, accentColor }) => (
+    <div
+        className="flex items-center gap-2.5 bg-white rounded-lg shadow-sm border border-slate-100 px-3.5 py-2.5 min-w-[130px] flex-1"
+        style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+    >
+        {icon && (
+            <div
+                className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+                style={{ background: `${color || accentColor}15` }}
+            >
+                <i className={`fas ${icon} text-xs`} style={{ color: color || accentColor }} />
+            </div>
+        )}
+        <div className="flex flex-col">
+            <span className="text-[11px] text-slate-500 font-medium uppercase tracking-wide">{label}</span>
+            <span className="text-lg font-bold leading-tight" style={{ color: color || accentColor }}>
+                {value}
+            </span>
+        </div>
+    </div>
+)
+
+/** Compact alert row with icon, count, and clickable asset pills. */
+const AlertRow = ({
     icon,
-    iconBg,
-    count,
+    iconColor,
     title,
-    subtitle,
+    count,
     items,
-    expandKey,
     renderItem,
-    maxItems = 5,
+    maxItems = 3,
+    expandKey,
     expandedSections,
     setExpandedSections
 }) => {
@@ -24,28 +116,21 @@ const AlertItem = ({
     const displayItems = isExpanded ? items : items.slice(0, maxItems)
     const hasMore = items.length > maxItems
     return (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-3.5 border-b border-slate-100">
-                <div
-                    className="flex items-center justify-center w-10 h-10 rounded-lg flex-shrink-0"
-                    style={{ background: iconBg }}
+        <div
+            className="border-b border-slate-100 last:border-b-0 py-3 first:pt-0 last:pb-0"
+            style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+        >
+            <div className="flex items-center gap-2 mb-2">
+                <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+                <span className="text-slate-800 text-[13px] font-semibold flex-1">{title}</span>
+                <span
+                    className="rounded-full text-white text-[10px] font-bold px-1.5 py-0.5 leading-none"
+                    style={{ background: iconColor }}
                 >
-                    <i className={`fas ${icon} text-white text-base`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <span className="text-slate-900 text-[15px] font-semibold">{title}</span>
-                        <span
-                            className="rounded-xl text-white text-xs font-bold px-2 py-0.5"
-                            style={{ background: iconBg }}
-                        >
-                            {count}
-                        </span>
-                    </div>
-                    <div className="text-slate-500 text-xs mt-0.5">{subtitle}</div>
-                </div>
+                    {count}
+                </span>
             </div>
-            <div className="flex flex-wrap gap-2 p-3">
+            <div className="flex flex-wrap gap-1.5">
                 {displayItems.map((item, i) => renderItem(item, i))}
                 {hasMore && (
                     <button
@@ -53,74 +138,53 @@ const AlertItem = ({
                             e.stopPropagation()
                             setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))
                         }}
-                        className="bg-sky-50 border border-sky-200 rounded-lg text-sky-700 text-xs font-semibold px-3 py-1.5 cursor-pointer hover:bg-sky-100 transition-colors"
+                        className="text-sky-600 bg-sky-50 border border-sky-200 rounded-md text-[11px] font-semibold px-2 py-1 cursor-pointer hover:bg-sky-100 transition-colors"
                     >
-                        {isExpanded ? 'Show less' : `+${items.length - maxItems} more`}
+                        {isExpanded ? 'Less' : `+${items.length - maxItems}`}
                     </button>
                 )}
             </div>
         </div>
     )
 }
-/** Clickable pill button for navigating to a specific asset in an embedded view. */
-const AssetButton = ({ label, onClick, color }) => (
+
+/** Small clickable asset pill. */
+const AssetPill = ({ label, onClick, color }) => (
     <button
         onClick={onClick}
-        className="bg-slate-50 rounded-lg text-sm font-medium px-3 py-1.5 cursor-pointer transition-all hover:opacity-80"
-        style={{ border: `1px solid ${color}20`, color }}
+        className="rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-all hover:opacity-80"
+        style={{ background: `${color}10`, border: `1px solid ${color}25`, color }}
     >
         {label}
     </button>
 )
-/** Compact KPI card displaying a labeled value with optional icon and color. */
-const MetricCard = ({ label, value, color, icon, accentColor, isMobile }) => (
-    <div
-        className={`flex flex-col items-center gap-1 bg-white rounded-xl shadow-sm ${isMobile ? 'flex-[1_1_45%] min-w-[120px] px-2.5 py-3.5' : 'flex-[1_1_auto] min-w-[100px] px-5 py-4'}`}
-    >
-        {icon && <i className={`fas ${icon} text-sm mb-1`} style={{ color: color || '#64748b' }} />}
-        <div
-            className={`font-bold leading-none ${isMobile ? 'text-[22px]' : 'text-[26px]'}`}
-            style={{ color: color || accentColor }}
-        >
-            {value}
-        </div>
-        <div className="text-slate-500 text-[11px] font-medium text-center uppercase">{label}</div>
-    </div>
-)
-/** Operator category card with icon header and clickable name buttons that open the operators embedded view. */
-const OperatorSection = ({
-    iconBg,
+
+/** Operator group in the left pane. */
+const OperatorGroup = ({
     icon,
+    iconColor,
     title,
     count,
-    subtitle,
     operators,
-    buttonBg,
-    buttonBorder,
-    buttonColor,
+    nameField = 'name',
     setEmbeddedView,
-    setEmbeddedViewSearch,
-    nameField = 'name'
+    setEmbeddedViewSearch
 }) => (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="flex items-center gap-3 p-3.5 border-b border-slate-100">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg" style={{ background: iconBg }}>
-                <i className={`fas ${icon} text-white text-base`} />
-            </div>
-            <div>
-                <div className="flex items-center gap-2">
-                    <span className="text-slate-900 text-[15px] font-semibold">{title}</span>
-                    <span
-                        className="rounded-xl text-white text-xs font-bold px-2 py-0.5"
-                        style={{ background: iconBg }}
-                    >
-                        {count}
-                    </span>
-                </div>
-                <div className="text-slate-500 text-xs mt-0.5">{subtitle}</div>
-            </div>
+    <div
+        className="border-b border-slate-100 last:border-b-0 py-3 first:pt-0 last:pb-0"
+        style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+    >
+        <div className="flex items-center gap-2 mb-2">
+            <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+            <span className="text-slate-800 text-[13px] font-semibold flex-1">{title}</span>
+            <span
+                className="rounded-full text-white text-[10px] font-bold px-1.5 py-0.5 leading-none"
+                style={{ background: iconColor }}
+            >
+                {count}
+            </span>
         </div>
-        <div className="flex flex-wrap gap-2 p-3">
+        <div className="flex flex-wrap gap-1.5">
             {operators.map((o, i) => (
                 <button
                     key={i}
@@ -128,8 +192,8 @@ const OperatorSection = ({
                         setEmbeddedView('operators')
                         setEmbeddedViewSearch(o[nameField] || '')
                     }}
-                    className="rounded-lg text-sm font-medium px-3 py-1.5 cursor-pointer"
-                    style={{ background: buttonBg, border: `1px solid ${buttonBorder}`, color: buttonColor }}
+                    className="rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-colors"
+                    style={{ background: `${iconColor}10`, border: `1px solid ${iconColor}25`, color: iconColor }}
                 >
                     {o[nameField]}
                 </button>
@@ -137,17 +201,298 @@ const OperatorSection = ({
         </div>
     </div>
 )
-/** Maps a display asset type name to its embedded view key. */
-const getAssetViewType = (assetType) => {
-    const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
-    return viewMap[assetType] || 'equipment'
+
+/** AI chat bubble message. */
+const AIChatBubble = ({ children, isAI, accentColor }) => (
+    <div
+        className={`flex ${isAI ? 'justify-start' : 'justify-end'}`}
+        style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+    >
+        <div
+            className={`rounded-xl px-3.5 py-2.5 max-w-[95%] text-[13px] leading-relaxed ${
+                isAI ? 'bg-slate-50 text-slate-700 rounded-tl-sm' : 'text-white rounded-tr-sm'
+            }`}
+            style={!isAI ? { background: accentColor } : undefined}
+        >
+            {children}
+        </div>
+    </div>
+)
+
+/** The right-pane AI section styled as a chat interface. */
+const AICopilotPane = ({
+    aiSummaryLoading,
+    aiSummaryFailed,
+    aiDisplayText,
+    aiActionPlan,
+    showActionPlan,
+    visibleActionItems = 0,
+    isTypingComplete,
+    handleRegenerateAISummary,
+    userRoleName,
+    userPlantCode,
+    isPlantManager,
+    dashboardPlant,
+    accentColor
+}) => (
+    <div className="flex flex-col">
+        {/* Header */}
+        <div
+            className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200"
+            style={{ background: `${accentColor}08` }}
+        >
+            <div
+                className="flex items-center justify-center w-7 h-7 rounded-lg"
+                style={{ background: `${accentColor}15` }}
+            >
+                <i className="fas fa-robot text-xs" style={{ color: accentColor }} />
+            </div>
+            <div className="flex-1">
+                <div className="text-slate-800 text-[13px] font-semibold">Analysis</div>
+                <div className="text-slate-500 text-[10px]">
+                    {aiSummaryLoading ? 'Analyzing...' : 'Plant performance insights'}
+                </div>
+            </div>
+            {!aiSummaryLoading && isTypingComplete && (
+                <button
+                    onClick={handleRegenerateAISummary}
+                    className="flex items-center justify-center w-7 h-7 bg-transparent border border-slate-200 rounded-lg text-slate-400 cursor-pointer hover:text-slate-600 hover:border-slate-300 transition-colors"
+                    title="Regenerate analysis"
+                >
+                    <i className="fas fa-sync-alt text-[10px]" />
+                </button>
+            )}
+        </div>
+
+        {/* Chat messages area */}
+        <div className="px-4 py-3 flex flex-col gap-3">
+            {userRoleName && !aiSummaryLoading && (
+                <div className="text-center text-slate-400 text-[10px] py-1">
+                    <i className="fas fa-user-check mr-1" />
+                    Analysis for <strong>{userRoleName}</strong>
+                    {userPlantCode && isPlantManager && userPlantCode === dashboardPlant ? ' (your plant)' : ''}
+                </div>
+            )}
+
+            {aiSummaryLoading && (
+                <AIChatBubble isAI accentColor={accentColor}>
+                    <div className="flex items-center gap-2 text-slate-500">
+                        <i className="fas fa-circle-notch fa-spin text-xs" />
+                        <span>Analyzing plant performance...</span>
+                    </div>
+                </AIChatBubble>
+            )}
+
+            {aiSummaryFailed && (
+                <AIChatBubble isAI accentColor={accentColor}>
+                    <div className="flex items-center gap-2 text-red-600">
+                        <i className="fas fa-exclamation-triangle text-xs" />
+                        <span>Failed to generate analysis. Try regenerating.</span>
+                    </div>
+                </AIChatBubble>
+            )}
+
+            {!aiSummaryLoading && !aiSummaryFailed && aiDisplayText && (
+                <AIChatBubble isAI accentColor={accentColor}>
+                    {aiDisplayText}
+                </AIChatBubble>
+            )}
+
+            {showActionPlan && visibleActionItems > 0 && aiActionPlan.length > 0 && (
+                <AIChatBubble isAI accentColor={accentColor}>
+                    <div className="flex items-center gap-1.5 text-slate-600 text-[11px] font-semibold uppercase mb-2">
+                        <i className="fas fa-tasks text-[10px]" />
+                        Action Plan
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        {aiActionPlan.slice(0, visibleActionItems).map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="flex items-start gap-2"
+                                style={{ animation: 'fadeSlideIn 0.25s ease both' }}
+                            >
+                                <span
+                                    className="flex items-center justify-center w-4 h-4 rounded-full text-white flex-shrink-0 mt-0.5"
+                                    style={{ background: accentColor, fontSize: 9, fontWeight: 700 }}
+                                >
+                                    {idx + 1}
+                                </span>
+                                <span className="text-slate-700 text-[13px] leading-snug">{item}</span>
+                            </div>
+                        ))}
+                    </div>
+                </AIChatBubble>
+            )}
+        </div>
+    </div>
+)
+
+/** Shared alerts content used by both desktop and mobile. */
+const AlertsContent = ({
+    plantNotifications,
+    expandedSections,
+    setExpandedSections,
+    setEmbeddedView,
+    setEmbeddedViewSearch,
+    renderAssetPill,
+    shopIssue
+}) => (
+    <>
+        {plantNotifications.unverifiedMixers.length > 0 && (
+            <AlertRow
+                icon="fa-clipboard-check"
+                iconColor="#dc2626"
+                title="Unverified Mixers"
+                count={plantNotifications.unverifiedMixers.length}
+                items={plantNotifications.unverifiedMixers}
+                expandKey="unverifiedMixers"
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(m, i) => (
+                    <AssetPill
+                        key={i}
+                        label={m.truckNumber || 'N/A'}
+                        color="#dc2626"
+                        onClick={() => {
+                            setEmbeddedView('mixers')
+                            setEmbeddedViewSearch(m.truckNumber || '')
+                        }}
+                    />
+                )}
+            />
+        )}
+        {plantNotifications.overdueService.length > 0 && (
+            <AlertRow
+                icon="fa-wrench"
+                iconColor="#f59e0b"
+                title="Service Overdue"
+                count={plantNotifications.overdueService.length}
+                items={plantNotifications.overdueService}
+                expandKey="overdueService"
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => <span key={i}>{renderAssetPill(a, '#f59e0b')}</span>}
+            />
+        )}
+        {plantNotifications.assetsWithMostIssues.length > 0 && (
+            <AlertRow
+                icon="fa-exclamation-circle"
+                iconColor="#ea580c"
+                title="Open Issues"
+                count={plantNotifications.assetsWithMostIssues.length}
+                items={plantNotifications.assetsWithMostIssues}
+                expandKey="assetsWithIssues"
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => (
+                    <AssetPill
+                        key={i}
+                        label={`${a.type} ${a.identifier || ''} (${a.openIssueCount})`}
+                        color="#ea580c"
+                        onClick={() => {
+                            setEmbeddedView(getAssetViewType(a.type))
+                            setEmbeddedViewSearch(a.identifier || '')
+                        }}
+                    />
+                )}
+            />
+        )}
+        {plantNotifications.longTermShopAssets.length > 0 && (
+            <AlertRow
+                icon="fa-tools"
+                iconColor="#be123c"
+                title="Long-Term Shop"
+                count={plantNotifications.longTermShopAssets.length}
+                items={plantNotifications.longTermShopAssets}
+                expandKey="longTermShop"
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+                renderItem={(a, i) => (
+                    <button
+                        key={i}
+                        onClick={() => {
+                            setEmbeddedView(getAssetViewType(a.type))
+                            setEmbeddedViewSearch(a.identifier || '')
+                        }}
+                        className="flex items-center gap-1.5 rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-colors"
+                        style={{ background: '#be123c10', border: '1px solid #be123c25', color: '#be123c' }}
+                    >
+                        <span>{a.identifier}</span>
+                        <span className="text-slate-400 text-[10px]">({a.daysInShop}d)</span>
+                        {a.downInYard && (
+                            <span className="bg-red-100 text-red-600 rounded text-[9px] font-semibold px-1 py-0.5">
+                                Yard
+                            </span>
+                        )}
+                    </button>
+                )}
+            />
+        )}
+        {shopIssue && (
+            <div
+                className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-lg p-3 mt-3"
+                style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+            >
+                <div className="flex items-center justify-center w-8 h-8 bg-red-600 rounded-lg flex-shrink-0">
+                    <i className="fas fa-exclamation text-white text-sm" />
+                </div>
+                <div>
+                    <div className="text-red-800 text-[13px] font-semibold">Fleet Alert</div>
+                    <div className="text-red-600 text-[12px]">
+                        <strong>{shopIssue.inShopCount}</strong> in shop, <strong>{shopIssue.spareCount}</strong> spare
+                    </div>
+                </div>
+            </div>
+        )}
+    </>
+)
+
+/** Shared operators content. */
+const OperatorsContent = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
+    const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
+    const hasAny = unassignedOperators.length > 0 || pendingOperators.length > 0 || trainingOperators.length > 0
+    if (!hasAny) return null
+    return (
+        <div className="border-t border-slate-200 mt-3 pt-3">
+            {unassignedOperators.length > 0 && (
+                <OperatorGroup
+                    icon="fa-user-slash"
+                    iconColor="#0ea5e9"
+                    title="Unassigned"
+                    count={unassignedOperators.length}
+                    operators={unassignedOperators}
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                />
+            )}
+            {pendingOperators.length > 0 && (
+                <OperatorGroup
+                    icon="fa-user-plus"
+                    iconColor="#10b981"
+                    title="Pending Start"
+                    count={pendingOperators.length}
+                    operators={pendingOperators}
+                    nameField="operatorName"
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                />
+            )}
+            {trainingOperators.length > 0 && (
+                <OperatorGroup
+                    icon="fa-graduation-cap"
+                    iconColor="#8b5cf6"
+                    title="In Training"
+                    count={trainingOperators.length}
+                    operators={trainingOperators}
+                    nameField="operatorName"
+                    setEmbeddedView={setEmbeddedView}
+                    setEmbeddedViewSearch={setEmbeddedViewSearch}
+                />
+            )}
+        </div>
+    )
 }
-/**
- * Collapsible plant-level summary panel on the dashboard.
- * Shows leaderboard metrics, AI-generated analysis, asset/operator alerts,
- * and operator status tabs. Persists minimized state to localStorage.
- * Only renders when there are notifications or leaderboard data available.
- */
+
 const DashboardPlantSummary = memo(function DashboardPlantSummary({
     dashboardPlant,
     plantNotifications,
@@ -159,6 +504,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     aiActionPlan,
     isTypingComplete,
     showActionPlan,
+    visibleActionItems,
     handleRegenerateAISummary,
     userRoleName,
     userPlantCode,
@@ -167,7 +513,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-    const [activeTab, setActiveTab] = useState('alerts')
     const [isMinimized, setIsMinimized] = useState(() => {
         if (typeof window === 'undefined') return true
         const saved = localStorage.getItem(STORAGE_KEY)
@@ -176,6 +521,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, String(isMinimized))
     }, [isMinimized])
+
     const hasNotifications =
         plantNotifications.unverifiedMixers.length > 0 ||
         plantNotifications.pendingOperators.length > 0 ||
@@ -183,16 +529,21 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         plantNotifications.overdueService.length > 0 ||
         plantNotifications.trainingOperators.length > 0 ||
         plantNotifications.longTermShopAssets.length > 0
-    if (!hasNotifications && !plantNotifications.leaderboardMetrics) return null
+
     const alertCount =
         plantNotifications.unverifiedMixers.length +
         plantNotifications.overdueService.length +
         plantNotifications.assetsWithMostIssues.length +
         plantNotifications.longTermShopAssets.length
+
     const { leaderboardMetrics, aiSummary, aiSummaryLoading, aiSummaryFailed, shopIssue } = plantNotifications
     const toggleMinimized = () => setIsMinimized(!isMinimized)
-    const renderAssetButton = (asset, color) => (
-        <AssetButton
+
+    // Determine loading state: no metrics loaded yet and no notifications computed
+    const isDataLoading = !leaderboardMetrics && !hasNotifications
+
+    const renderAssetPill = (asset, color) => (
+        <AssetPill
             label={`${asset.type} ${asset.identifier || ''}`}
             color={color}
             onClick={() => {
@@ -201,27 +552,32 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
             }}
         />
     )
+
+    const hasAI = aiSummary || aiSummaryLoading || aiSummaryFailed
+
+    // Desktop: Split pane layout
     return (
         <div className="bg-white border border-slate-200 rounded-2xl mb-6 overflow-hidden transition-all duration-300">
+            {/* Accent header bar */}
             <div
                 onClick={toggleMinimized}
-                className={`flex items-center justify-between cursor-pointer ${isMobile ? 'gap-3 p-4' : 'gap-6 px-7 py-5'}`}
+                className={`flex items-center justify-between cursor-pointer ${isMobile ? 'gap-3 p-4' : 'gap-6 px-6 py-4'}`}
                 style={{ background: accentColor }}
             >
                 <div className="flex items-center flex-1 gap-4">
                     <div
-                        className={`flex items-center justify-center bg-white/15 rounded-xl transition-all duration-300 ${isMinimized ? 'w-11 h-11' : 'w-[52px] h-[52px]'}`}
+                        className={`flex items-center justify-center bg-white/15 rounded-xl transition-all duration-300 ${isMinimized ? 'w-10 h-10' : 'w-12 h-12'}`}
                     >
                         <i
-                            className={`fas fa-building text-white transition-all duration-300 ${isMinimized ? 'text-lg' : 'text-[22px]'}`}
+                            className={`fas fa-building text-white transition-all duration-300 ${isMinimized ? 'text-lg' : 'text-xl'}`}
                         />
                     </div>
                     <div className="flex-1">
                         <h2 className={`text-white font-bold m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>
                             Plant {dashboardPlant || 'Summary'}
                         </h2>
-                        {!isMinimized && (
-                            <p className="text-white/70 text-sm m-0 mt-1">
+                        {!isMinimized && !isDataLoading && (
+                            <p className="text-white/70 text-sm m-0 mt-0.5">
                                 {alertCount > 0 ? `${alertCount} items need attention` : 'All systems operational'}
                             </p>
                         )}
@@ -249,27 +605,29 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                     <i className={`fas fa-chevron-${isMinimized ? 'down' : 'up'} text-sm`} />
                 </button>
             </div>
+
             {!isMinimized && (
                 <>
-                    {leaderboardMetrics && (
+                    {/* Metrics row */}
+                    {isDataLoading ? (
+                        <MetricsSkeleton />
+                    ) : leaderboardMetrics ? (
                         <div
-                            className={`flex flex-wrap gap-3 justify-center bg-slate-50 border-b border-slate-200 ${isMobile ? 'p-4' : 'px-7 py-5'}`}
+                            className={`flex flex-wrap gap-2.5 bg-slate-50 border-b border-slate-200 ${isMobile ? 'p-4' : 'px-6 py-4'}`}
                         >
-                            <MetricCard
+                            <MetricPill
                                 label="Raw YPH"
                                 value={leaderboardMetrics.rawYPH?.toFixed(2) || '--'}
                                 icon="fa-chart-line"
                                 accentColor={accentColor}
-                                isMobile={isMobile}
                             />
-                            <MetricCard
+                            <MetricPill
                                 label="Adjusted YPH"
                                 value={leaderboardMetrics.adjustedYPH?.toFixed(2) || '--'}
                                 icon="fa-calculator"
                                 accentColor={accentColor}
-                                isMobile={isMobile}
                             />
-                            <MetricCard
+                            <MetricPill
                                 label="Net Help"
                                 value={`${leaderboardMetrics.netHelp > 0 ? '+' : ''}${Math.round(leaderboardMetrics.netHelp || 0)}h`}
                                 color={
@@ -281,9 +639,8 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 }
                                 icon="fa-hands-helping"
                                 accentColor={accentColor}
-                                isMobile={isMobile}
                             />
-                            <MetricCard
+                            <MetricPill
                                 label="Cleanliness"
                                 value={leaderboardMetrics.avgCleanliness?.toFixed(1) || '--'}
                                 color={
@@ -295,359 +652,84 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 }
                                 icon="fa-broom"
                                 accentColor={accentColor}
-                                isMobile={isMobile}
                             />
-                            <MetricCard
+                            <MetricPill
                                 label="Safety"
                                 value={leaderboardMetrics.safetyIncidents || 0}
                                 color={(leaderboardMetrics.safetyIncidents || 0) === 0 ? '#16a34a' : '#dc2626'}
                                 icon="fa-hard-hat"
                                 accentColor={accentColor}
-                                isMobile={isMobile}
                             />
                         </div>
-                    )}
-                    {(aiSummary || aiSummaryLoading || aiSummaryFailed) && (
-                        <AISummarySection
-                            aiSummaryLoading={aiSummaryLoading}
-                            aiSummaryFailed={aiSummaryFailed}
-                            aiDisplayText={aiDisplayText}
-                            aiActionPlan={aiActionPlan}
-                            showActionPlan={showActionPlan}
-                            isTypingComplete={isTypingComplete}
-                            handleRegenerateAISummary={handleRegenerateAISummary}
-                            userRoleName={userRoleName}
-                            userPlantCode={userPlantCode}
-                            isPlantManager={isPlantManager}
-                            dashboardPlant={dashboardPlant}
-                            accentColor={accentColor}
-                            isMobile={isMobile}
-                        />
-                    )}
-                    {hasNotifications && (
-                        <div className={isMobile ? 'p-4' : 'px-7 py-5'}>
-                            <TabHeader
-                                activeTab={activeTab}
-                                setActiveTab={setActiveTab}
-                                alertCount={alertCount}
-                                accentColor={accentColor}
-                            />
-                            {activeTab === 'alerts' && (
-                                <AlertsTab
-                                    plantNotifications={plantNotifications}
-                                    expandedSections={expandedSections}
-                                    setExpandedSections={setExpandedSections}
-                                    setEmbeddedView={setEmbeddedView}
-                                    setEmbeddedViewSearch={setEmbeddedViewSearch}
-                                    renderAssetButton={renderAssetButton}
-                                    shopIssue={shopIssue}
-                                />
-                            )}
-                            {activeTab === 'operators' && (
-                                <OperatorsTab
-                                    plantNotifications={plantNotifications}
-                                    setEmbeddedView={setEmbeddedView}
-                                    setEmbeddedViewSearch={setEmbeddedViewSearch}
-                                />
+                    ) : null}
+
+                    {/* Split pane: Data left, Analysis right */}
+                    <div className={isMobile ? 'flex flex-col' : 'flex'}>
+                        {/* Left pane — Alerts & Operators */}
+                        <div
+                            className={`${isMobile ? 'p-4' : 'px-5 py-4'} ${!isMobile && (hasAI || isDataLoading) ? 'border-r border-slate-200' : ''}`}
+                            style={!isMobile ? { flex: hasAI || isDataLoading ? '0 0 60%' : '1 1 100%' } : undefined}
+                        >
+                            {isDataLoading ? (
+                                <AlertsSkeleton />
+                            ) : hasNotifications ? (
+                                <>
+                                    <AlertsContent
+                                        plantNotifications={plantNotifications}
+                                        expandedSections={expandedSections}
+                                        setExpandedSections={setExpandedSections}
+                                        setEmbeddedView={setEmbeddedView}
+                                        setEmbeddedViewSearch={setEmbeddedViewSearch}
+                                        renderAssetPill={renderAssetPill}
+                                        shopIssue={shopIssue}
+                                    />
+                                    <OperatorsContent
+                                        plantNotifications={plantNotifications}
+                                        setEmbeddedView={setEmbeddedView}
+                                        setEmbeddedViewSearch={setEmbeddedViewSearch}
+                                    />
+                                </>
+                            ) : (
+                                <div
+                                    className="flex flex-col items-center justify-center gap-2 py-10 text-center"
+                                    style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+                                >
+                                    <i className="fas fa-check-circle text-emerald-500 text-2xl" />
+                                    <div className="text-slate-800 text-sm font-semibold">All clear</div>
+                                    <div className="text-slate-500 text-xs">No alerts or operator issues</div>
+                                </div>
                             )}
                         </div>
-                    )}
+
+                        {/* Right pane — Analysis */}
+                        {isDataLoading ? (
+                            <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                                <AISkeleton accentColor={accentColor} />
+                            </div>
+                        ) : hasAI ? (
+                            <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                                <AICopilotPane
+                                    aiSummaryLoading={aiSummaryLoading}
+                                    aiSummaryFailed={aiSummaryFailed}
+                                    aiDisplayText={aiDisplayText}
+                                    aiActionPlan={aiActionPlan}
+                                    showActionPlan={showActionPlan}
+                                    visibleActionItems={visibleActionItems}
+                                    isTypingComplete={isTypingComplete}
+                                    handleRegenerateAISummary={handleRegenerateAISummary}
+                                    userRoleName={userRoleName}
+                                    userPlantCode={userPlantCode}
+                                    isPlantManager={isPlantManager}
+                                    dashboardPlant={dashboardPlant}
+                                    accentColor={accentColor}
+                                />
+                            </div>
+                        ) : null}
+                    </div>
                 </>
             )}
         </div>
     )
 })
-/** AI-powered plant performance analysis with typewriter-style display and regenerate button. */
-const AISummarySection = ({
-    aiSummaryLoading,
-    aiSummaryFailed,
-    aiDisplayText,
-    aiActionPlan,
-    showActionPlan,
-    isTypingComplete,
-    handleRegenerateAISummary,
-    userRoleName,
-    userPlantCode,
-    isPlantManager,
-    dashboardPlant,
-    accentColor,
-    isMobile
-}) => (
-    <div className={`bg-white border-b border-slate-200 ${isMobile ? 'p-4' : 'px-7 py-5'}`}>
-        <div className={`flex items-start gap-3 rounded-xl p-4 ${aiSummaryFailed ? 'bg-red-50' : 'bg-sky-50'}`}>
-            <div
-                className={`flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 ${aiSummaryFailed ? 'bg-red-100' : 'bg-sky-100'}`}
-            >
-                <i
-                    className={`fas ${aiSummaryLoading ? 'fa-circle-notch fa-spin' : aiSummaryFailed ? 'fa-exclamation-triangle' : 'fa-robot'} text-sm`}
-                    style={{ color: aiSummaryFailed ? '#dc2626' : '#0284c7' }}
-                />
-            </div>
-            <div className="flex-1">
-                {userRoleName && !aiSummaryLoading && (
-                    <div className="text-slate-500 text-[11px] mb-1.5">
-                        <i className="fas fa-user-check mr-1" />
-                        Analysis for <strong>{userRoleName}</strong>
-                        {userPlantCode && isPlantManager && userPlantCode === dashboardPlant ? ' (your plant)' : ''}
-                    </div>
-                )}
-                <p className={`text-sm leading-relaxed m-0 ${aiSummaryFailed ? 'text-red-600' : 'text-slate-700'}`}>
-                    {aiSummaryLoading
-                        ? 'Analyzing plant performance...'
-                        : aiSummaryFailed
-                          ? 'Failed to generate analysis'
-                          : aiDisplayText}
-                </p>
-                {showActionPlan && aiActionPlan.length > 0 && (
-                    <div className="border-t border-slate-200 mt-3 pt-3">
-                        <div className="flex items-center gap-1.5 text-slate-600 text-xs font-semibold uppercase mb-2.5">
-                            <i className="fas fa-tasks" />
-                            Action Plan
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            {aiActionPlan.map((item, idx) => (
-                                <div key={idx} className="flex items-start gap-2.5">
-                                    <span
-                                        className="flex items-center justify-center w-5 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0"
-                                        style={{ background: accentColor }}
-                                    >
-                                        {idx + 1}
-                                    </span>
-                                    <span className="text-slate-700 text-sm leading-normal">{item}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-            {!aiSummaryLoading && isTypingComplete && (
-                <button
-                    onClick={handleRegenerateAISummary}
-                    className="bg-transparent border-none text-slate-500 cursor-pointer p-1 hover:text-slate-700"
-                    title="Regenerate analysis"
-                >
-                    <i className="fas fa-sync-alt text-xs" />
-                </button>
-            )}
-        </div>
-    </div>
-)
-/** Tab switcher between Alerts and Operators sections with badge counts. */
-const TabHeader = ({ activeTab, setActiveTab, alertCount, accentColor }) => (
-    <div className="flex gap-1 border-b-2 border-slate-200 mb-5">
-        {[
-            { badge: alertCount, icon: 'fa-bell', id: 'alerts', label: 'Alerts' },
-            { icon: 'fa-users', id: 'operators', label: 'Operators' }
-        ].map((tab) => (
-            <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="border-none rounded-t-lg text-sm font-semibold px-5 py-2.5 cursor-pointer transition-all"
-                style={{
-                    background: activeTab === tab.id ? accentColor : 'transparent',
-                    color: activeTab === tab.id ? '#fff' : '#64748b'
-                }}
-            >
-                <i className={`fas ${tab.icon} mr-2`} />
-                {tab.label}
-                {tab.badge > 0 && (
-                    <span
-                        className="rounded-xl text-white text-[11px] ml-1.5 px-2 py-0.5"
-                        style={{ background: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : '#dc2626' }}
-                    >
-                        {tab.badge}
-                    </span>
-                )}
-            </button>
-        ))}
-    </div>
-)
-/** Alerts tab content showing unverified, overdue, issue-heavy, and long-term shop assets. */
-const AlertsTab = ({
-    plantNotifications,
-    expandedSections,
-    setExpandedSections,
-    setEmbeddedView,
-    setEmbeddedViewSearch,
-    renderAssetButton,
-    shopIssue
-}) => (
-    <div className="flex flex-col gap-4">
-        {plantNotifications.unverifiedMixers.length > 0 && (
-            <AlertItem
-                icon="fa-clipboard-check"
-                iconBg="#dc2626"
-                count={plantNotifications.unverifiedMixers.length}
-                title="Unverified Mixers"
-                subtitle="Needs weekly verification"
-                items={plantNotifications.unverifiedMixers}
-                expandKey="unverifiedMixers"
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                renderItem={(m, i) => (
-                    <AssetButton
-                        key={i}
-                        label={m.truckNumber || 'N/A'}
-                        color="#dc2626"
-                        onClick={() => {
-                            setEmbeddedView('mixers')
-                            setEmbeddedViewSearch(m.truckNumber || '')
-                        }}
-                    />
-                )}
-            />
-        )}
-        {plantNotifications.overdueService.length > 0 && (
-            <AlertItem
-                icon="fa-wrench"
-                iconBg="#f59e0b"
-                count={plantNotifications.overdueService.length}
-                title="Service Overdue"
-                subtitle="Last service 6+ months ago"
-                items={plantNotifications.overdueService}
-                expandKey="overdueService"
-                maxItems={4}
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                renderItem={(a, i) => <span key={i}>{renderAssetButton(a, '#f59e0b')}</span>}
-            />
-        )}
-        {plantNotifications.assetsWithMostIssues.length > 0 && (
-            <AlertItem
-                icon="fa-exclamation-circle"
-                iconBg="#ea580c"
-                count={plantNotifications.assetsWithMostIssues.length}
-                title="Open Issues"
-                subtitle="Assets with unresolved issues"
-                items={plantNotifications.assetsWithMostIssues}
-                expandKey="assetsWithIssues"
-                maxItems={4}
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                renderItem={(a, i) => (
-                    <AssetButton
-                        key={i}
-                        label={`${a.type} ${a.identifier || ''} (${a.openIssueCount})`}
-                        color="#ea580c"
-                        onClick={() => {
-                            setEmbeddedView(getAssetViewType(a.type))
-                            setEmbeddedViewSearch(a.identifier || '')
-                        }}
-                    />
-                )}
-            />
-        )}
-        {plantNotifications.longTermShopAssets.length > 0 && (
-            <AlertItem
-                icon="fa-tools"
-                iconBg="#be123c"
-                count={plantNotifications.longTermShopAssets.length}
-                title="Long-Term Shop"
-                subtitle="In shop for 6+ days"
-                items={plantNotifications.longTermShopAssets}
-                expandKey="longTermShop"
-                maxItems={4}
-                expandedSections={expandedSections}
-                setExpandedSections={setExpandedSections}
-                renderItem={(a, i) => (
-                    <button
-                        key={i}
-                        onClick={() => {
-                            setEmbeddedView(getAssetViewType(a.type))
-                            setEmbeddedViewSearch(a.identifier || '')
-                        }}
-                        className="flex items-center gap-2 bg-slate-50 rounded-lg text-rose-700 text-sm font-medium px-3 py-1.5 cursor-pointer"
-                        style={{ border: '1px solid #be123c20' }}
-                    >
-                        <span>{a.identifier}</span>
-                        <span className="text-slate-400 text-xs">({a.daysInShop}d)</span>
-                        {a.downInYard && (
-                            <span className="bg-red-100 text-red-600 rounded text-[10px] font-semibold px-1.5 py-0.5">
-                                In Yard
-                            </span>
-                        )}
-                    </button>
-                )}
-            />
-        )}
-        {shopIssue && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-                <div className="flex items-center justify-center w-10 h-10 bg-red-600 rounded-lg flex-shrink-0">
-                    <i className="fas fa-exclamation text-white text-base" />
-                </div>
-                <div>
-                    <div className="text-red-800 text-[15px] font-semibold">Fleet Availability Alert</div>
-                    <div className="text-red-600 text-sm mt-1">
-                        <strong>{shopIssue.inShopCount}</strong> in shop, only <strong>{shopIssue.spareCount}</strong>{' '}
-                        spare
-                    </div>
-                </div>
-            </div>
-        )}
-    </div>
-)
-/** Operators tab content showing unassigned, pending-start, and in-training operator groups. */
-const OperatorsTab = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
-    const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
-    const hasOperatorAlerts =
-        unassignedOperators.length > 0 || pendingOperators.length > 0 || trainingOperators.length > 0
-    return (
-        <div className="flex flex-col gap-4">
-            {unassignedOperators.length > 0 && (
-                <OperatorSection
-                    iconBg="#0ea5e9"
-                    icon="fa-user-slash"
-                    title="Unassigned Operators"
-                    count={unassignedOperators.length}
-                    subtitle="Not assigned to any asset"
-                    operators={unassignedOperators}
-                    buttonBg="#f0f9ff"
-                    buttonBorder="#bae6fd"
-                    buttonColor="#0369a1"
-                    setEmbeddedView={setEmbeddedView}
-                    setEmbeddedViewSearch={setEmbeddedViewSearch}
-                />
-            )}
-            {pendingOperators.length > 0 && (
-                <OperatorSection
-                    iconBg="#10b981"
-                    icon="fa-user-plus"
-                    title="Pending Start"
-                    count={pendingOperators.length}
-                    subtitle="New hires awaiting start"
-                    operators={pendingOperators}
-                    buttonBg="#ecfdf5"
-                    buttonBorder="#a7f3d0"
-                    buttonColor="#047857"
-                    setEmbeddedView={setEmbeddedView}
-                    setEmbeddedViewSearch={setEmbeddedViewSearch}
-                    nameField="operatorName"
-                />
-            )}
-            {trainingOperators.length > 0 && (
-                <OperatorSection
-                    iconBg="#8b5cf6"
-                    icon="fa-graduation-cap"
-                    title="In Training"
-                    count={trainingOperators.length}
-                    subtitle="Currently being trained"
-                    operators={trainingOperators}
-                    buttonBg="#f5f3ff"
-                    buttonBorder="#ddd6fe"
-                    buttonColor="#6d28d9"
-                    setEmbeddedView={setEmbeddedView}
-                    setEmbeddedViewSearch={setEmbeddedViewSearch}
-                    nameField="operatorName"
-                />
-            )}
-            {!hasOperatorAlerts && (
-                <div className="flex flex-col items-center gap-2 bg-slate-50 rounded-xl px-5 py-10 text-center">
-                    <i className="fas fa-check-circle text-emerald-500 text-[32px]" />
-                    <div className="text-slate-900 text-[15px] font-semibold">All operators assigned</div>
-                    <div className="text-slate-500 text-sm">No operators need attention</div>
-                </div>
-            )}
-        </div>
-    )
-}
+
 export default DashboardPlantSummary

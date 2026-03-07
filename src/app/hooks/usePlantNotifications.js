@@ -188,6 +188,9 @@ export function useLeaderboardMetrics({
     setPlantNotifications
 }) {
     useEffect(() => {
+        setPlantNotifications(INITIAL_PLANT_NOTIFICATIONS)
+    }, [dashboardPlant, setPlantNotifications])
+    useEffect(() => {
         if (!dataReady || !dashboardPlant || !dashboardRegionCode) {
             setPlantNotifications((prev) => ({ ...prev, leaderboardMetrics: null }))
             return
@@ -458,6 +461,80 @@ export function useAISummary({
     ])
     return { handleRegenerateAISummary }
 }
+/**
+ * Generates an AI-powered region summary when no specific plant is selected.
+ * Uses regional fleet stats and notification data to produce insights.
+ */
+export function useRegionalAISummary({
+    dashboardPlant,
+    dataReady,
+    displayStats,
+    plantNotifications,
+    regionDisplayName,
+    setRegionalAI,
+    userRoleName,
+    userRoleWeight
+}) {
+    const [forceRegenerate, setForceRegenerate] = useState(0)
+    const handleRegenerateRegionalAI = useCallback(() => {
+        setRegionalAI({ aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false })
+        setForceRegenerate((prev) => prev + 1)
+    }, [setRegionalAI])
+    useEffect(() => {
+        // Only run in regional mode (no specific plant selected)
+        if (dashboardPlant) return
+        if (!dataReady) return
+        // Need at least some stats loaded
+        if (!displayStats || displayStats.fleetTotal === 0) return
+        let cancelled = false
+        let failTimer
+        async function generate() {
+            setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false, aiSummaryLoading: true }))
+            try {
+                const summary = await AIService.generateRegionSummary({
+                    notifications: plantNotifications,
+                    plantCount: displayStats.operators?.total > 0 ? undefined : 0,
+                    regionName: regionDisplayName,
+                    stats: displayStats,
+                    userContext: { roleName: userRoleName, roleWeight: userRoleWeight }
+                })
+                if (cancelled) return
+                if (summary) {
+                    setRegionalAI({ aiSummary: summary, aiSummaryFailed: false, aiSummaryLoading: false })
+                } else {
+                    setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
+                    failTimer = setTimeout(() => {
+                        if (!cancelled) setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false }))
+                    }, 3000)
+                }
+            } catch {
+                if (!cancelled) {
+                    setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
+                    failTimer = setTimeout(() => {
+                        if (!cancelled) setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false }))
+                    }, 3000)
+                }
+            }
+        }
+        generate()
+        return () => {
+            cancelled = true
+            clearTimeout(failTimer)
+        }
+    }, [
+        dashboardPlant,
+        dataReady,
+        displayStats,
+        plantNotifications,
+        regionDisplayName,
+        forceRegenerate,
+        userRoleName,
+        userRoleWeight,
+        setRegionalAI
+    ])
+    return { handleRegenerateRegionalAI }
+}
+
 const updateAISummaryState = (setPlantNotifications, aiSummary, failed) =>
     setPlantNotifications((prev) => ({
         ...prev,

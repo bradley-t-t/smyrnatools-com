@@ -106,6 +106,56 @@ class AIInsightsServiceClass {
         })
         return result?.content ?? null
     }
+    /** Generates a role-aware summary for the entire region's performance. */
+    async generateRegionSummary(regionData) {
+        const { roleName, roleWeight } = regionData.userContext ?? {}
+        const roleContext = await getRoleContext(roleName, false, null, roleWeight)
+        const systemPrompt = `${roleContext}\n\n${PLANT_SUMMARY_BASE}\n\nYou are analyzing an ENTIRE REGION, not a single plant. Summarize regional trends, cross-plant issues, and fleet-wide concerns. Be concise.`
+        const result = await this.callAPI(systemPrompt, this.formatRegionSummaryData(regionData), {
+            model: FAST_MODEL,
+            temperature: 0.5
+        })
+        return result?.content ?? null
+    }
+    /** Formats region-wide data for AI analysis. */
+    formatRegionSummaryData(data) {
+        const parts = [`Region: ${data.regionName}`, `Plants in scope: ${data.plantCount || 'All'}`]
+        const s = data.stats || {}
+        parts.push(`\nFleet Total: ${s.fleetTotal || 0}`)
+        parts.push(`Overall Allocation: ${Math.round(s.overallAllocationPercent || 0)}%`)
+        parts.push(`Verification Average: ${Math.round(s.verificationAverage || 0)}%`)
+        parts.push(`Service Overdue: ${s.overdueTotal || 0}`)
+        const types = ['mixers', 'tractors', 'trailers', 'equipment']
+        types.forEach((t) => {
+            const ts = s[t]
+            if (ts?.total > 0)
+                parts.push(
+                    `${t.charAt(0).toUpperCase() + t.slice(1)}: ${ts.total} total, ${ts.active || 0} active, ${ts.shop || 0} in shop, ${ts.spare || 0} spare`
+                )
+        })
+        const ops = s.operators || {}
+        if (ops.total > 0) {
+            parts.push(
+                `\nOperators: ${ops.total} total, ${ops.active || 0} active, ${ops.unassigned || 0} unassigned, ${ops.pending || 0} pending`
+            )
+        }
+        if (data.notifications) {
+            const n = data.notifications
+            if (n.unverifiedMixers?.length > 0) parts.push(`Unverified Mixers: ${n.unverifiedMixers.length}`)
+            if (n.overdueService?.length > 0) parts.push(`Service Overdue Assets: ${n.overdueService.length}`)
+            if (n.assetsWithMostIssues?.length > 0)
+                parts.push(`Assets with Open Issues: ${n.assetsWithMostIssues.length}`)
+            if (n.longTermShopAssets?.length > 0) {
+                parts.push(`Long-Term Shop: ${n.longTermShopAssets.length} assets`)
+                n.longTermShopAssets.forEach((a) => parts.push(`  - ${a.type} ${a.identifier}: ${a.daysInShop} days`))
+            }
+            if (n.shopIssue)
+                parts.push(`SHOP ALERT: ${n.shopIssue.inShopCount} in shop, only ${n.shopIssue.spareCount} spare`)
+            if (n.totalOpenIssues > 0) parts.push(`Total Open Issues: ${n.totalOpenIssues}`)
+            if (n.totalResolvedIssues > 0) parts.push(`Total Resolved Issues: ${n.totalResolvedIssues}`)
+        }
+        return parts.join('\n')
+    }
     async generateHistorySummary(historyContext) {
         return this.generateContentFromPrompt('historySummary', this.formatHistoryData, historyContext)
     }

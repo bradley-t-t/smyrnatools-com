@@ -15,7 +15,8 @@
       "Bash(npx react-scripts:*)",
       "Bash(CI=false npx react-app-rewired:*)",
       "Bash(npm install:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)"
     ]
   }
 }

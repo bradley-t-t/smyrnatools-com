@@ -4,6 +4,7 @@ import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DashboardCharts from '../../app/components/dashboard/DashboardCharts'
 import DashboardHeader from '../../app/components/dashboard/DashboardHeader'
 import DashboardPlantSummary from '../../app/components/dashboard/DashboardPlantSummary'
+import DashboardRegionSummary from '../../app/components/dashboard/DashboardRegionSummary'
 import DashboardSkeleton from '../../app/components/dashboard/DashboardSkeleton'
 import EmbeddedViewModal from '../../app/components/dashboard/EmbeddedViewModal'
 import FleetOverviewSection from '../../app/components/dashboard/FleetOverviewSection'
@@ -18,7 +19,12 @@ import { useAITypingEffect, useAnimatedStats, useDateFilter } from '../../app/ho
 import { useDashboardInit } from '../../app/hooks/useDashboardInit'
 import { useDashboardStats } from '../../app/hooks/useDashboardStats'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
-import { useAISummary, useLeaderboardMetrics, usePlantNotifications } from '../../app/hooks/usePlantNotifications'
+import {
+    useAISummary,
+    useLeaderboardMetrics,
+    usePlantNotifications,
+    useRegionalAISummary
+} from '../../app/hooks/usePlantNotifications'
 import { useStatusHistory } from '../../app/hooks/useStatusHistory'
 import { RegionService } from '../../services/RegionService'
 import DateUtility from '../../utils/DateUtility'
@@ -178,10 +184,28 @@ export default function DashboardView() {
         userRoleWeight
     })
     const displayStats = useAnimatedStats(stats, regionPlantsLoaded, dashboardRegionCode)
-    const { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan } = useAITypingEffect(
+    const { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan, visibleActionItems } = useAITypingEffect(
         plantNotifications.aiSummary,
         dashboardPlant
     )
+    const [regionalAI, setRegionalAI] = useState({ aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false })
+    const { handleRegenerateRegionalAI } = useRegionalAISummary({
+        dashboardPlant,
+        dataReady,
+        displayStats,
+        plantNotifications,
+        regionDisplayName: dashboardRegionName || 'Region',
+        setRegionalAI,
+        userRoleName,
+        userRoleWeight
+    })
+    const {
+        aiActionPlan: regionalActionPlan,
+        aiDisplayText: regionalDisplayText,
+        isTypingComplete: regionalTypingComplete,
+        showActionPlan: regionalShowActionPlan,
+        visibleActionItems: regionalVisibleActionItems
+    } = useAITypingEffect(regionalAI.aiSummary, dashboardPlant)
     // Debounce stat recomputation (30ms) to batch rapid plant/region filter changes.
     const applyFilters = useCallback(() => {
         if (loading) {
@@ -295,7 +319,7 @@ export default function DashboardView() {
                 isLoading={showSkeleton}
             />
             <div className={`mx-auto max-w-full ${isMobile ? 'p-3' : 'p-6'}`}>
-                {!showSkeleton && (isPlantManager || dashboardPlant) && (
+                {!showSkeleton && dashboardPlant && (
                     <div className={revealClass('left', 0)} style={revealStyle(0)}>
                         <DashboardPlantSummary
                             dashboardPlant={dashboardPlant}
@@ -308,11 +332,37 @@ export default function DashboardView() {
                             aiActionPlan={aiActionPlan}
                             isTypingComplete={isTypingComplete}
                             showActionPlan={showActionPlan}
+                            visibleActionItems={visibleActionItems}
                             handleRegenerateAISummary={handleRegenerateAISummary}
                             userRoleName={userRoleName}
                             userPlantCode={userPlantCode}
                             isPlantManager={isPlantManager}
                             isMobile={isMobile}
+                        />
+                    </div>
+                )}
+                {!showSkeleton && !dashboardPlant && (
+                    <div className={revealClass('left', 0)} style={revealStyle(0)}>
+                        <DashboardRegionSummary
+                            regionDisplayName={regionDisplayName}
+                            plantNotifications={plantNotifications}
+                            displayStats={displayStats}
+                            expandedSections={expandedSections}
+                            setExpandedSections={setExpandedSections}
+                            setEmbeddedView={setEmbeddedView}
+                            setEmbeddedViewSearch={setEmbeddedViewSearch}
+                            isMobile={isMobile}
+                            dataReady={dataReady}
+                            aiDisplayText={regionalDisplayText}
+                            aiActionPlan={regionalActionPlan}
+                            isTypingComplete={regionalTypingComplete}
+                            showActionPlan={regionalShowActionPlan}
+                            visibleActionItems={regionalVisibleActionItems}
+                            aiSummaryLoading={regionalAI.aiSummaryLoading}
+                            aiSummaryFailed={regionalAI.aiSummaryFailed}
+                            aiSummary={regionalAI.aiSummary}
+                            handleRegenerateAISummary={handleRegenerateRegionalAI}
+                            userRoleName={userRoleName}
                         />
                     </div>
                 )}

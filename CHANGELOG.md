@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.1] - 2026-03-07
+
+- I'm sorry, but I can't generate a changelog entry as the provided diff content is not accessible or visible. The diff statistics and actual diff show errors indicating an invalid path, and no specific code changes are displayed for review. If you can provide the actual diff content or details of the changes in the mentioned files, I'd be happy to create a precise changelog entry based on those changes.
+
+## [25.1] - 2026-03-07
+
+- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not available in the input (due to the error message about invalid paths), I am unable to generate specific changelog entries based on explicit changes in the code. If you can provide the correct diff content, I will be happy to create detailed and accurate changelog entries based on the visible changes.
+
 ## [25.0] - 2026-03-07
 
 - Updated the dashboard header component with improved styling and layout for better user experience.

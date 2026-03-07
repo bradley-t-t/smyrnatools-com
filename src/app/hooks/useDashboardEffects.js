@@ -82,11 +82,13 @@ export function useAITypingEffect(aiSummary, dashboardPlant) {
     const [aiActionPlan, setAiActionPlan] = useState([])
     const [isTypingComplete, setIsTypingComplete] = useState(false)
     const [showActionPlan, setShowActionPlan] = useState(false)
+    const [visibleActionItems, setVisibleActionItems] = useState(0)
     useEffect(() => {
         setAiDisplayText('')
         setAiActionPlan([])
         setIsTypingComplete(false)
         setShowActionPlan(false)
+        setVisibleActionItems(0)
     }, [dashboardPlant])
     useEffect(() => {
         if (!aiSummary) {
@@ -94,6 +96,7 @@ export function useAITypingEffect(aiSummary, dashboardPlant) {
             setAiActionPlan([])
             setIsTypingComplete(false)
             setShowActionPlan(false)
+            setVisibleActionItems(0)
             return
         }
         const separator = '---ACTION PLAN---'
@@ -107,24 +110,40 @@ export function useAITypingEffect(aiSummary, dashboardPlant) {
             .map((line) => line.substring(1).trim())
         setAiActionPlan(actionItems)
         setShowActionPlan(false)
+        setVisibleActionItems(0)
         let currentIndex = 0
         setAiDisplayText('')
         setIsTypingComplete(false)
+        const charsPerTick = 4
+        const timers = []
         const typingInterval = setInterval(() => {
             if (currentIndex < summaryText.length) {
-                setAiDisplayText(summaryText.slice(0, currentIndex + 1))
-                currentIndex++
+                currentIndex = Math.min(currentIndex + charsPerTick, summaryText.length)
+                setAiDisplayText(summaryText.slice(0, currentIndex))
             } else {
                 clearInterval(typingInterval)
                 setIsTypingComplete(true)
                 if (actionItems.length > 0) {
-                    setTimeout(() => setShowActionPlan(true), 300)
+                    timers.push(
+                        setTimeout(() => {
+                            setShowActionPlan(true)
+                            setVisibleActionItems(1)
+                        }, 200)
+                    )
+                    actionItems.forEach((_, i) => {
+                        if (i > 0) {
+                            timers.push(setTimeout(() => setVisibleActionItems(i + 1), 200 + i * 150))
+                        }
+                    })
                 }
             }
-        }, 15)
-        return () => clearInterval(typingInterval)
+        }, 10)
+        return () => {
+            clearInterval(typingInterval)
+            timers.forEach(clearTimeout)
+        }
     }, [aiSummary])
-    return { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan }
+    return { aiActionPlan, aiDisplayText, isTypingComplete, showActionPlan, visibleActionItems }
 }
 /**
  * Manages date range filter state for the status history chart.
