@@ -1,6 +1,9 @@
 import { supabase } from './DatabaseService'
-import { RegionService } from './RegionService'
 import { UserService } from './UserService'
+function detectDeviceType() {
+    if (typeof navigator === 'undefined') return 'desktop'
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'mobile' : 'desktop'
+}
 /**
  * Real-time user presence tracking service using Supabase.
  * Maintains online status via heartbeats (30s), detects stale sessions (5min),
@@ -120,19 +123,38 @@ class UserPresenceService {
                 .select('user_id')
                 .eq('user_id', userId)
                 .maybeSingle()
+            const device = detectDeviceType()
             if (existing) {
                 await supabase
                     .from('users_presence')
-                    .update({ is_online: true, last_seen: now, updated_at: now })
+                    .update({ device_type: device, is_online: true, last_seen: now, updated_at: now })
                     .eq('user_id', userId)
+                    .catch(() =>
+                        supabase
+                            .from('users_presence')
+                            .update({ is_online: true, last_seen: now, updated_at: now })
+                            .eq('user_id', userId)
+                    )
             } else {
-                await supabase.from('users_presence').insert({
-                    is_online: true,
-                    last_activity: now,
-                    last_seen: now,
-                    updated_at: now,
-                    user_id: userId
-                })
+                await supabase
+                    .from('users_presence')
+                    .insert({
+                        device_type: device,
+                        is_online: true,
+                        last_activity: now,
+                        last_seen: now,
+                        updated_at: now,
+                        user_id: userId
+                    })
+                    .catch(() =>
+                        supabase.from('users_presence').insert({
+                            is_online: true,
+                            last_activity: now,
+                            last_seen: now,
+                            updated_at: now,
+                            user_id: userId
+                        })
+                    )
             }
             return true
         } catch {
@@ -231,85 +253,17 @@ class UserPresenceService {
             }
         }
     }
-    /**
-     * Fetches all currently online users with their display names, roles, and region codes.
-     * Ensures the current user is always included in the result set.
-     */
-    async getOnlineUsers() {
+    /** Returns the count of currently online users (lightweight query for badge). */
+    async getOnlineCount() {
         try {
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-            const { data: presences, error } = await supabase
+            const { count, error } = await supabase
                 .from('users_presence')
-                .select('user_id, last_seen, last_activity, is_online')
-                .or(`is_online.eq.true,last_activity.gte.${fiveMinutesAgo}`)
-                .order('last_activity', { ascending: false })
-            if (error) return []
-            const currentUserId = this.currentUserId
-            let presenceList = presences || []
-            if (currentUserId && !presenceList.some((p) => p.user_id === currentUserId)) {
-                presenceList = [
-                    ...presenceList,
-                    {
-                        is_online: true,
-                        last_activity: new Date().toISOString(),
-                        last_seen: new Date().toISOString(),
-                        user_id: currentUserId
-                    }
-                ]
-            }
-            const results = await Promise.all(
-                presenceList.map(async (presence) => {
-                    try {
-                        const [name, rolesData, profile, userRoleWeight] = await Promise.all([
-                            UserService.getUserDisplayName(presence.user_id),
-                            UserService.getUserRoles(presence.user_id),
-                            UserService.getUserProfile(presence.user_id).catch(() => null),
-                            UserService.getUserWeight(presence.user_id).catch(() => 0)
-                        ])
-                        let roleNames = []
-                        if (Array.isArray(rolesData)) {
-                            roleNames = rolesData
-                                .map((r) => {
-                                    if (typeof r === 'string') return r
-                                    if (r && typeof r === 'object' && r.name) return r.name
-                                    return null
-                                })
-                                .filter(Boolean)
-                        }
-                        let regionCode = null
-                        if (profile) {
-                            if (profile.regions && Array.isArray(profile.regions) && profile.regions.length > 0) {
-                                regionCode = profile.regions[0]
-                            } else if (profile.region_code) {
-                                regionCode = profile.region_code
-                            } else if (profile.regionCode) {
-                                regionCode = profile.regionCode
-                            } else if (profile.plant_code) {
-                                try {
-                                    const regions = await RegionService.fetchRegionsByPlantCode(profile.plant_code)
-                                    if (regions && regions.length > 0) {
-                                        regionCode = regions[0].regionCode || regions[0].region_code
-                                    }
-                                } catch {}
-                            }
-                        }
-                        return {
-                            id: presence.user_id,
-                            lastActivity: presence.last_activity,
-                            lastSeen: presence.last_seen,
-                            name,
-                            regionCode,
-                            roleWeight: userRoleWeight || 0,
-                            roles: roleNames
-                        }
-                    } catch {
-                        return null
-                    }
-                })
-            )
-            return results.filter(Boolean)
+                .select('user_id', { count: 'exact', head: true })
+                .eq('is_online', true)
+            if (error) return 0
+            return count || 0
         } catch {
-            return []
+            return 0
         }
     }
     /** Registers a callback to be invoked when the online user list changes. */
@@ -319,14 +273,12 @@ class UserPresenceService {
     removeListener(callback) {
         this.listeners = this.listeners.filter((listener) => listener !== callback)
     }
-    /** Fetches online users and broadcasts to all registered listeners. */
+    /** Broadcasts a presence change signal to all registered listeners. */
     notifyListeners() {
-        this.getOnlineUsers().then((users) => {
-            this.listeners.forEach((listener) => {
-                try {
-                    listener(users)
-                } catch {}
-            })
+        this.listeners.forEach((listener) => {
+            try {
+                listener()
+            } catch {}
         })
     }
     /**

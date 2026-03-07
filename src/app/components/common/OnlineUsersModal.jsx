@@ -1,69 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { RegionService } from '../../../services/RegionService'
-import { UserPresenceService } from '../../../services/UserPresenceService'
-import { UserService } from '../../../services/UserService'
+import { OnlineUsersService } from '../../../services/OnlineUsersService'
 const MILLISECONDS_PER_MINUTE = 60000
 const MILLISECONDS_PER_HOUR = 3600000
 const MILLISECONDS_PER_DAY = 86400000
-/**
- * Extracts role name strings from a mixed roles array (strings or objects with `name`).
- * @param {Array} rolesData
- * @returns {string[]}
- */
-function extractRoleNames(rolesData) {
-    if (!Array.isArray(rolesData)) return []
-    return rolesData.map((r) => (typeof r === 'string' ? r : (r?.name ?? null))).filter(Boolean)
-}
-/**
- * Resolves the primary region code from a user profile object.
- * @param {Object|null} profile
- * @returns {string|null}
- */
-function extractRegionCode(profile) {
-    if (!profile) return null
-    if (Array.isArray(profile.regions) && profile.regions.length > 0) return profile.regions[0]
-    return profile.region_code || profile.regionCode || null
-}
-/**
- * Builds a presence entry for the current user by fetching their name, roles, region, and weight.
- * @param {string} userId
- * @returns {Promise<Object>} Presence entry with `isCurrentUser: true`.
- */
-async function buildCurrentUserEntry(userId) {
-    const [name, rolesData, profile, roleWeight] = await Promise.all([
-        UserService.getUserDisplayName(userId),
-        UserService.getUserRoles(userId),
-        UserService.getUserProfile(userId).catch(() => null),
-        UserService.getUserWeight(userId).catch(() => 0)
-    ])
-    return {
-        id: userId,
-        isCurrentUser: true,
-        lastActivity: new Date().toISOString(),
-        name,
-        regionCode: extractRegionCode(profile),
-        roleWeight: roleWeight || 0,
-        roles: extractRoleNames(rolesData)
-    }
-}
-/** Ensures the current user is flagged with `isCurrentUser` in the users array. */
-function ensureCurrentUser(users, currentId) {
-    if (!currentId) return users
-    const hasCurrentUser = users.some((u) => u.id === currentId)
-    if (hasCurrentUser) return users.map((u) => (u.id === currentId ? { ...u, isCurrentUser: true } : u))
-    return users
-}
-/** Sorts users descending by role weight so higher-privilege users appear first. */
-function sortByRoleWeight(users) {
-    return [...users].sort((a, b) => (b.roleWeight || 0) - (a.roleWeight || 0))
-}
-/**
- * Formats a last-activity timestamp into a human-readable relative string.
- * @param {string|null} lastActivity - ISO timestamp.
- * @returns {string} e.g. "Just now", "5m ago", "2h ago", "3d ago".
- */
 function formatLastActivity(lastActivity) {
     if (!lastActivity) return 'Unknown'
     const diffMs = Date.now() - new Date(lastActivity).getTime()
@@ -74,118 +15,27 @@ function formatLastActivity(lastActivity) {
     if (diffHours < 24) return `${diffHours}h ago`
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
-/**
- * Builds a map of role name (lowercase) → unique HSL color.
- * Roles are sorted descending by weight; highest weight gets hue 0 (red),
- * lowest gets hue 120 (green). Every role receives a distinct color.
- * @param {Array<{name: string, weight: number}>} roles
- * @returns {Object} e.g. { "admin": "hsl(0, 72%, 42%)", "operator": "hsl(120, 72%, 38%)" }
- */
-function buildRoleColorMap(roles) {
-    if (!roles?.length) return {}
-    const sorted = [...roles].sort((a, b) => (b.weight || 0) - (a.weight || 0))
-    return Object.fromEntries(
-        sorted.map((role, index) => {
-            const hue = sorted.length === 1 ? 0 : Math.round((index / (sorted.length - 1)) * 120)
-            return [role.name.toLowerCase(), `hsl(${hue}, 72%, 42%)`]
-        })
-    )
-}
-/** Session-level cache so re-opens are instant. */
-const _sessionCache = {
-    currentUserId: null,
-    onlineUsers: null,
-    regionNames: {},
-    roleColorMap: null
-}
-/**
- * Anchored dropdown panel (portal) displaying currently online users.
- * Shows each user's name, primary role badge, region, and last activity timestamp.
- * Subscribes to real-time presence updates via UserPresenceService.
- * @param {Object} props
- * @param {boolean} props.isOpen - Controls portal visibility.
- * @param {Function} props.onClose - Callback invoked on backdrop click or close button.
- * @param {DOMRect} [props.anchorRect] - Bounding rect of the trigger element for positioning.
- */
 function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
-    const [onlineUsers, setOnlineUsers] = useState(_sessionCache.onlineUsers ?? [])
-    const [isLoading, setIsLoading] = useState(_sessionCache.onlineUsers === null)
-    const [regionNames, setRegionNames] = useState(_sessionCache.regionNames)
-    const [currentUserId, setCurrentUserId] = useState(_sessionCache.currentUserId)
-    const [roleColorMap, setRoleColorMap] = useState(_sessionCache.roleColorMap ?? {})
-    const resolveRegionNames = useCallback(async (users, existingNames) => {
-        const codes = [...new Set(users.map((u) => u.regionCode).filter(Boolean))]
-        const names = { ...existingNames }
-        let changed = false
-        for (const code of codes) {
-            if (names[code]) continue
-            try {
-                const region = await RegionService.fetchRegionByCode(code)
-                names[code] = region?.regionName || region?.region_name || code
-            } catch {
-                names[code] = code
-            }
-            changed = true
-        }
-        if (changed) {
-            _sessionCache.regionNames = names
-            setRegionNames(names)
-        }
-    }, [])
+    const [onlineUsers, setOnlineUsers] = useState(() => OnlineUsersService.getUsers())
+    const [regionNames, setRegionNames] = useState(() => OnlineUsersService.getRegionNames())
+    const [roleColorMap, setRoleColorMap] = useState(() => OnlineUsersService.getRoleColorMap())
+    const [isLoading, setIsLoading] = useState(() => OnlineUsersService.getIsLoading())
     useEffect(() => {
         if (!isOpen) return
-        const refresh = async (isInitial) => {
-            if (isInitial && _sessionCache.onlineUsers === null) setIsLoading(true)
-            try {
-                const [currentUser, allRoles, presenceUsers] = await Promise.all([
-                    UserService.getCurrentUser(),
-                    _sessionCache.roleColorMap ? Promise.resolve(null) : UserService.getAllRoles().catch(() => []),
-                    UserPresenceService.getOnlineUsers()
-                ])
-                const currentId = currentUser?.id || null
-                if (currentId !== _sessionCache.currentUserId) {
-                    _sessionCache.currentUserId = currentId
-                    setCurrentUserId(currentId)
-                }
-                if (allRoles !== null) {
-                    const colorMap = buildRoleColorMap(allRoles)
-                    _sessionCache.roleColorMap = colorMap
-                    setRoleColorMap(colorMap)
-                }
-                let users = presenceUsers || []
-                users = ensureCurrentUser(users, currentId)
-                if (currentId && !users.some((u) => u.id === currentId)) {
-                    const entry = await buildCurrentUserEntry(currentId)
-                    users = [...users, entry]
-                }
-                users = sortByRoleWeight(users)
-                _sessionCache.onlineUsers = users
-                setOnlineUsers(users)
-                await resolveRegionNames(users, _sessionCache.regionNames)
-            } catch {
-                if (_sessionCache.onlineUsers === null) setOnlineUsers([])
-            } finally {
-                setIsLoading(false)
-            }
+        setOnlineUsers(OnlineUsersService.getUsers())
+        setRegionNames(OnlineUsersService.getRegionNames())
+        setRoleColorMap(OnlineUsersService.getRoleColorMap())
+        setIsLoading(OnlineUsersService.getIsLoading())
+        OnlineUsersService.refresh(true)
+        const handleUpdate = (snapshot) => {
+            setOnlineUsers(snapshot.users)
+            setRegionNames(snapshot.regionNames)
+            setRoleColorMap(snapshot.roleColorMap)
+            setIsLoading(snapshot.isLoading)
         }
-        refresh(true)
-        const handleUpdate = async (incoming) => {
-            let users = [...(incoming || [])]
-            const cachedId = _sessionCache.currentUserId
-            users = ensureCurrentUser(users, cachedId)
-            if (cachedId && !users.some((u) => u.id === cachedId)) {
-                try {
-                    const entry = await buildCurrentUserEntry(cachedId)
-                    users = [...users, entry]
-                } catch {}
-            }
-            users = sortByRoleWeight(users)
-            _sessionCache.onlineUsers = users
-            setOnlineUsers(users)
-        }
-        UserPresenceService.addListener(handleUpdate)
-        return () => UserPresenceService.removeListener(handleUpdate)
-    }, [isOpen, resolveRegionNames])
+        OnlineUsersService.addListener(handleUpdate)
+        return () => OnlineUsersService.removeListener(handleUpdate)
+    }, [isOpen])
     if (!isOpen) return null
     const modalStyle = {
         position: 'fixed',
@@ -204,9 +54,11 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                     <div className="flex items-center gap-2">
                         <i className="fas fa-users text-slate-600" />
                         <span className="font-semibold text-slate-800">Online Users</span>
-                        <span className="px-2 py-0.5 bg-slate-100 rounded-full text-xs text-slate-600 font-medium">
-                            {onlineUsers.length}
-                        </span>
+                        {!isLoading && (
+                            <span className="px-2 py-0.5 bg-slate-100 rounded-full text-xs text-slate-600 font-medium">
+                                {onlineUsers.length}
+                            </span>
+                        )}
                     </div>
                     <button
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
@@ -216,7 +68,7 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                     </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                    {isLoading ? (
+                    {isLoading && onlineUsers.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                             <i className="fas fa-spinner fa-spin text-xl mb-2" />
                             <span className="text-sm">Loading users...</span>
@@ -269,8 +121,10 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
-                                                    <i className="fas fa-clock text-[10px]" />
+                                                <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-400">
+                                                    <i
+                                                        className={`fas fa-${user.deviceType === 'mobile' ? 'mobile-alt' : 'desktop'} text-[10px]`}
+                                                    />
                                                     <span>{`Active ${formatLastActivity(user.lastActivity)}`}</span>
                                                 </div>
                                             </div>

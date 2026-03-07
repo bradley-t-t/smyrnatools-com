@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import SrmLogo from '../../../assets/images/srm-logo.svg'
+import { OnlineUsersService } from '../../../services/OnlineUsersService'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
@@ -106,30 +107,21 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         registerElement: registerMagnetic
     } = useMagneticHover()
     useEffect(() => {
-        const setupAndFetch = async () => {
+        const setupAndInit = async () => {
             try {
                 await UserPresenceService.setup()
-                const users = await UserPresenceService.getOnlineUsers()
-                setOnlineUsersCount(users?.length || 0)
+                await OnlineUsersService.init()
+                setOnlineUsersCount(OnlineUsersService.getUsers().length)
             } catch {
                 setOnlineUsersCount(0)
             }
         }
-        setupAndFetch()
-        const handlePresenceUpdate = (users) => {
-            setOnlineUsersCount(users?.length || 0)
+        setupAndInit()
+        const handleUpdate = (snapshot) => {
+            setOnlineUsersCount(snapshot.users?.length || 0)
         }
-        UserPresenceService.addListener(handlePresenceUpdate)
-        const refreshInterval = setInterval(async () => {
-            try {
-                const users = await UserPresenceService.getOnlineUsers()
-                setOnlineUsersCount(users?.length || 0)
-            } catch {}
-        }, 30000)
-        return () => {
-            UserPresenceService.removeListener(handlePresenceUpdate)
-            clearInterval(refreshInterval)
-        }
+        OnlineUsersService.addListener(handleUpdate)
+        return () => OnlineUsersService.removeListener(handleUpdate)
     }, [])
     useEffect(() => {
         const handleResize = () => {

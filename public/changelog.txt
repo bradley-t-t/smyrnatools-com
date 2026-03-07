@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.3] - 2026-03-07
+
+- Updated the navigation component to include a new user presence indicator, showing the number of online users directly in the header.
+- Added a new OnlineUsersModal component to display a detailed list of currently online users, accessible from the navigation bar.
+- Introduced a UserPresenceService to handle real-time tracking of user online status, enabling dynamic updates to the UI when users join or leave.
+- Adjusted Copilot instructions in the GitHub repository to include guidance on handling user presence features for better AI assistance during development.
+
 ## [26.2] - 2026-03-07
 
 - Updated the VideoBackground component to improve rendering performance and fix a flickering issue during transitions.
