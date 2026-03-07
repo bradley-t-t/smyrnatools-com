@@ -31,6 +31,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
     const [mixers, setMixers] = useState([])
     const [operators, setOperators] = useState([])
     const [truckPickerOpen, setTruckPickerOpen] = useState(false)
+    const [truckSearch, setTruckSearch] = useState('')
     useEffect(() => {
         if (!user?.id) return
         UserService.getUserPlant(user.id)
@@ -45,14 +46,11 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             .catch(() => {})
     }, [])
     useEffect(() => {
-        if (!plant) {
-            setOperators([])
-            return
-        }
-        OperatorService.fetchOperatorsByPlant(plant)
-            .then(setOperators)
+        if (!plants?.length) return
+        Promise.all(plants.map((p) => OperatorService.fetchOperatorsByPlant(p.plant_code)))
+            .then((results) => setOperators(results.flat()))
             .catch(() => {})
-    }, [plant])
+    }, [plants])
     const operatorMap = useMemo(() => {
         const map = {}
         operators.forEach((op) => {
@@ -60,19 +58,27 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
         })
         return map
     }, [operators])
-    const plantMixers = useMemo(
-        () =>
-            mixers
-                .filter(
-                    (m) =>
-                        String(m.assignedPlant).toUpperCase() === String(plant).toUpperCase() &&
-                        String(m.status).toLowerCase() !== 'retired'
-                )
-                .sort((a, b) =>
-                    String(a.truckNumber).localeCompare(String(b.truckNumber), undefined, { numeric: true })
-                ),
-        [mixers, plant]
-    )
+    const regionalMixers = useMemo(() => {
+        const plantCodes = new Set((plants || []).map((p) => String(p.plant_code).toUpperCase()))
+        let filtered = mixers.filter(
+            (m) => plantCodes.has(String(m.assignedPlant).toUpperCase()) && String(m.status).toLowerCase() !== 'retired'
+        )
+        if (truckSearch.trim()) {
+            const q = truckSearch.toLowerCase()
+            filtered = filtered.filter((m) => {
+                const num = String(m.truckNumber || '').toLowerCase()
+                const opName = (operatorMap[m.assignedOperator] || '').toLowerCase()
+                const plantCode = String(m.assignedPlant || '').toLowerCase()
+                return num.includes(q) || opName.includes(q) || plantCode.includes(q)
+            })
+        }
+        return filtered.sort((a, b) => {
+            const aHasOp = operatorMap[a.assignedOperator] ? 0 : 1
+            const bHasOp = operatorMap[b.assignedOperator] ? 0 : 1
+            if (aHasOp !== bHasOp) return aHasOp - bHasOp
+            return String(a.truckNumber).localeCompare(String(b.truckNumber), undefined, { numeric: true })
+        })
+    }, [mixers, plants, operatorMap, truckSearch])
     const handleSubmit = async () => {
         if (!plant || !yardage || !truckNumber.trim() || !reason) {
             setError('Please fill out all fields.')
@@ -160,8 +166,6 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                             value={plant}
                             onChange={(e) => {
                                 setPlant(e.target.value)
-                                setTruckNumber('')
-                                setTruckPickerOpen(false)
                             }}
                             className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
                         >
@@ -190,9 +194,8 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         </label>
                         <button
                             type="button"
-                            disabled={!plant}
                             onClick={() => setTruckPickerOpen((v) => !v)}
-                            className="flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-left disabled:bg-slate-50 disabled:text-slate-400 transition-colors hover:border-slate-300"
+                            className="flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-left transition-colors hover:border-slate-300"
                         >
                             {truckNumber ? (
                                 <span className="flex items-center gap-2 text-slate-800">
@@ -204,27 +207,35 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                     </span>
                                     <span className="text-slate-600">
                                         {operatorMap[
-                                            plantMixers.find((m) => m.truckNumber === truckNumber)?.assignedOperator
+                                            regionalMixers.find((m) => m.truckNumber === truckNumber)?.assignedOperator
                                         ] || 'Unassigned'}
                                     </span>
                                 </span>
                             ) : (
-                                <span className="text-slate-400">
-                                    {plant ? 'Select truck...' : 'Select a plant first'}
-                                </span>
+                                <span className="text-slate-400">Select truck...</span>
                             )}
                             <i className={`fas fa-chevron-${truckPickerOpen ? 'up' : 'down'} text-xs text-slate-400`} />
                         </button>
-                        {truckPickerOpen && plant && (
+                        {truckPickerOpen && (
                             <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-md">
-                                {plantMixers.length === 0 ? (
+                                <div className="p-2 border-b border-slate-100">
+                                    <input
+                                        type="text"
+                                        value={truckSearch}
+                                        onChange={(e) => setTruckSearch(e.target.value)}
+                                        placeholder="Search truck #, operator, or plant..."
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none"
+                                        autoFocus
+                                    />
+                                </div>
+                                {regionalMixers.length === 0 ? (
                                     <div className="px-4 py-5 text-center text-sm text-slate-400">
                                         <i className="fas fa-truck mb-2 text-lg block" />
-                                        No active mixers at this plant
+                                        No mixers found
                                     </div>
                                 ) : (
                                     <div className="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                                        {plantMixers.map((m) => {
+                                        {regionalMixers.map((m) => {
                                             const opName = operatorMap[m.assignedOperator] || null
                                             const isSelected = truckNumber === m.truckNumber
                                             return (
@@ -234,6 +245,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                                     onClick={() => {
                                                         setTruckNumber(m.truckNumber)
                                                         setTruckPickerOpen(false)
+                                                        setTruckSearch('')
                                                     }}
                                                     className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
                                                     style={isSelected ? { backgroundColor: `${accentColor}08` } : {}}
@@ -256,6 +268,9 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                                                 Unassigned
                                                             </span>
                                                         )}
+                                                    </span>
+                                                    <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">
+                                                        {m.assignedPlant || '-'}
                                                     </span>
                                                     {isSelected && (
                                                         <i

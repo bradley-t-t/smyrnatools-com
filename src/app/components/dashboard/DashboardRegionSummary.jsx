@@ -1,6 +1,7 @@
-import React, { memo } from 'react'
+import React, { memo, useMemo } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
+import { buildRegionChatContext, useDashboardChat } from '../../hooks/useDashboardChat'
 /** Skeleton pulse block. */
 const Skeleton = ({ className = '', style }) => (
     <div className={`bg-slate-200 rounded-lg animate-pulse ${className}`} style={style} />
@@ -192,9 +193,17 @@ const getAssetViewType = (assetType) => {
     return viewMap[assetType] || 'equipment'
 }
 /** AI chat bubble. */
-const AIChatBubble = ({ children, accentColor }) => (
-    <div className="flex justify-start" style={{ animation: 'fadeSlideIn 0.3s ease both' }}>
-        <div className="rounded-xl rounded-tl-sm px-3.5 py-2.5 max-w-[95%] text-[13px] leading-relaxed bg-slate-50 text-slate-700">
+const AIChatBubble = ({ children, isAI = true, accentColor }) => (
+    <div
+        className={`flex ${isAI ? 'justify-start' : 'justify-end'}`}
+        style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+    >
+        <div
+            className={`rounded-xl px-3.5 py-2.5 max-w-[95%] text-[13px] leading-relaxed ${
+                isAI ? 'bg-slate-50 text-slate-700 rounded-tl-sm' : 'text-white rounded-tr-sm'
+            }`}
+            style={!isAI ? { background: accentColor } : undefined}
+        >
             {children}
         </div>
     </div>
@@ -211,7 +220,8 @@ const AnalysisPane = ({
     handleRegenerateAISummary,
     userRoleName,
     regionDisplayName,
-    accentColor
+    accentColor,
+    chat
 }) => (
     <div className="flex flex-col">
         <div
@@ -292,6 +302,57 @@ const AnalysisPane = ({
                 </AIChatBubble>
             )}
         </div>
+
+        {/* Chat */}
+        {!aiSummaryLoading && chat && (
+            <div className="border-t border-slate-200">
+                {chat.chatMessages.length > 0 && (
+                    <div className="px-4 pt-3 flex flex-col gap-2 max-h-48 overflow-y-auto">
+                        {chat.chatMessages.map((msg, i) => (
+                            <AIChatBubble key={i} isAI={msg.role === 'assistant'} accentColor={accentColor}>
+                                {msg.content}
+                            </AIChatBubble>
+                        ))}
+                        {chat.isChatLoading && (
+                            <AIChatBubble isAI accentColor={accentColor}>
+                                <div className="flex items-center gap-2 text-slate-500">
+                                    <i className="fas fa-circle-notch fa-spin text-xs" />
+                                    <span>Thinking...</span>
+                                </div>
+                            </AIChatBubble>
+                        )}
+                    </div>
+                )}
+                <div className="px-4 py-3 flex gap-2">
+                    <input
+                        type="text"
+                        value={chat.chatInput}
+                        onChange={(e) => chat.setChatInput(e.target.value)}
+                        onFocus={() => chat.setIsChatFocused(true)}
+                        onBlur={() => chat.setIsChatFocused(false)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && chat.sendMessage()}
+                        placeholder={
+                            chat.atLimit ? 'Daily limit reached' : `Ask a follow-up... (${chat.remainingMessages} left)`
+                        }
+                        disabled={chat.atLimit || chat.isChatLoading}
+                        className="flex-1 text-[13px] border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-slate-400 transition-colors"
+                    />
+                    <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={chat.sendMessage}
+                        disabled={chat.atLimit || !chat.chatInput.trim() || chat.isChatLoading}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={
+                            chat.chatInput.trim() && !chat.atLimit
+                                ? { background: accentColor, borderColor: accentColor, color: 'white' }
+                                : undefined
+                        }
+                    >
+                        <i className="fas fa-paper-plane text-[10px]" />
+                    </button>
+                </div>
+            </div>
+        )}
     </div>
 )
 const DashboardRegionSummary = memo(function DashboardRegionSummary({
@@ -314,10 +375,17 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
     aiSummaryFailed,
     aiSummary,
     handleRegenerateAISummary,
-    userRoleName
+    userRoleName,
+    domainData
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
+    const chatContext = useMemo(
+        () => buildRegionChatContext({ aiSummary, displayStats, plantNotifications, regionDisplayName, userRoleName }),
+        [aiSummary, displayStats, plantNotifications, regionDisplayName, userRoleName]
+    )
+    const chat = useDashboardChat(chatContext, domainData)
+    const isChatExpanded = (chat.isChatFocused || chat.isChatLoading) && !isMobile
     const hasNotifications =
         plantNotifications.unverifiedMixers.length > 0 ||
         plantNotifications.pendingOperators.length > 0 ||
@@ -459,7 +527,18 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                 {/* Left pane — Issues */}
                 <div
                     className={`${isMobile ? 'p-4' : 'px-5 py-4'} ${!isMobile && (hasAI || isDataLoading) ? 'border-r border-slate-200' : ''}`}
-                    style={!isMobile ? { flex: hasAI || isDataLoading ? '0 0 60%' : '1 1 100%' } : undefined}
+                    style={
+                        !isMobile
+                            ? {
+                                  flex: isChatExpanded ? '0 0 0%' : hasAI || isDataLoading ? '0 0 60%' : '1 1 100%',
+                                  opacity: isChatExpanded ? 0 : 1,
+                                  overflow: 'hidden',
+                                  maxHeight: isChatExpanded ? 0 : 1000,
+                                  padding: isChatExpanded ? 0 : undefined,
+                                  transition: 'all 0.5s ease'
+                              }
+                            : undefined
+                    }
                 >
                     {isDataLoading ? (
                         <ContentSkeleton />
@@ -631,11 +710,25 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                 </div>
                 {/* Right pane — Analysis */}
                 {isDataLoading ? (
-                    <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                    <div
+                        className="bg-white"
+                        style={
+                            !isMobile
+                                ? { flex: isChatExpanded ? '1 1 100%' : '0 0 40%', transition: 'all 0.5s ease' }
+                                : undefined
+                        }
+                    >
                         <AISkeleton accentColor={accentColor} />
                     </div>
                 ) : hasAI || isDataLoading ? (
-                    <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                    <div
+                        className="bg-white"
+                        style={
+                            !isMobile
+                                ? { flex: isChatExpanded ? '1 1 100%' : '0 0 40%', transition: 'all 0.5s ease' }
+                                : undefined
+                        }
+                    >
                         <AnalysisPane
                             aiSummaryLoading={aiSummaryLoading}
                             aiSummaryFailed={aiSummaryFailed}
@@ -648,6 +741,7 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                             userRoleName={userRoleName}
                             regionDisplayName={regionDisplayName}
                             accentColor={accentColor}
+                            chat={chat}
                         />
                     </div>
                 ) : null}

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useTransition } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DashboardCharts from '../../app/components/dashboard/DashboardCharts'
@@ -13,6 +13,7 @@ import PeopleSection from '../../app/components/dashboard/PeopleSection'
 import { DashboardCard, SectionTitle } from '../../app/components/ui/DashboardCards'
 import { INITIAL_EXPANDED_SECTIONS } from '../../app/constants/dashboardConstants'
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { buildFleetDomain, buildIssueDomain, buildOperatorDomain } from '../../app/hooks/useDashboardChat'
 import { useDashboardAssets, useIssueCommentCounts, usePlantFilter } from '../../app/hooks/useDashboardData'
 import { useAITypingEffect, useAnimatedStats, useDateFilter } from '../../app/hooks/useDashboardEffects'
 import { useDashboardInit } from '../../app/hooks/useDashboardInit'
@@ -278,6 +279,27 @@ export default function DashboardView() {
         'trainerPlant'
     )
     const filteredLightDutyOperators = filterByPlantSet(lightDutyOperators, activePlantSetRef.current, 'plant')
+    const domainData = useMemo(() => {
+        if (!dataReady) return null
+        const plantSet = activePlantSetRef.current
+        const inScope = (a) => !plantSet || plantSet.size === 0 || plantSet.has(a.plantCode)
+        return {
+            fleet: buildFleetDomain(
+                (allMixersRef.current || []).filter(inScope),
+                (allTractorsRef.current || []).filter(inScope),
+                (allTrailersRef.current || []).filter(inScope),
+                (allEquipmentRef.current || []).filter(inScope)
+            ),
+            operators: buildOperatorDomain(
+                (allOperatorsRef.current || []).filter(inScope),
+                filteredTrainingOperators,
+                filteredPendingStartOperators,
+                filteredLightDutyOperators
+            ),
+            issues: buildIssueDomain(assetIssueDetails)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dataReady, dashboardPlant, dashboardRegionCode, stats.fleetTotal])
     const revealClass = (direction, delay) => (revealContent ? `dash-reveal-${direction}` : '')
     const revealStyle = (delay) => (revealContent ? { animationDelay: `${delay}ms` } : undefined)
     return (
@@ -337,6 +359,7 @@ export default function DashboardView() {
                             userPlantCode={userPlantCode}
                             isPlantManager={isPlantManager}
                             isMobile={isMobile}
+                            domainData={domainData}
                         />
                     </div>
                 )}
@@ -363,6 +386,7 @@ export default function DashboardView() {
                             aiSummary={regionalAI.aiSummary}
                             handleRegenerateAISummary={handleRegenerateRegionalAI}
                             userRoleName={userRoleName}
+                            domainData={domainData}
                         />
                     </div>
                 )}

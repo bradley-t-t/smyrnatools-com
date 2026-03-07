@@ -1,6 +1,7 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo, useEffect, useMemo, useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
+import { buildPlantChatContext, useDashboardChat } from '../../hooks/useDashboardChat'
 
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
 
@@ -233,7 +234,8 @@ const AICopilotPane = ({
     userPlantCode,
     isPlantManager,
     dashboardPlant,
-    accentColor
+    accentColor,
+    chat
 }) => (
     <div className="flex flex-col">
         {/* Header */}
@@ -324,6 +326,57 @@ const AICopilotPane = ({
                 </AIChatBubble>
             )}
         </div>
+
+        {/* Chat */}
+        {!aiSummaryLoading && chat && (
+            <div className="border-t border-slate-200">
+                {chat.chatMessages.length > 0 && (
+                    <div className="px-4 pt-3 flex flex-col gap-2 max-h-48 overflow-y-auto">
+                        {chat.chatMessages.map((msg, i) => (
+                            <AIChatBubble key={i} isAI={msg.role === 'assistant'} accentColor={accentColor}>
+                                {msg.content}
+                            </AIChatBubble>
+                        ))}
+                        {chat.isChatLoading && (
+                            <AIChatBubble isAI accentColor={accentColor}>
+                                <div className="flex items-center gap-2 text-slate-500">
+                                    <i className="fas fa-circle-notch fa-spin text-xs" />
+                                    <span>Thinking...</span>
+                                </div>
+                            </AIChatBubble>
+                        )}
+                    </div>
+                )}
+                <div className="px-4 py-3 flex gap-2">
+                    <input
+                        type="text"
+                        value={chat.chatInput}
+                        onChange={(e) => chat.setChatInput(e.target.value)}
+                        onFocus={() => chat.setIsChatFocused(true)}
+                        onBlur={() => chat.setIsChatFocused(false)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && chat.sendMessage()}
+                        placeholder={
+                            chat.atLimit ? 'Daily limit reached' : `Ask a follow-up... (${chat.remainingMessages} left)`
+                        }
+                        disabled={chat.atLimit || chat.isChatLoading}
+                        className="flex-1 text-[13px] border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-slate-400 transition-colors"
+                    />
+                    <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={chat.sendMessage}
+                        disabled={chat.atLimit || !chat.chatInput.trim() || chat.isChatLoading}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 text-slate-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={
+                            chat.chatInput.trim() && !chat.atLimit
+                                ? { background: accentColor, borderColor: accentColor, color: 'white' }
+                                : undefined
+                        }
+                    >
+                        <i className="fas fa-paper-plane text-[10px]" />
+                    </button>
+                </div>
+            </div>
+        )}
     </div>
 )
 
@@ -509,7 +562,8 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     userRoleName,
     userPlantCode,
     isPlantManager,
-    isMobile
+    isMobile,
+    domainData
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -537,6 +591,20 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         plantNotifications.longTermShopAssets.length
 
     const { leaderboardMetrics, aiSummary, aiSummaryLoading, aiSummaryFailed, shopIssue } = plantNotifications
+    const chatContext = useMemo(
+        () =>
+            buildPlantChatContext({
+                aiSummary,
+                dashboardPlant,
+                isPlantManager,
+                plantNotifications,
+                userPlantCode,
+                userRoleName
+            }),
+        [aiSummary, dashboardPlant, isPlantManager, plantNotifications, userPlantCode, userRoleName]
+    )
+    const chat = useDashboardChat(chatContext, domainData)
+    const isChatExpanded = (chat.isChatFocused || chat.isChatLoading) && !isMobile
     const toggleMinimized = () => setIsMinimized(!isMinimized)
 
     // Determine loading state: no metrics loaded yet and no notifications computed
@@ -677,7 +745,22 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                         {/* Left pane — Alerts & Operators */}
                         <div
                             className={`${isMobile ? 'p-4' : 'px-5 py-4'} ${!isMobile && (hasAI || isDataLoading) ? 'border-r border-slate-200' : ''}`}
-                            style={!isMobile ? { flex: hasAI || isDataLoading ? '0 0 60%' : '1 1 100%' } : undefined}
+                            style={
+                                !isMobile
+                                    ? {
+                                          flex: isChatExpanded
+                                              ? '0 0 0%'
+                                              : hasAI || isDataLoading
+                                                ? '0 0 60%'
+                                                : '1 1 100%',
+                                          opacity: isChatExpanded ? 0 : 1,
+                                          overflow: 'hidden',
+                                          maxHeight: isChatExpanded ? 0 : 1000,
+                                          padding: isChatExpanded ? 0 : undefined,
+                                          transition: 'all 0.5s ease'
+                                      }
+                                    : undefined
+                            }
                         >
                             {isDataLoading ? (
                                 <AlertsSkeleton />
@@ -712,11 +795,25 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
 
                         {/* Right pane — Analysis */}
                         {isDataLoading ? (
-                            <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                            <div
+                                className="bg-white"
+                                style={
+                                    !isMobile
+                                        ? { flex: isChatExpanded ? '1 1 100%' : '0 0 40%', transition: 'all 0.5s ease' }
+                                        : undefined
+                                }
+                            >
                                 <AISkeleton accentColor={accentColor} />
                             </div>
                         ) : hasAI ? (
-                            <div className="bg-white" style={!isMobile ? { flex: '0 0 40%' } : undefined}>
+                            <div
+                                className="bg-white"
+                                style={
+                                    !isMobile
+                                        ? { flex: isChatExpanded ? '1 1 100%' : '0 0 40%', transition: 'all 0.5s ease' }
+                                        : undefined
+                                }
+                            >
                                 <AICopilotPane
                                     aiSummaryLoading={aiSummaryLoading}
                                     aiSummaryFailed={aiSummaryFailed}
@@ -731,6 +828,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                     isPlantManager={isPlantManager}
                                     dashboardPlant={dashboardPlant}
                                     accentColor={accentColor}
+                                    chat={chat}
                                 />
                             </div>
                         ) : null}

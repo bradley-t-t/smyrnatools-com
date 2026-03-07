@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from 'react'
+import React, { memo, useRef, useState } from 'react'
 
 import vid1 from '../../../assets/videos/1.mp4'
 import vid2 from '../../../assets/videos/2.mp4'
@@ -17,12 +17,11 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
     const [currentVideoIndex] = useState(() => Math.floor(Math.random() * BACKGROUND_VIDEOS.length))
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
+    const hasStartedRef = useRef(false)
     const accentColor = useAccentColor()
-    useEffect(() => {
-        videoRef.current?.load()
-    }, [currentVideoIndex])
     const handleCanPlay = () => {
-        if (!videoRef.current) return
+        if (!videoRef.current || hasStartedRef.current) return
+        hasStartedRef.current = true
         videoRef.current.currentTime = 5
         videoRef.current
             .play()
@@ -37,6 +36,7 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
             />
             <video
                 ref={videoRef}
+                autoPlay
                 muted
                 loop
                 playsInline

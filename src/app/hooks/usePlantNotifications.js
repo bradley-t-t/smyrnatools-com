@@ -242,14 +242,36 @@ export function useLeaderboardMetrics({
                     safetyReports || [],
                     plantCodesInRegion
                 )
+                const allMixers = allMixersRef.current || []
+                const allTractors = allTractorsRef.current || []
+                const allTrailers = allTrailersRef.current || []
+                const allEquipment = allEquipmentRef.current || []
+                const allOperatorsFull = allOperatorsFullRef.current || []
                 const fleetCountsByPlant = LeaderboardsUtility.calculateFleetCounts(
                     plantCodesInRegion,
-                    allMixersRef.current || [],
-                    allTractorsRef.current || [],
-                    allTrailersRef.current || [],
-                    allEquipmentRef.current || [],
-                    allOperatorsFullRef.current || []
+                    allMixers,
+                    allTractors,
+                    allTrailers,
+                    allEquipment,
+                    allOperatorsFull
                 )
+                // Build per-plant fleet status breakdowns for AI chat context
+                const getPlant = (item) =>
+                    item.assignedPlant || item.assigned_plant || item.plantCode || item.plant_code
+                const statusCount = (items, plant, status) =>
+                    items.filter((i) => getPlant(i) === plant && i.status === status && i.status !== 'Retired').length
+                const fleetStatusByPlant = {}
+                plantCodesInRegion.forEach((pc) => {
+                    fleetStatusByPlant[pc] = {
+                        mixersActive: statusCount(allMixers, pc, 'Active'),
+                        mixersInShop: statusCount(allMixers, pc, 'In Shop'),
+                        mixersSpare: statusCount(allMixers, pc, 'Spare'),
+                        tractorsActive: statusCount(allTractors, pc, 'Active'),
+                        tractorsInShop: statusCount(allTractors, pc, 'In Shop'),
+                        trailersActive: statusCount(allTrailers, pc, 'Active'),
+                        trailersInShop: statusCount(allTrailers, pc, 'In Shop')
+                    }
+                })
                 const now = new Date()
                 const currentWeekStart = new Date(now)
                 currentWeekStart.setDate(now.getDate() - now.getDay())
@@ -302,8 +324,28 @@ export function useLeaderboardMetrics({
                 const plantRank = sortedByEfficiency.findIndex((p) => p.plantCode === dashboardPlant) + 1
                 const plantMetrics = sortedByEfficiency.find((p) => p.plantCode === dashboardPlant)
                 if (cancelled || !plantMetrics) return
+                const allPlantRankings = sortedByEfficiency.map((p, idx) => ({
+                    adjustedYPH: p.avgYPH,
+                    avgCleanliness: p.avgFleetCleanliness || 0,
+                    efficiency: p.avgEfficiency,
+                    fleet: fleetStatusByPlant[p.plantCode] || null,
+                    helpGiven: p.helpGiven,
+                    helpReceived: p.helpReceived,
+                    loadsPerOperatorPerDay: p.loadsPerOperatorPerDay,
+                    mixers: p.mixers || 0,
+                    netHelp: p.netHelp,
+                    operators: p.operators || 0,
+                    plantCode: p.plantCode,
+                    rank: idx + 1,
+                    rawYPH: p.rawYPH,
+                    safetyIncidents: p.safetyReportsCount || 0,
+                    totalAssets: p.totalAssets || 0,
+                    tractors: p.tractors || 0,
+                    trailers: p.trailers || 0
+                }))
                 setPlantNotifications((prev) => ({
                     ...prev,
+                    allPlantRankings,
                     leaderboardMetrics: {
                         adjustedYPH: plantMetrics.avgYPH,
                         avgCleanliness: plantMetrics.avgFleetCleanliness || 0,
@@ -476,16 +518,25 @@ export function useRegionalAISummary({
     userRoleWeight
 }) {
     const [forceRegenerate, setForceRegenerate] = useState(0)
+    const regionCacheKey = `region_${regionDisplayName}`
     const handleRegenerateRegionalAI = useCallback(() => {
+        DashboardUtility.clearAISummaryCache(regionCacheKey)
         setRegionalAI({ aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false })
         setForceRegenerate((prev) => prev + 1)
-    }, [setRegionalAI])
+    }, [regionCacheKey, setRegionalAI])
     useEffect(() => {
         // Only run in regional mode (no specific plant selected)
         if (dashboardPlant) return
         if (!dataReady) return
         // Need at least some stats loaded
         if (!displayStats || displayStats.fleetTotal === 0) return
+        if (forceRegenerate === 0) {
+            const cachedSummary = DashboardUtility.getAISummaryFromCache(regionCacheKey)
+            if (cachedSummary) {
+                setRegionalAI({ aiSummary: cachedSummary, aiSummaryFailed: false, aiSummaryLoading: false })
+                return
+            }
+        }
         let cancelled = false
         let failTimer
         async function generate() {
@@ -500,6 +551,7 @@ export function useRegionalAISummary({
                 })
                 if (cancelled) return
                 if (summary) {
+                    DashboardUtility.setAISummaryToCache(regionCacheKey, summary)
                     setRegionalAI({ aiSummary: summary, aiSummaryFailed: false, aiSummaryLoading: false })
                 } else {
                     setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
