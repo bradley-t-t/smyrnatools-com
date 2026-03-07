@@ -1,10 +1,15 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 
+import Modal from '../../app/components/common/Modal'
+import { ModalBody } from '../../app/components/common/Modal'
 import TopSection from '../../app/components/sections/TopSection'
-import { usePreferences } from '../../app/context/PreferencesContext'
+import { useAccentColor } from '../../app/hooks/useAccentColor'
 import { useDocumentsData } from '../../app/hooks/useDocumentsData'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { usePagination } from '../../app/hooks/usePagination'
+import { FormatUtility } from '../../utils/FormatUtility'
+
+/** Icon class mapping for each document file type. */
 const FILE_TYPE_ICONS = {
     document: 'fa-file-word',
     image: 'fa-file-image',
@@ -15,6 +20,7 @@ const FILE_TYPE_ICONS = {
     text: 'fa-file-alt',
     video: 'fa-file-video'
 }
+/** Accent color per file type for icon backgrounds and badges. */
 const FILE_TYPE_COLORS = {
     document: '#2563eb',
     image: '#8b5cf6',
@@ -25,6 +31,7 @@ const FILE_TYPE_COLORS = {
     text: '#64748b',
     video: '#7c3aed'
 }
+/** Options shown in the file-type dropdown filter. */
 const TYPE_FILTER_OPTIONS = [
     'All Types',
     'pdf',
@@ -36,69 +43,61 @@ const TYPE_FILTER_OPTIONS = [
     'text',
     'other'
 ]
+/** File types that support inline preview (PDF viewer, image tag, video player). */
+const PREVIEWABLE_TYPES = new Set(['pdf', 'image', 'video'])
+
+/**
+ * Formats a byte count into a human-readable size string (e.g. "2.4 MB").
+ * @param {number} bytes
+ * @returns {string}
+ */
 function formatFileSize(bytes) {
     if (!bytes || bytes === 0) return '0 B'
     const units = ['B', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(1024))
     return `${(bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0)} ${units[i]}`
 }
-function formatDate(dateStr) {
-    if (!dateStr) return ''
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-function canPreview(fileType) {
-    return ['pdf', 'image', 'video'].includes(fileType)
-}
+
+/**
+ * Full-screen modal for previewing PDFs, images, and videos inline.
+ * Uses the shared Modal component for consistent header/close behavior.
+ */
 function PreviewModal({ doc, onClose }) {
-    const type = doc.file_type
     return (
-        <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
-        >
-            <div
-                className="bg-white rounded-2xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
-                    <span className="text-sm font-semibold text-slate-800 truncate">{doc.name}</span>
-                    <button
-                        onClick={onClose}
-                        className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 border-none cursor-pointer hover:bg-slate-200 transition-colors"
-                    >
-                        <i className="fas fa-times text-sm" />
-                    </button>
-                </div>
-                <div className="flex-1 overflow-auto p-4 flex items-center justify-center min-h-[300px]">
-                    {type === 'pdf' && (
+        <Modal title={doc.name} titleIcon="fas fa-eye" onClose={onClose}>
+            <ModalBody>
+                <div className="flex items-center justify-center min-h-[300px]">
+                    {doc.file_type === 'pdf' && (
                         <iframe
                             src={doc.file_path}
                             className="w-full h-[75vh] border-none rounded-lg"
                             title={doc.name}
                         />
                     )}
-                    {type === 'image' && (
+                    {doc.file_type === 'image' && (
                         <img
                             src={doc.file_path}
                             alt={doc.name}
                             className="max-w-full max-h-[75vh] rounded-lg object-contain"
                         />
                     )}
-                    {type === 'video' && (
+                    {doc.file_type === 'video' && (
                         <video src={doc.file_path} controls className="max-w-full max-h-[75vh] rounded-lg">
                             Your browser does not support video playback.
                         </video>
                     )}
                 </div>
-            </div>
-        </div>
+            </ModalBody>
+        </Modal>
     )
 }
-function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPreview, isMobile }) {
+
+/** Single document row — adapts layout for mobile (stacked) vs desktop (grid). */
+function DocumentRow({ doc, uploaderName, canDelete, onDelete, onPreview, isMobile }) {
     const icon = FILE_TYPE_ICONS[doc.file_type] || FILE_TYPE_ICONS.other
     const color = FILE_TYPE_COLORS[doc.file_type] || FILE_TYPE_COLORS.other
-    const previewable = canPreview(doc.file_type)
+    const previewable = PREVIEWABLE_TYPES.has(doc.file_type)
+
     if (isMobile) {
         return (
             <div className="flex items-start gap-3 px-4 py-3.5 border-b border-slate-100 last:border-b-0">
@@ -111,7 +110,7 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
                 <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-slate-800 truncate">{doc.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">
-                        {formatFileSize(doc.file_size)} &middot; {formatDate(doc.created_at)}
+                        {formatFileSize(doc.file_size)} &middot; {FormatUtility.formatDate(doc.created_at)}
                         {uploaderName ? ` \u00b7 ${uploaderName}` : ''}
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -148,6 +147,7 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
             </div>
         )
     }
+
     return (
         <div className="grid grid-cols-[1fr_100px_120px_160px_140px] items-center px-4 lg:px-7 py-3.5 border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50 transition-colors">
             <div className="flex items-center gap-3 min-w-0">
@@ -160,7 +160,7 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
                 <span className="text-sm font-medium text-slate-800 truncate">{doc.name}</span>
             </div>
             <div className="text-xs text-slate-500">{formatFileSize(doc.file_size)}</div>
-            <div className="text-xs text-slate-500">{formatDate(doc.created_at)}</div>
+            <div className="text-xs text-slate-500">{FormatUtility.formatDate(doc.created_at)}</div>
             <div className="text-xs text-slate-500 truncate">{uploaderName || '\u2014'}</div>
             <div className="flex items-center justify-end gap-1.5">
                 {previewable && (
@@ -195,6 +195,8 @@ function DocumentRow({ doc, uploaderName, accentColor, canDelete, onDelete, onPr
         </div>
     )
 }
+
+/** Shimmer skeleton shown while documents are loading. */
 function DocumentsSkeleton() {
     return Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-4 lg:px-7 py-4 border-b border-slate-100 animate-pulse">
@@ -206,6 +208,8 @@ function DocumentsSkeleton() {
         </div>
     ))
 }
+
+/** Placeholder shown when no documents match the current filters. */
 function EmptyState({ canUpload, onUpload, accentColor }) {
     return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -232,6 +236,8 @@ function EmptyState({ canUpload, onUpload, accentColor }) {
         </div>
     )
 }
+
+/** Page-size selector and prev/next navigation for paginated document lists. */
 function Pagination({ currentPage, totalPages, pageSize, onPageSizeChange, onPageChange }) {
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-slate-50">
@@ -278,18 +284,26 @@ function Pagination({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     )
 }
+
+/**
+ * Document library view. Displays uploaded files in a searchable, filterable
+ * table with file-type icons, pagination, inline preview for PDFs/images/videos,
+ * and role-gated upload/delete capabilities via useDocumentsData.
+ */
 export default function DocumentsView() {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
+    const accentColor = useAccentColor()
     const isMobile = useIsMobile()
     const { canUpload, deleteDocument, documents, error, loading, profiles, uploadFile, uploading } = useDocumentsData()
+
     const [searchInput, setSearchInput] = useState('')
     const [typeFilter, setTypeFilter] = useState('')
     const [previewDoc, setPreviewDoc] = useState(null)
     const fileInputRef = useRef(null)
+
     const handleUploadClick = useCallback(() => {
         fileInputRef.current?.click()
     }, [])
+
     const handleFileChange = useCallback(
         (e) => {
             const file = e.target.files?.[0]
@@ -298,12 +312,14 @@ export default function DocumentsView() {
         },
         [uploadFile]
     )
+
     const handleDelete = useCallback(
         (doc) => {
             if (window.confirm(`Delete "${doc.name}"?`)) deleteDocument(doc)
         },
         [deleteDocument]
     )
+
     const searchLower = searchInput.toLowerCase().trim()
     const filtered = useMemo(() => {
         let result = documents
@@ -311,11 +327,14 @@ export default function DocumentsView() {
         if (searchLower) result = result.filter((d) => d.name.toLowerCase().includes(searchLower))
         return result
     }, [documents, typeFilter, searchLower])
+
     const { paginatedItems, currentPage, totalPages, pageSize, changePageSize, goToPage } = usePagination({
         initialPageSize: 25,
         items: filtered,
         resetDependencies: [searchInput, typeFilter]
     })
+
+    /** File-type dropdown rendered inside TopSection's custom filter slot. */
     const typeFilterSelect = (
         <select
             className="appearance-none bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm cursor-pointer min-w-[140px] py-3 pl-4 pr-10 bg-no-repeat"
@@ -335,6 +354,7 @@ export default function DocumentsView() {
             ))}
         </select>
     )
+
     return (
         <div className="bg-slate-50 min-h-screen w-full pb-16">
             <TopSection
@@ -395,7 +415,6 @@ export default function DocumentsView() {
                                     key={doc.id}
                                     doc={doc}
                                     uploaderName={profiles[doc.uploaded_by]}
-                                    accentColor={accentColor}
                                     canDelete={canUpload}
                                     onDelete={handleDelete}
                                     onPreview={setPreviewDoc}
