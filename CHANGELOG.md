@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.3] - 2026-03-07
+
+- Updated project documentation in README.md to reflect the latest features and usage instructions.
+- Adjusted dependencies in package.json to ensure compatibility with the latest libraries and tools.
+
 ## [25.2] - 2026-03-07
 
 - Updated the navigation component to improve user experience with better link organization.
