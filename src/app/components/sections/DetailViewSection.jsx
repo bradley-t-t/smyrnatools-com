@@ -92,10 +92,10 @@ function DetailViewSection({
 .form-sections { display: flex; flex-direction: column; gap: 1.5rem; }
 .form-section { }
 .form-section h3 { font-size: 0.9375rem; font-weight: 600; color: ${accent}; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid ${accent}; }
-.form-group { margin-bottom: 1.25rem; }
+.form-group { margin-bottom: 1.25rem; overflow: hidden; }
 .form-group:last-child { margin-bottom: 0; }
 .form-group label { display: block; font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.02em; }
-.form-control { width: 100%; padding: 0.875rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; transition: all 0.2s; }
+.form-control { width: 100%; max-width: 100%; padding: 0.875rem 1rem; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 0.9375rem; color: #1e293b; background: white; box-sizing: border-box; transition: all 0.2s; }
 .form-control:focus { outline: none; border-color: ${accent}; box-shadow: 0 0 0 3px ${accent}15; }
 .form-control:disabled, .form-control[readonly] { background: #f8fafc; color: #64748b; cursor: not-allowed; border-color: #e5e7eb; }
 select.form-control { appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1rem 1rem; padding-right: 2.75rem; cursor: pointer; }
@@ -147,7 +147,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
 .toggle-text { font-size: 0.9375rem; font-weight: 500; color: #1e293b; }
 .error-message { padding: 1rem; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #dc2626; font-size: 0.875rem; }
 .error-text { color: #dc2626; font-size: 0.875rem; }
-.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; }
+.form-row { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+@media (min-width: 480px) { .form-row { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); } }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
 @media (max-width: 640px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }

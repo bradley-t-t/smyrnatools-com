@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.6] - 2026-03-07
+
+- Added `max-width: 100%` to input, textarea, and select elements in the AddViewSection component to ensure they don't overflow their containers.
+- Improved form layout responsiveness in DetailViewSection by setting the default grid layout for `.form-row` to a single column and using a media query to switch to multi-column layout only on screens wider than 480px.
+- Added `overflow: hidden` to `.form-group` in DetailViewSection to prevent content from spilling out.
+- Added `max-width: 100%` to `.form-control` elements in DetailViewSection for better width control.
+- Updated the deadline input field in ListAddView to include `max-w-full` and `box-border` classes for consistent width handling.
+
 ## [25.5] - 2026-03-07
 
 - Improved responsiveness in AddViewSection by adjusting the form layout to a single column on smaller screens (below 480px) and reducing padding and spacing for a better mobile experience.

@@ -328,6 +328,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 .add-view-form input[type="datetime-local"],
                 .add-view-form textarea {
                     width: 100%;
+                    max-width: 100%;
                     padding: 0.75rem 1rem;
                     border: 1px solid #cbd5e1;
                     border-radius: 12px;
@@ -345,6 +346,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 }
                 .add-view-form select {
                     width: 100%;
+                    max-width: 100%;
                     padding: 0.75rem 2.5rem 0.75rem 1rem;
                     border: 1px solid #cbd5e1;
                     border-radius: 12px;

@@ -351,7 +351,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 <input
                                     id="deadline"
                                     type="datetime-local"
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full max-w-full box-border px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={deadline}
                                     onChange={(e) => setDeadline(e.target.value)}
                                     required
