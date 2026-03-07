@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
@@ -15,6 +15,14 @@ const CALCULATOR_TYPES = [
     { icon: 'fa-tint', id: 'water-cement', name: 'W/C Ratio' },
     { icon: 'fa-clock', id: 'set-time', name: 'Set Time' }
 ]
+/** Subtle grid overlay for the header background, tinted to the user's accent color. */
+const GRID_PATTERN_STYLE = (accentColor) => ({
+    backgroundImage: `
+        linear-gradient(${accentColor}10 1px, transparent 1px),
+        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px)
+    `,
+    backgroundSize: '20px 20px'
+})
 /**
  * Main calculator hub view. Renders a tab bar for switching between concrete
  * industry calculators (Yd/Hr, Overweight Fix, Slump, W/C Ratio, Set Time).
@@ -24,89 +32,22 @@ const CalculatorView = () => {
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [selectedCalculator, setSelectedCalculator] = useState('yardage-hour')
     const isMobile = useIsMobile()
-    const styles = {
-        comingSoon: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: isMobile ? '8px' : '12px',
-            padding: isMobile ? '2rem 1rem' : '4rem 2rem',
-            textAlign: 'center'
-        },
-        comingSoonIcon: {
-            color: '#cbd5e1',
-            fontSize: isMobile ? '2.5rem' : '4rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem'
-        },
-        comingSoonText: {
-            color: '#64748b',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem'
-        },
-        comingSoonTitle: {
-            color: '#1e293b',
-            fontSize: isMobile ? '1.125rem' : '1.5rem',
-            fontWeight: 700,
-            marginBottom: '0.5rem'
-        },
-        content: {
-            margin: '0 auto',
-            maxWidth: '1400px'
-        },
-        header: {
-            background: 'white',
-            backgroundImage: `
-                linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-                radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
-            `,
-            backgroundPosition: '0 0, 0 0, 0 0',
-            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
-            border: '1px solid #e5e7eb',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            margin: isMobile ? '0 auto 1rem' : '0 auto 2rem',
-            maxWidth: '1400px',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        tab: (active) => ({
-            alignItems: 'center',
-            background: active ? `${accentColor}15` : 'white',
-            border: active ? `2px solid ${accentColor}` : '1px solid #e5e7eb',
-            borderRadius: '8px',
-            color: active ? accentColor : '#64748b',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: isMobile ? '0.75rem' : '0.9375rem',
-            fontWeight: active ? 600 : 500,
-            gap: isMobile ? '0.375rem' : '0.5rem',
-            outline: 'none',
-            padding: isMobile ? '0.5rem 0.75rem' : '0.75rem 1.25rem',
-            transition: 'all 0.2s'
-        }),
-        tabIcon: {
-            fontSize: isMobile ? '0.875rem' : '1rem'
-        },
-        tabs: {
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: isMobile ? '0.375rem' : '0.5rem'
-        },
-        title: {
-            color: '#1e293b',
-            fontSize: isMobile ? '1.25rem' : '1.75rem',
-            fontWeight: 700,
-            margin: 0
-        },
-        titleRow: {
-            marginBottom: isMobile ? '1rem' : '1.5rem'
-        },
-        view: {
-            background: '#f8fafc',
-            height: '100%',
-            overflowY: 'auto',
-            padding: isMobile ? '1rem' : '2rem',
-            width: '100%'
+    const [initialLoading, setInitialLoading] = useState(true)
+    const hasRevealedRef = useRef(false)
+    const [revealControls, setRevealControls] = useState(false)
+    useEffect(() => {
+        const timer = setTimeout(() => setInitialLoading(false), 150)
+        return () => clearTimeout(timer)
+    }, [])
+    useEffect(() => {
+        if (!initialLoading && !hasRevealedRef.current) {
+            hasRevealedRef.current = true
+            setRevealControls(true)
+            const timer = setTimeout(() => setRevealControls(false), 1200)
+            return () => clearTimeout(timer)
         }
-    }
+    }, [initialLoading])
+    const hideRealContent = initialLoading
     const renderCalculator = () => {
         switch (selectedCalculator) {
             case 'yardage-hour':
@@ -121,50 +62,100 @@ const CalculatorView = () => {
                 return <SetTimeCalculator />
             default:
                 return (
-                    <div style={styles.comingSoon}>
-                        <div style={styles.comingSoonIcon}>
-                            <i className="fas fa-hard-hat"></i>
+                    <div className="bg-white border border-slate-200 rounded-xl text-center p-8 md:p-16">
+                        <div className="text-slate-300 text-4xl md:text-6xl mb-4 md:mb-6">
+                            <i className="fas fa-hard-hat" />
                         </div>
-                        <h3 style={{ ...styles.comingSoonTitle, margin: 0 }}>Coming Soon</h3>
-                        <p style={{ ...styles.comingSoonText, margin: '0.5rem 0 0' }}>
+                        <h3 className="text-slate-900 text-lg md:text-2xl font-bold m-0">Coming Soon</h3>
+                        <p className="text-slate-500 text-sm md:text-base mt-2 mb-0">
                             This calculator is under development
                         </p>
                     </div>
                 )
         }
     }
-    return (
-        <div style={styles.view}>
-            <div style={styles.header}>
-                <div style={styles.titleRow}>
-                    <h1 style={styles.title}>Calculators</h1>
-                </div>
-                <div style={styles.tabs}>
-                    {CALCULATOR_TYPES.map((calc) => (
-                        <button
-                            key={calc.id}
-                            style={styles.tab(selectedCalculator === calc.id)}
-                            onClick={() => setSelectedCalculator(calc.id)}
-                            onMouseEnter={(e) => {
-                                if (selectedCalculator !== calc.id) {
-                                    e.currentTarget.style.borderColor = '#cbd5e1'
-                                    e.currentTarget.style.background = '#f8fafc'
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (selectedCalculator !== calc.id) {
-                                    e.currentTarget.style.borderColor = '#e5e7eb'
-                                    e.currentTarget.style.background = 'white'
-                                }
-                            }}
-                        >
-                            <i className={`fas ${calc.icon}`} style={styles.tabIcon}></i>
-                            <span>{calc.name}</span>
-                        </button>
-                    ))}
-                </div>
+    const headerSkeleton = (
+        <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+            <div className="mb-6">
+                <div className="h-8 w-44 rounded-lg bg-slate-200 animate-pulse" />
+                <div className="h-4 w-64 rounded bg-slate-100 animate-pulse mt-2" />
             </div>
-            <div style={styles.content}>{renderCalculator()}</div>
+            <div className={`flex ${isMobile ? 'flex-wrap' : ''} gap-2`}>
+                {[72, 112, 104, 80, 72].map((w, i) => (
+                    <div key={i} className="h-9 rounded-lg bg-slate-100 animate-pulse" style={{ width: w }} />
+                ))}
+            </div>
+        </div>
+    )
+    return (
+        <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100">
+            <style>{`
+                @keyframes calcRevealFromLeft {
+                    from { opacity: 0; transform: translateX(-18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes calcRevealFromRight {
+                    from { opacity: 0; transform: translateX(18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .calc-reveal-left {
+                    animation: calcRevealFromLeft 0.5s ease-out both;
+                }
+                .calc-reveal-right {
+                    animation: calcRevealFromRight 0.5s ease-out both;
+                }
+            `}</style>
+            <header
+                className="border-b border-slate-200 bg-white shadow-sm"
+                style={GRID_PATTERN_STYLE(accentColor)}
+            >
+                {hideRealContent && headerSkeleton}
+                <div
+                    className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8"
+                    style={hideRealContent ? { display: 'none' } : undefined}
+                >
+                    <div
+                        className={`mb-6${revealControls ? ' calc-reveal-left' : ''}`}
+                        style={revealControls ? { animationDelay: '0ms' } : undefined}
+                    >
+                        <h1 className="text-2xl font-bold text-slate-900 md:text-3xl m-0">Calculators</h1>
+                        <p className="mt-1 text-sm text-slate-500">
+                            Concrete industry tools and quick-reference calculators
+                        </p>
+                    </div>
+                    <div
+                        className={`flex flex-wrap gap-2${revealControls ? ' calc-reveal-left' : ''}`}
+                        style={revealControls ? { animationDelay: '120ms' } : undefined}
+                    >
+                        {CALCULATOR_TYPES.map((calc) => {
+                            const isActive = selectedCalculator === calc.id
+                            return (
+                                <button
+                                    key={calc.id}
+                                    type="button"
+                                    onClick={() => setSelectedCalculator(calc.id)}
+                                    className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all md:px-4 ${isActive ? '' : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    style={
+                                        isActive
+                                            ? {
+                                                  background: accentColor,
+                                                  boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                                  color: '#fff'
+                                              }
+                                            : {}
+                                    }
+                                >
+                                    <i className={`fas ${calc.icon} text-xs`} />
+                                    <span>{calc.name}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+            </header>
+            <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+                {renderCalculator()}
+            </main>
         </div>
     )
 }

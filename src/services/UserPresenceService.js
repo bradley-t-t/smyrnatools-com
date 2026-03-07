@@ -99,23 +99,6 @@ class UserPresenceService {
             this.notifyListeners()
         }, 60000)
     }
-    /** Ensures the current user has an online presence record, resolving the user ID if needed. */
-    async ensureCurrentUserOnline() {
-        if (!this.currentUserId) {
-            try {
-                const user = await UserService.getCurrentUser()
-                if (user?.id) {
-                    this.currentUserId = user.id
-                }
-            } catch {
-                return false
-            }
-        }
-        if (this.currentUserId) {
-            await this.setUserOnline(this.currentUserId)
-        }
-        return !!this.currentUserId
-    }
     /** Upserts a presence record marking the user as online. */
     async setUserOnline(userId) {
         if (!userId) return false
@@ -131,6 +114,20 @@ class UserPresenceService {
                 },
                 { onConflict: 'user_id' }
             )
+            return true
+        } catch {
+            return false
+        }
+    }
+    /** Re-marks the user as online without updating last_activity (e.g. after network reconnect). */
+    async setUserBackOnline(userId) {
+        if (!userId) return false
+        try {
+            const now = new Date().toISOString()
+            await supabase
+                .from('users_presence')
+                .update({ is_online: true, last_seen: now, updated_at: now })
+                .eq('user_id', userId)
             return true
         } catch {
             return false
@@ -204,7 +201,7 @@ class UserPresenceService {
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
         if (isOnline) {
-            this.setUserOnline(this.currentUserId)
+            this.setUserBackOnline(this.currentUserId)
             this.startHeartbeat()
         } else {
             this.setUserOffline(this.currentUserId)
@@ -220,7 +217,6 @@ class UserPresenceService {
      */
     async getOnlineUsers() {
         try {
-            await this.ensureCurrentUserOnline()
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
             const { data: presences, error } = await supabase
                 .from('users_presence')

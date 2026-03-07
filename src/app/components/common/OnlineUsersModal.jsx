@@ -272,9 +272,7 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                                                 <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
                                                     <i className="fas fa-clock text-[10px]" />
                                                     <span>
-                                                        {user.isCurrentUser
-                                                            ? 'Active now'
-                                                            : `Last active ${formatLastActivity(user.lastActivity)}`}
+                                                        {`Active ${formatLastActivity(user.lastActivity)}`}
                                                     </span>
                                                 </div>
                                             </div>
