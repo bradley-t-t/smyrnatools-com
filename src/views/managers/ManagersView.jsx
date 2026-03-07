@@ -45,6 +45,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
     const sortMappings = {
         Email: 'email',
         'First Name': 'firstName',
+        'Last Login': 'lastLoginAt',
         'Last Name': 'lastName',
         Plant: 'plantCode',
         Role: 'roleName'
@@ -279,8 +280,8 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                 setRoleFilter('')
                                 resetManagerFilters?.({ currentViewMode, keepViewMode: true })
                             }}
-                            listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
-                            colWidths={['12%', '28%', '18%', '18%', '24%']}
+                            listLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role', 'Last Login']}
+                            colWidths={['10%', '23%', '14%', '14%', '17%', '22%']}
                             forwardedRef={headerRef}
                             sticky={true}
                             onHeaderClick={handleHeaderClick}
@@ -317,8 +318,8 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                 <ListViewModeSection
                                     filteredItems={filteredManagers}
                                     handleSelectItem={handleSelectManager}
-                                    headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role']}
-                                    colWidths={['12%', '28%', '18%', '18%', '24%']}
+                                    headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role', 'Last Login']}
+                                    colWidths={['10%', '23%', '14%', '14%', '17%', '22%']}
                                     renderRow={(manager, handleSelect) => {
                                         const cellStyle = {
                                             color: '#1e293b',
@@ -372,7 +373,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                                 <td
                                                     style={{
                                                         ...cellStyle,
-                                                        width: '12%'
+                                                        width: '10%'
                                                     }}
                                                 >
                                                     {manager.plantCode || '\u2014'}
@@ -380,7 +381,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                                 <td
                                                     style={{
                                                         ...cellHighlightStyle,
-                                                        width: '28%'
+                                                        width: '23%'
                                                     }}
                                                 >
                                                     {manager.email || '\u2014'}
@@ -388,7 +389,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                                 <td
                                                     style={{
                                                         ...cellSecondaryStyle,
-                                                        width: '18%'
+                                                        width: '14%'
                                                     }}
                                                 >
                                                     {manager.firstName || '\u2014'}
@@ -396,17 +397,28 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                                 <td
                                                     style={{
                                                         ...cellSecondaryStyle,
-                                                        width: '18%'
+                                                        width: '14%'
                                                     }}
                                                 >
                                                     {manager.lastName || '\u2014'}
                                                 </td>
-                                                <td style={{ ...cellSecondaryStyle, width: '24%' }}>
+                                                <td style={{ ...cellSecondaryStyle, width: '17%' }}>
                                                     {manager.roleName ? (
                                                         <span style={roleBadgeStyle}>{manager.roleName}</span>
                                                     ) : (
                                                         '\u2014'
                                                     )}
+                                                </td>
+                                                <td style={{ ...cellSecondaryStyle, width: '22%' }}>
+                                                    {manager.lastLoginAt
+                                                        ? new Date(
+                                                              manager.lastLoginAt + 'T00:00:00'
+                                                          ).toLocaleDateString(undefined, {
+                                                              day: 'numeric',
+                                                              month: 'short',
+                                                              year: 'numeric'
+                                                          })
+                                                        : 'Never'}
                                                 </td>
                                             </tr>
                                         )

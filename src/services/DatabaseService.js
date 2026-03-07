@@ -41,6 +41,7 @@ const ALLOWED_TABLES = new Set([
     'roles',
     'reports',
     'notifications',
+    'notification_reads',
     'documents'
 ])
 /** Allowlisted SQL migrations that can be executed via the migration endpoint. */

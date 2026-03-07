@@ -103,7 +103,7 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
     )
     if (tab === 'all') {
         return (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-1">
                 <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3">
                     <StatItem
                         icon="fa-check-circle"
@@ -134,7 +134,7 @@ function ReportsStatsCards({ items, tab, reviewedByCurrentUser }) {
         )
     }
     return (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-1">
             <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-white border border-gray-200 rounded-xl px-4 sm:px-5 py-3">
                 <StatItem
                     icon="fa-check-double"

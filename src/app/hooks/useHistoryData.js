@@ -56,17 +56,17 @@ export default function useHistoryData(item, type) {
     const [aiSummaryError, setAiSummaryError] = useState(false)
     const assetId = resolveAssetId(type, item)
     const assetCacheKey = `${type}-${assetId}`
-    const fetchOperators = async () => {
+    const fetchOperators = useCallback(async () => {
         try {
             setOperators(await OperatorService.fetchOperators())
         } catch {}
-    }
-    const fetchUsers = async () => {
+    }, [])
+    const fetchUsers = useCallback(async () => {
         try {
             const { data } = await supabase.from('profiles').select('id, name, email')
             setUsers(data ?? [])
         } catch {}
-    }
+    }, [])
     const fetchIssues = useCallback(async () => {
         if (type === 'operator') return
         const serviceName = ISSUE_SERVICE_MAP[type]

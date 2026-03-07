@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.9] - 2026-03-07
+
+- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not visible or accessible in the input (due to the error message about invalid paths), I am unable to describe any specific changes. If you can provide the correct diff content, I will be happy to generate the changelog entry based on the explicit changes shown.
+
+## [25.9] - 2026-03-07
+
+- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not visible in the input (due to the error messages about invalid paths), I am unable to generate specific changelog entries based on explicit changes in the code. If you can provide the actual diff content, I will be happy to create detailed and accurate changelog entries based on the visible changes.
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [25.8] - 2026-03-07
 
 - Simplified the mobile menu logic in Navigation by removing an unnecessary filter condition, ensuring the Dashboard item is always displayed if it exists in standalone items.

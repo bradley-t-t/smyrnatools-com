@@ -17,6 +17,7 @@ class UserPresenceService {
         this.cleanupInterval = null
         this.activityRefreshInterval = null
         this.lastActivityUpdate = 0
+        this.lastLoginDateWritten = null
         this.onPresenceChange = this.handlePresenceChange.bind(this)
         this.onBeforeUnload = this.handleBeforeUnload.bind(this)
         this.onOnline = this.handleOnlineStatusChange.bind(this, true)
@@ -87,6 +88,16 @@ class UserPresenceService {
                 .from('users_presence')
                 .update({ last_activity: now, last_seen: now, updated_at: now })
                 .eq('user_id', this.currentUserId)
+            const today = now.split('T')[0]
+            if (this.lastLoginDateWritten !== today) {
+                this.lastLoginDateWritten = today
+                supabase
+                    .from('users')
+                    .update({ last_login_at: today })
+                    .eq('id', this.currentUserId)
+                    .then(() => {})
+                    .catch(() => {})
+            }
             return true
         } catch {
             return false

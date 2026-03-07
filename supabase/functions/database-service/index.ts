@@ -14,7 +14,7 @@ const ALLOWED_TABLES = new Set([
 ]);
 
 const ALLOWED_COLUMNS: Record<string, Set<string>> = {
-    users: new Set(['id', 'email', 'name', 'created_at', 'updated_at']),
+    users: new Set(['id', 'email', 'name', 'last_login_at', 'created_at', 'updated_at']),
     users_preferences: new Set(['user_id', 'default_view_mode', 'equipment_filters', 'mixer_filters', 'operator_filters', 'tractor_filters', 'trailer_filters', 'manager_filters', 'last_viewed_filters', 'selected_region', 'region_overlay_minimized', 'created_at', 'updated_at']),
     users_presence: new Set(['id', 'user_id', 'status', 'last_seen', 'created_at', 'updated_at']),
     users_sessions: new Set(['id', 'user_id', 'browser', 'os', 'device', 'user_agent', 'last_active', 'created_at']),

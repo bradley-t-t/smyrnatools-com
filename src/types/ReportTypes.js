@@ -36,8 +36,6 @@ const reportTypes = [
         fields: [
             { label: 'Yardage', name: 'yardage', required: true, type: 'number' },
             { label: 'Total Hours', name: 'total_hours', required: true, type: 'number' },
-            { label: 'Total Yards Lost', name: 'total_yards_lost', required: true, type: 'number' },
-            { label: 'Yards Resold', name: 'yards_resold', required: true, type: 'number' },
             { label: 'Operators Sent to Other Plants', name: 'operators_sent_to_help', required: false, type: 'table' }
         ],
         frequency: 'weekly',

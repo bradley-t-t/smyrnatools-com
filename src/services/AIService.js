@@ -221,20 +221,13 @@ class AIInsightsServiceClass {
     async validatePlantManagerMetrics(form) {
         const yardage = Number(form.yardage) || 0
         const hours = Number(form.total_hours) || 0
-        const lostYardage = Number(form.total_yards_lost) || 0
-        const resoldYardage = Number(form.yards_resold) || 0
         if (yardage === 0 || hours === 0) return { needsReview: false }
         const yph = yardage / hours
-        const netYardage = yardage - lostYardage + resoldYardage
-        const lostPct = yardage > 0 ? ((lostYardage / yardage) * 100).toFixed(1) : 0
         const userPrompt = [
             'Plant Manager Report Metrics:',
             `- Total Yardage: ${yardage} yards`,
             `- Total Hours: ${hours} hours`,
             `- Yards Per Hour: ${yph.toFixed(2)}`,
-            `- Lost Yardage: ${lostYardage} yards (${lostPct}% of total)`,
-            `- Resold Yardage: ${resoldYardage} yards`,
-            `- Net Yardage: ${netYardage} yards`,
             '',
             'Does this data make sense or should the plant manager double-check their entries?'
         ].join('\n')

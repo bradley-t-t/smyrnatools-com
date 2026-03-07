@@ -33,6 +33,10 @@ export function useReportsData() {
     const [loadingReporterPlants, setLoadingReporterPlants] = useState(false)
     const [refreshKey, setRefreshKey] = useState(0)
     const [isRefreshing, setIsRefreshing] = useState(false)
+    const [hasLostLoadsPermission, setHasLostLoadsPermission] = useState(false)
+    const [lostLoadReports, setLostLoadReports] = useState([])
+    const [isLoadingLostLoads, setIsLoadingLostLoads] = useState(false)
+    const [lostLoadsLoaded, setLostLoadsLoaded] = useState(false)
     const { preferences } = usePreferences()
     const fetchProfilesFor = useCallback(
         async (userIds) => {
@@ -161,8 +165,10 @@ export function useReportsData() {
                     ).some(Boolean)
                 })
             )
+            const lostLoads = await UserService.hasPermission(user.id, 'reports.lostloads')
             setHasAssigned(assigned)
             setHasReviewPermission(review)
+            setHasLostLoadsPermission(lostLoads)
             setIsLoadingPermissions(false)
         }
         checkAssignedAndReview()
@@ -315,6 +321,43 @@ export function useReportsData() {
         setReviewLoadedWeeks((prev) => new Set([...toLoad, ...prev]))
         setIsLoadingReview(false)
     }, [user, isLoadingPermissions, reviewLoadedWeeks, isLoadingReview, fetchReportsBatch])
+    const loadLostLoadReports = useCallback(async () => {
+        if (!user || isLoadingPermissions || lostLoadsLoaded) return
+        setIsLoadingLostLoads(true)
+        try {
+            const { data, error } = await supabase
+                .from('reports')
+                .select('id,user_id,submitted_at,data,week')
+                .eq('report_name', 'lost_load')
+                .eq('completed', true)
+                .order('submitted_at', { ascending: false })
+            if (!error && Array.isArray(data)) {
+                const mapped = data.map((r) => ({
+                    data: r.data,
+                    id: r.id,
+                    submitted_at: r.submitted_at,
+                    userId: r.user_id,
+                    week: r.week
+                }))
+                setLostLoadReports(mapped)
+                const ids = Array.from(new Set(data.map((r) => r.user_id).filter(Boolean)))
+                await fetchProfilesFor(ids)
+            }
+        } catch {}
+        setIsLoadingLostLoads(false)
+        setLostLoadsLoaded(true)
+    }, [user, isLoadingPermissions, lostLoadsLoaded, fetchProfilesFor])
+    const addLostLoadReport = useCallback((report) => {
+        if (!report) return
+        const mapped = {
+            data: report.data,
+            id: report.id,
+            submitted_at: report.submitted_at,
+            userId: report.user_id,
+            week: report.week
+        }
+        setLostLoadReports((prev) => [mapped, ...prev])
+    }, [])
     const triggerRefresh = useCallback(() => {
         setIsRefreshing(true)
         setRefreshKey((prev) => prev + 1)
@@ -342,19 +385,24 @@ export function useReportsData() {
         [userProfiles]
     )
     return {
+        addLostLoadReport,
         getUserName,
         hasAnyReviewPermission,
         hasAssigned,
+        hasLostLoadsPermission,
         hasReviewPermission,
+        isLoadingLostLoads,
         isLoadingMy,
         isLoadingPermissions,
         isLoadingReview,
         isLoadingUser,
         isRefreshing,
         loadError,
+        loadLostLoadReports,
         loadReviewReports,
         loadingReporterPlants,
         localReports,
+        lostLoadReports,
         markReportReviewed,
         myReportsByWeek,
         plants,

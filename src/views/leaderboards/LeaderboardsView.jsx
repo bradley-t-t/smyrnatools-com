@@ -72,11 +72,9 @@ export default function LeaderboardsView() {
                 <div className="h-10 w-32 rounded-lg bg-slate-200 animate-pulse" />
             </div>
             <div className={`flex ${isMobile ? 'flex-wrap' : ''} gap-2`}>
-                {(isMobile ? [80, 56, 96, 72, 88, 64] : [88, 64, 96, 112, 104, 80, 96, 80, 72, 96, 112]).map(
-                    (w, i) => (
-                        <div key={i} className="h-9 rounded-lg bg-slate-100 animate-pulse" style={{ width: w }} />
-                    )
-                )}
+                {(isMobile ? [80, 56, 96, 72, 88, 64] : [88, 64, 96, 112, 104, 80, 96, 80, 72, 96, 112]).map((w, i) => (
+                    <div key={i} className="h-9 rounded-lg bg-slate-100 animate-pulse" style={{ width: w }} />
+                ))}
             </div>
         </div>
     )
@@ -118,11 +116,7 @@ export default function LeaderboardsView() {
                             className={revealControls ? 'lb-reveal-right' : ''}
                             style={revealControls ? { animationDelay: '60ms' } : undefined}
                         >
-                            <YearSelector
-                                selectedYear={selectedYear}
-                                onYearChange={setSelectedYear}
-                                startYear={2025}
-                            />
+                            <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} startYear={2025} />
                         </div>
                     </div>
                     <div

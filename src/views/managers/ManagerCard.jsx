@@ -34,6 +34,18 @@ function ManagerCard({ manager, plantName, onSelect }) {
                     </span>
                 </div>
             </div>
+            <div className="detail-row">
+                <div className="detail-label">Last Login</div>
+                <div className="detail-value">
+                    {manager.lastLoginAt
+                        ? new Date(manager.lastLoginAt + 'T00:00:00').toLocaleDateString(undefined, {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                          })
+                        : 'Never'}
+                </div>
+            </div>
         </CardSection>
     )
 }

@@ -103,11 +103,12 @@ export function RoleFormField({ children, label, sublabel }) {
     )
 }
 /** Styled text input for role modal forms. */
-export function RoleTextInput({ onChange, placeholder, type = 'text', value }) {
+export function RoleTextInput({ disabled, onChange, placeholder, type = 'text', value }) {
     return (
         <input
-            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10"
-            onChange={(e) => onChange(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
+            className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-default"
+            disabled={disabled}
+            onChange={(e) => !disabled && onChange(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
             placeholder={placeholder}
             type={type}
             value={value}

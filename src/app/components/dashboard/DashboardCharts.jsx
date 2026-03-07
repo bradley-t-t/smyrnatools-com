@@ -204,16 +204,12 @@ export default function DashboardCharts({
                         const weekStr = report.week.split('T')[0]
                         const yardage = parseFloat(report.data?.yardage || report.data?.total_yards_delivered || 0)
                         const hours = parseFloat(report.data?.total_hours || report.data?.total_operator_hours || 0)
-                        const lost = parseFloat(report.data?.total_yards_lost || report.data?.yardage_lost || 0)
-                        const resold = parseFloat(report.data?.yards_resold || 0)
                         if (!weeklyMap.has(weekStr)) {
-                            weeklyMap.set(weekStr, { hours: 0, lost: 0, resold: 0, yardage: 0 })
+                            weeklyMap.set(weekStr, { hours: 0, yardage: 0 })
                         }
                         const existing = weeklyMap.get(weekStr)
                         existing.yardage += yardage
                         existing.hours += hours
-                        existing.lost += lost
-                        existing.resold += resold
                     })
                     const sortedWeeks = Array.from(weeklyMap.entries())
                         .sort((a, b) => a[0].localeCompare(b[0]))
@@ -223,9 +219,6 @@ export default function DashboardCharts({
                             return {
                                 hours: Math.round(data.hours),
                                 label: `${date.getMonth() + 1}/${date.getDate()}`,
-                                lost: Math.round(data.lost),
-                                recoveryRate: data.lost > 0 ? Math.round((data.resold / data.lost) * 100) : 0,
-                                resold: Math.round(data.resold),
                                 week,
                                 yardage: Math.round(data.yardage),
                                 yph: data.hours > 0 ? parseFloat((data.yardage / data.hours).toFixed(2)) : 0
@@ -319,10 +312,7 @@ export default function DashboardCharts({
     }
     const totalYardage = calcTotal(weeklyData, 'yardage')
     const totalHours = calcTotal(weeklyData, 'hours')
-    const totalLost = calcTotal(weeklyData, 'lost')
-    const totalResold = calcTotal(weeklyData, 'resold')
     const avgYph = totalHours > 0 ? (totalYardage / totalHours).toFixed(2) : 0
-    const recoveryRate = totalLost > 0 ? Math.round((totalResold / totalLost) * 100) : 0
     const getYphTrend = () => {
         if (weeklyData.length < 2) return { avgYph: 0, trend: 0 }
         const midpoint = Math.floor(weeklyData.length / 2)
@@ -470,75 +460,6 @@ export default function DashboardCharts({
                             <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
                             <Bar yAxisId="left" dataKey="yardage" fill="#0891b2" name="Yards" radius={[4, 4, 0, 0]} />
                             <Bar yAxisId="right" dataKey="hours" fill="#f97316" name="Hours" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
-            )}
-            {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0) && (
-                <ChartCard
-                    icon="fa-triangle-exclamation"
-                    iconColor="#ef4444"
-                    title="Yardage Lost Per Week"
-                    footer={
-                        <>
-                            <StatLabel color="#64748b">
-                                Total Lost: <strong className="text-red-500">{totalLost.toLocaleString()}</strong> yards
-                            </StatLabel>
-                            <StatLabel color="#64748b">
-                                Avg/Week:{' '}
-                                <strong className="text-accent">{Math.round(calcAverage(weeklyData, 'lost'))}</strong>
-                            </StatLabel>
-                        </>
-                    }
-                >
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
-                            <Bar dataKey="lost" fill={COLORS.danger} name="Yards Lost" radius={[4, 4, 0, 0]}>
-                                {weeklyData.map((entry, index) => (
-                                    <Cell
-                                        key={index}
-                                        fill={entry.lost === 0 ? '#22c55e' : entry.lost < 10 ? '#f59e0b' : '#ef4444'}
-                                    />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </ChartCard>
-            )}
-            {weeklyData.length > 0 && weeklyData.some((w) => w.lost > 0 || w.resold > 0) && (
-                <ChartCard
-                    icon="fa-recycle"
-                    iconColor="#10b981"
-                    title="Yardage Recovery (Lost vs Resold)"
-                    footer={
-                        <>
-                            <StatLabel color="#ef4444">
-                                Lost: <strong>{totalLost.toLocaleString()}</strong>
-                            </StatLabel>
-                            <StatLabel color="#10b981">
-                                Resold: <strong>{totalResold.toLocaleString()}</strong>
-                            </StatLabel>
-                            <StatLabel
-                                color={recoveryRate >= 50 ? '#10b981' : recoveryRate >= 25 ? '#f59e0b' : '#ef4444'}
-                            >
-                                Recovery: <strong>{recoveryRate}%</strong>
-                            </StatLabel>
-                        </>
-                    }
-                >
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
-                            <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
-                            <Bar dataKey="lost" fill="#ef4444" name="Yards Lost" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="resold" fill="#10b981" name="Yards Resold" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </ChartCard>

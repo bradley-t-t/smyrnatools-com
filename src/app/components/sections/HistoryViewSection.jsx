@@ -48,7 +48,7 @@ import TimelineItem, {
  * Uses the useHistoryData hook for data fetching and consolidation.
  */
 function HistoryViewSection({ item, type, onClose }) {
-    const [activeTab, setActiveTab] = useState('ai-summary')
+    const [activeTab, setActiveTab] = useState('timeline')
     const {
         aiSummary,
         aiSummaryError,
@@ -80,7 +80,7 @@ function HistoryViewSection({ item, type, onClose }) {
         userNames
     } = useHistoryData(item, type)
     useEffect(() => {
-        if (!isLoading && activeTab === 'ai-summary' && !aiSummary && !aiSummaryLoading) {
+        if (!isLoading && activeTab === 'timeline' && !aiSummary && !aiSummaryLoading) {
             generateAISummary()
         }
     }, [isLoading, activeTab, aiSummary, aiSummaryLoading, generateAISummary])
@@ -1112,7 +1112,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 </div>
             )
         }
-        if (history.length === 0 && activeTab !== 'ai-summary') {
+        if (history.length === 0 && activeTab !== 'timeline') {
             return (
                 <HistoryEmptyState
                     title={`No history records found for this ${type}.`}
@@ -1121,56 +1121,66 @@ function HistoryViewSection({ item, type, onClose }) {
             )
         }
         switch (activeTab) {
-            case 'ai-summary':
-                return renderAISummary()
             case 'timeline':
                 return (
-                    <div className="flex flex-col gap-3">
-                        {sortedHistory.map((entry, index) => {
-                            const fieldName = entry.fieldName ?? entry.field_name
-                            const isCreatedEntry = fieldName === 'created'
-                            return (
-                                <div
-                                    key={entry.id ?? index}
-                                    className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-slate-400 hover:shadow-md transition-all"
-                                >
-                                    <div className="flex justify-between items-center mb-2.5">
-                                        <div className="text-sm font-bold text-slate-800 capitalize">
-                                            {formatFieldName(fieldName, type)}
-                                        </div>
-                                        <div className="text-xs text-slate-500 font-medium">
-                                            {formatHistoryTimestamp(entry.changedAt ?? entry.changed_at)}
-                                        </div>
-                                    </div>
-                                    {isCreatedEntry ? (
-                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                            <div className="text-sm text-green-600 font-semibold">
-                                                {formatValue(fieldName, entry.newValue ?? entry.new_value)}
+                    <div className="flex gap-5 h-full">
+                        <div className="flex-[3] flex flex-col gap-3 overflow-y-auto min-w-0 pr-1">
+                            {sortedHistory.length === 0 ? (
+                                <HistoryEmptyState
+                                    title={`No history records found for this ${type}.`}
+                                    subtitle={`History entries will appear here when changes are made to this ${type}.`}
+                                />
+                            ) : (
+                                sortedHistory.map((entry, index) => {
+                                    const fieldName = entry.fieldName ?? entry.field_name
+                                    const isCreatedEntry = fieldName === 'created'
+                                    return (
+                                        <div
+                                            key={entry.id ?? index}
+                                            className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-slate-400 hover:shadow-md transition-all"
+                                        >
+                                            <div className="flex justify-between items-center mb-2.5">
+                                                <div className="text-sm font-bold text-slate-800 capitalize">
+                                                    {formatFieldName(fieldName, type)}
+                                                </div>
+                                                <div className="text-xs text-slate-500 font-medium">
+                                                    {formatHistoryTimestamp(entry.changedAt ?? entry.changed_at)}
+                                                </div>
+                                            </div>
+                                            {isCreatedEntry ? (
+                                                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                    <div className="text-sm text-green-600 font-semibold">
+                                                        {formatValue(fieldName, entry.newValue ?? entry.new_value)}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                                    <div className="text-[13px] text-slate-500">
+                                                        <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">
+                                                            From:
+                                                        </span>{' '}
+                                                        {formatValue(fieldName, entry.oldValue ?? entry.old_value)}
+                                                    </div>
+                                                    <div className="text-accent text-sm">{'\u2192'}</div>
+                                                    <div className="text-[13px] text-slate-800 font-semibold">
+                                                        <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">
+                                                            To:
+                                                        </span>{' '}
+                                                        {formatValue(fieldName, entry.newValue ?? entry.new_value)}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="text-xs text-slate-500">
+                                                <UserLabel userId={entry.changedBy ?? entry.changed_by} showIcon />
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                            <div className="text-[13px] text-slate-500">
-                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">
-                                                    From:
-                                                </span>{' '}
-                                                {formatValue(fieldName, entry.oldValue ?? entry.old_value)}
-                                            </div>
-                                            <div className="text-accent text-sm">{'\u2192'}</div>
-                                            <div className="text-[13px] text-slate-800 font-semibold">
-                                                <span className="text-[11px] uppercase font-bold tracking-wide opacity-70">
-                                                    To:
-                                                </span>{' '}
-                                                {formatValue(fieldName, entry.newValue ?? entry.new_value)}
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="text-xs text-slate-500">
-                                        <UserLabel userId={entry.changedBy ?? entry.changed_by} showIcon />
-                                    </div>
-                                </div>
-                            )
-                        })}
+                                    )
+                                })
+                            )}
+                        </div>
+                        <div className="flex-[2] border-l border-gray-200 pl-5 overflow-y-auto min-w-0">
+                            {renderAISummary()}
+                        </div>
                     </div>
                 )
             case 'cleanliness':
@@ -1260,7 +1270,11 @@ function HistoryViewSection({ item, type, onClose }) {
                             />
                         ))}
                 </div>
-                <div className="flex-1 overflow-y-auto p-6 bg-white">{renderContent()}</div>
+                <div
+                    className={`flex-1 p-6 bg-white ${activeTab === 'timeline' ? 'overflow-hidden' : 'overflow-y-auto'}`}
+                >
+                    {renderContent()}
+                </div>
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end bg-slate-50 rounded-b-2xl">
                     <button
                         className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300"

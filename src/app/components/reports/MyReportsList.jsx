@@ -6,6 +6,16 @@ import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
+const BASE_ROW_DELAY_MS = 160
+const MIN_ROW_DELAY_MS = 12
+const DECAY_FACTOR = 0.9
+function getRowDelay(index) {
+    let total = 0
+    for (let i = 0; i < index; i++) {
+        total += Math.max(MIN_ROW_DELAY_MS, BASE_ROW_DELAY_MS * Math.pow(DECAY_FACTOR, i))
+    }
+    return Math.round(total)
+}
 /** Computes urgency label and color based on days until the Saturday deadline. */
 const getDueDateStatus = (saturday) => {
     const diffDays = Math.ceil((saturday - new Date()) / MILLISECONDS_PER_DAY)
@@ -69,7 +79,7 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
     </div>
 )
 /** Compact card layout for a single report item on mobile viewports. */
-const MobileReportCard = ({ item, accentColor, onShowForm }) => {
+const MobileReportCard = ({ item, accentColor, onShowForm, index = 0 }) => {
     const { completed, report, title, weekIso } = item
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const weekRange = ReportService.getWeekRangeString(monday, saturday)
@@ -82,10 +92,16 @@ const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
+    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
     return (
         <div
-            className={`p-4 border-b border-slate-100 last:border-b-0 ${dueDateInfo?.urgent ? 'border-l-3' : ''}`}
-            style={dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {}}
+            className={`reports-row-animated p-4 last:border-b-0`}
+            style={{
+                animationDelay: `${getRowDelay(index)}ms`,
+                backgroundColor: altBg,
+                borderBottom: '1px solid #e2e8f0',
+                ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
+            }}
         >
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
@@ -123,7 +139,7 @@ const MobileReportCard = ({ item, accentColor, onShowForm }) => {
     )
 }
 /** Table row layout for a single report item on desktop viewports. */
-const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
+const DesktopReportRow = ({ item, accentColor, onShowForm, index = 0 }) => {
     const { weekIso, completed, report, title } = item
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const weekRange = ReportService.getWeekRangeString(monday, saturday)
@@ -136,10 +152,19 @@ const DesktopReportRow = ({ item, accentColor, onShowForm }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
+    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
     return (
         <div
-            className={`flex items-center py-3 px-4 lg:px-7 border-b border-slate-100 hover:bg-slate-50 transition-colors ${dueDateInfo?.urgent ? 'border-l-3' : ''}`}
-            style={dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {}}
+            className={`reports-row-animated flex items-center py-3 px-4 lg:px-7 ${dueDateInfo?.urgent ? '' : ''}`}
+            style={{
+                animationDelay: `${getRowDelay(index)}ms`,
+                backgroundColor: altBg,
+                borderBottom: '1px solid #e2e8f0',
+                cursor: 'default',
+                ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
             <div className="flex-1 min-w-0 pr-3">
                 <span
@@ -199,32 +224,36 @@ function MyReportsList({
     if (weeksToShow.length === 0 && !isLoading) return null
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <style>{`
+                @keyframes slideInRow {
+                    from { opacity: 0; transform: translateX(-20px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .reports-row-animated {
+                    animation: slideInRow 0.4s ease-out both;
+                }
+            `}</style>
             {isLoading ? (
                 <ReportsListSkeleton columnCount={5} />
             ) : (
                 <>
                     <div className="hidden md:block">
-                        <div className="grid grid-cols-[1fr_1fr_112px_112px_96px] gap-4 px-4 lg:px-7 py-3 bg-slate-50 border-b border-gray-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <div>Week</div>
-                            <div>Report Type</div>
-                            <div>Status</div>
-                            <div>Due Date</div>
-                            <div className="text-right">Actions</div>
-                        </div>
-                        {items.map((item) => (
+                        {items.map((item, index) => (
                             <DesktopReportRow
                                 key={item.name + item.weekIso}
                                 item={item}
+                                index={index}
                                 accentColor={accentColor}
                                 onShowForm={onShowForm}
                             />
                         ))}
                     </div>
                     <div className="md:hidden">
-                        {items.map((item) => (
+                        {items.map((item, index) => (
                             <MobileReportCard
                                 key={item.name + item.weekIso}
                                 item={item}
+                                index={index}
                                 accentColor={accentColor}
                                 onShowForm={onShowForm}
                             />

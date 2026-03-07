@@ -62,15 +62,7 @@ export function useSubmitForm({
                 setForm((f) => ({ ...f, [name]: e.target.value }))
                 return
             }
-            let value = e.target.value
-            if (
-                ['total_yards_lost', 'yardage_lost', 'lost_yardage', 'Yardage Lost'].includes(name) &&
-                value !== '' &&
-                !isNaN(Number(value)) &&
-                Number(value) < 0
-            ) {
-                value = 0
-            }
+            const value = e.target.value
             setForm((f) => ({ ...f, [name]: value }))
         },
         [report.name]

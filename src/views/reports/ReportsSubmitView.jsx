@@ -73,7 +73,7 @@ const getEditingUserName = (managerEditUser, userProfiles) => {
     return profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : managerEditUser.slice(0, 8)
 }
 const getFieldIcon = (fieldName) => {
-    const iconMap = { total_hours: 'fa-clock', total_yards_lost: 'fa-exclamation-triangle', yardage: 'fa-box' }
+    const iconMap = { total_hours: 'fa-clock', yardage: 'fa-box' }
     return iconMap[fieldName] || 'fa-recycle'
 }
 /**

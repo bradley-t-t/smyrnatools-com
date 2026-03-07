@@ -96,6 +96,9 @@ Deno.serve(async (req) => {
                     rehashAndUpdate(supabase, data.id, password, USERS_TABLE).catch(() => {});
                 }
 
+                // Stamp last login date (fire-and-forget)
+                supabase.from(USERS_TABLE).update({ last_login_at: new Date().toISOString().split("T")[0] }).eq("id", data.id).then(() => {}).catch(() => {});
+
                 const {data: profile} = await supabase.from(PROFILES_TABLE).select(PROFILE_SELECT_FIELDS).eq("id", data.id).single();
                 return jsonResponse({id: data.id, email: data.email, profile: profile ?? {}}, headers);
             }

@@ -334,19 +334,26 @@ function TopSection({
                     </div>
                 )}
             </div>
+            {customBottomSkeleton}
             {!isMobile && viewMode === 'list' && (
                 <div className="flex items-center bg-slate-50 border-t border-slate-200 -mx-7 mt-4 -mb-6 px-7 py-3">
-                    {safeColWidths.map((w, i) => (
-                        <div key={i} className="px-2" style={{ flexShrink: 0, width: w }}>
+                    {safeColWidths.map((w, i) => {
+                        const isFlex = w === 'flex' || w === 'auto'
+                        return (
                             <div
-                                className="h-3 rounded bg-slate-200 animate-pulse"
-                                style={{ width: `${50 + ((i * 13) % 40)}%` }}
-                            />
-                        </div>
-                    ))}
+                                key={i}
+                                className="px-2"
+                                style={isFlex ? { flex: 1, minWidth: 0 } : { flexShrink: 0, width: w }}
+                            >
+                                <div
+                                    className="h-3 rounded bg-slate-200 animate-pulse"
+                                    style={{ width: `${50 + ((i * 13) % 40)}%` }}
+                                />
+                            </div>
+                        )
+                    })}
                 </div>
             )}
-            {customBottomSkeleton}
         </div>
     )
     if (isMobile) {

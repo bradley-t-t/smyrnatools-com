@@ -215,7 +215,7 @@ class UserServiceImpl {
     }
     async getAllUsersWithProfilesAndRoles() {
         const results = await Promise.all([
-            supabase.from('users').select('id, email, created_at, updated_at'),
+            supabase.from('users').select('id, email, last_login_at, created_at, updated_at'),
             supabase.from(PROFILES_TABLE).select('id, first_name, last_name, plant_code, created_at, updated_at'),
             supabase.from('users_permissions').select('user_id, role_id'),
             supabase.from('users_roles').select('id, name, weight')
@@ -231,6 +231,7 @@ class UserServiceImpl {
                 email: user.email,
                 firstName: profile.first_name || '',
                 id: user.id,
+                lastLoginAt: user.last_login_at || null,
                 lastName: profile.last_name || '',
                 plantCode: profile.plant_code || '',
                 roleName: role?.name || DEFAULT_ROLE_NAME,

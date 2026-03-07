@@ -27,7 +27,7 @@ const PLUGIN_ONLY_REPORTS = [
     'ready_mix_instructor'
 ]
 const getFieldIcon = (fieldName) => {
-    const iconMap = { total_hours: 'fa-clock', total_yards_lost: 'fa-exclamation-triangle', yardage: 'fa-box' }
+    const iconMap = { total_hours: 'fa-clock', yardage: 'fa-box' }
     return iconMap[fieldName] || 'fa-recycle'
 }
 const getFieldLabel = (field) => (field.name === 'yardage' ? 'Total Yardage' : field.label)

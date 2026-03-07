@@ -105,10 +105,7 @@ const CalculatorView = () => {
                     animation: calcRevealFromRight 0.5s ease-out both;
                 }
             `}</style>
-            <header
-                className="border-b border-slate-200 bg-white shadow-sm"
-                style={GRID_PATTERN_STYLE(accentColor)}
-            >
+            <header className="border-b border-slate-200 bg-white shadow-sm" style={GRID_PATTERN_STYLE(accentColor)}>
                 {hideRealContent && headerSkeleton}
                 <div
                     className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8"
@@ -153,9 +150,7 @@ const CalculatorView = () => {
                     </div>
                 </div>
             </header>
-            <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-                {renderCalculator()}
-            </main>
+            <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">{renderCalculator()}</main>
         </div>
     )
 }

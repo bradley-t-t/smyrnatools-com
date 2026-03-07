@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import NotificationsService from '../../services/NotificationsService'
+import UserNotificationsService from '../../services/UserNotificationsService'
 import { useMultiTableSubscription } from './useRealtimeSubscription'
-const NOTIFICATION_TABLES = ['list_items', 'mixers', 'equipment', 'tractors']
+const NOTIFICATION_TABLES = ['list_items', 'mixers', 'equipment', 'tractors', 'notifications', 'notification_reads']
 /**
- * Manages notification badge data, fetching from NotificationsService on mount
- * and auto-refreshing via Supabase realtime subscriptions and custom events.
+ * Manages notification state for both computed (asset/task) and DB-backed notifications.
+ * Exposes mark-as-read and delete actions with optimistic UI updates.
+ * Badge count reflects unread DB notifications plus all active computed alerts.
  */
 export function useNotifications(userId, selectedRegion) {
     const [notifications, setNotifications] = useState([])
@@ -13,6 +15,10 @@ export function useNotifications(userId, selectedRegion) {
     const [loading, setLoading] = useState(true)
     const refreshSeqRef = useRef(0)
     const retryTimeoutsRef = useRef([])
+
+    const computeCount = (list) =>
+        list.filter((n) => n.source === 'computed' || (n.source === 'db' && !n.isRead)).length
+
     const refresh = useCallback(async () => {
         if (!userId) {
             setNotifications([])
@@ -26,10 +32,10 @@ export function useNotifications(userId, selectedRegion) {
             if (refreshSeqRef.current === seq) {
                 const validList = Array.isArray(list) ? list : []
                 setNotifications(validList)
-                setCount(validList.length)
+                setCount(computeCount(validList))
                 setLoading(false)
             }
-        } catch (error) {
+        } catch {
             if (refreshSeqRef.current === seq) {
                 setNotifications([])
                 setCount(0)
@@ -37,23 +43,25 @@ export function useNotifications(userId, selectedRegion) {
             }
         }
     }, [userId, selectedRegion])
+
     const scheduleRetries = useCallback(() => {
         retryTimeoutsRef.current.forEach((t) => clearTimeout(t))
         retryTimeoutsRef.current = []
         ;[250, 1000, 2000].forEach((delay) => {
-            const t = setTimeout(() => {
-                refresh()
-            }, delay)
+            const t = setTimeout(() => refresh(), delay)
             retryTimeoutsRef.current.push(t)
         })
     }, [refresh])
+
     useEffect(() => {
         refresh()
     }, [refresh])
+
     useMultiTableSubscription(NOTIFICATION_TABLES, {
         enabled: !!userId,
         onAnyChange: refresh
     })
+
     useEffect(() => {
         const handleRefresh = () => {
             refresh()
@@ -72,9 +80,51 @@ export function useNotifications(userId, selectedRegion) {
             retryTimeoutsRef.current = []
         }
     }, [refresh, scheduleRetries])
+
+    const markAsRead = useCallback(
+        async (dbId) => {
+            if (!userId || !dbId) return
+            await UserNotificationsService.markAsRead(userId, dbId)
+            setNotifications((prev) => {
+                const updated = prev.map((n) => (n.dbId === dbId ? { ...n, isRead: true } : n))
+                setCount(computeCount(updated))
+                return updated
+            })
+        },
+        [userId]
+    )
+
+    const markAllRead = useCallback(async () => {
+        if (!userId) return
+        setNotifications((prev) => {
+            const unreadDbIds = prev.filter((n) => n.source === 'db' && !n.isRead).map((n) => n.dbId)
+            if (!unreadDbIds.length) return prev
+            UserNotificationsService.markAllRead(userId, unreadDbIds).catch(() => {})
+            const updated = prev.map((n) => (n.source === 'db' ? { ...n, isRead: true } : n))
+            setCount(computeCount(updated))
+            return updated
+        })
+    }, [userId])
+
+    const deleteNotification = useCallback(
+        async (dbId) => {
+            if (!userId || !dbId) return
+            await UserNotificationsService.deleteNotification(userId, dbId)
+            setNotifications((prev) => {
+                const updated = prev.filter((n) => n.dbId !== dbId)
+                setCount(computeCount(updated))
+                return updated
+            })
+        },
+        [userId]
+    )
+
     return {
         count,
+        deleteNotification,
         loading,
+        markAllRead,
+        markAsRead,
         notifications,
         refresh
     }

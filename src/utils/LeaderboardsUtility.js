@@ -169,12 +169,10 @@ const LeaderboardsUtility = {
             if (report) {
                 const yardage = parseFloat(report.data?.yardage || 0)
                 const hours = parseFloat(report.data?.total_hours || 0)
-                const lost = parseFloat(report.data?.total_yards_lost || 0)
                 allWeeks.push({
                     hours,
                     isMissing: false,
                     isNotSubmitted: !report.completed,
-                    lost,
                     yardage
                 })
             } else if (currentDate >= new Date(firstDate + 'T12:00:00') && currentDate < currentWeekStart) {
@@ -182,7 +180,6 @@ const LeaderboardsUtility = {
                     hours: 0,
                     isMissing: true,
                     isNotSubmitted: false,
-                    lost: 0,
                     yardage: 0
                 })
             }
@@ -199,10 +196,9 @@ const LeaderboardsUtility = {
             (acc, week) => ({
                 reportCount: acc.reportCount + 1,
                 totalHours: acc.totalHours + week.hours,
-                totalLost: acc.totalLost + week.lost,
                 totalYards: acc.totalYards + week.yardage
             }),
-            { reportCount: 0, totalHours: 0, totalLost: 0, totalYards: 0 }
+            { reportCount: 0, totalHours: 0, totalYards: 0 }
         )
         let adjustedTotalHours = totals.totalHours
         let helpGiven = 0
@@ -235,7 +231,6 @@ const LeaderboardsUtility = {
         const avgYardageDaily = avgYardageWeekly / 6
         const avgWeeklyHours = totals.reportCount > 0 ? adjustedTotalHours / totals.reportCount : 0
         const avgHoursDaily = avgWeeklyHours / 6
-        const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
         const avgMonthlyYards = avgYardageWeekly * 4.33
         const avgMonthlyHours = avgWeeklyHours * 4.33
         const yardsPerLoad = 10
@@ -262,7 +257,6 @@ const LeaderboardsUtility = {
             avgWeeklyHours,
             avgYPH,
             avgYardageDaily,
-            avgYardageLost,
             avgYardageWeekly,
             dataIntegrity,
             helpGiven,
@@ -275,7 +269,6 @@ const LeaderboardsUtility = {
             rawYPH,
             reportCount: totals.reportCount,
             totalHours: totals.totalHours,
-            totalLost: totals.totalLost,
             totalSafetyIncidents,
             totalYardage: totals.totalYards
         }

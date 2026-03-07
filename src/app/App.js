@@ -54,6 +54,7 @@ const ReportsView = lazyWithRetry(() => import('../views/reports/ReportsView'))
 const RolesView = lazyWithRetry(() => import('../views/roles/RolesView'))
 const TractorsView = lazyWithRetry(() => import('../views/tractors/TractorsView'))
 const TrailersView = lazyWithRetry(() => import('../views/trailers/TrailersView'))
+const NotificationsView = lazyWithRetry(() => import('../views/notifications/NotificationsView'))
 /** Views only available when region type is "Office". */
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 /** Views hidden when region type is "Aggregate". */
@@ -98,7 +99,7 @@ function AppContent() {
             const regionType = event?.detail?.type
             const view = selectedView?.view
             const isViewAllowed = (v, t) => {
-                if (!v || v === 'MyAccount') return true
+                if (!v || v === 'MyAccount' || v === 'Notifications') return true
                 if (t === 'Office') return OFFICE_VISIBLE_VIEWS.has(v)
                 if (t === 'Aggregate') return !AGGREGATE_HIDDEN_VIEWS.has(v)
                 return !DEFAULT_HIDDEN_VIEWS.has(v)
@@ -158,6 +159,9 @@ function AppContent() {
                 }
             })
     }, [userId])
+    useEffect(() => {
+        document.querySelectorAll('[data-content-scroll]').forEach((el) => el.scrollTo(0, 0))
+    }, [selectedView.view])
     const handleViewSelection = useCallback(
         (viewId) => {
             if (isGuestOnly && viewId !== 'Guest') return
@@ -285,6 +289,8 @@ function AppContent() {
             }
             case 'Documents':
                 return <DocumentsView />
+            case 'Notifications':
+                return <NotificationsView userId={userId} />
             case 'Plan':
                 return <PlanView title="My Plan" />
             default:

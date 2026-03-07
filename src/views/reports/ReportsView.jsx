@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import LostLoadReportModal from '../../app/components/reports/LostLoadReportModal'
+import LostLoadsList from '../../app/components/reports/LostLoadsList'
 import MyReportsList from '../../app/components/reports/MyReportsList'
 import ReportsEmptyState from '../../app/components/reports/ReportsEmptyState'
 import ReportsStatsCards from '../../app/components/reports/ReportsStatsCards'
@@ -22,18 +24,23 @@ import ReportsSubmitView from './ReportsSubmitView'
  */
 function ReportsView() {
     const {
+        addLostLoadReport,
         getUserName,
         hasAnyReviewPermission,
         hasAssigned,
+        hasLostLoadsPermission,
         hasReviewPermission,
+        isLoadingLostLoads,
         isLoadingMy,
         isLoadingPermissions,
         isLoadingReview,
         isLoadingUser,
         isRefreshing,
         loadError,
+        loadLostLoadReports,
         loadReviewReports,
         loadingReporterPlants,
+        lostLoadReports,
         markReportReviewed,
         myReportsByWeek,
         plants,
@@ -59,6 +66,8 @@ function ReportsView() {
     const [showReview, setShowReview] = useState(null)
     const [reviewData, setReviewData] = useState(null)
     const [tab, setTab] = useState('all')
+    const [showLostLoadModal, setShowLostLoadModal] = useState(false)
+    const [bannerDismissed, setBannerDismissed] = useState(false)
     const [submitInitialData, setSubmitInitialData] = useState(null)
     const [filterReportType, setFilterReportType] = useState('')
     const [filterPlant, setFilterPlant] = useState('')
@@ -113,6 +122,21 @@ function ReportsView() {
         items: visibleReviewReports,
         resetDependencies: [filterReportType, filterPlant, searchInput]
     })
+    const visibleLostLoads = useMemo(() => {
+        if (!searchLower) return lostLoadReports
+        return lostLoadReports.filter(
+            (r) =>
+                r.data?.plant?.toLowerCase().includes(searchLower) ||
+                r.data?.truck_number?.toLowerCase().includes(searchLower) ||
+                r.data?.reason?.toLowerCase().includes(searchLower) ||
+                getUserName(r.userId)?.toLowerCase().includes(searchLower)
+        )
+    }, [lostLoadReports, searchLower, getUserName])
+    const lostLoadsPagination = usePagination({
+        initialPageSize: 25,
+        items: visibleLostLoads,
+        resetDependencies: [searchInput]
+    })
     const regionalPlants = useMemo(
         () =>
             plants.filter(
@@ -128,7 +152,8 @@ function ReportsView() {
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
     useEffect(() => {
         if (tab === 'review') loadReviewReports()
-    }, [tab, loadReviewReports])
+        if (tab === 'lost_loads') loadLostLoadReports()
+    }, [tab, loadReviewReports, loadLostLoadReports])
     const handleSubmitReport = async (formData, completed = true) => {
         const result = await submitReport({ completed, formData, showForm })
         if (result.success) setShowForm(null)
@@ -212,16 +237,17 @@ function ReportsView() {
             </div>
         )
     }
-    const isCurrentTabLoading = tab === 'all' ? isMyReportsLoading : isReviewLoading
+    const isCurrentTabLoading =
+        tab === 'all' ? isMyReportsLoading : tab === 'review' ? isReviewLoading : isLoadingLostLoads
     const statsContent = (() => {
-        if (isCurrentTabLoading) return null
+        if (isCurrentTabLoading || tab === 'lost_loads') return null
         if (tab === 'all') return <ReportsStatsCards items={allMyItems} tab={tab} />
         return (
             <ReportsStatsCards items={visibleReviewReports} tab={tab} reviewedByCurrentUser={reviewedByCurrentUser} />
         )
     })()
     const statsSkeleton = (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="flex items-center justify-between sm:justify-start gap-4 sm:gap-6 bg-slate-100 rounded-xl px-4 sm:px-5 py-3 animate-pulse">
                 {[1, 2, 3].map((i) => (
                     <React.Fragment key={i}>
@@ -250,6 +276,30 @@ function ReportsView() {
                     {loadError}
                 </div>
             )}
+            {hasLostLoadsPermission && !bannerDismissed && (
+                <div className="flex items-start sm:items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm">
+                    <i className="fas fa-exclamation-triangle shrink-0 mt-0.5 sm:mt-0 text-amber-500" />
+                    <span className="flex-1">
+                        <strong>Action Required:</strong> Lost loads must now be reported using the{' '}
+                        <button
+                            onClick={() => setShowLostLoadModal(true)}
+                            className="underline font-semibold hover:text-amber-900"
+                            type="button"
+                        >
+                            Lost Load Report
+                        </button>{' '}
+                        button.
+                    </span>
+                    <button
+                        onClick={() => setBannerDismissed(true)}
+                        className="shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-amber-200 text-amber-600"
+                        type="button"
+                        aria-label="Dismiss"
+                    >
+                        <i className="fas fa-times text-xs" />
+                    </button>
+                </div>
+            )}
             <ReportsToolbar
                 isLoading={isCurrentTabLoading}
                 tab={tab}
@@ -263,9 +313,11 @@ function ReportsView() {
                 hasAssigned={hasAssigned}
                 hasReviewPermission={hasReviewPermission}
                 hasAnyReviewPermission={hasAnyReviewPermission}
+                hasLostLoadsPermission={hasLostLoadsPermission}
+                onLostLoadClick={() => setShowLostLoadModal(true)}
                 regionType={regionType}
                 statsContent={statsContent}
-                statsSkeleton={statsSkeleton}
+                statsSkeleton={tab !== 'lost_loads' ? statsSkeleton : null}
                 searchInput={searchInput}
                 onSearchInputChange={setSearchInput}
                 onClearSearch={() => setSearchInput('')}
@@ -304,6 +356,18 @@ function ReportsView() {
                             getUserName={getUserName}
                         />
                     ))}
+                {tab === 'lost_loads' && (
+                    <LostLoadsList
+                        isLoading={isLoadingLostLoads}
+                        items={lostLoadsPagination.paginatedItems}
+                        pageSize={lostLoadsPagination.pageSize}
+                        currentPage={lostLoadsPagination.currentPage}
+                        totalPages={lostLoadsPagination.totalPages}
+                        onPageSizeChange={lostLoadsPagination.changePageSize}
+                        onPageChange={lostLoadsPagination.goToPage}
+                        getUserName={getUserName}
+                    />
+                )}
             </div>
             {isPlantModalOpen && (
                 <PlantDropdownModal
@@ -315,6 +379,17 @@ function ReportsView() {
                         setIsPlantModalOpen(false)
                     }}
                     showAllPlants={true}
+                />
+            )}
+            {showLostLoadModal && (
+                <LostLoadReportModal
+                    onClose={() => setShowLostLoadModal(false)}
+                    onSubmitted={(report) => {
+                        addLostLoadReport(report)
+                        if (tab !== 'lost_loads') setTab('lost_loads')
+                    }}
+                    plants={regionalPlants}
+                    user={user}
                 />
             )}
         </div>

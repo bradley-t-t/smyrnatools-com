@@ -1,8 +1,6 @@
 import React from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { ReportService } from '../../../services/ReportService'
-import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
 const BASE_ROW_DELAY_MS = 160
@@ -14,11 +12,6 @@ function getRowDelay(index) {
         total += Math.max(MIN_ROW_DELAY_MS, BASE_ROW_DELAY_MS * Math.pow(DECAY_FACTOR, i))
     }
     return Math.round(total)
-}
-const BADGE_COLORS = {
-    'Last Week': 'bg-amber-100 text-amber-800',
-    Older: 'bg-slate-100 text-slate-600',
-    'This Week': 'bg-blue-100 text-blue-800'
 }
 const PageSizeSelect = ({ value, onChange }) => (
     <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -60,25 +53,20 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     </div>
 )
-/** Reviewed/Pending status indicator badge. */
-const ReviewStatus = ({ isReviewed }) =>
-    isReviewed ? (
-        <span className="inline-flex items-center gap-1 text-emerald-600 font-medium text-xs sm:text-sm">
-            <i className="fas fa-check-circle" />
-            Reviewed
-        </span>
-    ) : (
-        <span className="inline-flex items-center gap-1 text-amber-500 font-medium text-xs sm:text-sm">
-            <i className="fas fa-flag" />
-            Pending
-        </span>
-    )
-/** Mobile card layout for a single report in the review list. */
-const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onReview, index = 0 }) => {
-    const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
-    const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
-    const badge = ReportUtility.getWeekBadge(weekIso)
+const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
+        <i className="fas fa-exclamation-triangle text-4xl mb-3" />
+        <div className="text-sm">No lost load reports found</div>
+    </div>
+)
+/** Mobile card for a single lost load report. */
+const MobileLostLoadCard = ({ report, getUserName, index = 0 }) => {
     const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const submittedDate = report.submitted_at
+        ? new Date(report.submitted_at).toLocaleDateString()
+        : report.week
+          ? new Date(report.week).toLocaleDateString()
+          : '—'
     return (
         <div
             className="reports-row-animated p-4 last:border-b-0"
@@ -91,42 +79,49 @@ const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onRevi
             <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${BADGE_COLORS[badge] || BADGE_COLORS.Older}`}
-                        >
-                            {badge}
-                        </span>
-                        <ReviewStatus isReviewed={isReviewed} />
+                        <span className="text-xs font-semibold text-slate-500">{submittedDate}</span>
+                        {report.data?.plant && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800">
+                                {report.data.plant}
+                            </span>
+                        )}
                     </div>
-                    <h4 className="font-semibold text-slate-800 text-sm">{report.title}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                        {ReportService.getWeekRangeString(monday, saturday)}
-                    </p>
+                    <div className="flex items-center gap-3 text-sm text-slate-700 mb-1">
+                        {report.data?.truck_number && (
+                            <span className="flex items-center gap-1">
+                                <i className="fas fa-truck text-[10px] text-slate-400" />
+                                {report.data.truck_number}
+                            </span>
+                        )}
+                        {report.data?.yardage != null && (
+                            <span className="flex items-center gap-1">
+                                <i className="fas fa-box text-[10px] text-slate-400" />
+                                {report.data.yardage} yds
+                            </span>
+                        )}
+                    </div>
+                    {report.data?.reason && (
+                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{report.data.reason}</p>
+                    )}
                 </div>
-                <button
-                    className="shrink-0 px-3 py-2 rounded-lg text-white text-xs font-semibold"
-                    style={{ background: accentColor }}
-                    onClick={() => onReview(report)}
-                >
-                    Review
-                </button>
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
                 <span className="flex items-center gap-1">
                     <i className="fas fa-user text-[10px]" />
                     {getUserName(report.userId)}
                 </span>
-                <span>{new Date(report.completedDate).toLocaleDateString()}</span>
             </div>
         </div>
     )
 }
-/** Desktop table row for a single report in the review list. */
-const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onReview, index = 0 }) => {
-    const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
-    const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
-    const badge = ReportUtility.getWeekBadge(weekIso)
+/** Desktop row for a single lost load report. */
+const DesktopLostLoadRow = ({ report, getUserName, index = 0 }) => {
     const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const submittedDate = report.submitted_at
+        ? new Date(report.submitted_at).toLocaleDateString()
+        : report.week
+          ? new Date(report.week).toLocaleDateString()
+          : '—'
     return (
         <div
             className="reports-row-animated flex items-center py-3 px-4 lg:px-7"
@@ -138,55 +133,34 @@ const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onRevi
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
-            <div className="flex-1 min-w-0 pr-3">
-                <span
-                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide mr-2 ${BADGE_COLORS[badge] || BADGE_COLORS.Older}`}
-                >
-                    {badge}
-                </span>
-                <span className="text-sm text-slate-800">{ReportService.getWeekRangeString(monday, saturday)}</span>
+            <div className="w-36 shrink-0 pr-3 text-sm text-slate-600">{submittedDate}</div>
+            <div className="w-24 shrink-0 pr-3">
+                {report.data?.plant ? (
+                    <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                        {report.data.plant}
+                    </span>
+                ) : (
+                    <span className="text-slate-400 text-sm">—</span>
+                )}
             </div>
-            <div className="flex-1 min-w-0 pr-3">
-                <span className="text-sm font-medium text-slate-800">{report.title}</span>
+            <div className="w-24 shrink-0 pr-3 text-sm font-medium text-slate-800">
+                {report.data?.yardage != null ? `${report.data.yardage}` : '—'}
             </div>
-            <div className="flex-1 min-w-0 pr-3">
-                <span className="text-sm text-slate-600">{getUserName(report.userId)}</span>
-            </div>
-            <div className="w-28 shrink-0 pr-3 text-sm text-slate-500">
-                {new Date(report.completedDate).toLocaleDateString()}
-            </div>
-            <div className="w-28 shrink-0 pr-3">
-                <ReviewStatus isReviewed={isReviewed} />
-            </div>
-            <div className="w-24 shrink-0 text-right">
-                <button
-                    className="px-3 py-1.5 rounded-md text-white text-xs font-semibold"
-                    style={{ background: accentColor }}
-                    onClick={() => onReview(report)}
-                >
-                    Review
-                </button>
-            </div>
+            <div className="w-28 shrink-0 pr-3 text-sm text-slate-600">{report.data?.truck_number || '—'}</div>
+            <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">{report.data?.reason || '—'}</div>
+            <div className="flex-1 min-w-0 text-sm text-slate-600 truncate">{getUserName(report.userId)}</div>
         </div>
     )
 }
-const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
-        <i className="fas fa-user-check text-4xl mb-3" />
-        <div className="text-sm">No reports to review</div>
-    </div>
-)
-/** Paginated list of submitted reports awaiting review, with responsive mobile/desktop layouts. */
-function ReviewReportsList({
+/** Paginated list of all lost load reports with responsive mobile/desktop layouts. */
+function LostLoadsList({
     isLoading,
     items,
-    reviewedByCurrentUser,
     pageSize,
     currentPage,
     totalPages,
     onPageSizeChange,
     onPageChange,
-    onReview,
     getUserName
 }) {
     const { preferences } = usePreferences()
@@ -215,27 +189,21 @@ function ReviewReportsList({
                 <>
                     <div className="hidden md:block">
                         {items.map((report, index) => (
-                            <DesktopReviewRow
+                            <DesktopLostLoadRow
                                 key={report.id}
                                 report={report}
                                 index={index}
-                                isReviewed={reviewedByCurrentUser.has(report.id)}
                                 getUserName={getUserName}
-                                accentColor={accentColor}
-                                onReview={onReview}
                             />
                         ))}
                     </div>
                     <div className="md:hidden">
                         {items.map((report, index) => (
-                            <MobileReviewCard
+                            <MobileLostLoadCard
                                 key={report.id}
                                 report={report}
                                 index={index}
-                                isReviewed={reviewedByCurrentUser.has(report.id)}
                                 getUserName={getUserName}
-                                accentColor={accentColor}
-                                onReview={onReview}
                             />
                         ))}
                     </div>
@@ -251,4 +219,4 @@ function ReviewReportsList({
         </div>
     )
 }
-export default ReviewReportsList
+export default LostLoadsList

@@ -277,7 +277,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                     hoursSent: metrics.hoursSent,
                                     isCurrentWeek: weekStr === currentWeekDateOnly,
                                     isPlaceholder: false,
-                                    lost: parseFloat(report.data?.total_yards_lost || 0),
                                     rawYph: metrics.rawYph,
                                     userId: report.user_id,
                                     weekIso: weekStr,
@@ -293,7 +292,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                     hoursSent: 0,
                                     isCurrentWeek: weekStr === currentWeekDateOnly,
                                     isPlaceholder: true,
-                                    lost: 0,
                                     rawYph: 0,
                                     userId: null,
                                     weekIso: weekStr,
@@ -394,7 +392,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             notSubmittedWeeks: [],
                             reportCount: 0,
                             totalHours: 0,
-                            totalLost: 0,
                             totalYards: 0,
                             weeklyBreakdown: [],
                             year: currentYear
@@ -455,7 +452,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 hoursSent: metrics.hoursSent,
                                 isMissing: false,
                                 isNotSubmitted: !report.completed,
-                                lost: parseFloat(report.data?.total_yards_lost || 0),
                                 rawYph: metrics.rawYph,
                                 userId: report.user_id,
                                 week: weekStr,
@@ -470,7 +466,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 hoursSent: 0,
                                 isMissing: true,
                                 isNotSubmitted: false,
-                                lost: 0,
                                 rawYph: 0,
                                 userId: null,
                                 week: weekStr,
@@ -491,7 +486,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                 notSubmittedWeeks,
                                 reportCount: acc.reportCount + 1,
                                 totalHours: acc.totalHours + week.hours,
-                                totalLost: acc.totalLost + week.lost,
                                 totalYards: acc.totalYards + week.yardage,
                                 weeklyBreakdown: allWeeks,
                                 year: currentYear
@@ -502,7 +496,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                             notSubmittedWeeks,
                             reportCount: 0,
                             totalHours: 0,
-                            totalLost: 0,
                             totalYards: 0,
                             weeklyBreakdown: allWeeks,
                             year: currentYear
@@ -513,12 +506,8 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                     const hoursTotal = weeksWithHours.reduce((sum, w) => sum + w.hours, 0)
                     totals.avgYph = hoursTotal > 0 ? yardsWithHours / hoursTotal : 0
                     const targetYPH = 3.0
-                    const yardageEfficiency =
-                        totals.totalYards > 0 ? ((totals.totalYards - totals.totalLost) / totals.totalYards) * 100 : 0
                     const yphEfficiency = totals.avgYph > 0 ? Math.min((totals.avgYph / targetYPH) * 100, 100) : 0
-                    const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
-                    const avgYardageLost = totals.reportCount > 0 ? totals.totalLost / totals.reportCount : 0
-                    totals.avgEfficiency = totals.avgYph > 0 ? Math.max(baseEfficiency - avgYardageLost, 0) : 0
+                    totals.avgEfficiency = yphEfficiency
                     setYearlyTotals(totals)
                 }
             } catch (err) {
@@ -633,9 +622,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                         const yphVariance = !report.isPlaceholder
                             ? calculateVariance(report.yph, previousReportWithData?.yph)
                             : null
-                        const lostVariance = !report.isPlaceholder
-                            ? calculateVariance(report.lost, previousReportWithData?.lost)
-                            : null
                         const userName = report.userId ? timelineUserNames[report.userId] || 'Loading...' : null
                         return (
                             <div
@@ -690,24 +676,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <span className="text-xl font-bold text-accent">
-                                                        {report.lost.toFixed(0)}
-                                                    </span>
-                                                    <span className="text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                                                        Lost
-                                                    </span>
-                                                    {lostVariance !== null && (
-                                                        <span
-                                                            className={`flex items-center gap-1 text-xs font-semibold ${lostVariance <= 0 ? 'text-emerald-600' : 'text-red-500'}`}
-                                                        >
-                                                            <i
-                                                                className={`fas fa-arrow-${lostVariance <= 0 ? 'down' : 'up'}`}
-                                                            ></i>
-                                                            {Math.abs(lostVariance).toFixed(1)}%
-                                                        </span>
-                                                    )}
-                                                </div>
                                             </div>
                                         </>
                                     )}
@@ -731,7 +699,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                         'Hours',
                                         'YPH',
                                         'Daily Avg',
-                                        'Lost',
                                         'Efficiency'
                                     ].map((h) => (
                                         <th key={h} className={PM_TH}>
@@ -746,14 +713,10 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                     const weekLabel = ReportUtility.formatDate(weekDate)
                                     const userName = week.userId ? userNames[week.userId] || 'Loading...' : null
                                     const dailyAvg = Math.round(week.yardage / 6)
-                                    const yardageEfficiency =
-                                        week.yardage > 0 ? ((week.yardage - week.lost) / week.yardage) * 100 : 0
                                     const targetYPH = 3.0
                                     const yphEfficiency =
                                         week.hours > 0 ? Math.min((week.yph / targetYPH) * 100, 100) : 0
-                                    const baseEfficiency = yphEfficiency * 0.9 + yardageEfficiency * 0.1
-                                    const overallEfficiency =
-                                        week.hours > 0 ? Math.max(baseEfficiency - week.lost, 0) : 0
+                                    const overallEfficiency = yphEfficiency
                                     const isMissingRow = week.isMissing || week.isNotSubmitted
                                     return (
                                         <tr
@@ -796,9 +759,6 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                                             </td>
                                             <td className={`${PM_TD} font-medium`}>
                                                 {isMissingRow ? '--' : dailyAvg.toLocaleString()}
-                                            </td>
-                                            <td className={`${PM_TD} font-medium`}>
-                                                {isMissingRow ? '--' : week.lost.toLocaleString()}
                                             </td>
                                             <td className={`${PM_TD} font-medium`}>
                                                 {isMissingRow ? '--' : `${overallEfficiency.toFixed(1)}%`}

@@ -3,7 +3,7 @@ import React from 'react'
 import TopSection from '../../../app/components/sections/TopSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { reportTypes } from '../../../types/ReportTypes'
-const TAB_LABELS = { all: 'My Reports', review: 'Review' }
+const TAB_LABELS = { all: 'My Reports', lost_loads: 'Lost Loads', review: 'Review' }
 const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
     <button
         className="flex items-center gap-1.5 px-3 py-2.5 sm:px-4 rounded-lg text-white text-xs sm:text-sm font-semibold transition-all"
@@ -52,6 +52,8 @@ function ReportsToolbar({
     hasAssigned,
     hasReviewPermission,
     hasAnyReviewPermission,
+    hasLostLoadsPermission,
+    onLostLoadClick,
     regionType,
     isLoading = false,
     statsContent = null,
@@ -74,13 +76,39 @@ function ReportsToolbar({
             hideViewModeToggle
             hidePlantFilter
             sticky
-            listLabels={[]}
+            viewMode="list"
+            listLabels={
+                tab === 'review'
+                    ? ['Week', 'Report Type', 'Submitted By', 'Submitted', 'Status', 'Actions']
+                    : tab === 'lost_loads'
+                      ? ['Date', 'Plant', 'Yardage', 'Truck #', 'Reason', 'Submitted By']
+                      : ['Week', 'Report Type', 'Status', 'Due Date', 'Actions']
+            }
+            colWidths={
+                tab === 'review'
+                    ? ['flex', 'flex', 'flex', '7rem', '7rem', '6rem']
+                    : tab === 'lost_loads'
+                      ? ['9rem', '6rem', '6rem', '7rem', 'flex', 'flex']
+                      : ['flex', 'flex', '7rem', '7rem', '6rem']
+            }
             searchPlaceholder="Search by name or report type"
             searchInput={searchInput}
             onSearchInputChange={onSearchInputChange}
             onClearSearch={onClearSearch}
             customFilters={
                 <div className="flex items-center flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+                    {hasLostLoadsPermission && (
+                        <button
+                            className="flex items-center gap-1.5 px-3 py-2.5 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all border"
+                            style={{ borderColor: accentColor, color: accentColor, background: `${accentColor}10` }}
+                            onClick={onLostLoadClick}
+                            type="button"
+                        >
+                            <i className="fas fa-exclamation-triangle" />
+                            <span className="hidden sm:inline">Lost Load Report</span>
+                            <span className="sm:hidden">Lost Load</span>
+                        </button>
+                    )}
                     <RefreshButton accentColor={accentColor} isRefreshing={isRefreshing} onClick={onRefresh} />
                     <ReportTypeFilter
                         value={filterReportType}
@@ -107,6 +135,14 @@ function ReportsToolbar({
                                 accentColor={accentColor}
                                 label={TAB_LABELS.review}
                                 onClick={() => onTabChange('review')}
+                            />
+                        )}
+                        {hasLostLoadsPermission && (
+                            <TabButton
+                                isActive={tab === 'lost_loads'}
+                                accentColor={accentColor}
+                                label={TAB_LABELS.lost_loads}
+                                onClick={() => onTabChange('lost_loads')}
                             />
                         )}
                     </div>

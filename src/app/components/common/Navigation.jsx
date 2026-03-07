@@ -584,7 +584,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             </div>
                         </div>
                     )}
-                    <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</div>
+                    <div data-content-scroll style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
+                        {children}
+                    </div>
                 </div>
             </>
         )
@@ -804,13 +806,20 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         )}
                     </div>
                 </header>
-                <main style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>{children}</main>
+                <main data-content-scroll style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
+                    {children}
+                </main>
                 {showNotifications && (
                     <NotificationsModal
                         isOpen={showNotifications}
+                        userId={userId}
                         onClose={() => {
                             setShowNotifications(false)
                             window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                        }}
+                        onViewAll={() => {
+                            setShowNotifications(false)
+                            handleMenuClick('Notifications')
                         }}
                         anchorRect={notificationsAnchor}
                     />

@@ -16,7 +16,12 @@
       "Bash(CI=false npx react-app-rewired:*)",
       "Bash(npm install:*)",
       "Bash(npx eslint:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(claude config:*)",
+      "Bash(git:*)",
+      "Bash(supabase projects:*)",
+      "Bash(supabase functions:*)",
+      "Bash(npx supabase:*)"
     ]
   }
 }
