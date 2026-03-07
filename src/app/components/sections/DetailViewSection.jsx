@@ -86,7 +86,7 @@ function DetailViewSection({
         }
     }, [sections, activeSection])
     const legacyStyles = `
-.detail-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.detail-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; min-width: 0; }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #e5e7eb; }
 .card-header h2 { font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0; }
 .form-sections { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -435,6 +435,10 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                         .dv-mobile-nav-btn { min-width: 64px; padding: 10px 14px; font-size: 11px; }
                         .dv-mobile-nav-btn i { font-size: 16px; }
                         .dv-main-content { padding: 12px !important; padding-bottom: 85px !important; }
+                        .detail-card { padding: 1rem !important; }
+                        .form-control { font-size: 0.875rem !important; padding: 0.75rem 0.75rem !important; }
+                        input[type="datetime-local"].form-control,
+                        input[type="date"].form-control { font-size: 0.8125rem !important; padding: 0.625rem 0.5rem !important; }
                     }
                     ${legacyStyles}
                 `}</style>
@@ -711,7 +715,14 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                             </aside>
                             <main
                                 className="dv-main-content"
-                                style={{ background: '#f8fafc', flex: 1, overflowY: 'auto', padding: 24 }}
+                                style={{
+                                    background: '#f8fafc',
+                                    flex: 1,
+                                    minWidth: 0,
+                                    overflowX: 'hidden',
+                                    overflowY: 'auto',
+                                    padding: 24
+                                }}
                             >
                                 <div style={{ animation: 'dv-fadeIn 0.3s ease-out' }}>{children}</div>
                             </main>

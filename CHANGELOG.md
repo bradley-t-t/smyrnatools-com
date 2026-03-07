@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.7] - 2026-03-07
+
+- Improved responsiveness in AddViewSection by adjusting padding for smaller screens and adding specific font size and padding styles for datetime and date input fields.
+- Enhanced layout handling in AddViewSection and DetailViewSection by adding overflow control and min-width properties to prevent content clipping.
+- Refined styling in DetailViewSection for better mobile display, including reduced padding in detail cards and adjusted font sizes and padding for form controls.
+- Updated ListAddView form layout to ensure proper rendering on smaller screens by adding min-width constraints to form grids and input fields, and adjusted padding and font size for the deadline input field.
+
 ## [25.6] - 2026-03-07
 
 - Added `max-width: 100%` to input, textarea, and select elements in the AddViewSection component to ensure they don't overflow their containers.

@@ -197,7 +197,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                 <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-4">
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="description" className="text-sm font-medium text-slate-700">
                                         Description*
@@ -286,8 +286,8 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                         </div>
                     </div>
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex flex-col gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="plantCode" className="text-sm font-medium text-slate-700">
                                     {selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}
                                 </label>
@@ -344,22 +344,22 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                     </button>
                                 )}
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="deadline" className="text-sm font-medium text-slate-700">
                                     Deadline*
                                 </label>
                                 <input
                                     id="deadline"
                                     type="datetime-local"
-                                    className="w-full max-w-full box-border px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full max-w-full box-border px-3 sm:px-4 py-3 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={deadline}
                                     onChange={(e) => setDeadline(e.target.value)}
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex flex-col gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="status" className="text-sm font-medium text-slate-700">
                                     Status
                                 </label>
@@ -390,7 +390,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                     ))}
                                 </select>
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="responsibleRole" className="text-sm font-medium text-slate-700">
                                     Responsible
                                 </label>
@@ -425,7 +425,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                     </div>
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-4">
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="comments" className="text-sm font-medium text-slate-700">
                                     Comments
                                 </label>

@@ -140,6 +140,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             flexDirection: 'column',
             maxHeight: '90vh',
             maxWidth: '650px',
+            overflow: 'hidden',
             width: '100%'
         },
         permissionDenied: {
@@ -265,11 +266,17 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     display: flex;
                     flex-direction: column;
                     gap: 5px;
+                    overflow: hidden;
+                    min-width: 0;
                 }
                 .add-view-form form {
                     display: flex;
                     flex-direction: column;
                     gap: 5px;
+                    min-width: 0;
+                }
+                .add-view-form * {
+                    min-width: 0;
                 }
                 .add-view-form .form-section {
                     background: #f8fafc;
@@ -412,10 +419,15 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 @media (max-width: 480px) {
                     .add-view-form {
                         gap: 4px !important;
-                        padding: 1rem !important;
+                        padding: 0.75rem !important;
                     }
                     .add-view-form .form-section {
                         padding: 0.75rem !important;
+                    }
+                    .add-view-form input[type="datetime-local"],
+                    .add-view-form input[type="date"] {
+                        font-size: 0.8125rem !important;
+                        padding: 0.625rem 0.5rem !important;
                     }
                 }
                 .add-view-form .form-hint {
