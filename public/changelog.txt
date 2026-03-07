@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.4] - 2026-03-07
+
+- Added a new Online Users Modal component to display currently active users on the platform.
+- Implemented a custom hook, useVersionCheck, to handle version compatibility checks for the application.
+- Introduced OnlineUsersService to manage and fetch data related to online user presence.
+- Created UserPresenceService to handle user status updates and real-time presence tracking.
+
 ## [26.3] - 2026-03-07
 
 - Updated the navigation component to include a new user presence indicator, showing the number of online users directly in the header.

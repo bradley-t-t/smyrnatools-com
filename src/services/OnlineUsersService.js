@@ -23,18 +23,43 @@ function extractRoleNames(rolesData) {
 }
 function detectDeviceType() {
     if (typeof navigator === 'undefined') return 'desktop'
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'mobile' : 'desktop'
+    const ua = navigator.userAgent || ''
+    if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'mobile'
+    if (/iPad/i.test(ua)) return 'mobile'
+    if (navigator.standalone) return 'mobile'
+    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return 'mobile'
+    if (navigator.maxTouchPoints > 1 && window.innerWidth < 1024) return 'mobile'
+    if (window.matchMedia?.('(pointer: coarse)')?.matches && window.innerWidth < 1024) return 'mobile'
+    return 'desktop'
 }
-let _hasDeviceTypeColumn = null
-async function checkHasDeviceType() {
-    if (_hasDeviceTypeColumn !== null) return _hasDeviceTypeColumn
-    try {
-        const { error } = await supabase.from('users_presence').select('device_type').limit(0)
-        _hasDeviceTypeColumn = !error
-    } catch {
-        _hasDeviceTypeColumn = false
+const STALE_THRESHOLD = 5 * 60 * 1000
+function getActiveDevices(activeDevices, isSelf) {
+    const now = Date.now()
+    const devices = []
+    if (activeDevices && typeof activeDevices === 'object') {
+        for (const [type, timestamp] of Object.entries(activeDevices)) {
+            if (timestamp && now - new Date(timestamp).getTime() < STALE_THRESHOLD) {
+                devices.push(type)
+            }
+        }
     }
-    return _hasDeviceTypeColumn
+    if (isSelf) {
+        const current = detectDeviceType()
+        if (!devices.includes(current)) devices.push(current)
+    }
+    if (devices.length === 0) devices.push('desktop')
+    return devices.sort()
+}
+let _hasActiveDevicesCol = null
+async function checkActiveDevicesCol() {
+    if (_hasActiveDevicesCol !== null) return _hasActiveDevicesCol
+    try {
+        const { error } = await supabase.from('users_presence').select('active_devices').limit(0)
+        _hasActiveDevicesCol = !error
+    } catch {
+        _hasActiveDevicesCol = false
+    }
+    return _hasActiveDevicesCol
 }
 class OnlineUsersService {
     constructor() {
@@ -66,10 +91,10 @@ class OnlineUsersService {
         if (this._refreshing && !force) return
         this._refreshing = true
         try {
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-            const hasCol = await checkHasDeviceType()
-            const cols = hasCol
-                ? 'user_id, last_seen, last_activity, is_online, device_type'
+            const fiveMinutesAgo = new Date(Date.now() - STALE_THRESHOLD).toISOString()
+            const hasDevicesCol = await checkActiveDevicesCol()
+            const cols = hasDevicesCol
+                ? 'user_id, last_seen, last_activity, is_online, active_devices'
                 : 'user_id, last_seen, last_activity, is_online'
             const { data: presences, error } = await supabase
                 .from('users_presence')
@@ -86,7 +111,7 @@ class OnlineUsersService {
                 presenceList = [
                     ...presenceList,
                     {
-                        device_type: detectDeviceType(),
+                        active_devices: { [detectDeviceType()]: new Date().toISOString() },
                         is_online: true,
                         last_activity: new Date().toISOString(),
                         last_seen: new Date().toISOString(),
@@ -103,9 +128,9 @@ class OnlineUsersService {
                     const meta = this._userMetaCache[p.user_id] || {}
                     const isSelf = p.user_id === this.currentUserId
                     return {
-                        deviceType: isSelf ? detectDeviceType() : p.device_type || 'desktop',
+                        activeDevices: getActiveDevices(p.active_devices, isSelf),
                         id: p.user_id,
-                        isCurrentUser: p.user_id === this.currentUserId,
+                        isCurrentUser: isSelf,
                         lastActivity: p.last_activity,
                         lastSeen: p.last_seen,
                         name: meta.name || 'Unknown User',

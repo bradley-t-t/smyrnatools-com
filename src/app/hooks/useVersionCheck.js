@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-const VERSION_POLL_INTERVAL = 5 * 60 * 1000 // 5 minutes
+const VERSION_POLL_INTERVAL = 60 * 1000 // 1 minute
 async function fetchDeployedVersion() {
     const res = await fetch('/nit.json', { cache: 'no-store' })
     if (!res.ok) throw new Error('Failed to fetch version')

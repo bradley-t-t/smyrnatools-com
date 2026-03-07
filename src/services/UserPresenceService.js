@@ -2,7 +2,40 @@ import { supabase } from './DatabaseService'
 import { UserService } from './UserService'
 function detectDeviceType() {
     if (typeof navigator === 'undefined') return 'desktop'
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'mobile' : 'desktop'
+    const ua = navigator.userAgent || ''
+    if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'mobile'
+    if (/iPad/i.test(ua)) return 'mobile'
+    if (navigator.standalone) return 'mobile'
+    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return 'mobile'
+    if (navigator.maxTouchPoints > 1 && window.innerWidth < 1024) return 'mobile'
+    if (window.matchMedia?.('(pointer: coarse)')?.matches && window.innerWidth < 1024) return 'mobile'
+    return 'desktop'
+}
+let _hasActiveDevicesCol = null
+async function checkActiveDevicesCol() {
+    if (_hasActiveDevicesCol !== null) return _hasActiveDevicesCol
+    try {
+        const { error } = await supabase.from('users_presence').select('active_devices').limit(0)
+        _hasActiveDevicesCol = !error
+    } catch {
+        _hasActiveDevicesCol = false
+    }
+    return _hasActiveDevicesCol
+}
+async function mergeActiveDevice(userId, device, now) {
+    const hasCol = await checkActiveDevicesCol()
+    if (!hasCol) return
+    try {
+        const { data } = await supabase
+            .from('users_presence')
+            .select('active_devices')
+            .eq('user_id', userId)
+            .maybeSingle()
+        const devices =
+            data?.active_devices && typeof data.active_devices === 'object' ? { ...data.active_devices } : {}
+        devices[device] = now
+        await supabase.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
+    } catch {}
 }
 /**
  * Real-time user presence tracking service using Supabase.
@@ -27,11 +60,6 @@ class UserPresenceService {
         this.onOffline = this.handleOnlineStatusChange.bind(this, false)
         this.onUserActivity = this.handleUserActivity.bind(this)
     }
-    /**
-     * Initializes presence tracking: subscribes to realtime changes,
-     * sets the user online, starts heartbeat/cleanup intervals, and
-     * registers activity and browser lifecycle event listeners.
-     */
     async setup() {
         if (this.isSetup) return true
         try {
@@ -65,24 +93,20 @@ class UserPresenceService {
             return false
         }
     }
-    /** Registers DOM event listeners for user activity detection. */
     setupActivityTracking() {
         document.addEventListener('click', this.onUserActivity)
         document.addEventListener('keydown', this.onUserActivity)
         document.addEventListener('mousemove', this.onUserActivity, { passive: true })
     }
-    /** Handles Supabase realtime presence change events by refreshing the online user list. */
     handlePresenceChange() {
         this.notifyListeners()
     }
-    /** Throttled handler that updates last-activity timestamp (max once per 30s). */
     handleUserActivity() {
         const now = Date.now()
         if (now - this.lastActivityUpdate < 30000) return
         this.lastActivityUpdate = now
         this.updateActivity()
     }
-    /** Writes the current timestamp to last_activity and last_seen in the database. */
     async updateActivity() {
         if (!this.currentUserId) return false
         try {
@@ -91,6 +115,7 @@ class UserPresenceService {
                 .from('users_presence')
                 .update({ last_activity: now, last_seen: now, updated_at: now })
                 .eq('user_id', this.currentUserId)
+            mergeActiveDevice(this.currentUserId, detectDeviceType(), now)
             const today = now.split('T')[0]
             if (this.lastLoginDateWritten !== today) {
                 this.lastLoginDateWritten = today
@@ -106,14 +131,12 @@ class UserPresenceService {
             return false
         }
     }
-    /** Starts a 60-second interval that notifies listeners of presence changes. */
     startActivityRefresh() {
         if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
         this.activityRefreshInterval = setInterval(() => {
             this.notifyListeners()
         }, 60000)
     }
-    /** Upserts a presence record marking the user as online without resetting last_activity. */
     async setUserOnline(userId) {
         if (!userId) return false
         try {
@@ -123,45 +146,26 @@ class UserPresenceService {
                 .select('user_id')
                 .eq('user_id', userId)
                 .maybeSingle()
-            const device = detectDeviceType()
             if (existing) {
                 await supabase
                     .from('users_presence')
-                    .update({ device_type: device, is_online: true, last_seen: now, updated_at: now })
+                    .update({ is_online: true, last_seen: now, updated_at: now })
                     .eq('user_id', userId)
-                    .catch(() =>
-                        supabase
-                            .from('users_presence')
-                            .update({ is_online: true, last_seen: now, updated_at: now })
-                            .eq('user_id', userId)
-                    )
             } else {
-                await supabase
-                    .from('users_presence')
-                    .insert({
-                        device_type: device,
-                        is_online: true,
-                        last_activity: now,
-                        last_seen: now,
-                        updated_at: now,
-                        user_id: userId
-                    })
-                    .catch(() =>
-                        supabase.from('users_presence').insert({
-                            is_online: true,
-                            last_activity: now,
-                            last_seen: now,
-                            updated_at: now,
-                            user_id: userId
-                        })
-                    )
+                await supabase.from('users_presence').insert({
+                    is_online: true,
+                    last_activity: now,
+                    last_seen: now,
+                    updated_at: now,
+                    user_id: userId
+                })
             }
+            mergeActiveDevice(userId, detectDeviceType(), now)
             return true
         } catch {
             return false
         }
     }
-    /** Re-marks the user as online without updating last_activity (e.g. after network reconnect). */
     async setUserBackOnline(userId) {
         if (!userId) return false
         try {
@@ -170,12 +174,12 @@ class UserPresenceService {
                 .from('users_presence')
                 .update({ is_online: true, last_seen: now, updated_at: now })
                 .eq('user_id', userId)
+            mergeActiveDevice(userId, detectDeviceType(), now)
             return true
         } catch {
             return false
         }
     }
-    /** Updates the presence record to mark the user as offline. */
     async setUserOffline(userId) {
         if (!userId) return false
         try {
@@ -189,7 +193,6 @@ class UserPresenceService {
             return false
         }
     }
-    /** Updates the heartbeat timestamp to prevent stale session cleanup. */
     async updateHeartbeat() {
         if (!this.currentUserId) return false
         try {
@@ -203,12 +206,10 @@ class UserPresenceService {
             return false
         }
     }
-    /** Starts a 30-second heartbeat interval. */
     startHeartbeat() {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
         this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), 30000)
     }
-    /** Starts a 60-second cleanup interval that marks stale sessions (>5min) as offline. */
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
@@ -223,7 +224,6 @@ class UserPresenceService {
             } catch {}
         }, 60000)
     }
-    /** Uses fetch with keepalive to mark the user offline on page unload (best-effort). */
     handleBeforeUnload() {
         if (this.currentUserId) {
             const now = new Date().toISOString()
@@ -239,7 +239,6 @@ class UserPresenceService {
             }).catch(() => {})
         }
     }
-    /** Handles browser online/offline events by toggling presence and heartbeat. */
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
         if (isOnline) {
@@ -253,7 +252,6 @@ class UserPresenceService {
             }
         }
     }
-    /** Returns the count of currently online users (lightweight query for badge). */
     async getOnlineCount() {
         try {
             const { count, error } = await supabase
@@ -266,14 +264,12 @@ class UserPresenceService {
             return 0
         }
     }
-    /** Registers a callback to be invoked when the online user list changes. */
     addListener(callback) {
         if (typeof callback === 'function') this.listeners.push(callback)
     }
     removeListener(callback) {
         this.listeners = this.listeners.filter((listener) => listener !== callback)
     }
-    /** Broadcasts a presence change signal to all registered listeners. */
     notifyListeners() {
         this.listeners.forEach((listener) => {
             try {
@@ -281,10 +277,6 @@ class UserPresenceService {
             } catch {}
         })
     }
-    /**
-     * Tears down all intervals, event listeners, and Supabase subscriptions.
-     * Should be called on app unmount or user sign-out.
-     */
     cleanup() {
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval)

@@ -122,9 +122,14 @@ function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-400">
-                                                    <i
-                                                        className={`fas fa-${user.deviceType === 'mobile' ? 'mobile-alt' : 'desktop'} text-[10px]`}
-                                                    />
+                                                    <span className="flex items-center gap-1">
+                                                        {(user.activeDevices || ['desktop']).map((d) => (
+                                                            <i
+                                                                key={d}
+                                                                className={`fas fa-${d === 'mobile' ? 'mobile-alt' : 'desktop'} text-[10px]`}
+                                                            />
+                                                        ))}
+                                                    </span>
                                                     <span>{`Active ${formatLastActivity(user.lastActivity)}`}</span>
                                                 </div>
                                             </div>
