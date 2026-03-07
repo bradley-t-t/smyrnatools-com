@@ -206,6 +206,18 @@ export default function DashboardView() {
     const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
     const isAggregate = selectedRegion?.type === 'Aggregate'
     const showSkeleton = !dataReady
+    const wasLoadingRef = useRef(true)
+    const hasRevealedRef = useRef(false)
+    const [revealContent, setRevealContent] = useState(false)
+    useEffect(() => {
+        if (wasLoadingRef.current && !showSkeleton && !hasRevealedRef.current) {
+            hasRevealedRef.current = true
+            setRevealContent(true)
+            const timer = setTimeout(() => setRevealContent(false), 1500)
+            return () => clearTimeout(timer)
+        }
+        wasLoadingRef.current = showSkeleton
+    }, [showSkeleton])
     // Resolve the display label: specific plant > specific region > "All Regions" (admins) > first permitted region.
     const regionDisplayName = (() => {
         if (selectedRegion?.type === 'Office') return 'Home Office'
@@ -243,8 +255,33 @@ export default function DashboardView() {
         'trainerPlant'
     )
     const filteredLightDutyOperators = filterByPlantSet(lightDutyOperators, activePlantSetRef.current, 'plant')
+    const revealClass = (direction, delay) => (revealContent ? `dash-reveal-${direction}` : '')
+    const revealStyle = (delay) => (revealContent ? { animationDelay: `${delay}ms` } : undefined)
     return (
         <div className="dashboard-full-width min-h-screen bg-slate-50 text-slate-900">
+            <style>{`
+                @keyframes dashRevealLeft {
+                    from { opacity: 0; transform: translateX(-18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes dashRevealRight {
+                    from { opacity: 0; transform: translateX(18px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes dashRevealUp {
+                    from { opacity: 0; transform: translateY(14px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .dash-reveal-left {
+                    animation: dashRevealLeft 0.5s ease-out both;
+                }
+                .dash-reveal-right {
+                    animation: dashRevealRight 0.5s ease-out both;
+                }
+                .dash-reveal-up {
+                    animation: dashRevealUp 0.5s ease-out both;
+                }
+            `}</style>
             <DashboardHeader
                 accentColor={accentColor}
                 isMobile={isMobile}
@@ -255,34 +292,39 @@ export default function DashboardView() {
                 dashboardPlant={dashboardPlant}
                 regionPlants={regionPlants}
                 setPlantModalOpen={setPlantModalOpen}
+                isLoading={showSkeleton}
             />
             <div className={`mx-auto max-w-full ${isMobile ? 'p-3' : 'p-6'}`}>
                 {!showSkeleton && (isPlantManager || dashboardPlant) && (
-                    <DashboardPlantSummary
-                        dashboardPlant={dashboardPlant}
-                        plantNotifications={plantNotifications}
-                        expandedSections={expandedSections}
-                        setExpandedSections={setExpandedSections}
-                        setEmbeddedView={setEmbeddedView}
-                        setEmbeddedViewSearch={setEmbeddedViewSearch}
-                        aiDisplayText={aiDisplayText}
-                        aiActionPlan={aiActionPlan}
-                        isTypingComplete={isTypingComplete}
-                        showActionPlan={showActionPlan}
-                        handleRegenerateAISummary={handleRegenerateAISummary}
-                        userRoleName={userRoleName}
-                        userPlantCode={userPlantCode}
-                        isPlantManager={isPlantManager}
+                    <div className={revealClass('left', 0)} style={revealStyle(0)}>
+                        <DashboardPlantSummary
+                            dashboardPlant={dashboardPlant}
+                            plantNotifications={plantNotifications}
+                            expandedSections={expandedSections}
+                            setExpandedSections={setExpandedSections}
+                            setEmbeddedView={setEmbeddedView}
+                            setEmbeddedViewSearch={setEmbeddedViewSearch}
+                            aiDisplayText={aiDisplayText}
+                            aiActionPlan={aiActionPlan}
+                            isTypingComplete={isTypingComplete}
+                            showActionPlan={showActionPlan}
+                            handleRegenerateAISummary={handleRegenerateAISummary}
+                            userRoleName={userRoleName}
+                            userPlantCode={userPlantCode}
+                            isPlantManager={isPlantManager}
+                            isMobile={isMobile}
+                        />
+                    </div>
+                )}
+                <div className={revealClass('up', 60)} style={revealStyle(60)}>
+                    <RegionOverviewCard
+                        showSkeleton={showSkeleton}
+                        regionDisplayName={regionDisplayName}
+                        heroRegionSub={heroRegionSub}
+                        displayStats={displayStats}
                         isMobile={isMobile}
                     />
-                )}
-                <RegionOverviewCard
-                    showSkeleton={showSkeleton}
-                    regionDisplayName={regionDisplayName}
-                    heroRegionSub={heroRegionSub}
-                    displayStats={displayStats}
-                    isMobile={isMobile}
-                />
+                </div>
                 {error && (
                     <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl text-red-600 mb-6 px-5 py-4">
                         <span>{error}</span>
@@ -298,48 +340,56 @@ export default function DashboardView() {
                     <DashboardSkeleton isMobile={isMobile} />
                 ) : (
                     <div className={`grid ${isMobile ? 'gap-4' : 'gap-6'}`}>
-                        <FleetOverviewSection
-                            displayStats={displayStats}
-                            stats={stats}
-                            isAggregate={isAggregate}
-                            selectedRegion={selectedRegion}
-                            accentColor={accentColor}
-                            isMobile={isMobile}
-                        />
-                        <DashboardCard>
-                            <SectionTitle>Fleet Analytics</SectionTitle>
-                            <DashboardCharts
-                                dashboardPlant={dashboardPlant}
-                                dashboardRegionCode={dashboardRegionCode}
-                                regionPlants={regionPlants}
-                                allPlants={allPlants}
-                                statusHistoryData={statusHistoryData}
-                                isAggregate={isAggregate}
+                        <div className={revealClass('left', 120)} style={revealStyle(120)}>
+                            <FleetOverviewSection
+                                displayStats={displayStats}
                                 stats={stats}
+                                isAggregate={isAggregate}
+                                selectedRegion={selectedRegion}
+                                accentColor={accentColor}
+                                isMobile={isMobile}
                             />
-                        </DashboardCard>
-                        <PeopleSection
-                            displayStats={displayStats}
-                            isAggregate={isAggregate}
-                            filteredTrainingOperators={filteredTrainingOperators}
-                            filteredPendingStartOperators={filteredPendingStartOperators}
-                            filteredLightDutyOperators={filteredLightDutyOperators}
-                            trainingCollapsed={trainingCollapsed}
-                            setTrainingCollapsed={setTrainingCollapsed}
-                            pendingCollapsed={pendingCollapsed}
-                            setPendingCollapsed={setPendingCollapsed}
-                            lightDutyCollapsed={lightDutyCollapsed}
-                            setLightDutyCollapsed={setLightDutyCollapsed}
-                            formatPendingDate={DateUtility.formatPendingDate}
-                            accentColor={accentColor}
-                        />
-                        <MaintenanceQualitySection
-                            displayStats={displayStats}
-                            isAggregate={isAggregate}
-                            statusHistoryData={statusHistoryData}
-                            handleQuickDateFilter={handleQuickDateFilter}
-                            isMobile={isMobile}
-                        />
+                        </div>
+                        <div className={revealClass('right', 200)} style={revealStyle(200)}>
+                            <DashboardCard>
+                                <SectionTitle>Fleet Analytics</SectionTitle>
+                                <DashboardCharts
+                                    dashboardPlant={dashboardPlant}
+                                    dashboardRegionCode={dashboardRegionCode}
+                                    regionPlants={regionPlants}
+                                    allPlants={allPlants}
+                                    statusHistoryData={statusHistoryData}
+                                    isAggregate={isAggregate}
+                                    stats={stats}
+                                />
+                            </DashboardCard>
+                        </div>
+                        <div className={revealClass('left', 280)} style={revealStyle(280)}>
+                            <PeopleSection
+                                displayStats={displayStats}
+                                isAggregate={isAggregate}
+                                filteredTrainingOperators={filteredTrainingOperators}
+                                filteredPendingStartOperators={filteredPendingStartOperators}
+                                filteredLightDutyOperators={filteredLightDutyOperators}
+                                trainingCollapsed={trainingCollapsed}
+                                setTrainingCollapsed={setTrainingCollapsed}
+                                pendingCollapsed={pendingCollapsed}
+                                setPendingCollapsed={setPendingCollapsed}
+                                lightDutyCollapsed={lightDutyCollapsed}
+                                setLightDutyCollapsed={setLightDutyCollapsed}
+                                formatPendingDate={DateUtility.formatPendingDate}
+                                accentColor={accentColor}
+                            />
+                        </div>
+                        <div className={revealClass('right', 360)} style={revealStyle(360)}>
+                            <MaintenanceQualitySection
+                                displayStats={displayStats}
+                                isAggregate={isAggregate}
+                                statusHistoryData={statusHistoryData}
+                                handleQuickDateFilter={handleQuickDateFilter}
+                                isMobile={isMobile}
+                            />
+                        </div>
                     </div>
                 )}
             </div>

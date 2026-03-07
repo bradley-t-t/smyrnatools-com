@@ -68,7 +68,7 @@ export function MetricCard({
 /** Shimmer skeleton placeholder for chart/card loading states. */
 export function SkeletonCard() {
     return (
-        <div className="rounded-xl p-6 shadow animate-pulse bg-white">
+        <div className="rounded-xl p-6 shadow bg-white animate-pulse">
             <div className="h-4 rounded w-2/5 mb-3 bg-slate-200" />
             <div className="h-8 rounded w-3/5 mb-2 bg-slate-200" />
             <div className="h-3 rounded w-1/3 bg-slate-200" />
@@ -78,7 +78,7 @@ export function SkeletonCard() {
 /** Shimmer skeleton placeholder for metric card loading states. */
 export function SkeletonMetricCard() {
     return (
-        <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200">
+        <div className="rounded-xl p-4 md:p-5 bg-slate-50 border border-slate-200 animate-pulse">
             <div className="h-3.5 rounded w-3/5 mb-3 bg-slate-200" />
             <div className="h-8 rounded w-1/2 mb-2 bg-slate-200" />
             <div className="h-3 rounded w-2/5 bg-slate-200" />

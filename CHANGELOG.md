@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.0] - 2026-03-07
+
+- Updated the dashboard header component with improved styling and layout for better user experience.
+- Enhanced the Region Overview Card to display more detailed metrics and interactive elements.
+- Fixed alignment and spacing issues in the Dashboard Skeleton for a more polished loading state.
+- Refined the Regions Detail View with updated data visualization for clearer insights.
+- Improved responsiveness and design consistency across Dashboard Cards for various screen sizes.
+- Adjusted global styles in App.css and index.css to ensure uniform typography and spacing.
+- Optimized the Dashboard View layout for better performance and readability.
+- Updated Plants Detail View with additional fields for more comprehensive plant information.
+- Streamlined the Roles View interface to improve usability when managing permissions.
+- Configured Tailwind CSS settings to support new utility classes and custom themes.
+
 ## [24.9] - 2026-03-06
 
 - Updated the ListView component to improve rendering performance by optimizing state updates.

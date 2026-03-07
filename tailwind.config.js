@@ -24,7 +24,8 @@ module.exports = {
                 'status-spare': 'var(--status-spare)',
             },
             fontFamily: {
-                sans: ['var(--font-family)', 'system-ui', 'sans-serif'],
+                sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
+                heading: ['var(--font-heading)', 'system-ui', 'sans-serif'],
             },
             boxShadow: {
                 'card': '0 2px 4px rgba(0, 0, 0, 0.1)',

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
+import DetailViewSection from '../sections/DetailViewSection'
 /**
  * Detail/edit view for a single region.
  * Allows editing the region name, type, and associated plants via a searchable plant picker.
@@ -20,9 +21,9 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
-    const [error, setError] = useState('')
-    const [isDeleting, setIsDeleting] = useState(false)
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const [plantQuery, setPlantQuery] = useState('')
+    const regionCode = region.region_code || region.regionCode
     useEffect(() => {
         setLoading(true)
         async function fetchPlants() {
@@ -48,7 +49,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                 normalizedAll = []
             }
             try {
-                regionPlants = await RegionService.fetchRegionPlants(region.region_code || region.regionCode)
+                regionPlants = await RegionService.fetchRegionPlants(regionCode)
             } catch {
                 regionPlants = []
             }
@@ -68,35 +69,26 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const handleSave = async () => {
         setSaving(true)
         setMessage('')
-        setError('')
         try {
-            await RegionService.updateRegion(
-                region.region_code || region.regionCode,
-                regionName,
-                plantCodes,
-                regionType
-            )
+            await RegionService.updateRegion(regionCode, regionName, plantCodes, regionType)
             setMessage('Changes saved')
-            if (onUpdate) onUpdate(region.region_code || region.regionCode, regionName)
+            if (onUpdate) onUpdate(regionCode, regionName)
             setTimeout(() => setMessage(''), 2000)
-        } catch (e) {
-            setError('Error saving changes')
-            setTimeout(() => setError(''), 2000)
+        } catch {
+            setMessage('Error saving changes')
+            setTimeout(() => setMessage(''), 2000)
         } finally {
             setSaving(false)
         }
     }
     const handleDelete = async () => {
-        setError('')
-        setIsDeleting(true)
         try {
-            await RegionService.deleteRegion(region.region_code || region.regionCode)
-            if (onDelete) onDelete(region.region_code || region.regionCode)
+            await RegionService.deleteRegion(regionCode)
+            if (onDelete) onDelete(regionCode)
             else onClose()
-        } catch (e) {
-            setError('Failed to delete region')
-        } finally {
-            setIsDeleting(false)
+        } catch {
+            setMessage('Failed to delete region')
+            setTimeout(() => setMessage(''), 2000)
         }
     }
     const visiblePlants = Array.isArray(allPlants) ? allPlants : []
@@ -113,38 +105,53 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         const codes = filteredPlants.map((p) => p.plant_code)
         setPlantCodes((prev) => Array.from(new Set([...prev, ...codes])))
     }
-    const clearAllSelected = () => {
-        if (!plantCodes.length) return
-        setPlantCodes([])
-    }
-    const removeChip = (code) => {
-        setPlantCodes((prev) => prev.filter((c) => c !== code))
-    }
+    const clearAllSelected = () => setPlantCodes([])
+    const removeChip = (code) => setPlantCodes((prev) => prev.filter((c) => c !== code))
     const noPlantsAvailable = !loading && visiblePlants.length === 0
     return (
-        <div className="region-detail-view">
-            <div className="detail-header">
-                <button className="back-button" onClick={onClose} aria-label="Back to regions">
-                    <i className="fas fa-arrow-left"></i>
-                    <span>Back</span>
-                </button>
-                <h1>Region Details</h1>
-            </div>
-            <div className="detail-content" style={{ margin: '0 auto', maxWidth: 900, width: '100%' }}>
-                {message && <div className="message success">{message}</div>}
-                {error && <div className="message error">{error}</div>}
-                <div className="detail-card">
-                    <div className="card-header">
-                        <h2>Region Information</h2>
-                    </div>
+        <DetailViewSection
+            title={regionName || 'Region Details'}
+            subtitle={regionCode}
+            icon="fas fa-map-marker-alt"
+            onClose={onClose}
+            onBack={onClose}
+            isSaving={saving}
+            message={message}
+            isLoading={loading}
+            loadingMessage="Loading region details..."
+            footerActions={
+                <>
+                    <button
+                        className="global-button-secondary"
+                        onClick={handleSave}
+                        disabled={saving || loading}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                    >
+                        <i className="fas fa-save"></i>
+                        <span>{saving ? 'Saving...' : 'Save'}</span>
+                    </button>
+                    <button
+                        className="global-button-secondary"
+                        onClick={() => setShowDeleteConfirmation(true)}
+                        disabled={saving || loading}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                    >
+                        <i className="fas fa-trash-alt"></i>
+                        <span>Delete</span>
+                    </button>
+                </>
+            }
+            showDeleteConfirmation={showDeleteConfirmation}
+            onDeleteConfirm={handleDelete}
+            onDeleteCancel={() => setShowDeleteConfirmation(false)}
+            deleteTitle="Delete Region"
+            deleteMessage={`Are you sure you want to delete region ${regionCode}? This action cannot be undone.`}
+        >
+            <DetailViewSection.Section id="info" title="Region Information" icon="fas fa-map-marker-alt">
+                <DetailViewSection.Card title="Basic Information" icon="fas fa-id-card">
                     <div className="form-group">
                         <label>Region Code</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={region.region_code || region.regionCode}
-                            disabled
-                        />
+                        <input type="text" className="form-control" value={regionCode} disabled />
                     </div>
                     <div className="form-group">
                         <label>Region Name</label>
@@ -170,106 +177,120 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                             <option value="Office">Office</option>
                         </select>
                     </div>
-                    <div className="form-group">
-                        <label>Plants</label>
-                        {loading ? (
-                            <div className="plants-loading">Loading plants...</div>
-                        ) : noPlantsAvailable ? (
-                            <div className="no-plants">No plants available. Please add plants to the system.</div>
-                        ) : (
-                            <div className="plant-picker">
-                                {plantCodes.length > 0 && (
-                                    <div className="plant-picker-chips" aria-label="Selected plants">
-                                        {plantCodes.map((code) => {
-                                            const plant = visiblePlants.find((p) => p.plant_code === code)
-                                            return (
-                                                <span key={code} className="plant-chip">
-                                                    <span className="plant-chip-code">{code}</span>
-                                                    <span className="plant-chip-name">{plant?.plant_name || ''}</span>
-                                                    <button
-                                                        type="button"
-                                                        className="plant-chip-remove"
-                                                        aria-label={`Remove ${code}`}
-                                                        onClick={() => removeChip(code)}
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </span>
-                                            )
-                                        })}
-                                        <button
-                                            type="button"
-                                            className="cancel-button chip-clear-all"
-                                            onClick={clearAllSelected}
-                                        >
-                                            Clear All
-                                        </button>
-                                    </div>
-                                )}
-                                <div className="plant-picker-actions">
-                                    <input
-                                        type="text"
-                                        className="form-control plant-picker-search"
-                                        placeholder="Search by code or name"
-                                        value={plantQuery}
-                                        onChange={(e) => setPlantQuery(e.target.value)}
-                                        aria-label="Search plants"
-                                    />
-                                    <div className="plant-picker-meta">
-                                        <span className="plant-picker-count">{filteredPlants.length} results</span>
-                                        <button
-                                            type="button"
-                                            className="primary-button"
-                                            onClick={selectAllFiltered}
-                                            disabled={!filteredPlants.length}
-                                        >
-                                            Select All Visible
-                                        </button>
-                                    </div>
+                </DetailViewSection.Card>
+            </DetailViewSection.Section>
+            <DetailViewSection.Section id="plants" title="Assigned Plants" icon="fas fa-industry">
+                <DetailViewSection.Card title={`Plants (${plantCodes.length} selected)`} icon="fas fa-sitemap">
+                    {noPlantsAvailable ? (
+                        <div style={{ color: '#94a3b8', fontSize: 14, padding: '16px 0', textAlign: 'center' }}>
+                            No plants available. Please add plants to the system.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {plantCodes.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                    {plantCodes.map((code) => {
+                                        const p = visiblePlants.find((pl) => pl.plant_code === code)
+                                        return (
+                                            <span
+                                                key={code}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-medium text-blue-700"
+                                            >
+                                                <span className="font-bold">{code}</span>
+                                                {p?.plant_name && <span className="text-blue-500">{p.plant_name}</span>}
+                                                <button
+                                                    type="button"
+                                                    className="ml-0.5 text-blue-400 hover:text-blue-600 cursor-pointer bg-transparent border-none text-sm leading-none"
+                                                    onClick={() => removeChip(code)}
+                                                    aria-label={`Remove ${code}`}
+                                                >
+                                                    &times;
+                                                </button>
+                                            </span>
+                                        )
+                                    })}
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-500 cursor-pointer hover:bg-slate-200"
+                                        onClick={clearAllSelected}
+                                    >
+                                        Clear All
+                                    </button>
                                 </div>
-                                <div className="plant-picker-list" role="listbox" aria-label="All plants">
-                                    {filteredPlants.map((p) => (
+                            )}
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Search by code or name"
+                                    value={plantQuery}
+                                    onChange={(e) => setPlantQuery(e.target.value)}
+                                    aria-label="Search plants"
+                                    style={{ flex: 1 }}
+                                />
+                                <span className="text-xs text-slate-500 whitespace-nowrap">
+                                    {filteredPlants.length} results
+                                </span>
+                                <button
+                                    type="button"
+                                    className="global-button-secondary"
+                                    onClick={selectAllFiltered}
+                                    disabled={!filteredPlants.length}
+                                    style={{ whiteSpace: 'nowrap', fontSize: 13, padding: '8px 12px' }}
+                                >
+                                    Select All
+                                </button>
+                            </div>
+                            <div
+                                style={{
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 10,
+                                    maxHeight: 280,
+                                    overflowY: 'auto'
+                                }}
+                                role="listbox"
+                                aria-label="All plants"
+                            >
+                                {filteredPlants.map((p) => {
+                                    const isSelected = plantCodes.includes(p.plant_code)
+                                    return (
                                         <label
                                             key={p.plant_code}
-                                            className={`plant-item${plantCodes.includes(p.plant_code) ? ' selected' : ''}`}
+                                            className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}
+                                            style={{
+                                                borderBottom: '1px solid #f1f5f9'
+                                            }}
                                         >
                                             <input
                                                 type="checkbox"
-                                                checked={plantCodes.includes(p.plant_code)}
+                                                checked={isSelected}
                                                 onChange={() => togglePlant(p.plant_code)}
+                                                className="size-4 rounded border-slate-300"
                                                 aria-label={`Toggle ${p.plant_code}`}
                                             />
-                                            <span className="plant-item-code">{p.plant_code}</span>
-                                            <span className="plant-item-name">{p.plant_name}</span>
+                                            <span className="font-bold text-sm text-slate-700">{p.plant_code}</span>
+                                            <span className="text-sm text-slate-500">{p.plant_name}</span>
                                         </label>
-                                    ))}
-                                    {!filteredPlants.length && <div className="shuttle-empty">No matches</div>}
-                                </div>
+                                    )
+                                })}
+                                {!filteredPlants.length && (
+                                    <div
+                                        style={{
+                                            color: '#94a3b8',
+                                            fontSize: 14,
+                                            padding: '16px 0',
+                                            textAlign: 'center'
+                                        }}
+                                    >
+                                        No matches
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                    <div className="form-actions">
-                        <button
-                            className="primary-button save-button"
-                            onClick={handleSave}
-                            disabled={saving || loading || isDeleting}
-                        >
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                        <button className="cancel-button" onClick={onClose} disabled={saving || loading || isDeleting}>
-                            Cancel
-                        </button>
-                        <button
-                            className="cancel-button danger"
-                            onClick={handleDelete}
-                            disabled={saving || loading || isDeleting}
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </div>
+                    )}
+                </DetailViewSection.Card>
+            </DetailViewSection.Section>
+        </DetailViewSection>
     )
 }
 export default RegionsDetailView
