@@ -10,7 +10,6 @@ import EmbeddedViewModal from '../../app/components/dashboard/EmbeddedViewModal'
 import FleetOverviewSection from '../../app/components/dashboard/FleetOverviewSection'
 import MaintenanceQualitySection from '../../app/components/dashboard/MaintenanceQualitySection'
 import PeopleSection from '../../app/components/dashboard/PeopleSection'
-import RegionOverviewCard from '../../app/components/dashboard/RegionOverviewCard'
 import { DashboardCard, SectionTitle } from '../../app/components/ui/DashboardCards'
 import { INITIAL_EXPANDED_SECTIONS } from '../../app/constants/dashboardConstants'
 import { usePreferences } from '../../app/context/PreferencesContext'
@@ -345,6 +344,7 @@ export default function DashboardView() {
                     <div className={revealClass('left', 0)} style={revealStyle(0)}>
                         <DashboardRegionSummary
                             regionDisplayName={regionDisplayName}
+                            regionSubtitle={heroRegionSub}
                             plantNotifications={plantNotifications}
                             displayStats={displayStats}
                             expandedSections={expandedSections}
@@ -366,15 +366,6 @@ export default function DashboardView() {
                         />
                     </div>
                 )}
-                <div className={revealClass('up', 60)} style={revealStyle(60)}>
-                    <RegionOverviewCard
-                        showSkeleton={showSkeleton}
-                        regionDisplayName={regionDisplayName}
-                        heroRegionSub={heroRegionSub}
-                        displayStats={displayStats}
-                        isMobile={isMobile}
-                    />
-                </div>
                 {error && (
                     <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl text-red-600 mb-6 px-5 py-4">
                         <span>{error}</span>

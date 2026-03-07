@@ -296,6 +296,7 @@ const AnalysisPane = ({
 )
 const DashboardRegionSummary = memo(function DashboardRegionSummary({
     regionDisplayName,
+    regionSubtitle,
     plantNotifications,
     displayStats,
     expandedSections,
@@ -349,7 +350,16 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
             {/* Header */}
             <div
                 className={`flex items-center justify-between ${isMobile ? 'gap-3 p-4' : 'gap-6 px-6 py-4'}`}
-                style={{ background: accentColor }}
+                style={{
+                    backgroundColor: accentColor,
+                    backgroundImage: `
+                        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                        radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
+                    `,
+                    backgroundPosition: '0 0, 0 0, 0 0',
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
+                }}
             >
                 <div className="flex items-center flex-1 gap-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-white/15 rounded-xl">
@@ -359,11 +369,15 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                         <h2 className={`text-white font-bold m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>
                             {regionDisplayName} Overview
                         </h2>
-                        {!isDataLoading && (
-                            <p className="text-white/70 text-sm m-0 mt-0.5">
-                                {alertCount > 0 ? `${alertCount} regional issues` : 'All systems operational'}
-                            </p>
-                        )}
+                        <p className="text-white/60 text-xs m-0 mt-0.5">
+                            {regionSubtitle || ''}
+                            {!isDataLoading && alertCount > 0 && (
+                                <span className="text-white/50">
+                                    {' '}
+                                    · {alertCount} issue{alertCount !== 1 ? 's' : ''}
+                                </span>
+                            )}
+                        </p>
                     </div>
                     {alertCount > 0 && !isDataLoading && (
                         <div className="flex items-center gap-1.5 bg-red-600 rounded-xl text-white text-sm font-semibold px-3 py-1.5">

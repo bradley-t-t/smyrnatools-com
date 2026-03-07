@@ -54,15 +54,20 @@ function RecapModalSection({
         let runnableNet = 0
         let downNet = 0
         let transfersNet = 0
-        mixerHistory.forEach((h) => {
-            if (h.field_name === 'assigned_operator') {
-                const oldVal = h.old_value
-                const newVal = h.new_value
-                const hadOperator = oldVal && oldVal !== '' && oldVal !== 'null' && oldVal !== '0'
-                const hasOperator = newVal && newVal !== '' && newVal !== 'null' && newVal !== '0'
-                if (!hadOperator && hasOperator) operatorsNet++
-                else if (hadOperator && !hasOperator) operatorsNet--
+        const INACTIVE_STATUSES = ['terminated', 'do not hire']
+        const isActiveStatus = (s) => s && !INACTIVE_STATUSES.includes(s.toLowerCase())
+        const isInactiveStatus = (s) => s && INACTIVE_STATUSES.includes(s.toLowerCase())
+        operatorHistory.forEach((h) => {
+            if (h.field_name === 'status') {
+                const wasActive = isActiveStatus(h.old_value)
+                const nowActive = isActiveStatus(h.new_value)
+                const wasInactive = isInactiveStatus(h.old_value)
+                const nowInactive = isInactiveStatus(h.new_value)
+                if (wasActive && nowInactive) operatorsNet--
+                else if (wasInactive && nowActive) operatorsNet++
             }
+        })
+        mixerHistory.forEach((h) => {
             if (h.field_name === 'status') {
                 const oldStatus = (h.old_value || '').toLowerCase()
                 const newStatus = (h.new_value || '').toLowerCase()
@@ -458,10 +463,51 @@ function RecapModalSection({
             [assetKey]: !prev[assetKey]
         }))
     }
+    const [searchQuery, setSearchQuery] = useState('')
+    const [typeFilter, setTypeFilter] = useState('all')
+    const [fieldFilter, setFieldFilter] = useState('all')
+
+    const availableFields = useMemo(() => {
+        const fields = new Set()
+        groupedHistory.forEach((g) => g.changes.forEach((c) => fields.add(c.field_name)))
+        return [...fields].sort()
+    }, [groupedHistory])
+
+    const isTerminatedGroup = (group) => {
+        if (group.type !== 'operator') return false
+        const status = (group.status || '').toLowerCase()
+        if (status === 'terminated' || status === 'do not hire') return true
+        return group.changes.some((c) => {
+            if (c.field_name !== 'status') return false
+            const val = (c.new_value || '').toLowerCase()
+            return val === 'terminated' || val === 'do not hire'
+        })
+    }
+
+    const filteredHistory = useMemo(() => {
+        return groupedHistory.filter((group) => {
+            if (typeFilter === 'mixers' && group.type !== 'mixer') return false
+            if (typeFilter === 'operators' && group.type !== 'operator') return false
+            if (typeFilter === 'terminated' && !isTerminatedGroup(group)) return false
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase()
+                if (!group.name?.toLowerCase().includes(q)) return false
+            }
+            if (fieldFilter !== 'all') {
+                const hasField = group.changes.some((c) => c.field_name === fieldFilter)
+                if (!hasField) return false
+            }
+            return true
+        })
+    }, [groupedHistory, typeFilter, searchQuery, fieldFilter])
+
+    const filteredChangesForGroup = (group) => {
+        if (fieldFilter === 'all') return group.changes
+        return group.changes.filter((c) => c.field_name === fieldFilter)
+    }
     if (!plantCode && !isAllPlants) return null
     const displayTitle = isAllPlants ? 'All Plants Recap' : `Plant ${plantCode} Recap`
     const displaySubtitle = isAllPlants ? 'All Fleet Changes' : plantName || 'Changes History'
-    const totalChanges = mixerHistory.length + operatorHistory.length
     const tab = (
         <div
             className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
@@ -472,225 +518,315 @@ function RecapModalSection({
             <span className="text-sm font-medium">Recap</span>
         </div>
     )
+
+    const filteredTotal = filteredHistory.reduce((sum, g) => sum + filteredChangesForGroup(g).length, 0)
+
+    const DATE_OPTIONS = [
+        { id: 'day', label: '24h' },
+        { id: 'week', label: '7d' },
+        { id: 'month', label: '30d' },
+        { id: 'all', label: 'All' }
+    ]
+
+    const TYPE_OPTIONS = [
+        { id: 'all', label: 'All' },
+        { id: 'mixers', label: 'Mixers' },
+        { id: 'operators', label: 'Operators' },
+        { id: 'terminated', label: 'Terminated' }
+    ]
+
+    const MetricBadge = ({ value, label, icon, iconBg, iconColor, positive }) => {
+        const color =
+            value > 0
+                ? positive
+                    ? 'text-emerald-600'
+                    : 'text-red-600'
+                : value < 0
+                  ? positive
+                      ? 'text-red-600'
+                      : 'text-emerald-600'
+                  : 'text-slate-500'
+        return (
+            <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-slate-100 flex-1 min-w-0">
+                <div className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                    <i className={`fa-solid ${icon} text-[10px] ${iconColor}`}></i>
+                </div>
+                <div className="flex flex-col min-w-0">
+                    <span className={`text-sm font-bold leading-tight ${color}`}>
+                        {value === 0 ? '0' : `${value > 0 ? '+' : ''}${value}`}
+                    </span>
+                    <span className="text-[10px] text-slate-400 leading-tight">{label}</span>
+                </div>
+            </div>
+        )
+    }
+
+    const FilterPill = ({ active, label, onClick }) => (
+        <button
+            className="px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
+            style={{
+                backgroundColor: active ? accentColor : 'white',
+                border: active ? 'none' : '1px solid #e2e8f0',
+                color: active ? 'white' : '#64748b'
+            }}
+            onClick={onClick}
+        >
+            {label}
+        </button>
+    )
+
     const modal = isOpen ? (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
             onClick={() => setIsOpen(false)}
         >
             <div
-                className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-16"
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-12"
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Header */}
                 <div
                     className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-                    style={{ backgroundColor: accentColor }}
+                    style={{
+                        backgroundColor: accentColor,
+                        backgroundImage: `
+                            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
+                        `,
+                        backgroundPosition: '0 0, 0 0, 0 0',
+                        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
+                    }}
                 >
                     <div className="flex items-center gap-3">
-                        <i className="fa-solid fa-clock-rotate-left text-white text-lg"></i>
+                        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                            <i className="fa-solid fa-clock-rotate-left text-white text-sm"></i>
+                        </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-white m-0">{displayTitle}</h2>
-                            <span className="text-sm text-slate-300">{displaySubtitle}</span>
+                            <h2 className="text-base font-bold text-white m-0">{displayTitle}</h2>
+                            <span className="text-xs text-white/60">{displaySubtitle}</span>
                         </div>
                     </div>
                     <button
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/15 text-white/70 hover:text-white transition-colors"
                         onClick={() => setIsOpen(false)}
                     >
-                        <i className="fa-solid fa-xmark"></i>
+                        <i className="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
-                <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
-                    <div className="flex gap-1">
-                        <button
-                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
-                            style={{
-                                backgroundColor: dateFilter === 'day' ? accentColor : 'white',
-                                border: dateFilter === 'day' ? 'none' : '1px solid #e2e8f0',
-                                color: dateFilter === 'day' ? 'white' : '#475569'
-                            }}
-                            onClick={() => setDateFilter('day')}
-                        >
-                            24h
-                        </button>
-                        <button
-                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
-                            style={{
-                                backgroundColor: dateFilter === 'week' ? accentColor : 'white',
-                                border: dateFilter === 'week' ? 'none' : '1px solid #e2e8f0',
-                                color: dateFilter === 'week' ? 'white' : '#475569'
-                            }}
-                            onClick={() => setDateFilter('week')}
-                        >
-                            7 Days
-                        </button>
-                        <button
-                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
-                            style={{
-                                backgroundColor: dateFilter === 'month' ? accentColor : 'white',
-                                border: dateFilter === 'month' ? 'none' : '1px solid #e2e8f0',
-                                color: dateFilter === 'month' ? 'white' : '#475569'
-                            }}
-                            onClick={() => setDateFilter('month')}
-                        >
-                            30 Days
-                        </button>
-                        <button
-                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
-                            style={{
-                                backgroundColor: dateFilter === 'all' ? accentColor : 'white',
-                                border: dateFilter === 'all' ? 'none' : '1px solid #e2e8f0',
-                                color: dateFilter === 'all' ? 'white' : '#475569'
-                            }}
-                            onClick={() => setDateFilter('all')}
-                        >
-                            All
-                        </button>
+
+                {/* Filters toolbar */}
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0 space-y-2.5">
+                    {/* Search */}
+                    <div className="relative">
+                        <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input
+                            type="text"
+                            placeholder="Search by name..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-8 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-slate-300 placeholder:text-slate-400"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            >
+                                <i className="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        )}
                     </div>
-                    <div className="text-sm text-slate-500 font-medium">
-                        {totalChanges} change{totalChanges !== 1 ? 's' : ''}
+                    {/* Filter row */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-1">
+                            {DATE_OPTIONS.map((d) => (
+                                <FilterPill
+                                    key={d.id}
+                                    active={dateFilter === d.id}
+                                    label={d.label}
+                                    onClick={() => setDateFilter(d.id)}
+                                />
+                            ))}
+                        </div>
+                        <div className="w-px h-5 bg-slate-200"></div>
+                        <div className="flex items-center gap-1">
+                            {TYPE_OPTIONS.map((t) => (
+                                <FilterPill
+                                    key={t.id}
+                                    active={typeFilter === t.id}
+                                    label={t.label}
+                                    onClick={() => setTypeFilter(t.id)}
+                                />
+                            ))}
+                        </div>
+                        {availableFields.length > 1 && (
+                            <>
+                                <div className="w-px h-5 bg-slate-200"></div>
+                                <select
+                                    value={fieldFilter}
+                                    onChange={(e) => setFieldFilter(e.target.value)}
+                                    className="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 text-slate-600 focus:outline-none"
+                                >
+                                    <option value="all">All fields</option>
+                                    {availableFields.map((f) => (
+                                        <option key={f} value={f}>
+                                            {formatFieldName(f)}
+                                        </option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+                    </div>
+                    {/* Metrics row */}
+                    <div className="flex gap-2">
+                        <MetricBadge
+                            value={changeMetrics.operatorsNet}
+                            label="Operators"
+                            icon="fa-user"
+                            iconBg="bg-blue-50"
+                            iconColor="text-blue-500"
+                            positive
+                        />
+                        <MetricBadge
+                            value={changeMetrics.runnableNet}
+                            label="Runnable"
+                            icon="fa-truck"
+                            iconBg="bg-emerald-50"
+                            iconColor="text-emerald-500"
+                            positive
+                        />
+                        <MetricBadge
+                            value={changeMetrics.downNet}
+                            label="Down"
+                            icon="fa-wrench"
+                            iconBg="bg-amber-50"
+                            iconColor="text-amber-500"
+                            positive={false}
+                        />
+                        <MetricBadge
+                            value={changeMetrics.transfersNet}
+                            label="Transfers"
+                            icon="fa-right-left"
+                            iconBg="bg-purple-50"
+                            iconColor="text-purple-500"
+                            positive
+                        />
                     </div>
                 </div>
+
+                {/* Results count */}
+                <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                    <span className="text-xs text-slate-500">
+                        {filteredHistory.length} asset{filteredHistory.length !== 1 ? 's' : ''} · {filteredTotal} change
+                        {filteredTotal !== 1 ? 's' : ''}
+                    </span>
+                    {(searchQuery || typeFilter !== 'all' || fieldFilter !== 'all') && (
+                        <button
+                            onClick={() => {
+                                setSearchQuery('')
+                                setTypeFilter('all')
+                                setFieldFilter('all')
+                            }}
+                            className="text-xs font-medium hover:text-slate-700 transition-colors"
+                            style={{ color: accentColor }}
+                        >
+                            Clear filters
+                        </button>
+                    )}
+                </div>
+
+                {/* Content */}
                 <div className="flex-1 overflow-y-auto">
-                    <div className="grid grid-cols-4 gap-3 p-4 border-b border-slate-200">
-                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
-                            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                                <i className="fa-solid fa-user text-blue-600 text-sm"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span
-                                    className={`text-base font-bold ${changeMetrics.operatorsNet > 0 ? 'text-green-600' : changeMetrics.operatorsNet < 0 ? 'text-red-600' : 'text-slate-600'}`}
-                                >
-                                    {changeMetrics.operatorsNet === 0
-                                        ? '0'
-                                        : `${changeMetrics.operatorsNet > 0 ? '+' : ''}${changeMetrics.operatorsNet}`}
-                                </span>
-                                <span className="text-xs text-slate-500">Operators</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
-                            <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
-                                <i className="fa-solid fa-truck text-green-600 text-sm"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span
-                                    className={`text-base font-bold ${changeMetrics.runnableNet > 0 ? 'text-green-600' : changeMetrics.runnableNet < 0 ? 'text-red-600' : 'text-slate-600'}`}
-                                >
-                                    {changeMetrics.runnableNet === 0
-                                        ? '0'
-                                        : `${changeMetrics.runnableNet > 0 ? '+' : ''}${changeMetrics.runnableNet}`}
-                                </span>
-                                <span className="text-xs text-slate-500">Runnable</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
-                            <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center">
-                                <i className="fa-solid fa-wrench text-amber-600 text-sm"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span
-                                    className={`text-base font-bold ${changeMetrics.downNet > 0 ? 'text-red-600' : changeMetrics.downNet < 0 ? 'text-green-600' : 'text-slate-600'}`}
-                                >
-                                    {changeMetrics.downNet === 0
-                                        ? '0'
-                                        : `${changeMetrics.downNet > 0 ? '+' : ''}${changeMetrics.downNet}`}
-                                </span>
-                                <span className="text-xs text-slate-500">Down</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2.5 p-3 bg-slate-50 rounded-lg">
-                            <div className="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
-                                <i className="fa-solid fa-right-left text-purple-600 text-sm"></i>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-base font-bold text-slate-600">
-                                    {changeMetrics.transfersNet === 0 ? '0' : changeMetrics.transfersNet}
-                                </span>
-                                <span className="text-xs text-slate-500">Transfers</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-4">
+                    <div className="p-3">
                         {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                                <i className="fa-solid fa-spinner fa-spin text-2xl mb-3"></i>
+                            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                                <i className="fa-solid fa-spinner fa-spin text-xl mb-3"></i>
                                 <span className="text-sm">Loading history...</span>
                             </div>
-                        ) : groupedHistory.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                                <i className="fa-solid fa-inbox text-3xl mb-3"></i>
-                                <p className="text-sm">No changes found for this time period</p>
+                        ) : filteredHistory.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                                <i className="fa-solid fa-filter-circle-xmark text-2xl mb-3"></i>
+                                <p className="text-sm font-medium m-0">No changes found</p>
+                                <p className="text-xs mt-1 m-0">Try adjusting your filters</p>
                             </div>
                         ) : (
-                            <div className="space-y-2">
-                                {groupedHistory.map((group, groupIndex) => {
+                            <div className="space-y-1.5">
+                                {filteredHistory.map((group, groupIndex) => {
                                     const assetKey = `${group.type}_${group.id}`
                                     const isExpanded = expandedAssets[assetKey] || false
                                     const isMixer = group.type === 'mixer'
                                     const isTerminated = group.type === 'operator' && group.status === 'Terminated'
-                                    const assetIcon = isMixer ? 'fa-solid fa-truck' : 'fa-solid fa-hard-hat'
+                                    const changes = filteredChangesForGroup(group)
                                     return (
                                         <div
                                             key={assetKey || groupIndex}
-                                            className={`border rounded-lg overflow-hidden ${isMixer ? 'border-blue-200' : 'border-amber-200'}`}
+                                            className="border border-slate-200 rounded-xl overflow-hidden"
                                         >
                                             <div
-                                                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isMixer ? 'bg-blue-50 hover:bg-blue-100' : 'bg-amber-50 hover:bg-amber-100'}`}
+                                                className="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-colors hover:bg-slate-50"
                                                 onClick={() => toggleAssetExpanded(assetKey)}
                                             >
-                                                <i
-                                                    className={`fa-solid fa-chevron-${isExpanded ? 'down' : 'right'} text-xs text-slate-400`}
-                                                ></i>
-                                                <i
-                                                    className={`${assetIcon} ${isMixer ? 'text-blue-600' : 'text-amber-600'}`}
-                                                ></i>
+                                                <div
+                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isMixer ? 'bg-blue-50' : 'bg-amber-50'}`}
+                                                >
+                                                    <i
+                                                        className={`fa-solid ${isMixer ? 'fa-truck text-blue-500' : 'fa-hard-hat text-amber-500'} text-[10px]`}
+                                                    ></i>
+                                                </div>
                                                 {isTerminated ? (
-                                                    <span className="flex items-center gap-2 flex-1 font-medium">
-                                                        <span className="line-through text-slate-400">
+                                                    <span className="flex items-center gap-2 flex-1 min-w-0">
+                                                        <span className="line-through text-slate-400 text-sm truncate">
                                                             {group.name}
                                                         </span>
-                                                        <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-semibold rounded">
+                                                        <span className="px-1.5 py-0.5 bg-red-50 text-red-500 text-[10px] font-semibold rounded flex-shrink-0">
                                                             Terminated
                                                         </span>
                                                     </span>
                                                 ) : (
-                                                    <span className="flex-1 font-medium text-slate-800">
+                                                    <span className="flex-1 text-sm font-medium text-slate-800 truncate">
                                                         {group.name}
                                                     </span>
                                                 )}
-                                                <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded-full">
-                                                    {group.changes.length} change{group.changes.length !== 1 ? 's' : ''}
+                                                <span className="text-[11px] text-slate-400 font-medium flex-shrink-0">
+                                                    {changes.length}
                                                 </span>
+                                                <i
+                                                    className={`fa-solid fa-chevron-down text-[10px] text-slate-300 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                                ></i>
                                             </div>
                                             {isExpanded && (
-                                                <div className="bg-white divide-y divide-slate-100">
-                                                    {group.changes.map((entry, index) => (
-                                                        <div key={entry.id || index} className="flex gap-3 px-4 py-3">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                                <div className="border-t border-slate-100 divide-y divide-slate-50">
+                                                    {changes.map((entry, index) => (
+                                                        <div
+                                                            key={entry.id || index}
+                                                            className="flex gap-2.5 px-3.5 py-2.5"
+                                                        >
+                                                            <div className="w-6 h-6 rounded-md bg-slate-50 flex items-center justify-center flex-shrink-0 mt-0.5">
                                                                 <i
-                                                                    className={`${getChangeIcon(entry.field_name)} text-xs text-slate-500`}
+                                                                    className={`${getChangeIcon(entry.field_name)} text-[9px] text-slate-400`}
                                                                 ></i>
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between gap-2 mb-1">
-                                                                    <span className="text-sm font-medium text-slate-700">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span className="text-xs font-semibold text-slate-700">
                                                                         {formatFieldName(entry.field_name)}
                                                                     </span>
-                                                                    <span className="text-xs text-slate-400">
+                                                                    <span className="text-[10px] text-slate-400 flex-shrink-0">
                                                                         {formatDate(entry.changed_at)}
                                                                     </span>
                                                                 </div>
-                                                                <div className="flex items-center gap-2 text-sm">
-                                                                    <span className="text-red-600 bg-red-50 px-2 py-0.5 rounded truncate max-w-[120px]">
+                                                                <div className="flex items-center gap-1.5 mt-1 text-xs">
+                                                                    <span className="text-red-500 bg-red-50 px-1.5 py-0.5 rounded truncate max-w-[130px]">
                                                                         {formatValue(entry.old_value, entry.field_name)}
                                                                     </span>
-                                                                    <i className="fa-solid fa-arrow-right text-xs text-slate-300"></i>
-                                                                    <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded truncate max-w-[120px]">
+                                                                    <i className="fa-solid fa-arrow-right text-[8px] text-slate-300 flex-shrink-0"></i>
+                                                                    <span className="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded truncate max-w-[130px]">
                                                                         {formatValue(entry.new_value, entry.field_name)}
                                                                     </span>
                                                                 </div>
                                                                 {entry.changed_by && userNames[entry.changed_by] && (
-                                                                    <div className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-400">
-                                                                        <i className="fa-solid fa-user-pen"></i>
+                                                                    <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                                                                        <i className="fa-solid fa-user-pen text-[8px]"></i>
                                                                         <span>{userNames[entry.changed_by]}</span>
                                                                     </div>
                                                                 )}

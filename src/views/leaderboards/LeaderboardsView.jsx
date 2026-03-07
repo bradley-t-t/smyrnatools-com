@@ -16,9 +16,11 @@ const SKELETON_COUNT = 5
 const GRID_PATTERN_STYLE = (accentColor) => ({
     backgroundImage: `
         linear-gradient(${accentColor}10 1px, transparent 1px),
-        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px)
+        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+        radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
     `,
-    backgroundSize: '20px 20px'
+    backgroundPosition: '0 0, 0 0, 0 0',
+    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
 })
 /**
  * Region-scoped plant leaderboard view. Ranks plants by a selectable
@@ -133,7 +135,20 @@ export default function LeaderboardsView() {
                 </div>
             </header>
             <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-                {selectedCategory === 'efficiency' && <EfficiencyInfoCard />}
+                {selectedCategory === 'efficiency' &&
+                    (loading ? (
+                        <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white/60 p-5 md:mb-8 animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-slate-200" />
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="h-4 w-52 rounded bg-slate-200" />
+                                    <div className="h-3 w-36 rounded bg-slate-100" />
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <EfficiencyInfoCard />
+                    ))}
                 {loading ? (
                     <div className="space-y-3">
                         {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
@@ -148,15 +163,28 @@ export default function LeaderboardsView() {
                     />
                 ) : (
                     <div className="space-y-3">
-                        {categoryData.map((plant, index) => (
-                            <LeaderboardItem
-                                key={plant.plantCode}
-                                plant={plant}
-                                rank={index + 1}
-                                selectedCategory={selectedCategory}
-                                onHelpClick={() => openHelpModal(plant)}
-                            />
-                        ))}
+                        {(() => {
+                            let currentRank = 1
+                            return categoryData.map((plant, index) => {
+                                if (index > 0) {
+                                    const prevScore = LeaderboardsUtility.getCategoryScore(
+                                        categoryData[index - 1],
+                                        selectedCategory
+                                    )
+                                    const currScore = LeaderboardsUtility.getCategoryScore(plant, selectedCategory)
+                                    if (prevScore !== currScore) currentRank = index + 1
+                                }
+                                return (
+                                    <LeaderboardItem
+                                        key={plant.plantCode}
+                                        plant={plant}
+                                        rank={currentRank}
+                                        selectedCategory={selectedCategory}
+                                        onHelpClick={() => openHelpModal(plant)}
+                                    />
+                                )
+                            })
+                        })()}
                     </div>
                 )}
             </main>

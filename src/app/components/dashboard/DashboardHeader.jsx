@@ -29,9 +29,13 @@ export default function DashboardHeader({
         <div
             className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm"
             style={{
-                backgroundImage:
-                    'linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px)',
-                backgroundSize: '20px 20px',
+                backgroundImage: `
+                    linear-gradient(${accentColor}10 1px, transparent 1px),
+                    linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+                    radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
+                `,
+                backgroundPosition: '0 0, 0 0, 0 0',
+                backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                 padding: isMobile ? '10px 12px' : '12px 16px'
             }}
         >

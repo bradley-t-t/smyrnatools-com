@@ -562,7 +562,16 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
             <div
                 onClick={toggleMinimized}
                 className={`flex items-center justify-between cursor-pointer ${isMobile ? 'gap-3 p-4' : 'gap-6 px-6 py-4'}`}
-                style={{ background: accentColor }}
+                style={{
+                    backgroundColor: accentColor,
+                    backgroundImage: `
+                        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                        radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
+                    `,
+                    backgroundPosition: '0 0, 0 0, 0 0',
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
+                }}
             >
                 <div className="flex items-center flex-1 gap-4">
                     <div

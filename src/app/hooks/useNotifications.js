@@ -19,13 +19,16 @@ export function useNotifications(userId, selectedRegion) {
     const computeCount = (list) =>
         list.filter((n) => n.source === 'computed' || (n.source === 'db' && !n.isRead)).length
 
+    const hasLoadedRef = useRef(false)
+
     const refresh = useCallback(async () => {
         if (!userId) {
             setNotifications([])
             setCount(0)
+            setLoading(false)
             return
         }
-        setLoading(true)
+        if (!hasLoadedRef.current) setLoading(true)
         const seq = ++refreshSeqRef.current
         try {
             const list = await NotificationsService.getNotifications(userId, selectedRegion)
@@ -34,6 +37,7 @@ export function useNotifications(userId, selectedRegion) {
                 setNotifications(validList)
                 setCount(computeCount(validList))
                 setLoading(false)
+                hasLoadedRef.current = true
             }
         } catch {
             if (refreshSeqRef.current === seq) {

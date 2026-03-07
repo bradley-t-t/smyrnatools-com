@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
-import { useNotifications } from '../../hooks/useNotifications'
 
 const COMPUTED_TYPE_META = {
     'equipment.verifications': { icon: 'fas fa-snowplow', label: 'Equipment Verifications' },
@@ -52,17 +50,10 @@ function formatTimeAgo(dateString) {
  * and recent DB-backed notifications with per-item read/delete actions.
  * Footer links to the full NotificationsView.
  */
-function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, userId }) {
-    const { preferences } = usePreferences()
+function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificationsHook }) {
     const accentColor = useAccentColor()
     const panelRef = useRef(null)
-    const {
-        notifications: items = [],
-        loading,
-        markAsRead,
-        markAllRead,
-        deleteNotification
-    } = useNotifications(userId, preferences?.selectedRegion)
+    const { notifications: items = [], loading, markAsRead, markAllRead, deleteNotification } = notificationsHook
 
     const computedItems = useMemo(() => items.filter((n) => n.source === 'computed'), [items])
     const dbItems = useMemo(() => items.filter((n) => n.source === 'db'), [items])
@@ -170,48 +161,11 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, userId }) 
                                     </div>
                                     <div className="p-3 flex flex-col gap-2">
                                         {computedGroups.map((group) => (
-                                            <div
+                                            <CollapsibleAlertGroup
                                                 key={group.key}
-                                                className="rounded-lg border border-slate-200 overflow-hidden"
-                                            >
-                                                <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100">
-                                                    <i
-                                                        className={`${group.icon} text-xs w-4 text-center`}
-                                                        style={{ color: accentColor }}
-                                                    ></i>
-                                                    <span className="flex-1 text-xs font-semibold text-slate-700">
-                                                        {group.label}
-                                                    </span>
-                                                    <span
-                                                        className="text-white text-xs font-bold px-1.5 py-0.5 rounded-full"
-                                                        style={{ backgroundColor: accentColor }}
-                                                    >
-                                                        {group.items.length}
-                                                    </span>
-                                                </div>
-                                                <div className="p-2 flex flex-col gap-1">
-                                                    {group.items.map((n) => {
-                                                        const s = getSeverityStyle(n.severity)
-                                                        return (
-                                                            <div
-                                                                key={n.id}
-                                                                className={`px-2.5 py-2 rounded-lg border ${s.bg} ${s.border}`}
-                                                            >
-                                                                <div
-                                                                    className={`text-xs font-medium ${s.text} truncate`}
-                                                                >
-                                                                    {n.title}
-                                                                </div>
-                                                                {n.subtitle && (
-                                                                    <div className="text-xs text-slate-500 truncate mt-0.5">
-                                                                        {n.subtitle}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
+                                                group={group}
+                                                accentColor={accentColor}
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -260,6 +214,46 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, userId }) 
             </div>
         </div>,
         document.body
+    )
+}
+
+function CollapsibleAlertGroup({ group, accentColor }) {
+    const shouldCollapse = group.key?.includes('verifications') || group.key?.includes('overdue')
+    const [expanded, setExpanded] = useState(!shouldCollapse)
+    return (
+        <div className="rounded-lg border border-slate-200 overflow-hidden">
+            <div
+                className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                onClick={() => setExpanded((v) => !v)}
+            >
+                <i className={`${group.icon} text-xs w-4 text-center`} style={{ color: accentColor }}></i>
+                <span className="flex-1 text-xs font-semibold text-slate-700">{group.label}</span>
+                <span
+                    className="text-white text-xs font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: accentColor }}
+                >
+                    {group.items.length}
+                </span>
+                <i
+                    className={`fas fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                ></i>
+            </div>
+            {expanded && (
+                <div className="p-2 flex flex-col gap-1">
+                    {group.items.map((n) => {
+                        const s = getSeverityStyle(n.severity)
+                        return (
+                            <div key={n.id} className={`px-2.5 py-2 rounded-lg border ${s.bg} ${s.border}`}>
+                                <div className={`text-xs font-medium ${s.text} truncate`}>{n.title}</div>
+                                {n.subtitle && (
+                                    <div className="text-xs text-slate-500 truncate mt-0.5">{n.subtitle}</div>
+                                )}
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
     )
 }
 

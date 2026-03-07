@@ -284,9 +284,9 @@ function TopSection({
     const sectionClasses = `bg-white border-b border-slate-200 shadow-sm ${tightTop ? 'px-6 py-4 pb-5' : 'px-7 py-5 pb-6'} ${sticky ? 'sticky top-0 z-50' : ''}`
     const sectionStyle = {
         backgroundImage: `
-            linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px),
-            radial-gradient(circle at center, rgba(30, 58, 95, 0.015) 0%, transparent 50%)
+            linear-gradient(${accentColor}10 1px, transparent 1px),
+            linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+            radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
         `,
         backgroundPosition: '0 0, 0 0, 0 0',
         backgroundSize: '20px 20px, 20px 20px, 40px 40px'

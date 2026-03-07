@@ -110,21 +110,30 @@ class UserPresenceService {
             this.notifyListeners()
         }, 60000)
     }
-    /** Upserts a presence record marking the user as online. */
+    /** Upserts a presence record marking the user as online without resetting last_activity. */
     async setUserOnline(userId) {
         if (!userId) return false
         try {
             const now = new Date().toISOString()
-            await supabase.from('users_presence').upsert(
-                {
+            const { data: existing } = await supabase
+                .from('users_presence')
+                .select('user_id')
+                .eq('user_id', userId)
+                .maybeSingle()
+            if (existing) {
+                await supabase
+                    .from('users_presence')
+                    .update({ is_online: true, last_seen: now, updated_at: now })
+                    .eq('user_id', userId)
+            } else {
+                await supabase.from('users_presence').insert({
                     is_online: true,
                     last_activity: now,
                     last_seen: now,
                     updated_at: now,
                     user_id: userId
-                },
-                { onConflict: 'user_id' }
-            )
+                })
+            }
             return true
         } catch {
             return false

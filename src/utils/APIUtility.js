@@ -4,25 +4,6 @@ const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 const REQUEST_TIMEOUT_MS = 30_000
 const DEFAULT_MAX_RETRIES = 2
 const DEFAULT_RETRY_DELAY_MS = 1_000
-const MAX_CONCURRENT_REQUESTS = 6
-let activeRequests = 0
-const pendingQueue = []
-const acquireSlot = () =>
-    new Promise((resolve) => {
-        if (activeRequests < MAX_CONCURRENT_REQUESTS) {
-            activeRequests++
-            resolve()
-        } else {
-            pendingQueue.push(resolve)
-        }
-    })
-const releaseSlot = () => {
-    activeRequests--
-    if (pendingQueue.length > 0) {
-        activeRequests++
-        pendingQueue.shift()()
-    }
-}
 /**
  * Resolves the current session's JWT. Falls back to the anon key if the
  * user is unauthenticated or the session cannot be read.
@@ -55,44 +36,39 @@ const APIUtility = {
         const url = `${EDGE_FUNCTIONS_URL}${path}`
         const maxRetries = options.maxRetries ?? DEFAULT_MAX_RETRIES
         const retryDelay = options.retryDelay ?? DEFAULT_RETRY_DELAY_MS
-        await acquireSlot()
-        try {
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                const isLastAttempt = attempt === maxRetries
-                const token = await getAuthToken()
-                const controller = new AbortController()
-                const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-                try {
-                    const res = await fetch(url, {
-                        body: JSON.stringify(data),
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                            ...(options.headers || {})
-                        },
-                        keepalive: Boolean(options.keepalive),
-                        method: 'POST',
-                        signal: controller.signal
-                    })
-                    clearTimeout(timeoutId)
-                    const json = await res.json().catch(() => ({}))
-                    return { json, res }
-                } catch (error) {
-                    clearTimeout(timeoutId)
-                    if (isLastAttempt) {
-                        const message =
-                            error.name === 'AbortError'
-                                ? 'Request timed out. Please check your connection and try again.'
-                                : error.message || 'Network request failed. Please check your connection.'
-                        return errorResponse(message)
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            const isLastAttempt = attempt === maxRetries
+            const token = await getAuthToken()
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+            try {
+                const res = await fetch(url, {
+                    body: JSON.stringify(data),
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        ...(options.headers || {})
+                    },
+                    keepalive: Boolean(options.keepalive),
+                    method: 'POST',
+                    signal: controller.signal
+                })
+                clearTimeout(timeoutId)
+                const json = await res.json().catch(() => ({}))
+                return { json, res }
+            } catch (error) {
+                clearTimeout(timeoutId)
+                if (isLastAttempt) {
+                    const message =
+                        error.name === 'AbortError'
+                            ? 'Request timed out. Please check your connection and try again.'
+                            : error.message || 'Network request failed. Please check your connection.'
+                    return errorResponse(message)
                 }
+                await new Promise((resolve) => setTimeout(resolve, retryDelay * (attempt + 1)))
             }
-            return errorResponse('Network request failed after multiple attempts.')
-        } finally {
-            releaseSlot()
         }
+        return errorResponse('Network request failed after multiple attempts.')
     }
 }
 export default APIUtility

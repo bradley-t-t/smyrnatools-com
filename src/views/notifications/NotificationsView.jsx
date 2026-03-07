@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useAccentColor } from '../../app/hooks/useAccentColor'
@@ -104,7 +104,18 @@ function NotificationsView({ userId }) {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Sticky header */}
-            <div className="sticky top-0 z-30 bg-white border-b border-slate-200">
+            <div
+                className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm"
+                style={{
+                    backgroundImage: `
+                        linear-gradient(${accentColor}10 1px, transparent 1px),
+                        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+                        radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
+                    `,
+                    backgroundPosition: '0 0, 0 0, 0 0',
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
+                }}
+            >
                 <div className="flex items-center justify-between px-6 py-4 max-w-4xl mx-auto">
                     <div className="flex items-center gap-3">
                         <div
@@ -228,9 +239,15 @@ function NotificationsView({ userId }) {
     )
 }
 function ComputedGroup({ group, accentColor }) {
+    const shouldCollapse = group.key?.includes('verifications') || group.key?.includes('overdue')
+    const [expanded, setExpanded] = useState(!shouldCollapse)
+    const contentRef = useRef(null)
     return (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200">
+            <div
+                className="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                onClick={() => setExpanded((v) => !v)}
+            >
                 <i className={`${group.icon} text-sm`} style={{ color: accentColor }}></i>
                 <span className="font-semibold text-slate-700 text-sm flex-1">{group.label}</span>
                 <span
@@ -239,23 +256,38 @@ function ComputedGroup({ group, accentColor }) {
                 >
                     {group.items.length}
                 </span>
+                <i
+                    className={`fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                ></i>
             </div>
-            <div className="p-3 flex flex-col gap-2">
-                {group.items.map((n) => {
-                    const s = getSeverityStyle(n.severity)
-                    return (
-                        <div
-                            key={n.id}
-                            className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border ${s.bg} ${s.border}`}
-                        >
-                            <i className={`fas fa-circle text-[6px] mt-2 ${s.icon}`}></i>
-                            <div className="flex-1 min-w-0">
-                                <p className={`text-sm font-medium ${s.text} m-0`}>{n.title}</p>
-                                {n.subtitle && <p className="text-xs text-slate-500 mt-0.5 m-0">{n.subtitle}</p>}
-                            </div>
-                        </div>
-                    )
-                })}
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateRows: expanded ? '1fr' : '0fr',
+                    transition: 'grid-template-rows 0.25s ease'
+                }}
+            >
+                <div style={{ overflow: 'hidden' }} ref={contentRef}>
+                    <div className="p-3 flex flex-col gap-2">
+                        {group.items.map((n) => {
+                            const s = getSeverityStyle(n.severity)
+                            return (
+                                <div
+                                    key={n.id}
+                                    className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border ${s.bg} ${s.border}`}
+                                >
+                                    <i className={`fas fa-circle text-[6px] mt-2 ${s.icon}`}></i>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium ${s.text} m-0`}>{n.title}</p>
+                                        {n.subtitle && (
+                                            <p className="text-xs text-slate-500 mt-0.5 m-0">{n.subtitle}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     )

@@ -21,7 +21,8 @@
       "Bash(git:*)",
       "Bash(supabase projects:*)",
       "Bash(supabase functions:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(node:*)"
     ]
   }
 }

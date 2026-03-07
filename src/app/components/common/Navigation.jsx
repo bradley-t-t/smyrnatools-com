@@ -98,7 +98,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
-    const { count: notificationsCount } = useNotifications(userId, preferences?.selectedRegion)
+    const notificationsHook = useNotifications(userId, preferences?.selectedRegion)
+    const notificationsCount = notificationsHook.count
     const {
         handleMouseLeave: magneticLeave,
         handleMouseMove: magneticMove,
@@ -390,10 +391,12 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             alignItems: 'center',
                             backgroundColor: accentColor,
                             backgroundImage: `
-                            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+                            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
                         `,
-                            backgroundSize: '20px 20px',
+                            backgroundPosition: '0 0, 0 0, 0 0',
+                            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                             borderBottom: '1px solid rgba(255,255,255,0.08)',
                             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                             display: 'flex',
@@ -600,9 +603,13 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                     style={{
                         alignItems: 'center',
                         backgroundColor: accentColor,
-                        backgroundImage:
-                            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-                        backgroundSize: '20px 20px',
+                        backgroundImage: `
+                            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
+                        `,
+                        backgroundPosition: '0 0, 0 0, 0 0',
+                        backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                         display: 'flex',
@@ -787,7 +794,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             'Notifications',
                             (e) => {
                                 setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
-                                window.dispatchEvent(new CustomEvent('notifications-refresh'))
                                 setShowNotifications(true)
                             },
                             false,
@@ -812,7 +818,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 {showNotifications && (
                     <NotificationsModal
                         isOpen={showNotifications}
-                        userId={userId}
+                        notificationsHook={notificationsHook}
                         onClose={() => {
                             setShowNotifications(false)
                             window.dispatchEvent(new CustomEvent('notifications-refresh'))

@@ -403,10 +403,15 @@ function MyAccountView({ userId }) {
             <div className="min-h-screen bg-gray-50">
                 <div className="relative overflow-hidden border-b border-gray-200 bg-white">
                     <div
-                        className="absolute inset-0 opacity-[0.03]"
+                        className="absolute inset-0"
                         style={{
-                            backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
-                            backgroundSize: '20px 20px'
+                            backgroundImage: `
+                                linear-gradient(${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
+                                linear-gradient(90deg, ${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
+                                radial-gradient(circle at center, ${preferences.accentColor || '#1e3a5f'}08 0%, transparent 50%)
+                            `,
+                            backgroundPosition: '0 0, 0 0, 0 0',
+                            backgroundSize: '20px 20px, 20px 20px, 40px 40px'
                         }}
                     ></div>
                     <div className="relative mx-auto max-w-6xl px-4 py-6 md:px-8">
@@ -483,10 +488,15 @@ function MyAccountView({ userId }) {
         <div className="min-h-screen bg-gray-50">
             <div className="relative overflow-hidden border-b border-gray-200 bg-white">
                 <div
-                    className="absolute inset-0 opacity-[0.03]"
+                    className="absolute inset-0"
                     style={{
-                        backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
-                        backgroundSize: '20px 20px'
+                        backgroundImage: `
+                            linear-gradient(${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
+                            linear-gradient(90deg, ${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
+                            radial-gradient(circle at center, ${preferences.accentColor || '#1e3a5f'}08 0%, transparent 50%)
+                        `,
+                        backgroundPosition: '0 0, 0 0, 0 0',
+                        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
                     }}
                 ></div>
                 <div className="relative mx-auto max-w-6xl px-4 py-6 md:px-8">

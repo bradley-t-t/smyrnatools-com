@@ -277,9 +277,13 @@ function RolesView() {
             <div
                 className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm"
                 style={{
-                    backgroundImage:
-                        'linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px)',
-                    backgroundSize: '20px 20px'
+                    backgroundImage: `
+                        linear-gradient(${accentColor}10 1px, transparent 1px),
+                        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+                        radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
+                    `,
+                    backgroundPosition: '0 0, 0 0, 0 0',
+                    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
                 }}
             >
                 <div className="px-6 py-4">
@@ -879,9 +883,13 @@ function MobileHeader({ accentColor, hasITAccess, totalRoles, totalPermissions, 
         <div
             className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm px-4 py-3"
             style={{
-                backgroundImage:
-                    'linear-gradient(rgba(30, 58, 95, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.02) 1px, transparent 1px)',
-                backgroundSize: '20px 20px'
+                backgroundImage: `
+                    linear-gradient(${accentColor}10 1px, transparent 1px),
+                    linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
+                    radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
+                `,
+                backgroundPosition: '0 0, 0 0, 0 0',
+                backgroundSize: '20px 20px, 20px 20px, 40px 40px'
             }}
         >
             <div className="flex items-center justify-between mb-2">

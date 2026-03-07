@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { FormatUtility } from '../../../utils/FormatUtility'
@@ -79,11 +79,38 @@ function HistoryViewSection({ item, type, onClose }) {
         statusData,
         userNames
     } = useHistoryData(item, type)
+    const [aiDisplayText, setAiDisplayText] = useState('')
+    const [isTypingComplete, setIsTypingComplete] = useState(false)
+    const prevAiSummaryRef = useRef(null)
     useEffect(() => {
         if (!isLoading && activeTab === 'timeline' && !aiSummary && !aiSummaryLoading) {
             generateAISummary()
         }
     }, [isLoading, activeTab, aiSummary, aiSummaryLoading, generateAISummary])
+    useEffect(() => {
+        if (!aiSummary) {
+            prevAiSummaryRef.current = null
+            setAiDisplayText('')
+            setIsTypingComplete(false)
+            return
+        }
+        if (aiSummary === prevAiSummaryRef.current) return
+        prevAiSummaryRef.current = aiSummary
+        setAiDisplayText('')
+        setIsTypingComplete(false)
+        let currentIndex = 0
+        const charsPerTick = 4
+        const interval = setInterval(() => {
+            if (currentIndex < aiSummary.length) {
+                currentIndex = Math.min(currentIndex + charsPerTick, aiSummary.length)
+                setAiDisplayText(aiSummary.slice(0, currentIndex))
+            } else {
+                clearInterval(interval)
+                setIsTypingComplete(true)
+            }
+        }, 10)
+        return () => clearInterval(interval)
+    }, [aiSummary])
     const itemName = resolveItemName(type, item)
     const formatValue = (fieldName, value) => {
         const key = fieldName?.includes('_')
@@ -161,46 +188,55 @@ function HistoryViewSection({ item, type, onClose }) {
             )
         }
         return (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-[fadeSlideIn_0.3s_ease-out]">
                 <div className="bg-gradient-to-br from-accent to-accent/70 rounded-xl p-5 text-white">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
                             <i className="fas fa-robot text-lg" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-base m-0">AI Analysis</h3>
+                            <h3 className="font-bold text-base m-0">Analysis</h3>
                             <p className="text-xs text-white/70 m-0">Based on {history.length} history entries</p>
                         </div>
                     </div>
-                    <div className="text-sm leading-relaxed text-white/90 whitespace-pre-wrap">{aiSummary}</div>
+                    <div className="text-sm leading-relaxed text-white/90 whitespace-pre-wrap">
+                        {aiDisplayText}
+                        {!isTypingComplete && (
+                            <span className="inline-block w-0.5 h-4 bg-white/70 ml-0.5 animate-pulse align-text-bottom" />
+                        )}
+                    </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-accent">{history.length}</div>
-                        <div className="text-xs text-slate-500">Total Changes</div>
-                    </div>
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-accent">{statusData.length}</div>
-                        <div className="text-xs text-slate-500">Status Changes</div>
-                    </div>
-                    {ASSET_TYPES_WITH_OPERATORS.includes(type) && (
+                {isTypingComplete && (
+                    <div className="grid grid-cols-2 gap-3 animate-[fadeSlideIn_0.3s_ease-out]">
                         <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                            <div className="text-2xl font-bold text-accent">{operatorData.length}</div>
-                            <div className="text-xs text-slate-500">Operator Changes</div>
+                            <div className="text-2xl font-bold text-accent">{history.length}</div>
+                            <div className="text-xs text-slate-500">Total Changes</div>
                         </div>
-                    )}
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-accent">{issues.length}</div>
-                        <div className="text-xs text-slate-500">Total Issues</div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-accent">{statusData.length}</div>
+                            <div className="text-xs text-slate-500">Status Changes</div>
+                        </div>
+                        {ASSET_TYPES_WITH_OPERATORS.includes(type) && (
+                            <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                                <div className="text-2xl font-bold text-accent">{operatorData.length}</div>
+                                <div className="text-xs text-slate-500">Operator Changes</div>
+                            </div>
+                        )}
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 text-center">
+                            <div className="text-2xl font-bold text-accent">{issues.length}</div>
+                            <div className="text-xs text-slate-500">Total Issues</div>
+                        </div>
                     </div>
-                </div>
-                <button
-                    onClick={handleRegenerateAISummary}
-                    className="w-full py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
-                >
-                    <i className="fas fa-sync-alt text-xs" />
-                    Regenerate Analysis
-                </button>
+                )}
+                {isTypingComplete && (
+                    <button
+                        onClick={handleRegenerateAISummary}
+                        className="w-full py-2.5 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 animate-[fadeSlideIn_0.3s_ease-out]"
+                    >
+                        <i className="fas fa-sync-alt text-xs" />
+                        Regenerate Analysis
+                    </button>
+                )}
             </div>
         )
     }
@@ -1123,8 +1159,8 @@ function HistoryViewSection({ item, type, onClose }) {
         switch (activeTab) {
             case 'timeline':
                 return (
-                    <div className="flex gap-5 h-full">
-                        <div className="flex-[3] flex flex-col gap-3 overflow-y-auto min-w-0 pr-1">
+                    <div className="flex gap-5">
+                        <div className="flex-[3] flex flex-col gap-3 min-w-0 pr-1">
                             {sortedHistory.length === 0 ? (
                                 <HistoryEmptyState
                                     title={`No history records found for this ${type}.`}
@@ -1178,9 +1214,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                 })
                             )}
                         </div>
-                        <div className="flex-[2] border-l border-gray-200 pl-5 overflow-y-auto min-w-0">
-                            {renderAISummary()}
-                        </div>
+                        <div className="flex-[2] border-l border-gray-200 pl-5 min-w-0">{renderAISummary()}</div>
                     </div>
                 )
             case 'cleanliness':
@@ -1270,11 +1304,7 @@ function HistoryViewSection({ item, type, onClose }) {
                             />
                         ))}
                 </div>
-                <div
-                    className={`flex-1 p-6 bg-white ${activeTab === 'timeline' ? 'overflow-hidden' : 'overflow-y-auto'}`}
-                >
-                    {renderContent()}
-                </div>
+                <div className="flex-1 overflow-y-auto p-6 bg-white min-h-0">{renderContent()}</div>
                 <div className="px-6 py-4 border-t border-gray-200 flex justify-end bg-slate-50 rounded-b-2xl">
                     <button
                         className="px-6 py-3 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm font-semibold cursor-pointer hover:bg-slate-100 hover:border-slate-300"

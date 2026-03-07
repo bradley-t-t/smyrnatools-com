@@ -40,7 +40,8 @@ function ChangelogView({ onBack }) {
     const parseAiSummaries = (text) => {
         const summaries = {}
         let currentVersion = null
-        for (const line of text.split('\n')) {
+        for (const rawLine of text.split('\n')) {
+            const line = rawLine.replace(/\r$/, '')
             const versionMatch = line.match(/^## \[(.+?)]/)
             if (versionMatch) {
                 currentVersion = versionMatch[1]
@@ -58,7 +59,8 @@ function ChangelogView({ onBack }) {
     const parseMarkdown = (text) => {
         const versions = []
         let currentVersion = null
-        for (const line of text.split('\n')) {
+        for (const rawLine of text.split('\n')) {
+            const line = rawLine.replace(/\r$/, '')
             const versionMatch = line.match(/^## \[(.+?)] - (.+)$/)
             if (versionMatch) {
                 if (currentVersion) versions.push(currentVersion)

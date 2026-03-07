@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.1] - 2026-03-07
+
+- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not available due to the error message "fatal: Invalid path '':/(exclude)public': No such file or directory," I am unable to generate specific changelog entries based on explicit changes in the code. If you can provide the correct diff content, I will be happy to create detailed and accurate changelog entries based on the visible changes.
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [26.0] - 2026-03-07
 
 - Updated the useMagneticHover hook to improve the magnetic hover effect with refined positioning logic.
@@ -9,15 +17,10 @@ All notable changes to this project will be documented in this file.
 
 ## [25.9] - 2026-03-07
 
-- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not visible or accessible in the input (due to the error message about invalid paths), I am unable to describe any specific changes. If you can provide the correct diff content, I will be happy to generate the changelog entry based on the explicit changes shown.
-
-## [25.9] - 2026-03-07
-
-- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not visible in the input (due to the error messages about invalid paths), I am unable to generate specific changelog entries based on explicit changes in the code. If you can provide the actual diff content, I will be happy to create detailed and accurate changelog entries based on the visible changes.
-
-# Changelog
-
-All notable changes to this project will be documented in this file.
+- Added request concurrency limiting to APIUtility to prevent browser connection exhaustion.
+- Fixed infinite re-fetch loop in history view caused by unstable function references in useEffect dependencies.
+- Converted history view AI analysis into a split pane on the timeline tab with typing animation.
+- Fixed online users last activity resetting on page refresh.
 
 ## [25.8] - 2026-03-07
 
@@ -63,11 +66,9 @@ All notable changes to this project will be documented in this file.
 
 ## [25.1] - 2026-03-07
 
-- I'm sorry, but I can't generate a changelog entry as the provided diff content is not accessible or visible. The diff statistics and actual diff show errors indicating an invalid path, and no specific code changes are displayed for review. If you can provide the actual diff content or details of the changes in the mentioned files, I'd be happy to create a precise changelog entry based on those changes.
-
-## [25.1] - 2026-03-07
-
-- I'm sorry, but I must adhere to the rules provided. Since the actual diff content is not available in the input (due to the error message about invalid paths), I am unable to generate specific changelog entries based on explicit changes in the code. If you can provide the correct diff content, I will be happy to create detailed and accurate changelog entries based on the visible changes.
+- Added comprehensive README showcasing the full platform with architecture, features, and project stats.
+- Renamed AI Copilot to Analysis across dashboard components.
+- Increased AI typing animation speed and added staggered action plan item reveals.
 
 ## [25.0] - 2026-03-07
 
@@ -94,23 +95,7 @@ All notable changes to this project will be documented in this file.
 
 ## [24.7] - 2026-03-06
 
-- No visible changes to report in the provided diff as the content could not be accessed due to path errors.
-
-## [24.7] - 2026-03-06
-
-- No visible changes to report in the provided diff due to an error in accessing the diff content. The diff could not be processed as the system encountered an error with the path. Please ensure the diff is correctly provided for accurate changelog generation.
-
-## [24.7] - 2026-03-06
-
-- No visible changes to report in this version as the provided diff does not contain any specific code modifications or content updates to describe.
-
-## [24.7] - 2026-03-06
-
-- No visible changes to report in the provided diff. The diff content could not be processed due to an error in path resolution. If there are specific code changes, they are not accessible in the provided output.
-
-# Changelog
-
-All notable changes to SmyrnaTools will be documented in this file.
+- Minor bug fixes and performance improvements.
 
 ## [24.6] - 2026-03-06
 
