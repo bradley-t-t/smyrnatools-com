@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [25.8] - 2026-03-07
+
+- Simplified the mobile menu logic in Navigation by removing an unnecessary filter condition, ensuring the Dashboard item is always displayed if it exists in standalone items.
+- Enhanced the VersionUpdateBanner by dynamically applying the accent color to the banner's background and refresh button, replacing the static black color for a more consistent look with the app's theme.
+
 ## [25.7] - 2026-03-07
 
 - Improved responsiveness in AddViewSection by adjusting padding for smaller screens and adding specific font size and padding styles for datetime and date input fields.

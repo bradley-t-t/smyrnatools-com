@@ -503,15 +503,14 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         )}
                                     </select>
                                 </div>
-                                {standaloneItems.filter((i) => i.id !== 'Dashboard').length > 0 &&
-                                    standaloneItems.find((i) => i.id === 'Dashboard') && (
-                                        <MobileMenuItem
-                                            item={standaloneItems.find((i) => i.id === 'Dashboard')}
-                                            isActive={selectedView === 'Dashboard'}
-                                            onClick={() => handleMenuClick('Dashboard')}
-                                            accentColor={accentColor}
-                                        />
-                                    )}
+                                {standaloneItems.find((i) => i.id === 'Dashboard') && (
+                                    <MobileMenuItem
+                                        item={standaloneItems.find((i) => i.id === 'Dashboard')}
+                                        isActive={selectedView === 'Dashboard'}
+                                        onClick={() => handleMenuClick('Dashboard')}
+                                        accentColor={accentColor}
+                                    />
+                                )}
                                 {hasAssets && (
                                     <MobileSection title="Assets">
                                         {ASSET_ITEMS.map((id) => {
