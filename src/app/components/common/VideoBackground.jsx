@@ -13,20 +13,42 @@ const BACKGROUND_VIDEOS = [vid1, vid2, vid3, vid4]
  * @param {Object} props
  * @param {string} [props.className] - Additional Tailwind classes for the outer container.
  */
+const TRIM_END_SECONDS = 10
+const SKIP_START_SECONDS = 5
 const VideoBackground = memo(function VideoBackground({ className = '' }) {
-    const [currentVideoIndex] = useState(() => Math.floor(Math.random() * BACKGROUND_VIDEOS.length))
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(() =>
+        Math.floor(Math.random() * BACKGROUND_VIDEOS.length)
+    )
     const [showVideo, setShowVideo] = useState(false)
     const videoRef = useRef(null)
     const hasStartedRef = useRef(false)
+    const skippingRef = useRef(false)
     const accentColor = useAccentColor()
     const handleCanPlay = () => {
         if (!videoRef.current || hasStartedRef.current) return
         hasStartedRef.current = true
-        videoRef.current.currentTime = 5
+        videoRef.current.currentTime = SKIP_START_SECONDS
         videoRef.current
             .play()
             .then(() => setShowVideo(true))
             .catch(() => setShowVideo(true))
+    }
+    const advanceVideo = () => {
+        if (skippingRef.current) return
+        skippingRef.current = true
+        setShowVideo(false)
+        setTimeout(() => {
+            setCurrentVideoIndex((prev) => (prev + 1) % BACKGROUND_VIDEOS.length)
+            hasStartedRef.current = false
+            skippingRef.current = false
+        }, 1000)
+    }
+    const handleTimeUpdate = () => {
+        const video = videoRef.current
+        if (!video || !video.duration || skippingRef.current) return
+        if (video.currentTime >= video.duration - TRIM_END_SECONDS) {
+            advanceVideo()
+        }
     }
     return (
         <div className={`absolute inset-0 overflow-hidden ${className}`}>
@@ -35,15 +57,16 @@ const VideoBackground = memo(function VideoBackground({ className = '' }) {
                 style={{ background: `linear-gradient(135deg, #0a1929 0%, ${accentColor} 100%)` }}
             />
             <video
+                key={currentVideoIndex}
                 ref={videoRef}
                 autoPlay
                 muted
-                loop
                 playsInline
                 preload="auto"
                 onCanPlay={handleCanPlay}
-                className="absolute left-1/2 top-1/2 z-[2] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000"
-                style={{ opacity: showVideo ? 1 : 0 }}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={advanceVideo}
+                className={`absolute left-1/2 top-1/2 z-[2] min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000 ${showVideo ? 'opacity-100' : 'opacity-0'}`}
             >
                 <source src={BACKGROUND_VIDEOS[currentVideoIndex]} type="video/mp4" />
             </video>

@@ -345,48 +345,24 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const getItemStatusStyle = (statusType, mobile) => {
         const color = STATUS_COLORS[statusType] || STATUS_COLORS.pending
         return {
-            alignItems: 'center',
             background: color.bg,
             border: `1px solid ${color.border}`,
-            borderRadius: '6px',
-            color: color.text,
-            display: 'flex',
-            flexShrink: 0,
-            fontSize: mobile ? '0.625rem' : '0.75rem',
-            fontWeight: 700,
-            gap: '0.375rem',
-            letterSpacing: '0.5px',
-            padding: mobile ? '0.25rem 0.5rem' : '0.375rem 0.75rem',
-            textTransform: 'uppercase',
-            whiteSpace: 'nowrap'
+            color: color.text
         }
     }
     const getBulkButtonStyle = (type) => {
         const color = BULK_ACTION_COLORS[type] || BULK_ACTION_COLORS.cancel
         return {
-            alignItems: 'center',
             background: color.bg,
-            border: 'none',
-            borderRadius: '8px',
-            color: color.text,
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            outline: 'none',
-            padding: '0.5rem 1rem',
-            transition: 'all 0.2s'
+            color: color.text
         }
     }
     const showReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
     const statusDisplayValue = STATUS_MAP[statusFilter] || 'All Statuses'
     const roleDisplayValue = ROLE_MAP[roleFilter] || 'All Roles'
+    const selectBgImage = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
     return (
-        <div
-            className="global-dashboard-container dashboard-container global-flush-top flush-top list-view"
-            style={{ background: '#f1f5f9', minHeight: '100%', position: 'relative', width: '100%' }}
-        >
+        <div className="global-dashboard-container dashboard-container global-flush-top flush-top list-view bg-slate-100 min-h-full relative w-full">
             <TopSection
                 isLoading={isLoading}
                 title={title}
@@ -423,87 +399,54 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         <div className="h-5 w-px bg-slate-200 mx-1" />
                         <div className="h-[30px] w-[80px] rounded-md bg-slate-100 animate-pulse" />
                         <div className="h-[30px] w-[80px] rounded-md bg-slate-100 animate-pulse" />
-                        {!isMobile && <div style={{ flex: 1 }} />}
+                        {!isMobile && <div className="flex-1" />}
                         <div className="h-[24px] w-[60px] rounded-md bg-slate-100 animate-pulse ml-auto" />
                     </div>
                 }
                 customBottomContent={
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: '#f8fafc',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '10px',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '8px',
-                            padding: '10px 14px'
-                        }}
-                    >
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                    <div className="flex items-center flex-wrap gap-2 bg-slate-50 border border-gray-200 rounded-[10px] px-3.5 py-2.5">
+                        <div className="flex items-center gap-1.5">
                             {VIEW_MODES.map((mode) => (
                                 <button
                                     key={mode.id}
                                     onClick={() => setViewMode(mode.id)}
-                                    style={{
-                                        alignItems: 'center',
-                                        background: viewMode === mode.id ? '#111827' : 'transparent',
-                                        border: viewMode === mode.id ? 'none' : '1px solid #e5e7eb',
-                                        borderRadius: '6px',
-                                        color: viewMode === mode.id ? '#ffffff' : '#6b7280',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                        gap: '6px',
-                                        padding: '6px 12px'
-                                    }}
+                                    className={`flex items-center rounded-md text-xs font-medium gap-1.5 px-3 py-1.5 cursor-pointer ${
+                                        viewMode === mode.id
+                                            ? 'bg-gray-900 text-white border-none'
+                                            : 'bg-transparent text-gray-500 border border-gray-200'
+                                    }`}
                                 >
-                                    <i className={`fas ${mode.icon}`} style={{ fontSize: '11px' }} />
+                                    <i className={`fas ${mode.icon} text-[11px]`} />
                                     {mode.label}
                                 </button>
                             ))}
                         </div>
-                        <div style={{ background: '#e5e7eb', height: '20px', width: '1px' }} />
+                        <div className="bg-gray-200 h-5 w-px" />
                         {statusFilter ? (
                             <button
                                 onClick={clearStatusFilter}
+                                className="flex items-center rounded-md text-xs font-medium gap-1.5 px-2.5 py-1.5 cursor-pointer"
                                 style={{
-                                    alignItems: 'center',
                                     background: `${accentColor}10`,
                                     border: `1px solid ${accentColor}30`,
-                                    borderRadius: '6px',
-                                    color: accentColor,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    gap: '6px',
-                                    padding: '6px 10px'
+                                    color: accentColor
                                 }}
                             >
                                 {statusDisplayValue}
-                                <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
+                                <i className="fas fa-times text-[10px] opacity-70" />
                             </button>
                         ) : (
                             <select
                                 value=""
                                 onChange={(e) => handleStatusFilterChange(e.target.value)}
+                                className={`appearance-none bg-white border border-gray-200 rounded-md text-gray-500 cursor-pointer font-medium outline-none bg-no-repeat ${
+                                    isMobile
+                                        ? 'text-[11px] py-[5px] pl-2 pr-[22px] bg-[length:12px]'
+                                        : 'text-xs py-1.5 pl-2.5 pr-7 bg-[length:14px]'
+                                }`}
                                 style={{
-                                    appearance: 'none',
-                                    background: '#ffffff',
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                    backgroundPosition: 'right 6px center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: isMobile ? '12px' : '14px',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    color: '#6b7280',
-                                    cursor: 'pointer',
-                                    fontSize: isMobile ? '11px' : '12px',
-                                    fontWeight: '500',
-                                    outline: 'none',
-                                    padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
+                                    backgroundImage: selectBgImage,
+                                    backgroundPosition: 'right 6px center'
                                 }}
                             >
                                 <option value="">{isMobile ? '+Status' : '+ Status'}</option>
@@ -517,42 +460,28 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         {roleFilter ? (
                             <button
                                 onClick={() => setRoleFilter('')}
+                                className="flex items-center rounded-md text-xs font-medium gap-1.5 px-2.5 py-1.5 cursor-pointer"
                                 style={{
-                                    alignItems: 'center',
                                     background: `${accentColor}10`,
                                     border: `1px solid ${accentColor}30`,
-                                    borderRadius: '6px',
-                                    color: accentColor,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    gap: '6px',
-                                    padding: '6px 10px'
+                                    color: accentColor
                                 }}
                             >
                                 {roleDisplayValue}
-                                <i className="fas fa-times" style={{ fontSize: '10px', opacity: 0.7 }} />
+                                <i className="fas fa-times text-[10px] opacity-70" />
                             </button>
                         ) : (
                             <select
                                 value=""
                                 onChange={(e) => handleRoleFilterChange(e.target.value)}
+                                className={`appearance-none bg-white border border-gray-200 rounded-md text-gray-500 cursor-pointer font-medium outline-none bg-no-repeat ${
+                                    isMobile
+                                        ? 'text-[11px] py-[5px] pl-2 pr-[22px] bg-[length:12px]'
+                                        : 'text-xs py-1.5 pl-2.5 pr-7 bg-[length:14px]'
+                                }`}
                                 style={{
-                                    appearance: 'none',
-                                    background: '#ffffff',
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                    backgroundPosition: 'right 6px center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: isMobile ? '12px' : '14px',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    color: '#6b7280',
-                                    cursor: 'pointer',
-                                    fontSize: isMobile ? '11px' : '12px',
-                                    fontWeight: '500',
-                                    outline: 'none',
-                                    padding: isMobile ? '5px 22px 5px 8px' : '6px 28px 6px 10px'
+                                    backgroundImage: selectBgImage,
+                                    backgroundPosition: 'right 6px center'
                                 }}
                             >
                                 <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
@@ -563,81 +492,43 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 ))}
                             </select>
                         )}
-                        {!isMobile && <div style={{ flex: 1 }} />}
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                gap: isMobile ? '8px' : '12px',
-                                marginLeft: isMobile ? 'auto' : 0
-                            }}
-                        >
+                        {!isMobile && <div className="flex-1" />}
+                        <div className={`flex items-center ${isMobile ? 'gap-2 ml-auto' : 'gap-3'}`}>
                             {summaryStats.overdue > 0 && (
                                 <div
-                                    style={{
-                                        alignItems: 'center',
-                                        animation: 'pulse 2s infinite',
-                                        background: '#fef2f2',
-                                        borderRadius: '6px',
-                                        color: '#dc2626',
-                                        display: 'flex',
-                                        fontSize: isMobile ? '10px' : '12px',
-                                        fontWeight: '600',
-                                        gap: isMobile ? '4px' : '6px',
-                                        padding: isMobile ? '4px 6px' : '6px 10px'
-                                    }}
+                                    className={`flex items-center animate-pulse bg-red-50 rounded-md text-red-600 font-semibold ${
+                                        isMobile ? 'text-[10px] gap-1 px-1.5 py-1' : 'text-xs gap-1.5 px-2.5 py-1.5'
+                                    }`}
                                 >
                                     <i
-                                        className="fas fa-exclamation-circle"
-                                        style={{ fontSize: isMobile ? '9px' : '11px' }}
+                                        className={`fas fa-exclamation-circle ${isMobile ? 'text-[9px]' : 'text-[11px]'}`}
                                     />
                                     {summaryStats.overdue}
                                     {isMobile ? '' : ' overdue'}
                                 </div>
                             )}
-                            <span style={{ color: '#9ca3af', fontSize: isMobile ? '10px' : '12px' }}>
-                                <span style={{ color: '#111827', fontWeight: '600' }}>{summaryStats.total}</span>{' '}
+                            <span className={`text-gray-400 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                                <span className="text-gray-900 font-semibold">{summaryStats.total}</span>{' '}
                                 {isMobile ? '' : 'tasks'}
                             </span>
                         </div>
                     </div>
                 }
             />
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
                 <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } } .list-content-area { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }`}</style>
-                <div
-                    className="content-area list-content-area"
-                    style={{ padding: isMobile ? '1rem' : '1.5rem 2rem', paddingBottom: isMobile ? '2rem' : '2rem' }}
-                >
+                <div className={`content-area list-content-area ${isMobile ? 'p-4 pb-8' : 'px-8 pt-6 pb-8'}`}>
                     {isLoading ? (
                         <TaskListSkeleton />
                     ) : filteredItems.length === 0 ? (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                margin: '0 auto',
-                                maxWidth: '600px',
-                                padding: '4rem 2rem',
-                                textAlign: 'center'
-                            }}
-                        >
-                            <div style={{ color: '#cbd5e1', fontSize: '4rem', marginBottom: '1.5rem' }}>
+                        <div className="flex flex-col items-center justify-center mx-auto max-w-[600px] px-8 py-16 text-center">
+                            <div className="text-slate-300 text-[4rem] mb-6">
                                 <i className="fas fa-clipboard-list" />
                             </div>
-                            <h3
-                                style={{
-                                    color: '#1e293b',
-                                    fontSize: '1.25rem',
-                                    fontWeight: 700,
-                                    marginBottom: '0.5rem'
-                                }}
-                            >
+                            <h3 className="text-slate-800 text-xl font-bold mb-2 m-0">
                                 {statusFilter === 'completed' ? 'No Completed Items Found' : 'No List Items Found'}
                             </h3>
-                            <p style={{ color: '#64748b', fontSize: '0.9375rem', marginBottom: '1.5rem' }}>
+                            <p className="text-slate-500 text-[0.9375rem] mb-6 m-0">
                                 {searchText || selectedPlant
                                     ? 'No items match your search criteria.'
                                     : statusFilter === 'completed'
@@ -646,21 +537,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             </p>
                             <button
                                 onClick={() => setShowAddSheet(true)}
-                                style={{
-                                    alignItems: 'center',
-                                    background: accentColor,
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    color: 'white',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600,
-                                    gap: '0.5rem',
-                                    outline: 'none',
-                                    padding: '0.625rem 1.25rem',
-                                    transition: 'all 0.2s'
-                                }}
+                                className="flex items-center border-none rounded-lg text-white cursor-pointer text-sm font-semibold gap-2 outline-none px-5 py-2.5 transition-all duration-200"
+                                style={{ background: accentColor }}
                             >
                                 <i className="fas fa-plus" />
                                 <span>Add Item</span>
@@ -673,15 +551,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             accentColor={accentColor}
                         />
                     ) : (
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '1.25rem',
-                                paddingBottom: isMobile ? '1.5rem' : '2rem',
-                                width: '100%'
-                            }}
-                        >
+                        <div className={`flex flex-col gap-5 w-full ${isMobile ? 'pb-6' : 'pb-8'}`}>
                             {Object.entries(groupedItems).map(([key, group]) => {
                                 if (!group.items.length) return null
                                 if (statusFilter === 'completed' && key !== 'completed') return null
@@ -690,53 +560,35 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 return (
                                     <div
                                         key={key}
-                                        style={{
-                                            background: 'white',
-                                            border: '1px solid #e5e7eb',
-                                            borderRadius: isMobile ? '8px' : '12px',
-                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                            overflow: 'hidden'
-                                        }}
+                                        className={`bg-white border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden ${
+                                            isMobile ? 'rounded-lg' : 'rounded-xl'
+                                        }`}
                                     >
                                         <div
-                                            style={{
-                                                background: '#f8fafc',
-                                                borderBottom: '1px solid #e5e7eb',
-                                                padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
-                                            }}
+                                            className={`bg-slate-50 border-b border-gray-200 ${
+                                                isMobile ? 'px-4 py-3' : 'px-6 py-4'
+                                            }`}
                                         >
                                             <div
-                                                style={{
-                                                    alignItems: 'center',
-                                                    color: '#1e293b',
-                                                    display: 'flex',
-                                                    fontSize: isMobile ? '0.875rem' : '1rem',
-                                                    fontWeight: 700,
-                                                    gap: isMobile ? '0.5rem' : '0.75rem'
-                                                }}
+                                                className={`flex items-center text-slate-800 font-bold ${
+                                                    isMobile ? 'text-sm gap-2' : 'text-base gap-3'
+                                                }`}
                                             >
                                                 <i className={`fas ${group.icon}`} style={{ color: accentColor }} />
                                                 <span>{group.label}</span>
                                                 <span
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: accentColor,
-                                                        borderRadius: '12px',
-                                                        color: 'white',
-                                                        display: 'inline-flex',
-                                                        fontSize: isMobile ? '0.6875rem' : '0.75rem',
-                                                        fontWeight: 700,
-                                                        height: isMobile ? '20px' : '24px',
-                                                        justifyContent: 'center',
-                                                        minWidth: isMobile ? '20px' : '24px',
-                                                        padding: '0 0.5rem'
-                                                    }}
+                                                    className={`inline-flex items-center justify-center rounded-xl text-white font-bold px-2 ${
+                                                        isMobile
+                                                            ? 'text-[0.6875rem] h-5 min-w-[20px]'
+                                                            : 'text-xs h-6 min-w-[24px]'
+                                                    }`}
+                                                    style={{ background: accentColor }}
                                                 >
                                                     {group.items.length}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div className="flex flex-col">
                                             {group.items.map((item) => {
                                                 const isSelected = selectedIds.has(item.id)
                                                 const itemStatus = item.completed
@@ -757,29 +609,21 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                             if (!isSelected && !item.completed)
                                                                 e.currentTarget.style.background = 'white'
                                                         }}
+                                                        className={`flex border-b border-slate-100 cursor-pointer transition-all duration-200 ${
+                                                            isMobile
+                                                                ? 'items-start gap-3 px-4 py-3'
+                                                                : 'items-center gap-4 px-6 py-4'
+                                                        } ${item.completed ? 'opacity-70' : ''}`}
                                                         style={{
-                                                            alignItems: isMobile ? 'flex-start' : 'center',
                                                             background: isSelected
                                                                 ? '#f0f7ff'
                                                                 : item.completed
                                                                   ? '#f8fafc'
-                                                                  : 'white',
-                                                            borderBottom: '1px solid #f1f5f9',
-                                                            cursor: 'pointer',
-                                                            display: 'flex',
-                                                            gap: isMobile ? '0.75rem' : '1rem',
-                                                            opacity: item.completed ? 0.7 : 1,
-                                                            padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
-                                                            transition: 'all 0.2s'
+                                                                  : 'white'
                                                         }}
                                                     >
                                                         <div
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                display: 'flex',
-                                                                flexShrink: 0,
-                                                                justifyContent: 'center'
-                                                            }}
+                                                            className="flex items-center justify-center shrink-0"
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 toggleSelect(item.id)
@@ -792,54 +636,32 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                             />
                                                         </div>
                                                         <div
-                                                            style={{
-                                                                display: 'flex',
-                                                                flex: 1,
-                                                                flexDirection: 'column',
-                                                                gap: isMobile ? '0.375rem' : '0.5rem',
-                                                                minWidth: 0
-                                                            }}
+                                                            className={`flex flex-1 flex-col min-w-0 ${
+                                                                isMobile ? 'gap-1.5' : 'gap-2'
+                                                            }`}
                                                         >
                                                             <div
-                                                                style={{
-                                                                    alignItems: isMobile ? 'flex-start' : 'flex-start',
-                                                                    display: 'flex',
-                                                                    flexDirection: isMobile ? 'column' : 'row',
-                                                                    gap: isMobile ? '0.5rem' : '1rem',
-                                                                    justifyContent: 'space-between'
-                                                                }}
+                                                                className={`flex items-start justify-between ${
+                                                                    isMobile ? 'flex-col gap-2' : 'flex-row gap-4'
+                                                                }`}
                                                             >
-                                                                <div
-                                                                    style={{
-                                                                        display: 'flex',
-                                                                        flex: 1,
-                                                                        flexDirection: 'column',
-                                                                        gap: '0.25rem',
-                                                                        minWidth: 0
-                                                                    }}
-                                                                >
+                                                                <div className="flex flex-1 flex-col gap-1 min-w-0">
                                                                     <h4
-                                                                        style={{
-                                                                            color: '#1e293b',
-                                                                            fontSize: isMobile
-                                                                                ? '0.8125rem'
-                                                                                : '0.9375rem',
-                                                                            fontWeight: 600,
-                                                                            margin: 0,
-                                                                            wordBreak: 'break-word'
-                                                                        }}
+                                                                        className={`text-slate-800 font-semibold m-0 break-words ${
+                                                                            isMobile
+                                                                                ? 'text-[0.8125rem]'
+                                                                                : 'text-[0.9375rem]'
+                                                                        }`}
                                                                     >
                                                                         {ListService.truncateText(item.description, 80)}
                                                                     </h4>
                                                                     {item.comments && (
                                                                         <p
-                                                                            style={{
-                                                                                color: '#64748b',
-                                                                                fontSize: isMobile
-                                                                                    ? '0.75rem'
-                                                                                    : '0.8125rem',
-                                                                                margin: 0
-                                                                            }}
+                                                                            className={`text-slate-500 m-0 ${
+                                                                                isMobile
+                                                                                    ? 'text-xs'
+                                                                                    : 'text-[0.8125rem]'
+                                                                            }`}
                                                                         >
                                                                             {ListService.truncateText(
                                                                                 item.comments,
@@ -848,7 +670,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                         </p>
                                                                     )}
                                                                 </div>
-                                                                <span style={getItemStatusStyle(itemStatus, isMobile)}>
+                                                                <span
+                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${
+                                                                        isMobile
+                                                                            ? 'text-[0.625rem] gap-1.5 px-2 py-1'
+                                                                            : 'text-xs gap-1.5 px-3 py-1.5'
+                                                                    }`}
+                                                                    style={getItemStatusStyle(itemStatus, isMobile)}
+                                                                >
                                                                     <i
                                                                         className={`fas ${ListService.getStatusIcon(itemStatus)}`}
                                                                     />
@@ -856,35 +685,30 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                 </span>
                                                             </div>
                                                             <div
-                                                                style={{
-                                                                    alignItems: 'center',
-                                                                    display: 'flex',
-                                                                    flexWrap: 'wrap',
-                                                                    gap: isMobile ? '0.5rem' : '0.75rem'
-                                                                }}
+                                                                className={`flex items-center flex-wrap ${
+                                                                    isMobile ? 'gap-2' : 'gap-3'
+                                                                }`}
                                                             >
                                                                 <span
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        color: '#64748b',
-                                                                        display: 'flex',
-                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
-                                                                        fontWeight: 500,
-                                                                        gap: '0.375rem'
-                                                                    }}
+                                                                    className={`flex items-center text-slate-500 font-medium gap-1.5 ${
+                                                                        isMobile
+                                                                            ? 'text-[0.6875rem]'
+                                                                            : 'text-[0.8125rem]'
+                                                                    }`}
                                                                 >
                                                                     <i className="fas fa-building" />
                                                                     {ListService.getPlantName(item.plant_code)}
                                                                 </span>
                                                                 <span
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        color: isItemOverdue ? '#ef4444' : '#64748b',
-                                                                        display: 'flex',
-                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
-                                                                        fontWeight: isItemOverdue ? 700 : 500,
-                                                                        gap: '0.375rem'
-                                                                    }}
+                                                                    className={`flex items-center gap-1.5 ${
+                                                                        isMobile
+                                                                            ? 'text-[0.6875rem]'
+                                                                            : 'text-[0.8125rem]'
+                                                                    } ${
+                                                                        isItemOverdue
+                                                                            ? 'text-red-500 font-bold'
+                                                                            : 'text-slate-500 font-medium'
+                                                                    }`}
                                                                 >
                                                                     <i className="fas fa-calendar" />
                                                                     {new Date(item.deadline).toLocaleDateString(
@@ -894,16 +718,11 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                 </span>
                                                                 {item.responsible_role && (
                                                                     <span
-                                                                        style={{
-                                                                            alignItems: 'center',
-                                                                            color: '#64748b',
-                                                                            display: 'flex',
-                                                                            fontSize: isMobile
-                                                                                ? '0.6875rem'
-                                                                                : '0.8125rem',
-                                                                            fontWeight: 500,
-                                                                            gap: '0.375rem'
-                                                                        }}
+                                                                        className={`flex items-center text-slate-500 font-medium gap-1.5 ${
+                                                                            isMobile
+                                                                                ? 'text-[0.6875rem]'
+                                                                                : 'text-[0.8125rem]'
+                                                                        }`}
                                                                     >
                                                                         <i
                                                                             className={`fas ${ListService.getResponsibleRoleIcon(item.responsible_role)}`}
@@ -914,14 +733,11 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                     </span>
                                                                 )}
                                                                 <span
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        color: '#64748b',
-                                                                        display: 'flex',
-                                                                        fontSize: isMobile ? '0.6875rem' : '0.8125rem',
-                                                                        fontWeight: 500,
-                                                                        gap: '0.375rem'
-                                                                    }}
+                                                                    className={`flex items-center text-slate-500 font-medium gap-1.5 ${
+                                                                        isMobile
+                                                                            ? 'text-[0.6875rem]'
+                                                                            : 'text-[0.8125rem]'
+                                                                    }`}
                                                                 >
                                                                     <i className="fas fa-user" />
                                                                     {ListService.truncateText(
@@ -931,15 +747,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <div
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                color: '#cbd5e1',
-                                                                display: 'flex',
-                                                                fontSize: '0.875rem',
-                                                                justifyContent: 'center'
-                                                            }}
-                                                        >
+                                                        <div className="flex items-center justify-center text-slate-300 text-sm">
                                                             <i className="fas fa-chevron-right" />
                                                         </div>
                                                     </div>
@@ -955,31 +763,19 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             </div>
             {selectedIds.size > 0 && (
                 <div
-                    style={{
-                        alignItems: 'center',
-                        background: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        bottom: isMobile ? '1rem' : '2rem',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                        display: 'flex',
-                        flexWrap: isMobile ? 'wrap' : 'nowrap',
-                        gap: isMobile ? '0.5rem' : '1rem',
-                        justifyContent: isMobile ? 'center' : 'flex-start',
-                        left: '50%',
-                        maxWidth: isMobile ? 'calc(100% - 2rem)' : 'auto',
-                        padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem',
-                        position: 'fixed',
-                        transform: 'translateX(-50%)',
-                        zIndex: 1000
-                    }}
+                    className={`flex items-center bg-white border border-gray-200 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] fixed left-1/2 -translate-x-1/2 z-[1000] ${
+                        isMobile
+                            ? 'bottom-4 flex-wrap gap-2 justify-center max-w-[calc(100%-2rem)] px-4 py-3'
+                            : 'bottom-8 flex-nowrap gap-4 justify-start px-6 py-4'
+                    }`}
                 >
-                    <div style={{ color: accentColor, fontSize: '0.9375rem', fontWeight: 700 }}>
+                    <div className="text-[0.9375rem] font-bold" style={{ color: accentColor }}>
                         {selectedIds.size} selected
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="flex gap-2">
                         <button
                             onClick={() => bulkToggleCompletion(true)}
+                            className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"
                             style={getBulkButtonStyle('complete')}
                             onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.complete.hover)}
                             onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.complete.bg)}
@@ -989,6 +785,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         </button>
                         <button
                             onClick={bulkDelete}
+                            className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"
                             style={getBulkButtonStyle('delete')}
                             onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.delete.hover)}
                             onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.delete.bg)}
@@ -998,6 +795,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                         </button>
                         <button
                             onClick={() => setSelectedIds(new Set())}
+                            className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"
                             style={getBulkButtonStyle('cancel')}
                             onMouseEnter={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.cancel.hover)}
                             onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.cancel.bg)}

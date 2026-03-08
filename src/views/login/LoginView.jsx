@@ -1,4 +1,4 @@
-import React, { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 import VersionPopup from '../../app/components/common/VersionPopup'
 import { useAuth } from '../../app/context/AuthContext'
@@ -12,19 +12,7 @@ const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
 const VideoBackground = lazy(() => import('../../app/components/common/VideoBackground'))
 /** Static gradient placeholder shown while the video background lazy-loads. */
 const VideoFallback = memo(function VideoFallback() {
-    return (
-        <div
-            style={{
-                background: 'linear-gradient(135deg, #0a1929 0%, #1e3a5f 100%)',
-                height: '100%',
-                left: 0,
-                position: 'absolute',
-                top: 0,
-                width: '100%',
-                zIndex: 0
-            }}
-        />
-    )
+    return <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0a1929] to-[#1e3a5f]" />
 })
 /** Animated fleet/plant/operator stat counters shown on the login hero panel. */
 const StatsDisplay = memo(function StatsDisplay({ stats }) {
@@ -50,35 +38,32 @@ const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
     if (!strength.value) return null
     const widthMap = { Medium: '66%', Strong: '100%', Weak: '33%' }
     return (
-        <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem' }}>
-                <div style={{ background: '#e2e8f0', borderRadius: '2px', flex: 1, height: '3px' }}>
+        <div className="mb-6">
+            <div className="flex items-center gap-2">
+                <div className="flex-1 h-[3px] rounded-sm bg-slate-200">
                     <div
+                        className="h-full rounded-sm transition-[width] duration-300"
                         style={{
                             background: strength.color,
-                            borderRadius: '2px',
-                            height: '100%',
-                            transition: 'width 0.3s',
                             width: widthMap[strength.value] || '0%'
                         }}
                     />
                 </div>
-                <span style={{ color: strength.color, fontSize: '0.7rem', fontWeight: 600 }}>{strength.value}</span>
+                <span className="text-[0.7rem] font-semibold" style={{ color: strength.color }}>
+                    {strength.value}
+                </span>
             </div>
         </div>
     )
 })
-const inputBaseStyle = {
-    background: '#fff',
-    border: 'none',
-    borderRadius: 0,
-    color: '#1e293b',
-    fontSize: '1rem',
-    outline: 'none',
-    padding: '1rem 0 0.75rem 0',
-    transition: 'border-color 0.2s',
-    width: '100%'
-}
+const TRIM_END_SECONDS = 10
+const SKIP_START_SECONDS = 5
+/** Returns Tailwind classes for floating-label inputs. */
+const getInputClasses = (isFocused) =>
+    `w-full bg-white border-0 rounded-none text-slate-800 text-base outline-none pt-4 pb-3 border-b-2 transition-colors placeholder-transparent ${isFocused ? 'border-[#1e3a5f]' : 'border-slate-200'}`
+/** Returns Tailwind classes for floating labels above inputs. */
+const getLabelClasses = (isFocused, hasValue) =>
+    `absolute left-0 pointer-events-none font-medium transition-all ${isFocused || hasValue ? 'top-0 text-[0.7rem]' : 'top-4 text-[0.9rem]'} ${isFocused ? 'text-[#1e3a5f]' : 'text-slate-400'}`
 /**
  * Full-screen login/signup view with a lazy-loaded video background,
  * animated fleet stats, password strength indicator, and links to
@@ -252,56 +237,12 @@ function LoginView() {
     const closeRecovery = useCallback(() => setShowRecovery(false), [])
     const openChangelog = useCallback(() => setShowChangelog(true), [])
     const closeChangelog = useCallback(() => setShowChangelog(false), [])
-    const getInputStyle = useCallback(
-        (isFocused) => ({
-            ...inputBaseStyle,
-            borderBottom: `2px solid ${isFocused ? '#1e3a5f' : '#e2e8f0'}`
-        }),
-        []
-    )
-    const getLabelStyle = useCallback(
-        (isFocused, hasValue) => ({
-            color: isFocused ? '#1e3a5f' : '#94a3b8',
-            fontSize: isFocused || hasValue ? '0.7rem' : '0.9rem',
-            fontWeight: 500,
-            left: 0,
-            pointerEvents: 'none',
-            position: 'absolute',
-            top: isFocused || hasValue ? '0' : '1rem',
-            transition: 'all 0.2s'
-        }),
-        []
-    )
-    const submitButtonStyle = useMemo(
-        () => ({
-            background: '#1e3a5f',
-            border: 'none',
-            borderRadius: '6px',
-            color: '#fff',
-            cursor: isSubmitting || loading ? 'not-allowed' : 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            opacity: isSubmitting || loading ? 0.7 : 1,
-            padding: '0.875rem 1.5rem',
-            transition: 'all 0.15s',
-            width: '100%'
-        }),
-        [isSubmitting, loading]
-    )
     if (showChangelog) {
         return (
             <Suspense
                 fallback={
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: '#fff',
-                            display: 'flex',
-                            height: '100vh',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        <i className="fas fa-spinner fa-spin" style={{ color: '#1e3a5f', fontSize: '2rem' }} />
+                    <div className="flex items-center justify-center h-screen bg-white">
+                        <i className="fas fa-spinner fa-spin text-[#1e3a5f] text-2xl" />
                     </div>
                 }
             >
@@ -313,16 +254,8 @@ function LoginView() {
         return (
             <Suspense
                 fallback={
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: '#fff',
-                            display: 'flex',
-                            height: '100vh',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        <i className="fas fa-spinner fa-spin" style={{ color: '#1e3a5f', fontSize: '2rem' }} />
+                    <div className="flex items-center justify-center h-screen bg-white">
+                        <i className="fas fa-spinner fa-spin text-[#1e3a5f] text-2xl" />
                     </div>
                 }
             >
@@ -331,7 +264,7 @@ function LoginView() {
         )
     }
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', overflow: 'hidden' }}>
+        <div className="flex min-h-screen overflow-hidden">
             {videoLoaded ? (
                 <Suspense fallback={<VideoFallback />}>
                     <VideoBackground />
@@ -340,86 +273,42 @@ function LoginView() {
                 <VideoFallback />
             )}
             <VersionPopup version={version} onClick={openChangelog} />
-            <div
-                style={{
-                    alignItems: 'stretch',
-                    display: 'flex',
-                    height: '100vh',
-                    position: 'relative',
-                    width: '100%',
-                    zIndex: 10
-                }}
-            >
-                <div className="lg-show hidden flex-1 items-center justify-center relative p-12">
+            <div className="flex items-stretch h-screen relative w-full z-10">
+                {/* Hero panel — hidden on mobile, shown on lg+ */}
+                <div className="hidden lg:flex flex-1 items-center justify-center relative p-12">
                     <div className="relative z-[2] flex flex-col items-center text-center max-w-lg">
                         <img src={SrmLogo} alt="SRM" className="h-32 w-32 mb-8 drop-shadow-2xl" loading="eager" />
                         <h1 className="text-white text-5xl font-extrabold tracking-tight leading-tight mb-3">
                             Smyrna <span className="text-white/70">Tools</span>
                         </h1>
                         <p className="text-white/50 text-lg leading-relaxed mb-10 max-w-sm">
-                            Fleet management and operations platform for concrete delivery excellence.
+                            Fleet management and operations platform.
                         </p>
                         <StatsDisplay stats={animatedStats} />
                     </div>
                 </div>
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: '#fff',
-                        backgroundImage:
-                            'linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px)',
-                        backgroundSize: '20px 20px',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        minWidth: '480px',
-                        padding: '3rem',
-                        width: '480px'
-                    }}
-                    className="login-panel"
-                >
-                    <div
-                        style={{
-                            background: '#fff',
-                            borderRadius: '16px',
-                            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-                            maxWidth: '380px',
-                            padding: '2.5rem',
-                            width: '100%'
-                        }}
-                    >
+                {/* Login form panel */}
+                <div className="flex items-center justify-center w-full p-3 min-[481px]:p-6 lg:w-[480px] lg:min-w-[480px] lg:p-12 bg-white [background-image:linear-gradient(rgba(30,58,95,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(30,58,95,0.03)_1px,transparent_1px)] bg-[length:20px_20px]">
+                    <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] max-w-[380px] w-full p-10">
                         {!isMobile && (
-                            <div className="lg-hide" style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                                <img
-                                    src={SrmLogo}
-                                    alt="SRM"
-                                    style={{ height: '48px', marginBottom: '0.5rem' }}
-                                    loading="eager"
-                                />
-                                <div style={{ color: '#1e3a5f', fontSize: '1.25rem', fontWeight: 700 }}>
-                                    Smyrna Tools
-                                </div>
+                            <div className="lg:hidden mb-8 text-center">
+                                <img src={SrmLogo} alt="SRM" className="h-12 mb-2 inline" loading="eager" />
+                                <div className="text-[#1e3a5f] text-xl font-bold">Smyrna Tools</div>
                             </div>
                         )}
-                        <div style={{ marginBottom: '2.5rem' }}>
-                            <h2
-                                style={{
-                                    color: '#1e293b',
-                                    fontSize: '1.5rem',
-                                    fontWeight: 700,
-                                    margin: '0 0 0.5rem 0'
-                                }}
-                            >
+                        <div className="mb-10">
+                            <h2 className="text-slate-800 text-2xl font-bold mb-2">
                                 {isSignUp ? 'Create account' : 'Welcome back'}
                             </h2>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
+                            <p className="text-slate-500 text-[0.9rem] m-0">
                                 {isSignUp ? 'Join the team' : 'Enter your credentials to continue'}
                             </p>
                         </div>
                         <form onSubmit={handleSubmit} noValidate>
                             {isSignUp && (
-                                <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                                    <div style={{ flex: 1, position: 'relative' }}>
-                                        <label style={getLabelStyle(focusedField === 'firstName', firstName)}>
+                                <div className="flex gap-6 mb-6">
+                                    <div className="flex-1 relative">
+                                        <label className={getLabelClasses(focusedField === 'firstName', firstName)}>
                                             First name
                                         </label>
                                         <input
@@ -428,12 +317,12 @@ function LoginView() {
                                             onChange={(e) => setFirstName(e.target.value)}
                                             onFocus={() => setFocusedField('firstName')}
                                             onBlur={() => setFocusedField(null)}
-                                            style={getInputStyle(focusedField === 'firstName')}
+                                            className={getInputClasses(focusedField === 'firstName')}
                                             required
                                         />
                                     </div>
-                                    <div style={{ flex: 1, position: 'relative' }}>
-                                        <label style={getLabelStyle(focusedField === 'lastName', lastName)}>
+                                    <div className="flex-1 relative">
+                                        <label className={getLabelClasses(focusedField === 'lastName', lastName)}>
                                             Last name
                                         </label>
                                         <input
@@ -442,14 +331,16 @@ function LoginView() {
                                             onChange={(e) => setLastName(e.target.value)}
                                             onFocus={() => setFocusedField('lastName')}
                                             onBlur={() => setFocusedField(null)}
-                                            style={getInputStyle(focusedField === 'lastName')}
+                                            className={getInputClasses(focusedField === 'lastName')}
                                             required
                                         />
                                     </div>
                                 </div>
                             )}
-                            <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                                <label style={getLabelStyle(focusedField === 'email', email)}>Email address</label>
+                            <div className="mb-6 relative">
+                                <label className={getLabelClasses(focusedField === 'email', email)}>
+                                    Email address
+                                </label>
                                 <input
                                     type="email"
                                     value={email}
@@ -457,13 +348,15 @@ function LoginView() {
                                     onFocus={() => setFocusedField('email')}
                                     onBlur={() => setFocusedField(null)}
                                     autoComplete="username"
-                                    style={getInputStyle(focusedField === 'email')}
+                                    className={getInputClasses(focusedField === 'email')}
                                     required
                                 />
                             </div>
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <label style={getLabelStyle(focusedField === 'password', password)}>Password</label>
+                            <div className="mb-6">
+                                <div className="relative">
+                                    <label className={getLabelClasses(focusedField === 'password', password)}>
+                                        Password
+                                    </label>
                                     <input
                                         type={showPassword ? 'text' : 'password'}
                                         value={password}
@@ -471,26 +364,13 @@ function LoginView() {
                                         onFocus={() => setFocusedField('password')}
                                         onBlur={() => setFocusedField(null)}
                                         autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                                        style={{
-                                            ...getInputStyle(focusedField === 'password'),
-                                            paddingRight: '2.5rem'
-                                        }}
+                                        className={`${getInputClasses(focusedField === 'password')} pr-10`}
                                         required
                                     />
                                     <button
                                         type="button"
                                         onClick={togglePassword}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            bottom: '0.75rem',
-                                            color: '#94a3b8',
-                                            cursor: 'pointer',
-                                            fontSize: '0.875rem',
-                                            padding: 0,
-                                            position: 'absolute',
-                                            right: 0
-                                        }}
+                                        className="absolute right-0 bottom-3 bg-transparent border-none text-slate-400 cursor-pointer text-sm p-0"
                                     >
                                         <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
                                     </button>
@@ -498,10 +378,13 @@ function LoginView() {
                             </div>
                             {isSignUp && password && <PasswordStrengthBar strength={passwordStrength} />}
                             {isSignUp && (
-                                <div style={{ marginBottom: '1.5rem' }}>
-                                    <div style={{ position: 'relative' }}>
+                                <div className="mb-6">
+                                    <div className="relative">
                                         <label
-                                            style={getLabelStyle(focusedField === 'confirmPassword', confirmPassword)}
+                                            className={getLabelClasses(
+                                                focusedField === 'confirmPassword',
+                                                confirmPassword
+                                            )}
                                         >
                                             Confirm password
                                         </label>
@@ -512,73 +395,45 @@ function LoginView() {
                                             onFocus={() => setFocusedField('confirmPassword')}
                                             onBlur={() => setFocusedField(null)}
                                             autoComplete="new-password"
-                                            style={getInputStyle(focusedField === 'confirmPassword')}
+                                            className={getInputClasses(focusedField === 'confirmPassword')}
                                             required
                                         />
                                         {confirmPassword && password === confirmPassword && (
-                                            <i
-                                                className="fas fa-check"
-                                                style={{
-                                                    bottom: '0.75rem',
-                                                    color: '#22c55e',
-                                                    position: 'absolute',
-                                                    right: 0
-                                                }}
-                                            />
+                                            <i className="fas fa-check absolute right-0 bottom-3 text-green-500" />
                                         )}
                                     </div>
                                 </div>
                             )}
                             {!isSignUp && (
-                                <div style={{ marginBottom: '1.5rem', textAlign: 'right' }}>
+                                <div className="mb-6 text-right">
                                     <button
                                         type="button"
                                         onClick={openRecovery}
-                                        style={{
-                                            background: 'none',
-                                            border: 'none',
-                                            color: '#1e3a5f',
-                                            cursor: 'pointer',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 500,
-                                            padding: 0
-                                        }}
+                                        className="bg-transparent border-none text-[#1e3a5f] cursor-pointer text-[0.8rem] font-medium p-0"
                                     >
                                         Forgot password?
                                     </button>
                                 </div>
                             )}
                             {errorMessage && (
-                                <div
-                                    style={{
-                                        background: '#fef2f2',
-                                        borderLeft: '3px solid #ef4444',
-                                        color: '#dc2626',
-                                        fontSize: '0.85rem',
-                                        marginBottom: '1.5rem',
-                                        padding: '0.75rem 1rem'
-                                    }}
-                                >
-                                    {errorMessage}
+                                <div className="flex items-center gap-2 rounded-lg text-[0.85rem] mb-6 py-3 px-4 animate-msg-in bg-red-50 border border-red-200 text-red-600">
+                                    <i className="fas fa-exclamation-circle shrink-0 text-[0.9rem]" />
+                                    <span>{errorMessage}</span>
                                 </div>
                             )}
                             {successMessage && (
-                                <div
-                                    style={{
-                                        background: '#f0fdf4',
-                                        borderLeft: '3px solid #22c55e',
-                                        color: '#16a34a',
-                                        fontSize: '0.85rem',
-                                        marginBottom: '1.5rem',
-                                        padding: '0.75rem 1rem'
-                                    }}
-                                >
-                                    {successMessage}
+                                <div className="flex items-center gap-2 rounded-lg text-[0.85rem] mb-6 py-3 px-4 animate-msg-in bg-green-50 border border-green-200 text-green-600">
+                                    <i className="fas fa-check-circle shrink-0 text-[0.9rem]" />
+                                    <span>{successMessage}</span>
                                 </div>
                             )}
-                            <button type="submit" disabled={isSubmitting || loading} style={submitButtonStyle}>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || loading}
+                                className={`w-full bg-[#1e3a5f] text-white rounded-md text-[0.9rem] font-semibold py-3.5 px-6 border-none transition-all ${isSubmitting || loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
                                 {isSubmitting || loading ? (
-                                    <span style={{ alignItems: 'center', display: 'inline-flex', gap: '0.5rem' }}>
+                                    <span className="inline-flex items-center gap-2">
                                         <i className="fas fa-circle-notch fa-spin" />
                                         Processing...
                                     </span>
@@ -589,22 +444,14 @@ function LoginView() {
                                 )}
                             </button>
                         </form>
-                        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                            <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                        <div className="mt-8 text-center">
+                            <span className="text-slate-500 text-[0.85rem]">
                                 {isSignUp ? 'Already have an account?' : "Don't have an account?"}
                             </span>{' '}
                             <button
                                 type="button"
                                 onClick={toggleSignUp}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#1e3a5f',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    padding: 0
-                                }}
+                                className="bg-transparent border-none text-[#1e3a5f] cursor-pointer text-[0.85rem] font-semibold p-0"
                             >
                                 {isSignUp ? 'Sign in' : 'Sign up'}
                             </button>
@@ -612,12 +459,6 @@ function LoginView() {
                     </div>
                 </div>
             </div>
-            <style>{`
-                @media (min-width: 1024px) { .lg-show { display: flex !important; } .lg-hide { display: none !important; } }
-                @media (max-width: 1023px) { .login-panel { width: 100% !important; min-width: unset !important; padding: 1.5rem !important; } }
-                @media (max-width: 480px) { .login-panel { padding: 0.75rem !important; } }
-                input::placeholder { color: transparent; }
-            `}</style>
         </div>
     )
 }

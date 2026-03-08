@@ -325,58 +325,22 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
     if (notFound) {
         return (
             <div
-                className={className}
-                style={{
-                    alignItems: 'center',
-                    background: '#f8fafc',
-                    bottom: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 20,
-                    justifyContent: 'center',
-                    left: 0,
-                    padding: 40,
-                    position: 'fixed',
-                    right: 0,
-                    textAlign: 'center',
-                    top: 64,
-                    zIndex: 40
-                }}
+                className={`${className} fixed top-16 left-0 right-0 bottom-0 z-40 flex flex-col items-center justify-center gap-5 bg-slate-50 p-10 text-center`}
             >
                 <div
-                    style={{
-                        alignItems: 'center',
-                        background: `${accent}12`,
-                        borderRadius: 20,
-                        display: 'flex',
-                        height: 80,
-                        justifyContent: 'center',
-                        width: 80
-                    }}
+                    className="flex h-20 w-20 items-center justify-center rounded-[20px]"
+                    style={{ background: `${accent}12` }}
                 >
-                    <i className="fas fa-search" style={{ color: accent, fontSize: 32 }}></i>
+                    <i className="fas fa-search text-[32px]" style={{ color: accent }}></i>
                 </div>
                 <div>
-                    <h2 style={{ color: '#1e293b', fontSize: 22, fontWeight: 700, margin: '0 0 8px' }}>
-                        {notFoundMessage}
-                    </h2>
-                    <p style={{ color: '#64748b', fontSize: 14, margin: 0, maxWidth: 300 }}>{notFoundDescription}</p>
+                    <h2 className="m-0 mb-2 text-[22px] font-bold text-slate-800">{notFoundMessage}</h2>
+                    <p className="m-0 max-w-[300px] text-sm text-slate-500">{notFoundDescription}</p>
                 </div>
                 <button
                     onClick={onClose || onBack}
-                    style={{
-                        alignItems: 'center',
-                        background: accent,
-                        border: 'none',
-                        borderRadius: 12,
-                        color: 'white',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        fontSize: 14,
-                        fontWeight: 600,
-                        gap: 8,
-                        padding: '12px 24px'
-                    }}
+                    className="flex items-center gap-2 rounded-xl border-none text-sm font-semibold text-white cursor-pointer px-6 py-3"
+                    style={{ background: accent }}
                 >
                     <i className="fas fa-arrow-left"></i> Go Back
                 </button>
@@ -385,20 +349,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
     }
     return (
         <DetailViewContext.Provider value={{ activeSection, registerSection, sections, setActiveSection }}>
-            <div
-                className={className}
-                style={{
-                    background: '#f8fafc',
-                    bottom: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    left: 0,
-                    position: 'fixed',
-                    right: 0,
-                    top: 64,
-                    zIndex: 40
-                }}
-            >
+            <div className={`${className} fixed top-16 left-0 right-0 bottom-0 z-40 flex flex-col bg-slate-50`}>
                 <style>{`
                     @keyframes dv-spin { to { transform: rotate(360deg); } }
                     @keyframes dv-fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -443,222 +394,93 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                     ${legacyStyles}
                 `}</style>
                 {isSaving && (
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: 'rgba(255,255,255,0.95)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 14,
-                            inset: 0,
-                            justifyContent: 'center',
-                            position: 'absolute',
-                            zIndex: 100
-                        }}
-                    >
+                    <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-3.5 bg-white/95">
                         <div
+                            className="h-12 w-12 rounded-full border-[3px] border-slate-200"
                             style={{
                                 animation: 'dv-spin 0.7s linear infinite',
-                                border: '3px solid #e2e8f0',
-                                borderRadius: '50%',
-                                borderTopColor: accent,
-                                height: 48,
-                                width: 48
+                                borderTopColor: accent
                             }}
                         ></div>
-                        <span style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>Saving changes...</span>
+                        <span className="text-sm font-medium text-slate-500">Saving changes...</span>
                     </div>
                 )}
-                <div
-                    style={{
-                        background: 'white',
-                        borderBottom: '1px solid #e2e8f0',
-                        overflow: 'hidden',
-                        position: 'relative'
-                    }}
-                >
+                <div className="relative overflow-hidden border-b border-slate-200 bg-white">
                     <div
+                        className="absolute inset-0 opacity-[0.03]"
                         style={{
                             backgroundImage: `linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)`,
-                            backgroundSize: '20px 20px',
-                            inset: 0,
-                            opacity: 0.03,
-                            position: 'absolute'
+                            backgroundSize: '20px 20px'
                         }}
                     ></div>
-                    <div
-                        className="dv-header"
-                        style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            gap: 16,
-                            padding: '16px 24px',
-                            position: 'relative'
-                        }}
-                    >
+                    <div className="dv-header relative flex items-center gap-4 px-6 py-4">
                         <button
                             onClick={onBack || onClose}
-                            style={{
-                                alignItems: 'center',
-                                background: '#f1f5f9',
-                                border: 'none',
-                                borderRadius: 12,
-                                color: '#64748b',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexShrink: 0,
-                                fontSize: 16,
-                                height: 44,
-                                justifyContent: 'center',
-                                transition: 'all 0.15s',
-                                width: 44
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#e2e8f0'
-                                e.currentTarget.style.color = '#334155'
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#f1f5f9'
-                                e.currentTarget.style.color = '#64748b'
-                            }}
+                            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border-none bg-slate-100 text-base text-slate-500 cursor-pointer transition-all duration-150 hover:bg-slate-200 hover:text-slate-700"
                         >
                             <i className="fas fa-arrow-left"></i>
                         </button>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2.5">
                                 {icon && <i className={icon} style={{ color: accent, fontSize: 20 }}></i>}
-                                <h1
-                                    className="dv-header-title"
-                                    style={{
-                                        color: '#0f172a',
-                                        fontSize: 22,
-                                        fontWeight: 700,
-                                        margin: 0,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
-                                    }}
-                                >
+                                <h1 className="dv-header-title m-0 truncate text-[22px] font-bold text-slate-900">
                                     {title}
                                 </h1>
                             </div>
-                            {subtitle && (
-                                <p style={{ color: '#64748b', fontSize: 13, margin: '4px 0 0' }}>{subtitle}</p>
-                            )}
+                            {subtitle && <p className="m-0 mt-1 text-[13px] text-slate-500">{subtitle}</p>}
                         </div>
-                        <div className="dv-header-actions" style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
-                            {headerActions}
-                        </div>
+                        <div className="dv-header-actions flex items-center gap-2">{headerActions}</div>
                     </div>
                 </div>
-                <div
-                    className="dv-container"
-                    style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', width: '100%' }}
-                >
+                <div className="dv-container flex min-h-0 flex-1 overflow-hidden w-full">
                     {isLoading ? (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                flex: 1,
-                                flexDirection: 'column',
-                                gap: 14,
-                                justifyContent: 'center'
-                            }}
-                        >
+                        <div className="flex flex-1 flex-col items-center justify-center gap-3.5">
                             <div
+                                className="h-12 w-12 rounded-full border-[3px] border-slate-200"
                                 style={{
                                     animation: 'dv-spin 0.7s linear infinite',
-                                    border: '3px solid #e2e8f0',
-                                    borderRadius: '50%',
-                                    borderTopColor: accent,
-                                    height: 48,
-                                    width: 48
+                                    borderTopColor: accent
                                 }}
                             ></div>
-                            <span style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>{loadingMessage}</span>
+                            <span className="text-sm font-medium text-slate-500">{loadingMessage}</span>
                         </div>
                     ) : (
                         <>
                             <aside
-                                className={`dv-sidebar ${sidebarCollapsed ? 'dv-sidebar-collapsed' : ''}`}
-                                style={{
-                                    background: 'white',
-                                    borderRight: '1px solid #e2e8f0',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    flexShrink: 0,
-                                    overflowX: 'hidden',
-                                    overflowY: 'auto',
-                                    width: sidebarCollapsed ? 64 : 240
-                                }}
+                                className={`dv-sidebar ${sidebarCollapsed ? 'dv-sidebar-collapsed' : ''} flex flex-shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-slate-200 bg-white`}
+                                style={{ width: sidebarCollapsed ? 64 : 240 }}
                             >
                                 <div style={{ padding: sidebarCollapsed ? '12px 8px' : '16px' }}>
                                     <button
                                         onClick={handleSidebarToggle}
-                                        style={{
-                                            alignItems: 'center',
-                                            background: '#f1f5f9',
-                                            border: 'none',
-                                            borderRadius: 8,
-                                            color: '#64748b',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            fontSize: 14,
-                                            gap: 8,
-                                            height: 36,
-                                            justifyContent: 'center',
-                                            transition: 'all 0.2s',
-                                            width: sidebarCollapsed ? 48 : '100%'
-                                        }}
-                                        onMouseOver={(e) => {
-                                            e.currentTarget.style.background = '#e2e8f0'
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.background = '#f1f5f9'
-                                        }}
+                                        className="flex h-9 items-center justify-center gap-2 rounded-lg border-none bg-slate-100 text-sm text-slate-500 cursor-pointer transition-all duration-200 hover:bg-slate-200"
+                                        style={{ width: sidebarCollapsed ? 48 : '100%' }}
                                     >
                                         <i
-                                            className={`fas fa-chevron-${sidebarCollapsed ? 'right' : 'left'}`}
-                                            style={{ fontSize: 12 }}
+                                            className={`fas fa-chevron-${sidebarCollapsed ? 'right' : 'left'} text-xs`}
                                         ></i>
-                                        {!sidebarCollapsed && (
-                                            <span style={{ fontSize: 13, fontWeight: 500 }}>Collapse</span>
-                                        )}
+                                        {!sidebarCollapsed && <span className="text-[13px] font-medium">Collapse</span>}
                                     </button>
                                 </div>
                                 <nav
-                                    style={{
-                                        display: 'flex',
-                                        flex: 1,
-                                        flexDirection: 'column',
-                                        gap: 4,
-                                        padding: sidebarCollapsed ? '0 8px' : '0 12px'
-                                    }}
+                                    className="flex flex-1 flex-col gap-1"
+                                    style={{ padding: sidebarCollapsed ? '0 8px' : '0 12px' }}
                                 >
                                     {sections.map((section, idx) => (
                                         <button
                                             key={section.id}
                                             onClick={() => setActiveSection(section.id)}
                                             title={sidebarCollapsed ? section.title : undefined}
+                                            className="flex w-full items-center border-none rounded-[10px] text-sm text-left cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]"
                                             style={{
-                                                alignItems: 'center',
                                                 animation: `dv-fadeIn 0.2s ease-out ${0.03 * idx}s both`,
                                                 background:
                                                     activeSection === section.id ? `${accent}10` : 'transparent',
-                                                border: 'none',
-                                                borderRadius: 10,
                                                 color: activeSection === section.id ? accent : '#64748b',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                fontSize: 14,
                                                 fontWeight: activeSection === section.id ? 600 : 500,
                                                 gap: 12,
                                                 justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                                                padding: sidebarCollapsed ? '12px' : '12px 14px',
-                                                textAlign: 'left',
-                                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                width: '100%'
+                                                padding: sidebarCollapsed ? '12px' : '12px 14px'
                                             }}
                                             onMouseOver={(e) => {
                                                 if (activeSection !== section.id) {
@@ -672,31 +494,16 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                             }}
                                         >
                                             <i
-                                                className={section.icon || 'fas fa-circle'}
-                                                style={{ flexShrink: 0, fontSize: 16 }}
+                                                className={`${section.icon || 'fas fa-circle'} flex-shrink-0 text-base`}
                                             ></i>
-                                            {!sidebarCollapsed && (
-                                                <span
-                                                    style={{
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        whiteSpace: 'nowrap'
-                                                    }}
-                                                >
-                                                    {section.title}
-                                                </span>
-                                            )}
+                                            {!sidebarCollapsed && <span className="truncate">{section.title}</span>}
                                         </button>
                                     ))}
                                 </nav>
                                 {(footerActions || (hasTransferPerm && onRegionTransfer && currentRegion)) && (
                                     <div
-                                        className="dv-footer-actions"
-                                        style={{
-                                            borderTop: '1px solid #e2e8f0',
-                                            marginTop: 'auto',
-                                            padding: sidebarCollapsed ? '12px 8px' : '16px'
-                                        }}
+                                        className="dv-footer-actions mt-auto border-t border-slate-200"
+                                        style={{ padding: sidebarCollapsed ? '12px 8px' : '16px' }}
                                     >
                                         {footerActions}
                                         {hasTransferPerm && onRegionTransfer && currentRegion && (
@@ -713,17 +520,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                     </div>
                                 )}
                             </aside>
-                            <main
-                                className="dv-main-content"
-                                style={{
-                                    background: '#f8fafc',
-                                    flex: 1,
-                                    minWidth: 0,
-                                    overflowX: 'hidden',
-                                    overflowY: 'auto',
-                                    padding: 24
-                                }}
-                            >
+                            <main className="dv-main-content min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-6">
                                 <div style={{ animation: 'dv-fadeIn 0.3s ease-out' }}>{children}</div>
                             </main>
                             <nav className="dv-mobile-nav">
@@ -738,28 +535,11 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                         }}
                                     >
                                         <i className={section.icon || 'fas fa-circle'}></i>
-                                        <span
-                                            style={{
-                                                maxWidth: 60,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}
-                                        >
-                                            {section.title}
-                                        </span>
+                                        <span className="max-w-[60px] truncate">{section.title}</span>
                                     </button>
                                 ))}
                                 {footerActions && (
-                                    <div
-                                        style={{
-                                            borderLeft: '1px solid #e2e8f0',
-                                            display: 'flex',
-                                            gap: 4,
-                                            marginLeft: 'auto',
-                                            paddingLeft: 8
-                                        }}
-                                    >
+                                    <div className="ml-auto flex gap-1 border-l border-slate-200 pl-2">
                                         {footerActions}
                                     </div>
                                 )}
@@ -770,27 +550,12 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                 {(message || warning) &&
                     ReactDOM.createPortal(
                         <div
-                            style={{
-                                alignItems: 'center',
-                                background:
-                                    (message || warning || '').toLowerCase().includes('error') ||
-                                    (message || warning || '').toLowerCase().includes('cannot')
-                                        ? '#dc2626'
-                                        : '#16a34a',
-                                borderRadius: 10,
-                                bottom: 24,
-                                boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
-                                color: 'white',
-                                display: 'flex',
-                                fontSize: 13,
-                                fontWeight: 500,
-                                gap: 10,
-                                left: '50%',
-                                padding: '12px 18px',
-                                position: 'fixed',
-                                transform: 'translateX(-50%)',
-                                zIndex: 100
-                            }}
+                            className={`fixed bottom-6 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-2.5 rounded-[10px] px-[18px] py-3 text-[13px] font-medium text-white shadow-[0_8px_30px_rgba(0,0,0,0.2)] ${
+                                (message || warning || '').toLowerCase().includes('error') ||
+                                (message || warning || '').toLowerCase().includes('cannot')
+                                    ? 'bg-red-600'
+                                    : 'bg-green-600'
+                            }`}
                         >
                             <i
                                 className={`fas ${(message || warning || '').toLowerCase().includes('error') || (message || warning || '').toLowerCase().includes('cannot') ? 'fa-times-circle' : 'fa-check-circle'}`}
@@ -801,88 +566,25 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                     )}
                 {showDeleteConfirmation &&
                     ReactDOM.createPortal(
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                background: 'rgba(15,23,42,0.6)',
-                                display: 'flex',
-                                inset: 0,
-                                justifyContent: 'center',
-                                padding: 20,
-                                position: 'fixed',
-                                zIndex: 60
-                            }}
-                        >
-                            <div
-                                style={{
-                                    background: 'white',
-                                    borderRadius: 16,
-                                    boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-                                    maxWidth: 360,
-                                    overflow: 'hidden',
-                                    width: '100%'
-                                }}
-                            >
-                                <div style={{ padding: 24, textAlign: 'center' }}>
-                                    <div
-                                        style={{
-                                            alignItems: 'center',
-                                            background: '#fef2f2',
-                                            borderRadius: 16,
-                                            display: 'flex',
-                                            height: 64,
-                                            justifyContent: 'center',
-                                            margin: '0 auto 16px',
-                                            width: 64
-                                        }}
-                                    >
-                                        <i className="fas fa-trash-alt" style={{ color: '#dc2626', fontSize: 24 }}></i>
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 p-5">
+                            <div className="w-full max-w-[360px] overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
+                                <div className="p-6 text-center">
+                                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+                                        <i className="fas fa-trash-alt text-2xl text-red-600"></i>
                                     </div>
-                                    <h3 style={{ color: '#1e293b', fontSize: 18, fontWeight: 700, margin: '0 0 6px' }}>
-                                        {deleteTitle}
-                                    </h3>
-                                    <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>{deleteMessage}</p>
+                                    <h3 className="m-0 mb-1.5 text-lg font-bold text-slate-800">{deleteTitle}</h3>
+                                    <p className="m-0 text-[13px] text-slate-500">{deleteMessage}</p>
                                 </div>
-                                <div
-                                    style={{
-                                        background: '#f8fafc',
-                                        borderTop: '1px solid #e2e8f0',
-                                        display: 'flex',
-                                        gap: 10,
-                                        padding: '14px 20px'
-                                    }}
-                                >
+                                <div className="flex gap-2.5 border-t border-slate-200 bg-slate-50 px-5 py-3.5">
                                     <button
-                                        className="dv-btn"
+                                        className="dv-btn flex-1 rounded-[10px] border-none bg-slate-100 px-4 py-2.5 text-[13px] font-semibold text-slate-600 cursor-pointer"
                                         onClick={onDeleteCancel}
-                                        style={{
-                                            background: '#f1f5f9',
-                                            border: 'none',
-                                            borderRadius: 10,
-                                            color: '#475569',
-                                            cursor: 'pointer',
-                                            flex: 1,
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            padding: '10px 16px'
-                                        }}
                                     >
                                         Cancel
                                     </button>
                                     <button
-                                        className="dv-btn"
+                                        className="dv-btn flex-1 rounded-[10px] border-none bg-red-600 px-4 py-2.5 text-[13px] font-semibold text-white cursor-pointer"
                                         onClick={onDeleteConfirm}
-                                        style={{
-                                            background: '#dc2626',
-                                            border: 'none',
-                                            borderRadius: 10,
-                                            color: 'white',
-                                            cursor: 'pointer',
-                                            flex: 1,
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            padding: '10px 16px'
-                                        }}
                                     >
                                         Delete
                                     </button>
@@ -895,117 +597,44 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                     ReactDOM.createPortal(
                         <div
                             onClick={(e) => e.target === e.currentTarget && closeTransfer()}
-                            style={{
-                                alignItems: 'center',
-                                background: 'rgba(15,23,42,0.6)',
-                                display: 'flex',
-                                inset: 0,
-                                justifyContent: 'center',
-                                padding: 20,
-                                position: 'fixed',
-                                zIndex: 200
-                            }}
+                            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 p-5"
                         >
-                            <div
-                                style={{
-                                    background: 'white',
-                                    borderRadius: 16,
-                                    boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    maxHeight: '85vh',
-                                    maxWidth: 400,
-                                    overflow: 'hidden',
-                                    width: '100%'
-                                }}
-                            >
+                            <div className="flex w-full max-w-[400px] max-h-[85vh] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
                                 <div
-                                    style={{
-                                        alignItems: 'center',
-                                        background: accent,
-                                        display: 'flex',
-                                        gap: 12,
-                                        justifyContent: 'space-between',
-                                        padding: '16px 20px'
-                                    }}
+                                    className="flex items-center justify-between gap-3 px-5 py-4"
+                                    style={{ background: accent }}
                                 >
-                                    <span
-                                        style={{
-                                            alignItems: 'center',
-                                            color: 'white',
-                                            display: 'flex',
-                                            fontSize: 15,
-                                            fontWeight: 600,
-                                            gap: 10
-                                        }}
-                                    >
+                                    <span className="flex items-center gap-2.5 text-[15px] font-semibold text-white">
                                         <i className="fas fa-exchange-alt"></i> Transfer Region
                                     </span>
                                     <button
                                         onClick={closeTransfer}
-                                        style={{
-                                            alignItems: 'center',
-                                            background: 'rgba(255,255,255,0.15)',
-                                            border: 'none',
-                                            borderRadius: 8,
-                                            color: 'white',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            fontSize: 14,
-                                            height: 32,
-                                            justifyContent: 'center',
-                                            width: 32
-                                        }}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg border-none bg-white/15 text-sm text-white cursor-pointer"
                                     >
                                         <i className="fas fa-times"></i>
                                     </button>
                                 </div>
-                                <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-                                    <div
-                                        style={{
-                                            background: '#f1f5f9',
-                                            borderRadius: 10,
-                                            marginBottom: 16,
-                                            padding: 14
-                                        }}
-                                    >
-                                        <div
-                                            style={{ color: '#64748b', fontSize: 11, fontWeight: 600, marginBottom: 2 }}
-                                        >
+                                <div className="flex-1 overflow-y-auto p-5">
+                                    <div className="mb-4 rounded-[10px] bg-slate-100 p-3.5">
+                                        <div className="mb-0.5 text-[11px] font-semibold text-slate-500">
                                             CURRENT REGION
                                         </div>
-                                        <div style={{ color: '#1e293b', fontSize: 14, fontWeight: 600 }}>
+                                        <div className="text-sm font-semibold text-slate-800">
                                             {currentRegion || 'Unknown'}
                                         </div>
                                     </div>
-                                    <div style={{ marginBottom: 14 }}>
-                                        <label
-                                            style={{
-                                                color: '#64748b',
-                                                display: 'block',
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                                marginBottom: 6
-                                            }}
-                                        >
+                                    <div className="mb-3.5">
+                                        <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                                             Target Region
                                         </label>
                                         <select
-                                            className="dv-input"
+                                            className="dv-input w-full cursor-pointer appearance-none rounded-[10px] border-[1.5px] border-slate-200 text-sm text-slate-800 outline-none"
                                             value={targetRegion}
                                             onChange={(e) => setTargetRegion(e.target.value)}
                                             disabled={transferring}
                                             style={{
-                                                appearance: 'none',
                                                 background: selectBg,
-                                                border: '1.5px solid #e2e8f0',
-                                                borderRadius: 10,
-                                                color: '#1e293b',
-                                                cursor: 'pointer',
-                                                fontSize: 14,
-                                                outline: 'none',
-                                                padding: '10px 40px 10px 14px',
-                                                width: '100%'
+                                                padding: '10px 40px 10px 14px'
                                             }}
                                         >
                                             <option value="">Select region...</option>
@@ -1024,34 +653,18 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                         </select>
                                     </div>
                                     {targetRegion && (
-                                        <div style={{ marginBottom: 14 }}>
-                                            <label
-                                                style={{
-                                                    color: '#64748b',
-                                                    display: 'block',
-                                                    fontSize: 12,
-                                                    fontWeight: 600,
-                                                    marginBottom: 6
-                                                }}
-                                            >
+                                        <div className="mb-3.5">
+                                            <label className="mb-1.5 block text-xs font-semibold text-slate-500">
                                                 Target Plant
                                             </label>
                                             <select
-                                                className="dv-input"
+                                                className="dv-input w-full cursor-pointer appearance-none rounded-[10px] border-[1.5px] border-slate-200 text-sm text-slate-800 outline-none"
                                                 value={targetPlant}
                                                 onChange={(e) => setTargetPlant(e.target.value)}
                                                 disabled={transferring || !plants.length}
                                                 style={{
-                                                    appearance: 'none',
                                                     background: selectBg,
-                                                    border: '1.5px solid #e2e8f0',
-                                                    borderRadius: 10,
-                                                    color: '#1e293b',
-                                                    cursor: 'pointer',
-                                                    fontSize: 14,
-                                                    outline: 'none',
-                                                    padding: '10px 40px 10px 14px',
-                                                    width: '100%'
+                                                    padding: '10px 40px 10px 14px'
                                                 }}
                                             >
                                                 <option value="">Select plant...</option>
@@ -1067,72 +680,31 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
                                         </div>
                                     )}
                                     {transferErr && (
-                                        <div
-                                            style={{
-                                                alignItems: 'center',
-                                                background: '#fef2f2',
-                                                borderRadius: 8,
-                                                color: '#dc2626',
-                                                display: 'flex',
-                                                fontSize: 12,
-                                                gap: 8,
-                                                padding: '10px 12px'
-                                            }}
-                                        >
+                                        <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-xs text-red-600">
                                             <i className="fas fa-exclamation-circle"></i>
                                             {transferErr}
                                         </div>
                                     )}
                                 </div>
-                                <div
-                                    style={{
-                                        background: '#f8fafc',
-                                        borderTop: '1px solid #e2e8f0',
-                                        display: 'flex',
-                                        gap: 10,
-                                        padding: '14px 20px'
-                                    }}
-                                >
+                                <div className="flex gap-2.5 border-t border-slate-200 bg-slate-50 px-5 py-3.5">
                                     <button
-                                        className="dv-btn"
+                                        className="dv-btn flex-1 rounded-[10px] border-none bg-slate-100 px-4 py-2.5 text-[13px] font-semibold text-slate-600 cursor-pointer"
                                         onClick={closeTransfer}
                                         disabled={transferring}
-                                        style={{
-                                            background: '#f1f5f9',
-                                            border: 'none',
-                                            borderRadius: 10,
-                                            color: '#475569',
-                                            cursor: 'pointer',
-                                            flex: 1,
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            padding: '10px 16px'
-                                        }}
                                     >
                                         Cancel
                                     </button>
                                     <button
-                                        className="dv-btn"
+                                        className="dv-btn flex-1 flex items-center justify-center gap-2 rounded-[10px] border-none px-4 py-2.5 text-[13px] font-semibold text-white"
                                         onClick={doTransfer}
                                         disabled={transferring || !targetRegion || !targetPlant}
                                         style={{
-                                            alignItems: 'center',
                                             background: accent,
-                                            border: 'none',
-                                            borderRadius: 10,
-                                            color: 'white',
                                             cursor:
                                                 transferring || !targetRegion || !targetPlant
                                                     ? 'not-allowed'
                                                     : 'pointer',
-                                            display: 'flex',
-                                            flex: 1,
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            gap: 8,
-                                            justifyContent: 'center',
-                                            opacity: transferring || !targetRegion || !targetPlant ? 0.5 : 1,
-                                            padding: '10px 16px'
+                                            opacity: transferring || !targetRegion || !targetPlant ? 0.5 : 1
                                         }}
                                     >
                                         {transferring ? (
@@ -1163,12 +735,9 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
     if (activeSection !== id) return null
     const childArray = React.Children.toArray(children)
     const count = childArray.length
-    const getGridStyle = () => {
-        if (count === 1) return { display: 'flex', flexDirection: 'column', gap: 20 }
-        if (count === 2) return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
-        if (count === 3) return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
-        if (count === 4) return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
-        return { display: 'grid', gap: 20, gridTemplateColumns: 'repeat(2, 1fr)' }
+    const getGridClass = () => {
+        if (count === 1) return 'flex flex-col gap-5'
+        return 'grid grid-cols-2 gap-5'
     }
     const renderChildren = () => {
         if (count === 3) {
@@ -1176,7 +745,7 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
                 <>
                     {childArray[0]}
                     {childArray[1]}
-                    <div style={{ gridColumn: '1 / -1' }}>{childArray[2]}</div>
+                    <div className="col-span-full">{childArray[2]}</div>
                 </>
             )
         }
@@ -1187,34 +756,24 @@ DetailViewSection.Section = function Section({ id, title, icon, children }) {
                     {childArray[1]}
                     {childArray[2]}
                     {childArray[3]}
-                    <div style={{ gridColumn: '1 / -1' }}>{childArray[4]}</div>
+                    <div className="col-span-full">{childArray[4]}</div>
                 </>
             )
         }
         return childArray
     }
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div className="dv-section-header" style={{ alignItems: 'center', display: 'flex', gap: 14 }}>
+        <div className="flex flex-col gap-5">
+            <div className="dv-section-header flex items-center gap-3.5">
                 <div
-                    style={{
-                        alignItems: 'center',
-                        background: `${accent}12`,
-                        borderRadius: 14,
-                        display: 'flex',
-                        flexShrink: 0,
-                        height: 48,
-                        justifyContent: 'center',
-                        width: 48
-                    }}
+                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[14px]"
+                    style={{ background: `${accent}12` }}
                 >
                     <i className={icon} style={{ color: accent, fontSize: 20 }}></i>
                 </div>
-                <h2 style={{ color: '#1e293b', fontSize: 22, fontWeight: 700, margin: 0 }}>{title}</h2>
+                <h2 className="m-0 text-[22px] font-bold text-slate-800">{title}</h2>
             </div>
-            <div className="dv-section-grid" style={getGridStyle()}>
-                {renderChildren()}
-            </div>
+            <div className={`dv-section-grid ${getGridClass()}`}>{renderChildren()}</div>
         </div>
     )
 }
@@ -1223,79 +782,39 @@ DetailViewSection.Card = function Card({ title, icon, children, actions, fullWid
     const accent = preferences.accentColor || '#1e3a5f'
     return (
         <div
-            style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: 16,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                gridColumn: fullWidth ? '1 / -1' : undefined,
-                overflow: 'hidden'
-            }}
+            className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${fullWidth ? 'col-[1_/_-1]' : ''}`}
         >
             {title && (
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: '#fafbfc',
-                        borderBottom: '1px solid #e5e7eb',
-                        display: 'flex',
-                        gap: 10,
-                        justifyContent: 'space-between',
-                        padding: '14px 20px'
-                    }}
-                >
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            color: '#1e293b',
-                            display: 'flex',
-                            fontSize: 15,
-                            fontWeight: 600,
-                            gap: 10
-                        }}
-                    >
+                <div className="flex items-center justify-between gap-2.5 border-b border-gray-200 bg-[#fafbfc] px-5 py-3.5">
+                    <div className="flex items-center gap-2.5 text-[15px] font-semibold text-slate-800">
                         {icon && <i className={icon} style={{ color: accent, fontSize: 15 }}></i>}
                         {title}
                     </div>
-                    {actions && <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>{actions}</div>}
+                    {actions && <div className="flex items-center gap-2">{actions}</div>}
                 </div>
             )}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 20 }}>{children}</div>
+            <div className="flex flex-col gap-4 p-5">{children}</div>
         </div>
     )
 }
 DetailViewSection.Row = function Row({ children, cols = 2 }) {
-    return <div style={{ display: 'grid', gap: 16, gridTemplateColumns: `repeat(${cols}, 1fr)` }}>{children}</div>
+    return (
+        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+            {children}
+        </div>
+    )
 }
 DetailViewSection.Field = function Field({ label, value, empty = '-', icon }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span
-                style={{
-                    alignItems: 'center',
-                    color: '#64748b',
-                    display: 'flex',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    gap: 6,
-                    textTransform: 'uppercase'
-                }}
-            >
+        <div className="flex flex-col gap-1.5">
+            <span className="flex items-center gap-1.5 text-xs font-semibold uppercase text-slate-500">
                 {icon && <i className={icon} style={{ color: accent, fontSize: 11 }}></i>}
                 {label}
             </span>
             <span
-                style={{
-                    background: '#f8fafc',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 10,
-                    color: value ? '#1e293b' : '#94a3b8',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    padding: '10px 14px'
-                }}
+                className={`rounded-[10px] border border-gray-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium ${value ? 'text-slate-800' : 'text-slate-400'}`}
             >
                 {value || empty}
             </span>
@@ -1306,37 +825,17 @@ DetailViewSection.Input = function Input({ label, icon, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
             {label && (
-                <label
-                    style={{
-                        alignItems: 'center',
-                        color: '#374151',
-                        display: 'flex',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        gap: 6
-                    }}
-                >
+                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-700">
                     {icon && <i className={icon} style={{ color: accent, fontSize: 12 }}></i>}
                     {label}
                 </label>
             )}
             <input
                 {...props}
-                className="dv-input"
-                style={{
-                    background: 'white',
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: 10,
-                    color: '#1e293b',
-                    fontSize: 14,
-                    outline: 'none',
-                    padding: '12px 14px',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                    width: '100%',
-                    ...props.style
-                }}
+                className="dv-input w-full rounded-[10px] border-[1.5px] border-gray-200 bg-white px-3.5 py-3 text-sm text-slate-800 outline-none transition-[border-color,box-shadow] duration-150"
+                style={props.style}
             />
         </div>
     )
@@ -1347,36 +846,19 @@ DetailViewSection.Select = function Select({ label, icon, options = [], placehol
     const selectBg =
         "white url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\") right 12px center/16px no-repeat"
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
             {label && (
-                <label
-                    style={{
-                        alignItems: 'center',
-                        color: '#374151',
-                        display: 'flex',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        gap: 6
-                    }}
-                >
+                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-700">
                     {icon && <i className={icon} style={{ color: accent, fontSize: 12 }}></i>}
                     {label}
                 </label>
             )}
             <select
                 {...props}
-                className="dv-input"
+                className="dv-input w-full cursor-pointer appearance-none rounded-[10px] border-[1.5px] border-gray-200 text-sm text-slate-800 outline-none"
                 style={{
-                    appearance: 'none',
                     background: selectBg,
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: 10,
-                    color: '#1e293b',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    outline: 'none',
                     padding: '12px 40px 12px 14px',
-                    width: '100%',
                     ...props.style
                 }}
             >
@@ -1397,40 +879,17 @@ DetailViewSection.Textarea = function Textarea({ label, icon, ...props }) {
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="flex flex-col gap-1.5">
             {label && (
-                <label
-                    style={{
-                        alignItems: 'center',
-                        color: '#374151',
-                        display: 'flex',
-                        fontSize: 13,
-                        fontWeight: 600,
-                        gap: 6
-                    }}
-                >
+                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-gray-700">
                     {icon && <i className={icon} style={{ color: accent, fontSize: 12 }}></i>}
                     {label}
                 </label>
             )}
             <textarea
                 {...props}
-                className="dv-input"
-                style={{
-                    background: 'white',
-                    border: '1.5px solid #e5e7eb',
-                    borderRadius: 10,
-                    color: '#1e293b',
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                    minHeight: 120,
-                    outline: 'none',
-                    padding: '12px 14px',
-                    resize: 'vertical',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                    width: '100%',
-                    ...props.style
-                }}
+                className="dv-input w-full min-h-[120px] resize-y rounded-[10px] border-[1.5px] border-gray-200 bg-white px-3.5 py-3 text-sm leading-[1.6] text-slate-800 outline-none transition-[border-color,box-shadow] duration-150"
+                style={props.style}
             />
         </div>
     )
@@ -1450,21 +909,9 @@ DetailViewSection.Button = function Button({ variant = 'primary', block, childre
     return (
         <button
             {...props}
-            className="dv-btn"
+            className={`dv-btn inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[13px] font-semibold transition-[opacity,transform] duration-150 ${block ? 'w-full' : 'w-auto'} ${props.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100'}`}
             style={{
-                alignItems: 'center',
                 border: v.border || 'none',
-                borderRadius: 10,
-                cursor: props.disabled ? 'not-allowed' : 'pointer',
-                display: 'inline-flex',
-                fontSize: 13,
-                fontWeight: 600,
-                gap: 8,
-                justifyContent: 'center',
-                opacity: props.disabled ? 0.5 : 1,
-                padding: '10px 16px',
-                transition: 'opacity 0.15s, transform 0.1s',
-                width: block ? '100%' : 'auto',
                 ...v,
                 ...props.style
             }}
@@ -1474,7 +921,7 @@ DetailViewSection.Button = function Button({ variant = 'primary', block, childre
     )
 }
 DetailViewSection.Divider = function Divider() {
-    return <div style={{ background: '#e2e8f0', height: 1, margin: '4px 0' }}></div>
+    return <div className="my-1 h-px bg-slate-200"></div>
 }
 DetailViewSection.Banner = function Banner({ type = 'info', icon, children }) {
     const types = {
@@ -1486,20 +933,15 @@ DetailViewSection.Banner = function Banner({ type = 'info', icon, children }) {
     const t = types[type] || types.info
     return (
         <div
+            className="flex items-center gap-2.5 rounded-[10px] px-3.5 py-3 text-[13px]"
             style={{
-                alignItems: 'center',
                 background: t.bg,
                 border: `1px solid ${t.border}`,
-                borderRadius: 10,
-                color: t.color,
-                display: 'flex',
-                fontSize: 13,
-                gap: 10,
-                padding: '12px 14px'
+                color: t.color
             }}
         >
             <i className={`fas ${icon || t.icon}`}></i>
-            <span style={{ flex: 1 }}>{children}</span>
+            <span className="flex-1">{children}</span>
         </div>
     )
 }
@@ -1507,53 +949,25 @@ DetailViewSection.Toggle = function Toggle({ label, checked, onChange, disabled 
     const { preferences } = usePreferences()
     const accent = preferences.accentColor || '#1e3a5f'
     return (
-        <label
-            style={{
-                alignItems: 'center',
-                cursor: disabled ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                gap: 12,
-                opacity: disabled ? 0.5 : 1
-            }}
-        >
+        <label className={`flex items-center gap-3 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
             <div
-                style={{
-                    background: checked ? accent : '#cbd5e1',
-                    borderRadius: 14,
-                    height: 28,
-                    padding: 3,
-                    position: 'relative',
-                    transition: 'background 0.2s',
-                    width: 52
-                }}
+                className="relative h-7 w-[52px] rounded-[14px] p-[3px] transition-colors duration-200"
+                style={{ background: checked ? accent : '#cbd5e1' }}
             >
                 <div
-                    style={{
-                        background: 'white',
-                        borderRadius: '50%',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        height: 22,
-                        transform: checked ? 'translateX(24px)' : 'translateX(0)',
-                        transition: 'transform 0.2s',
-                        width: 22
-                    }}
+                    className="h-[22px] w-[22px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-transform duration-200"
+                    style={{ transform: checked ? 'translateX(24px)' : 'translateX(0)' }}
                 ></div>
             </div>
-            <input
-                type="checkbox"
-                checked={checked}
-                onChange={onChange}
-                disabled={disabled}
-                style={{ display: 'none' }}
-            />
-            {label && <span style={{ color: '#1e293b', fontSize: 14, fontWeight: 500 }}>{label}</span>}
+            <input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="hidden" />
+            {label && <span className="text-sm font-medium text-slate-800">{label}</span>}
         </label>
     )
 }
 DetailViewSection.Rating = function Rating({ value = 0, onChange, max = 5, disabled }) {
     const [hover, setHover] = useState(0)
     return (
-        <div style={{ alignItems: 'center', display: 'flex', gap: 4 }}>
+        <div className="flex items-center gap-1">
             {[...Array(max)].map((_, i) => (
                 <button
                     key={i}
@@ -1562,21 +976,14 @@ DetailViewSection.Rating = function Rating({ value = 0, onChange, max = 5, disab
                     onClick={() => onChange?.(i + 1)}
                     onMouseEnter={() => !disabled && setHover(i + 1)}
                     onMouseLeave={() => setHover(0)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: i < (hover || value) ? '#fbbf24' : '#e2e8f0',
-                        cursor: disabled ? 'default' : 'pointer',
-                        fontSize: 22,
-                        padding: 2,
-                        transition: 'transform 0.1s, color 0.15s'
-                    }}
+                    className={`border-none bg-transparent p-0.5 text-[22px] transition-[transform,color] duration-[100ms,150ms] ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
+                    style={{ color: i < (hover || value) ? '#fbbf24' : '#e2e8f0' }}
                 >
                     <i className="fas fa-star"></i>
                 </button>
             ))}
             {value > 0 && (
-                <span style={{ color: '#64748b', fontSize: 13, fontWeight: 600, marginLeft: 8 }}>
+                <span className="ml-2 text-[13px] font-semibold text-slate-500">
                     {value}/{max}
                 </span>
             )}

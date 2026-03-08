@@ -382,458 +382,94 @@ export default function VerificationRequirementsModal({
     if (typeof document === 'undefined' || !document.body) {
         return null
     }
-    const styles = {
-        actions: {
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e5e7eb',
-            display: 'flex',
-            gap: '12px',
-            padding: '16px 24px'
-        },
-        badge: {
-            alignItems: 'center',
-            borderRadius: '12px',
-            display: 'inline-flex',
-            fontSize: '11px',
-            fontWeight: 600,
-            padding: '4px 10px'
-        },
-        badgeComplete: {
-            backgroundColor: '#dcfce7',
-            color: '#166534'
-        },
-        badgeIncomplete: {
-            backgroundColor: '#fef2f2',
-            color: '#991b1b'
-        },
-        badgeInfo: {
-            backgroundColor: '#dbeafe',
-            color: '#1e40af'
-        },
-        badgeWarning: {
-            backgroundColor: '#fef3c7',
-            color: '#92400e'
-        },
-        cancelButton: {
-            backgroundColor: '#f1f5f9',
-            border: 'none',
-            borderRadius: '10px',
-            color: '#374151',
-            cursor: 'pointer',
-            flex: 1,
-            fontSize: '14px',
-            fontWeight: 600,
-            padding: '12px 20px'
-        },
-        closeButton: {
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.2)',
-            border: 'none',
-            borderRadius: '50%',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '16px',
-            height: '36px',
-            justifyContent: 'center',
-            width: '36px'
-        },
-        completeButton: {
-            alignItems: 'center',
-            backgroundColor: '#dcfce7',
-            border: 'none',
-            borderRadius: '6px',
-            color: '#166534',
-            cursor: 'pointer',
-            display: 'flex',
-            height: '28px',
-            justifyContent: 'center',
-            width: '28px'
-        },
-        content: {
-            backgroundColor: 'white',
-            flex: 1,
-            overflowY: 'auto',
-            padding: '16px'
-        },
-        deleteButton: {
-            alignItems: 'center',
-            backgroundColor: '#fef2f2',
-            border: 'none',
-            borderRadius: '6px',
-            color: '#991b1b',
-            cursor: 'pointer',
-            display: 'flex',
-            height: '28px',
-            justifyContent: 'center',
-            width: '28px'
-        },
-        formGroup: {
-            marginBottom: '16px'
-        },
-        header: {
-            alignItems: 'center',
-            backgroundColor: accentColor,
-            borderRadius: '16px 16px 0 0',
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '20px 24px'
-        },
-        headerContent: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '14px'
-        },
-        headerIcon: {
-            fontSize: '24px'
-        },
-        headerSubtitle: {
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: '13px',
-            margin: '4px 0 0'
-        },
-        headerTitle: {
-            color: 'white',
-            fontSize: '18px',
-            fontWeight: 600,
-            margin: 0
-        },
-        highlightRow: {
-            backgroundColor: '#fff7ed'
-        },
-        hint: {
-            color: '#64748b',
-            fontSize: '12px',
-            marginTop: '6px'
-        },
-        inlineValidation: {
-            alignItems: 'center',
-            color: '#dc2626',
-            display: 'flex',
-            fontSize: '12px',
-            gap: '6px',
-            marginTop: '6px'
-        },
-        input: {
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            boxSizing: 'border-box',
-            color: '#374151',
-            fontSize: '14px',
-            padding: '10px 14px',
-            width: '100%'
-        },
-        inputError: {
-            borderColor: '#dc2626'
-        },
-        issueActions: {
-            display: 'flex',
-            gap: '6px',
-            marginLeft: 'auto'
-        },
-        issueCreator: {
-            alignItems: 'center',
-            color: '#374151',
-            display: 'flex',
-            fontSize: '12px',
-            gap: '6px'
-        },
-        issueDate: {
-            color: '#64748b',
-            fontSize: '12px'
-        },
-        issueHeader: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '12px',
-            marginBottom: '10px'
-        },
-        issueItem: {
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e5e7eb',
-            borderRadius: '10px',
-            marginBottom: '10px',
-            padding: '14px'
-        },
-        issueSeverity: {
-            borderRadius: '6px',
-            fontSize: '11px',
-            fontWeight: 600,
-            padding: '4px 10px'
-        },
-        issueText: {
-            color: '#374151',
-            fontSize: '14px',
-            lineHeight: 1.5
-        },
-        label: {
-            color: '#374151',
-            display: 'block',
-            fontSize: '13px',
-            fontWeight: 600,
-            marginBottom: '6px'
-        },
-        modal: {
-            backgroundColor: 'white',
-            borderRadius: '16px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            maxHeight: '90vh',
-            maxWidth: '600px',
-            overflow: 'hidden',
-            width: '100%'
-        },
-        noData: {
-            color: '#374151',
-            padding: '24px',
-            textAlign: 'center'
-        },
-        noDataIcon: {
-            color: '#64748b',
-            fontSize: '32px',
-            marginBottom: '12px'
-        },
-        note: {
-            alignItems: 'flex-start',
-            backgroundColor: '#fef3c7',
-            border: '2px solid #f59e0b',
-            borderRadius: '10px',
-            color: '#92400e',
-            display: 'flex',
-            fontSize: '14px',
-            fontWeight: 500,
-            gap: '10px',
-            marginBottom: '12px',
-            padding: '14px 16px'
-        },
-        overlay: {
-            alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            bottom: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            left: 0,
-            padding: '20px',
-            position: 'fixed',
-            right: 0,
-            top: 0,
-            zIndex: 10000
-        },
-        phoneControl: {
-            display: 'flex',
-            gap: '8px'
-        },
-        phoneInput: {
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            color: '#374151',
-            flex: 1,
-            fontSize: '14px',
-            padding: '8px 12px'
-        },
-        primaryButton: {
-            alignItems: 'center',
-            backgroundColor: accentColor,
-            border: 'none',
-            borderRadius: '10px',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'flex',
-            flex: 2,
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '8px',
-            justifyContent: 'center',
-            padding: '12px 20px'
-        },
-        primaryButtonDisabled: {
-            cursor: 'not-allowed',
-            opacity: 0.5
-        },
-        ratingInline: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '12px'
-        },
-        ratingText: {
-            color: '#374151',
-            fontSize: '13px'
-        },
-        requiredBadgeInline: {
-            backgroundColor: '#dc2626',
-            borderRadius: '4px',
-            color: 'white',
-            display: 'inline-block',
-            fontSize: '10px',
-            fontWeight: 600,
-            marginLeft: '8px',
-            padding: '2px 8px'
-        },
-        requiredIndicator: {
-            color: '#dc2626',
-            fontSize: '11px',
-            marginLeft: '6px'
-        },
-        savePhoneButton: {
-            backgroundColor: accentColor,
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            padding: '8px 12px'
-        },
-        section: {
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '12px',
-            marginBottom: '12px',
-            overflow: 'hidden'
-        },
-        sectionContent: {
-            backgroundColor: 'white',
-            borderTop: '1px solid #e5e7eb',
-            padding: '16px'
-        },
-        sectionHeader: {
-            alignItems: 'center',
-            backgroundColor: '#f8fafc',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '14px 16px',
-            textAlign: 'left',
-            width: '100%'
-        },
-        sectionTitle: {
-            alignItems: 'center',
-            color: accentColor,
-            display: 'flex',
-            fontSize: '14px',
-            fontWeight: 600,
-            gap: '10px'
-        },
-        severityHigh: {
-            backgroundColor: '#fef2f2',
-            color: '#991b1b'
-        },
-        severityLow: {
-            backgroundColor: '#dbeafe',
-            color: '#1e40af'
-        },
-        severityMedium: {
-            backgroundColor: '#fef3c7',
-            color: '#92400e'
-        },
-        star: {
-            color: '#e5e7eb',
-            cursor: 'pointer',
-            fontSize: '18px'
-        },
-        starFilled: {
-            color: '#f59e0b'
-        },
-        starGroup: {
-            display: 'flex',
-            gap: '4px'
-        },
-        table: {
-            backgroundColor: 'white',
-            borderCollapse: 'collapse',
-            width: '100%'
-        },
-        tableLabel: {
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            color: accentColor,
-            fontSize: '13px',
-            fontWeight: 600,
-            padding: '10px 12px',
-            width: '35%'
-        },
-        tableValue: {
-            backgroundColor: 'white',
-            borderBottom: '1px solid #e5e7eb',
-            color: '#374151',
-            fontSize: '14px',
-            padding: '10px 12px'
-        },
-        warningText: {
-            color: '#dc2626',
-            fontSize: '12px',
-            marginTop: '4px'
-        }
-    }
-    const getSeverityStyle = (severityLevel) => {
+    const getSeverityClasses = (severityLevel) => {
         switch (severityLevel) {
             case 'High':
-                return styles.severityHigh
+                return 'bg-[#fef2f2] text-[#991b1b]'
             case 'Medium':
-                return styles.severityMedium
+                return 'bg-[#fef3c7] text-[#92400e]'
             case 'Low':
-                return styles.severityLow
+                return 'bg-[#dbeafe] text-[#1e40af]'
             default:
-                return {}
+                return ''
         }
     }
     return ReactDOM.createPortal(
-        <div style={styles.overlay} role="dialog" aria-modal="true">
-            <div style={styles.modal}>
-                <div style={styles.header}>
-                    <div style={styles.headerContent}>
-                        <i className="fas fa-clipboard-check" style={styles.headerIcon}></i>
+        <div
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-5"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div className="flex w-full max-w-[600px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(0,0,0,0.3)] max-h-[90vh]">
+                <div
+                    className="flex items-center justify-between rounded-t-2xl text-white px-6 py-5"
+                    style={{ backgroundColor: accentColor }}
+                >
+                    <div className="flex items-center gap-[14px]">
+                        <i className="fas fa-clipboard-check text-2xl"></i>
                         <div>
-                            <h3 style={styles.headerTitle}>Verification Checklist</h3>
-                            <p style={styles.headerSubtitle}>
+                            <h3 className="m-0 text-lg font-semibold text-white">Verification Checklist</h3>
+                            <p className="mt-1 mb-0 text-[13px] text-white/80">
                                 Review all requirements before verifying this {itemType?.toLowerCase()}
                             </p>
                         </div>
                     </div>
-                    <button style={styles.closeButton} onClick={onClose} title="Close">
+                    <button
+                        className="flex h-9 w-9 items-center justify-center rounded-full border-none bg-white/20 text-white text-base cursor-pointer"
+                        onClick={onClose}
+                        title="Close"
+                    >
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                <div style={styles.content}>
+                <div className="flex-1 overflow-y-auto bg-white p-4">
                     {sectionsReady.checklist && (
-                        <div style={styles.section}>
-                            <button style={styles.sectionHeader} onClick={() => toggleSection('checklist')}>
-                                <div style={styles.sectionTitle}>
+                        <div className="mb-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                            <button
+                                className="flex w-full cursor-pointer items-center justify-between border-none bg-[#f8fafc] px-4 py-[14px] text-left"
+                                onClick={() => toggleSection('checklist')}
+                            >
+                                <div
+                                    className="flex items-center gap-[10px] text-sm font-semibold"
+                                    style={{ color: accentColor }}
+                                >
                                     <i className="fas fa-tasks"></i>
-                                    <span style={{ color: '#374151' }}>Required Information</span>
+                                    <span className="text-[#374151]">Required Information</span>
                                     {serviceOverdue && (
-                                        <span style={{ ...styles.badge, ...styles.badgeWarning }}>Service Overdue</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#fef3c7] px-[10px] py-1 text-[11px] font-semibold text-[#92400e]">
+                                            Service Overdue
+                                        </span>
                                     )}
                                     {!serviceOverdue && !requiredFieldsOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeIncomplete }}>Incomplete</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#fef2f2] px-[10px] py-1 text-[11px] font-semibold text-[#991b1b]">
+                                            Incomplete
+                                        </span>
                                     )}
                                     {!serviceOverdue && requiredFieldsOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeComplete }}>Complete</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dcfce7] px-[10px] py-1 text-[11px] font-semibold text-[#166534]">
+                                            Complete
+                                        </span>
                                     )}
                                 </div>
                                 <i
-                                    className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'}`}
-                                    style={{ color: '#64748b' }}
+                                    className={`fas fa-chevron-${isSectionExpanded('checklist') ? 'up' : 'down'} text-[#64748b]`}
                                 ></i>
                             </button>
                             {isSectionExpanded('checklist') && (
-                                <div style={styles.sectionContent}>
+                                <div className="border-t border-gray-200 bg-white p-4">
                                     <div>
                                         {needsVin && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
                                                     VIN{' '}
-                                                    {!vinOk && <span style={styles.requiredIndicator}>Required</span>}
+                                                    {!vinOk && (
+                                                        <span className="ml-[6px] text-[11px] text-[#dc2626]">
+                                                            Required
+                                                        </span>
+                                                    )}
                                                 </label>
                                                 <input
-                                                    style={{
-                                                        ...styles.input,
-                                                        ...(vin && !vinOk ? styles.inputError : {})
-                                                    }}
+                                                    className={`box-border w-full rounded-lg border bg-white px-[14px] py-[10px] text-sm text-[#374151] ${vin && !vinOk ? 'border-[#dc2626]' : 'border-gray-200'}`}
                                                     type="text"
                                                     placeholder="17 characters (no I, O, Q)"
                                                     value={vin}
@@ -841,13 +477,13 @@ export default function VerificationRequirementsModal({
                                                         setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))
                                                     }
                                                 />
-                                                <div style={styles.hint}>
+                                                <div className="mt-[6px] text-xs text-[#64748b]">
                                                     17 characters. Letters I, O, and Q are not used.
                                                 </div>
                                                 {vin && !vinOk && (
                                                     <div>
                                                         {vinInfo.reasons.map((r) => (
-                                                            <div key={r} style={styles.warningText}>
+                                                            <div key={r} className="mt-1 text-xs text-[#dc2626]">
                                                                 {r}
                                                             </div>
                                                         ))}
@@ -856,13 +492,17 @@ export default function VerificationRequirementsModal({
                                             </div>
                                         )}
                                         {needsMake && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
                                                     Make{' '}
-                                                    {!makeOk && <span style={styles.requiredIndicator}>Required</span>}
+                                                    {!makeOk && (
+                                                        <span className="ml-[6px] text-[11px] text-[#dc2626]">
+                                                            Required
+                                                        </span>
+                                                    )}
                                                 </label>
                                                 <input
-                                                    style={styles.input}
+                                                    className="box-border w-full rounded-lg border border-gray-200 bg-white px-[14px] py-[10px] text-sm text-[#374151]"
                                                     type="text"
                                                     placeholder="Make"
                                                     value={make}
@@ -871,13 +511,17 @@ export default function VerificationRequirementsModal({
                                             </div>
                                         )}
                                         {needsModel && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
                                                     Model{' '}
-                                                    {!modelOk && <span style={styles.requiredIndicator}>Required</span>}
+                                                    {!modelOk && (
+                                                        <span className="ml-[6px] text-[11px] text-[#dc2626]">
+                                                            Required
+                                                        </span>
+                                                    )}
                                                 </label>
                                                 <input
-                                                    style={styles.input}
+                                                    className="box-border w-full rounded-lg border border-gray-200 bg-white px-[14px] py-[10px] text-sm text-[#374151]"
                                                     type="text"
                                                     placeholder="Model"
                                                     value={model}
@@ -886,13 +530,17 @@ export default function VerificationRequirementsModal({
                                             </div>
                                         )}
                                         {needsYear && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
                                                     Year{' '}
-                                                    {!yearOk && <span style={styles.requiredIndicator}>Required</span>}
+                                                    {!yearOk && (
+                                                        <span className="ml-[6px] text-[11px] text-[#dc2626]">
+                                                            Required
+                                                        </span>
+                                                    )}
                                                 </label>
                                                 <input
-                                                    style={styles.input}
+                                                    className="box-border w-full rounded-lg border border-gray-200 bg-white px-[14px] py-[10px] text-sm text-[#374151]"
                                                     type="text"
                                                     placeholder="Year"
                                                     value={year}
@@ -901,10 +549,12 @@ export default function VerificationRequirementsModal({
                                             </div>
                                         )}
                                         {(!lastServiceDate || serviceOverdue) && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>Last Service Date</label>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
+                                                    Last Service Date
+                                                </label>
                                                 <input
-                                                    style={styles.input}
+                                                    className="box-border w-full rounded-lg border border-gray-200 bg-white px-[14px] py-[10px] text-sm text-[#374151]"
                                                     type="date"
                                                     value={
                                                         lastServiceDate
@@ -922,25 +572,15 @@ export default function VerificationRequirementsModal({
                                                     }
                                                 />
                                                 {lastServiceDate && serviceOverdue && (
-                                                    <div style={styles.note}>
-                                                        <i
-                                                            className="fas fa-exclamation-triangle"
-                                                            style={{ color: '#92400e' }}
-                                                        ></i>
-                                                        <span style={{ color: '#92400e' }}>
+                                                    <div className="mb-3 flex items-start gap-[10px] rounded-[10px] border-2 border-[#f59e0b] bg-[#fef3c7] px-4 py-[14px] text-sm font-medium text-[#92400e]">
+                                                        <i className="fas fa-exclamation-triangle text-[#92400e]"></i>
+                                                        <span className="text-[#92400e]">
                                                             Service is overdue. You can still verify but service is
                                                             recommended.
                                                         </span>
                                                     </div>
                                                 )}
-                                                <div
-                                                    style={{
-                                                        color: '#64748b',
-                                                        fontSize: '11px',
-                                                        lineHeight: '1.4',
-                                                        marginTop: '4px'
-                                                    }}
-                                                >
+                                                <div className="mt-1 text-[11px] leading-[1.4] text-[#64748b]">
                                                     Service will show as overdue if it has been more than 6 months since
                                                     last serviced. Service is determined by hours on the asset - check
                                                     hours of service.
@@ -948,10 +588,12 @@ export default function VerificationRequirementsModal({
                                             </div>
                                         )}
                                         {typeof lastChipDate !== 'undefined' && !lastChipDate && (
-                                            <div style={styles.formGroup}>
-                                                <label style={styles.label}>Last Chip Date</label>
+                                            <div className="mb-4">
+                                                <label className="mb-[6px] block text-[13px] font-semibold text-[#374151]">
+                                                    Last Chip Date
+                                                </label>
                                                 <input
-                                                    style={styles.input}
+                                                    className="box-border w-full rounded-lg border border-gray-200 bg-white px-[14px] py-[10px] text-sm text-[#374151]"
                                                     type="date"
                                                     value={
                                                         lastChipDate
@@ -976,121 +618,147 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
                     {assignedOperator && sectionsReady.operator && (
-                        <div style={styles.section}>
-                            <button style={styles.sectionHeader} onClick={() => toggleSection('operator')}>
-                                <div style={styles.sectionTitle}>
+                        <div className="mb-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                            <button
+                                className="flex w-full cursor-pointer items-center justify-between border-none bg-[#f8fafc] px-4 py-[14px] text-left"
+                                onClick={() => toggleSection('operator')}
+                            >
+                                <div
+                                    className="flex items-center gap-[10px] text-sm font-semibold"
+                                    style={{ color: accentColor }}
+                                >
                                     <i className="fas fa-user"></i>
-                                    <span style={{ color: '#374151' }}>Operator Information</span>
+                                    <span className="text-[#374151]">Operator Information</span>
                                     {!operatorOk && !phoneOk && !ratingOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeIncomplete }}>
+                                        <span className="inline-flex items-center rounded-xl bg-[#fef2f2] px-[10px] py-1 text-[11px] font-semibold text-[#991b1b]">
                                             Phone & Rating Required
                                         </span>
                                     )}
                                     {!operatorOk && !phoneOk && ratingOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeIncomplete }}>
+                                        <span className="inline-flex items-center rounded-xl bg-[#fef2f2] px-[10px] py-1 text-[11px] font-semibold text-[#991b1b]">
                                             Phone Required
                                         </span>
                                     )}
                                     {!operatorOk && phoneOk && !ratingOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeIncomplete }}>
+                                        <span className="inline-flex items-center rounded-xl bg-[#fef2f2] px-[10px] py-1 text-[11px] font-semibold text-[#991b1b]">
                                             Rating Required
                                         </span>
                                     )}
                                     {operatorOk && (
-                                        <span style={{ ...styles.badge, ...styles.badgeComplete }}>Complete</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dcfce7] px-[10px] py-1 text-[11px] font-semibold text-[#166534]">
+                                            Complete
+                                        </span>
                                     )}
                                 </div>
                                 <i
-                                    className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'}`}
-                                    style={{ color: '#64748b' }}
+                                    className={`fas fa-chevron-${isSectionExpanded('operator') ? 'up' : 'down'} text-[#64748b]`}
                                 ></i>
                             </button>
                             {isSectionExpanded('operator') && (
-                                <div style={styles.sectionContent}>
+                                <div className="border-t border-gray-200 bg-white p-4">
                                     {isLoadingOperator ? (
                                         <LoadingScreen message="Loading operator data..." inline={true} />
                                     ) : operatorData ? (
-                                        <table style={styles.table}>
+                                        <table className="w-full border-collapse bg-white">
                                             <tbody>
                                                 <tr>
-                                                    <td style={styles.tableLabel}>Name</td>
-                                                    <td style={styles.tableValue}>{operatorData.name || 'N/A'}</td>
+                                                    <td
+                                                        className="w-[35%] border-b border-gray-200 bg-[#f8fafc] px-3 py-[10px] text-[13px] font-semibold"
+                                                        style={{ color: accentColor }}
+                                                    >
+                                                        Name
+                                                    </td>
+                                                    <td className="border-b border-gray-200 bg-white px-3 py-[10px] text-sm text-[#374151]">
+                                                        {operatorData.name || 'N/A'}
+                                                    </td>
                                                 </tr>
                                                 {operatorData.position && (
                                                     <tr>
-                                                        <td style={styles.tableLabel}>Position</td>
-                                                        <td style={styles.tableValue}>{operatorData.position}</td>
+                                                        <td
+                                                            className="w-[35%] border-b border-gray-200 bg-[#f8fafc] px-3 py-[10px] text-[13px] font-semibold"
+                                                            style={{ color: accentColor }}
+                                                        >
+                                                            Position
+                                                        </td>
+                                                        <td className="border-b border-gray-200 bg-white px-3 py-[10px] text-sm text-[#374151]">
+                                                            {operatorData.position}
+                                                        </td>
                                                     </tr>
                                                 )}
                                                 {operatorData.smyrna_id && (
                                                     <tr>
-                                                        <td style={styles.tableLabel}>Employee ID</td>
-                                                        <td style={styles.tableValue}>{operatorData.smyrna_id}</td>
+                                                        <td
+                                                            className="w-[35%] border-b border-gray-200 bg-[#f8fafc] px-3 py-[10px] text-[13px] font-semibold"
+                                                            style={{ color: accentColor }}
+                                                        >
+                                                            Employee ID
+                                                        </td>
+                                                        <td className="border-b border-gray-200 bg-white px-3 py-[10px] text-sm text-[#374151]">
+                                                            {operatorData.smyrna_id}
+                                                        </td>
                                                     </tr>
                                                 )}
-                                                <tr style={!ratingOk ? styles.highlightRow : {}}>
-                                                    <td style={styles.tableLabel}>
+                                                <tr className={!ratingOk ? 'bg-[#fff7ed]' : ''}>
+                                                    <td
+                                                        className="w-[35%] border-b border-gray-200 bg-[#f8fafc] px-3 py-[10px] text-[13px] font-semibold"
+                                                        style={{ color: accentColor }}
+                                                    >
                                                         Performance Rating
                                                         {!ratingOk && (
-                                                            <span style={styles.requiredBadgeInline}>Required</span>
+                                                            <span className="ml-2 inline-block rounded bg-[#dc2626] px-2 py-[2px] text-[10px] font-semibold text-white">
+                                                                Required
+                                                            </span>
                                                         )}
                                                     </td>
-                                                    <td style={styles.tableValue}>
-                                                        <div style={styles.ratingInline}>
-                                                            <div style={styles.starGroup}>
+                                                    <td className="border-b border-gray-200 bg-white px-3 py-[10px] text-sm text-[#374151]">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex gap-1">
                                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                                     <i
                                                                         key={star}
-                                                                        className="fas fa-star"
-                                                                        style={{
-                                                                            ...styles.star,
-                                                                            ...(star <= operatorRating
-                                                                                ? styles.starFilled
-                                                                                : {})
-                                                                        }}
+                                                                        className={`fas fa-star cursor-pointer text-lg ${star <= operatorRating ? 'text-[#f59e0b]' : 'text-gray-200'}`}
                                                                         onClick={() => handleSaveOperatorRating(star)}
                                                                     ></i>
                                                                 ))}
                                                             </div>
-                                                            <span style={styles.ratingText}>
+                                                            <span className="text-[13px] text-[#374151]">
                                                                 {operatorRating > 0
                                                                     ? `${operatorRating}/5 - ${ratingLabels[operatorRating]}`
                                                                     : 'Not Yet Rated'}
                                                             </span>
                                                         </div>
                                                         {!ratingOk && (
-                                                            <div style={styles.inlineValidation}>
+                                                            <div className="mt-[6px] flex items-center gap-[6px] text-xs text-[#dc2626]">
                                                                 <i className="fas fa-exclamation-circle"></i>
                                                                 Rating required for verification
                                                             </div>
                                                         )}
                                                     </td>
                                                 </tr>
-                                                <tr style={!phoneOk ? styles.highlightRow : {}}>
-                                                    <td style={styles.tableLabel}>
+                                                <tr className={!phoneOk ? 'bg-[#fff7ed]' : ''}>
+                                                    <td
+                                                        className="w-[35%] border-b border-gray-200 bg-[#f8fafc] px-3 py-[10px] text-[13px] font-semibold"
+                                                        style={{ color: accentColor }}
+                                                    >
                                                         Phone Number
                                                         {!phoneOk && (
-                                                            <span style={styles.requiredBadgeInline}>Required</span>
+                                                            <span className="ml-2 inline-block rounded bg-[#dc2626] px-2 py-[2px] text-[10px] font-semibold text-white">
+                                                                Required
+                                                            </span>
                                                         )}
                                                     </td>
-                                                    <td style={styles.tableValue}>
-                                                        <div style={styles.phoneControl}>
+                                                    <td className="border-b border-gray-200 bg-white px-3 py-[10px] text-sm text-[#374151]">
+                                                        <div className="flex gap-2">
                                                             <input
                                                                 type="tel"
-                                                                style={{
-                                                                    ...styles.phoneInput,
-                                                                    ...(!phoneOk ? styles.inputError : {})
-                                                                }}
+                                                                className={`flex-1 rounded-lg border bg-white px-3 py-2 text-sm text-[#374151] ${!phoneOk ? 'border-[#dc2626]' : 'border-gray-200'}`}
                                                                 placeholder="(555) 555-5555"
                                                                 value={operatorPhone}
                                                                 onChange={(e) => setOperatorPhone(e.target.value)}
                                                             />
                                                             <button
-                                                                style={{
-                                                                    ...styles.savePhoneButton,
-                                                                    opacity:
-                                                                        isSavingPhone || !operatorPhone.trim() ? 0.5 : 1
-                                                                }}
+                                                                className={`cursor-pointer rounded-lg border-none px-3 py-2 text-white ${isSavingPhone || !operatorPhone.trim() ? 'opacity-50' : 'opacity-100'}`}
+                                                                style={{ backgroundColor: accentColor }}
                                                                 onClick={handleSaveOperatorPhone}
                                                                 disabled={isSavingPhone || !operatorPhone.trim()}
                                                             >
@@ -1102,7 +770,7 @@ export default function VerificationRequirementsModal({
                                                             </button>
                                                         </div>
                                                         {!phoneOk && (
-                                                            <div style={styles.inlineValidation}>
+                                                            <div className="mt-[6px] flex items-center gap-[6px] text-xs text-[#dc2626]">
                                                                 <i className="fas fa-exclamation-circle"></i>
                                                                 Phone required for verification
                                                             </div>
@@ -1112,12 +780,12 @@ export default function VerificationRequirementsModal({
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <div style={styles.noData}>
-                                            <i className="fas fa-exclamation-triangle" style={styles.noDataIcon}></i>
-                                            <p style={{ color: '#374151', margin: '0 0 8px' }}>
+                                        <div className="p-6 text-center text-[#374151]">
+                                            <i className="fas fa-exclamation-triangle mb-3 text-[32px] text-[#64748b]"></i>
+                                            <p className="m-0 mb-2 text-[#374151]">
                                                 Unable to load operator information
                                             </p>
-                                            <p style={{ fontSize: '13px', margin: 0 }}>
+                                            <p className="m-0 text-[13px]">
                                                 The operator may have been removed or there was a connection issue
                                             </p>
                                         </div>
@@ -1127,30 +795,37 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
                     {itemId && service && sectionsReady.issues && (
-                        <div style={styles.section}>
-                            <button style={styles.sectionHeader} onClick={() => toggleSection('issues')}>
-                                <div style={styles.sectionTitle}>
+                        <div className="mb-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                            <button
+                                className="flex w-full cursor-pointer items-center justify-between border-none bg-[#f8fafc] px-4 py-[14px] text-left"
+                                onClick={() => toggleSection('issues')}
+                            >
+                                <div
+                                    className="flex items-center gap-[10px] text-sm font-semibold"
+                                    style={{ color: accentColor }}
+                                >
                                     <i className="fas fa-wrench"></i>
-                                    <span style={{ color: '#374151' }}>Maintenance Issues</span>
+                                    <span className="text-[#374151]">Maintenance Issues</span>
                                     {openIssues.length === 0 && (
-                                        <span style={{ ...styles.badge, ...styles.badgeComplete }}>Complete</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dcfce7] px-[10px] py-1 text-[11px] font-semibold text-[#166534]">
+                                            Complete
+                                        </span>
                                     )}
                                     {openIssues.length > 0 && (
-                                        <span style={{ ...styles.badge, ...styles.badgeInfo }}>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dbeafe] px-[10px] py-1 text-[11px] font-semibold text-[#1e40af]">
                                             {openIssues.length} Open
                                         </span>
                                     )}
                                 </div>
                                 <i
-                                    className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'}`}
-                                    style={{ color: '#64748b' }}
+                                    className={`fas fa-chevron-${isSectionExpanded('issues') ? 'up' : 'down'} text-[#64748b]`}
                                 ></i>
                             </button>
                             {isSectionExpanded('issues') && (
-                                <div style={styles.sectionContent}>
-                                    <div style={styles.note}>
-                                        <i className="fas fa-info-circle" style={{ color: '#92400e' }}></i>
-                                        <span style={{ color: '#92400e' }}>
+                                <div className="border-t border-gray-200 bg-white p-4">
+                                    <div className="mb-3 flex items-start gap-[10px] rounded-[10px] border-2 border-[#f59e0b] bg-[#fef3c7] px-4 py-[14px] text-sm font-medium text-[#92400e]">
+                                        <i className="fas fa-info-circle text-[#92400e]"></i>
+                                        <span className="text-[#92400e]">
                                             Issues are shown for awareness only. You can mark them as resolved if
                                             completed, but this is not required to verify the asset.
                                         </span>
@@ -1158,28 +833,16 @@ export default function VerificationRequirementsModal({
                                     {isLoadingIssues ? (
                                         <LoadingScreen message="Loading issues..." inline={true} />
                                     ) : openIssues.length === 0 ? (
-                                        <div style={{ ...styles.noData, color: '#166534' }}>
-                                            <i
-                                                className="fas fa-check-circle"
-                                                style={{ ...styles.noDataIcon, color: '#22c55e' }}
-                                            ></i>
-                                            <p style={{ margin: 0 }}>No open maintenance issues</p>
+                                        <div className="p-6 text-center text-[#166534]">
+                                            <i className="fas fa-check-circle mb-3 text-[32px] text-[#22c55e]"></i>
+                                            <p className="m-0">No open maintenance issues</p>
                                         </div>
                                     ) : (
                                         <>
                                             {hasHighSeverityIssues && (
-                                                <div
-                                                    style={{
-                                                        ...styles.note,
-                                                        backgroundColor: '#fef2f2',
-                                                        borderColor: '#dc2626'
-                                                    }}
-                                                >
-                                                    <i
-                                                        className="fas fa-exclamation-triangle"
-                                                        style={{ color: '#991b1b' }}
-                                                    ></i>
-                                                    <span style={{ color: '#991b1b' }}>
+                                                <div className="mb-3 flex items-start gap-[10px] rounded-[10px] border-2 border-[#dc2626] bg-[#fef2f2] px-4 py-[14px] text-sm font-medium text-[#92400e]">
+                                                    <i className="fas fa-exclamation-triangle text-[#991b1b]"></i>
+                                                    <span className="text-[#991b1b]">
                                                         High severity issues detected. Consider resolving before
                                                         verification, but not required.
                                                     </span>
@@ -1187,26 +850,26 @@ export default function VerificationRequirementsModal({
                                             )}
                                             <div>
                                                 {openIssues.map((issue) => (
-                                                    <div key={issue.id} style={styles.issueItem}>
-                                                        <div style={styles.issueHeader}>
+                                                    <div
+                                                        key={issue.id}
+                                                        className="mb-[10px] rounded-[10px] border border-gray-200 bg-[#f8fafc] p-[14px]"
+                                                    >
+                                                        <div className="mb-[10px] flex flex-wrap items-center gap-3">
                                                             <span
-                                                                style={{
-                                                                    ...styles.issueSeverity,
-                                                                    ...getSeverityStyle(issue.severity)
-                                                                }}
+                                                                className={`rounded-md px-[10px] py-1 text-[11px] font-semibold ${getSeverityClasses(issue.severity)}`}
                                                             >
                                                                 {issue.severity}
                                                             </span>
-                                                            <span style={styles.issueCreator}>
+                                                            <span className="flex items-center gap-[6px] text-xs text-[#374151]">
                                                                 <i className="fas fa-user"></i>{' '}
                                                                 {userNames[issue.created_by] || 'Unknown'}
                                                             </span>
-                                                            <span style={styles.issueDate}>
+                                                            <span className="text-xs text-[#64748b]">
                                                                 {formatDate(issue.time_created)}
                                                             </span>
-                                                            <div style={styles.issueActions}>
+                                                            <div className="ml-auto flex gap-[6px]">
                                                                 <button
-                                                                    style={styles.completeButton}
+                                                                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-none bg-[#dcfce7] text-[#166534]"
                                                                     onClick={() => handleCompleteIssue(issue.id)}
                                                                     title="Mark as resolved"
                                                                 >
@@ -1214,7 +877,7 @@ export default function VerificationRequirementsModal({
                                                                 </button>
                                                                 {canDelete && (
                                                                     <button
-                                                                        style={styles.deleteButton}
+                                                                        className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-none bg-[#fef2f2] text-[#991b1b]"
                                                                         onClick={() => handleDeleteIssue(issue.id)}
                                                                         title="Delete issue"
                                                                     >
@@ -1223,7 +886,9 @@ export default function VerificationRequirementsModal({
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div style={styles.issueText}>{issue.issue}</div>
+                                                        <div className="text-sm leading-normal text-[#374151]">
+                                                            {issue.issue}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -1234,30 +899,37 @@ export default function VerificationRequirementsModal({
                         </div>
                     )}
                     {itemId && service && sectionsReady.comments && (
-                        <div style={styles.section}>
-                            <button style={styles.sectionHeader} onClick={() => toggleSection('comments')}>
-                                <div style={styles.sectionTitle}>
+                        <div className="mb-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                            <button
+                                className="flex w-full cursor-pointer items-center justify-between border-none bg-[#f8fafc] px-4 py-[14px] text-left"
+                                onClick={() => toggleSection('comments')}
+                            >
+                                <div
+                                    className="flex items-center gap-[10px] text-sm font-semibold"
+                                    style={{ color: accentColor }}
+                                >
                                     <i className="fas fa-comments"></i>
-                                    <span style={{ color: '#374151' }}>Comments</span>
+                                    <span className="text-[#374151]">Comments</span>
                                     {comments.length === 0 && (
-                                        <span style={{ ...styles.badge, ...styles.badgeComplete }}>Complete</span>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dcfce7] px-[10px] py-1 text-[11px] font-semibold text-[#166534]">
+                                            Complete
+                                        </span>
                                     )}
                                     {comments.length > 0 && (
-                                        <span style={{ ...styles.badge, ...styles.badgeInfo }}>
+                                        <span className="inline-flex items-center rounded-xl bg-[#dbeafe] px-[10px] py-1 text-[11px] font-semibold text-[#1e40af]">
                                             {comments.length} Comment{comments.length !== 1 ? 's' : ''}
                                         </span>
                                     )}
                                 </div>
                                 <i
-                                    className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'}`}
-                                    style={{ color: '#64748b' }}
+                                    className={`fas fa-chevron-${isSectionExpanded('comments') ? 'up' : 'down'} text-[#64748b]`}
                                 ></i>
                             </button>
                             {isSectionExpanded('comments') && (
-                                <div style={styles.sectionContent}>
-                                    <div style={styles.note}>
-                                        <i className="fas fa-info-circle" style={{ color: '#92400e' }}></i>
-                                        <span style={{ color: '#92400e' }}>
+                                <div className="border-t border-gray-200 bg-white p-4">
+                                    <div className="mb-3 flex items-start gap-[10px] rounded-[10px] border-2 border-[#f59e0b] bg-[#fef3c7] px-4 py-[14px] text-sm font-medium text-[#92400e]">
+                                        <i className="fas fa-info-circle text-[#92400e]"></i>
+                                        <span className="text-[#92400e]">
                                             Comments are shown for awareness only. You can delete them if no longer
                                             applicable, but this is not required to verify the asset.
                                         </span>
@@ -1265,36 +937,34 @@ export default function VerificationRequirementsModal({
                                     {isLoadingComments ? (
                                         <LoadingScreen message="Loading comments..." inline={true} />
                                     ) : comments.length === 0 ? (
-                                        <div style={styles.noData}>
-                                            <i className="fas fa-info-circle" style={styles.noDataIcon}></i>
-                                            <p style={{ margin: 0 }}>No comments</p>
+                                        <div className="p-6 text-center text-[#374151]">
+                                            <i className="fas fa-info-circle mb-3 text-[32px] text-[#64748b]"></i>
+                                            <p className="m-0">No comments</p>
                                         </div>
                                     ) : (
                                         <div>
                                             {comments.map((comment) => (
-                                                <div key={comment.id} style={styles.issueItem}>
-                                                    <div
-                                                        style={{
-                                                            alignItems: 'center',
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            marginBottom: '8px'
-                                                        }}
-                                                    >
-                                                        <span style={styles.issueDate}>
+                                                <div
+                                                    key={comment.id}
+                                                    className="mb-[10px] rounded-[10px] border border-gray-200 bg-[#f8fafc] p-[14px]"
+                                                >
+                                                    <div className="mb-2 flex items-center justify-between">
+                                                        <span className="text-xs text-[#64748b]">
                                                             {formatDate(comment.createdAt)}
                                                         </span>
                                                         <button
-                                                            style={styles.deleteButton}
+                                                            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border-none bg-[#fef2f2] text-[#991b1b]"
                                                             onClick={() => handleDeleteComment(comment.id)}
                                                             title="Delete comment"
                                                         >
                                                             <i className="fas fa-trash"></i>
                                                         </button>
                                                     </div>
-                                                    <div style={styles.issueText}>{comment.text}</div>
+                                                    <div className="text-sm leading-normal text-[#374151]">
+                                                        {comment.text}
+                                                    </div>
                                                     {comment.author && userNames[comment.author] && (
-                                                        <div style={{ ...styles.issueCreator, marginTop: '8px' }}>
+                                                        <div className="mt-2 flex items-center gap-[6px] text-xs text-[#374151]">
                                                             <i className="fas fa-user"></i>
                                                             {userNames[comment.author]}
                                                         </div>
@@ -1309,27 +979,24 @@ export default function VerificationRequirementsModal({
                     )}
                 </div>
                 {isMixerInShopWithoutIssues && (
-                    <div
-                        style={{
-                            ...styles.note,
-                            backgroundColor: '#fef2f2',
-                            borderColor: '#dc2626',
-                            margin: '0 16px 16px'
-                        }}
-                    >
-                        <i className="fas fa-exclamation-triangle" style={{ color: '#991b1b' }}></i>
-                        <span style={{ color: '#991b1b' }}>
+                    <div className="mx-4 mb-4 flex items-start gap-[10px] rounded-[10px] border-2 border-[#dc2626] bg-[#fef2f2] px-4 py-[14px] text-sm font-medium text-[#92400e]">
+                        <i className="fas fa-exclamation-triangle text-[#991b1b]"></i>
+                        <span className="text-[#991b1b]">
                             Mixers in &quot;In Shop&quot; status must have at least one active issue before they can be
                             verified. Please add an issue describing why this mixer is in the shop.
                         </span>
                     </div>
                 )}
-                <div style={styles.actions}>
-                    <button style={styles.cancelButton} onClick={onClose}>
+                <div className="flex gap-3 border-t border-gray-200 bg-[#f8fafc] px-6 py-4">
+                    <button
+                        className="flex-1 cursor-pointer rounded-[10px] border-none bg-[#f1f5f9] px-5 py-3 text-sm font-semibold text-[#374151]"
+                        onClick={onClose}
+                    >
                         Cancel
                     </button>
                     <button
-                        style={{ ...styles.primaryButton, ...(!canVerify ? styles.primaryButtonDisabled : {}) }}
+                        className={`flex flex-[2] cursor-pointer items-center justify-center gap-2 rounded-[10px] border-none px-5 py-3 text-sm font-semibold text-white ${!canVerify ? 'cursor-not-allowed opacity-50' : ''}`}
+                        style={{ backgroundColor: accentColor }}
                         disabled={!canVerify}
                         onClick={handleSaveAndVerify}
                     >

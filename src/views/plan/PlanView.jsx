@@ -41,29 +41,18 @@ const createEmptyAssignment = () => ({
     timeMode: 'stagger',
     toPlant: ''
 })
-const baseInputStyle = {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
-    fontSize: 14,
-    outline: 'none',
-    padding: '10px 12px'
-}
-const timeInputBaseStyle = { ...baseInputStyle, fontFamily: 'monospace', textAlign: 'center', width: 80 }
-const selectBaseStyle = {
-    ...baseInputStyle,
-    appearance: 'none',
-    backgroundImage: DROPDOWN_ARROW_SVG,
-    backgroundPosition: 'right 12px center',
-    backgroundRepeat: 'no-repeat',
-    cursor: 'pointer',
-    paddingRight: 32
-}
 const Pill = ({ background, color, children }) => (
-    <div style={{ background, borderRadius: 6, color, fontSize: 12, padding: '6px 10px' }}>{children}</div>
+    <div className="rounded-[6px] text-xs px-2.5 py-1.5" style={{ background, color }}>
+        {children}
+    </div>
 )
-const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, style }) => (
-    <select value={value} onChange={onChange} style={{ ...selectBaseStyle, ...style }}>
+const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, className }) => (
+    <select
+        value={value}
+        onChange={onChange}
+        className={`bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 pl-3 pr-8 appearance-none bg-no-repeat cursor-pointer ${className || ''}`}
+        style={{ backgroundImage: DROPDOWN_ARROW_SVG, backgroundPosition: 'right 12px center' }}
+    >
         <option value="">{placeholder}</option>
         {plants
             .filter((p) => p.plant_code !== excludeValue)
@@ -97,18 +86,6 @@ function PlanView() {
     const [showSettings, setShowSettings] = useState(false)
     const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
     const isMobile = useIsMobile()
-    const btnStyle = {
-        background: accentColor,
-        border: 'none',
-        borderRadius: 8,
-        color: '#fff',
-        cursor: 'pointer',
-        fontSize: 14,
-        fontWeight: 500,
-        padding: '10px 16px'
-    }
-    const mobilePadding = isMobile ? '8px 10px' : '10px 12px'
-    const mobileFontSize = isMobile ? 13 : 14
     const getTravelTime = (from, to) => travelTimes[`${from}->${to}`] ?? null
     const calcClockIn = (arrivalTime, fromPlant, toPlant) => {
         if (!arrivalTime || !fromPlant || !toPlant) return null
@@ -270,31 +247,17 @@ function PlanView() {
     const stats = getStats()
     if (isLoading) {
         return (
-            <div style={{ alignItems: 'center', display: 'flex', height: '100vh', justifyContent: 'center' }}>
-                <i className="fas fa-spinner fa-spin" style={{ color: accentColor, fontSize: 24 }}></i>
+            <div className="flex items-center justify-center h-screen">
+                <i className="fas fa-spinner fa-spin text-2xl" style={{ color: accentColor }}></i>
             </div>
         )
     }
     return (
-        <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: isMobile ? 12 : 24 }}>
-            <div style={{ margin: '0 auto', maxWidth: 900 }}>
-                <div
-                    style={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: isMobile ? 8 : 12,
-                        marginBottom: 20
-                    }}
-                >
+        <div className={`bg-[#f1f5f9] min-h-screen ${isMobile ? 'p-3' : 'p-6'}`}>
+            <div className="mx-auto max-w-[900px]">
+                <div className={`flex items-center flex-wrap mb-5 ${isMobile ? 'gap-2' : 'gap-3'}`}>
                     <h1
-                        style={{
-                            color: '#1e293b',
-                            flex: isMobile ? '1 1 100%' : 1,
-                            fontSize: isMobile ? 18 : 22,
-                            fontWeight: 700,
-                            margin: 0
-                        }}
+                        className={`text-[#1e293b] font-bold m-0 ${isMobile ? 'flex-[1_1_100%] text-lg' : 'flex-1 text-[22px]'}`}
                     >
                         Daily Plan
                     </h1>
@@ -302,76 +265,56 @@ function PlanView() {
                         type="date"
                         value={planDate}
                         onChange={(e) => setPlanDate(e.target.value)}
-                        style={{
-                            ...baseInputStyle,
-                            flex: isMobile ? 1 : 'none',
-                            fontSize: mobileFontSize,
-                            fontWeight: 600,
-                            padding: mobilePadding
-                        }}
+                        className={`bg-white border border-[#e2e8f0] rounded-lg outline-none font-semibold ${isMobile ? 'flex-1 text-[13px] px-2.5 py-2' : 'flex-none text-sm px-3 py-2.5'}`}
                     />
                     <button
                         onClick={() => setShowSettings(!showSettings)}
+                        className={`border-none rounded-lg cursor-pointer text-sm font-medium ${isMobile ? 'px-2.5 py-2' : 'px-3 py-2.5'}`}
                         style={{
-                            ...btnStyle,
                             background: showSettings ? accentColor : '#e2e8f0',
-                            color: showSettings ? '#fff' : '#64748b',
-                            padding: mobilePadding
+                            color: showSettings ? '#fff' : '#64748b'
                         }}
                     >
                         <i className="fas fa-cog"></i>
                     </button>
                 </div>
                 {showSettings && (
-                    <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: 20 }}>
-                        <div
-                            style={{
-                                color: '#64748b',
-                                fontSize: 12,
-                                fontWeight: 600,
-                                letterSpacing: 0.5,
-                                marginBottom: 12,
-                                textTransform: 'uppercase'
-                            }}
-                        >
+                    <div className="bg-white rounded-xl mb-5 p-5">
+                        <div className="text-[#64748b] text-xs font-semibold tracking-[0.5px] mb-3 uppercase">
                             Travel Times
                         </div>
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 8,
-                                marginBottom: 16
-                            }}
-                        >
+                        <div className="flex items-center flex-wrap gap-2 mb-4">
                             <PlantSelect
                                 value={newTravelTime.from}
                                 onChange={(e) => setNewTravelTime({ ...newTravelTime, from: e.target.value })}
                                 plants={plants}
                                 placeholder="From"
-                                style={{ flex: 1, minWidth: 80 }}
+                                className="flex-1 min-w-[80px]"
                             />
-                            <i className="fas fa-arrow-right" style={{ color: '#94a3b8' }}></i>
+                            <i className="fas fa-arrow-right text-[#94a3b8]"></i>
                             <PlantSelect
                                 value={newTravelTime.to}
                                 onChange={(e) => setNewTravelTime({ ...newTravelTime, to: e.target.value })}
                                 plants={plants}
                                 placeholder="To"
-                                style={{ flex: 1, minWidth: 80 }}
+                                className="flex-1 min-w-[80px]"
                             />
                             <input
                                 type="number"
                                 placeholder="min"
                                 value={newTravelTime.minutes}
                                 onChange={(e) => setNewTravelTime({ ...newTravelTime, minutes: e.target.value })}
-                                style={{ ...baseInputStyle, textAlign: 'center', width: 70 }}
+                                className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 text-center w-[70px]"
                             />
-                            <button onClick={addTravelTime} style={btnStyle}>
+                            <button
+                                onClick={addTravelTime}
+                                className="border-none rounded-lg cursor-pointer text-sm font-medium px-4 py-2.5 text-white"
+                                style={{ background: accentColor }}
+                            >
                                 Add
                             </button>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        <div className="flex flex-wrap gap-2">
                             {Object.entries(travelTimes)
                                 .filter(([k]) => {
                                     const [f, t] = k.split('->')
@@ -382,31 +325,19 @@ function PlanView() {
                                     return (
                                         <div
                                             key={k}
-                                            style={{
-                                                alignItems: 'center',
-                                                background: '#f8fafc',
-                                                borderRadius: 6,
-                                                display: 'flex',
-                                                fontSize: 13,
-                                                gap: 8,
-                                                padding: '6px 10px'
-                                            }}
+                                            className="flex items-center bg-[#f8fafc] rounded-[6px] text-[13px] gap-2 px-2.5 py-1.5"
                                         >
-                                            <span style={{ color: '#334155', fontWeight: 500 }}>
+                                            <span className="text-[#334155] font-medium">
                                                 {f} ↔ {t}
                                             </span>
-                                            <span style={{ color: accentColor, fontWeight: 600 }}>{v}m</span>
+                                            <span className="font-semibold" style={{ color: accentColor }}>
+                                                {v}m
+                                            </span>
                                             <button
                                                 onClick={() => removeTravelTime(k)}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: '#94a3b8',
-                                                    cursor: 'pointer',
-                                                    padding: 2
-                                                }}
+                                                className="bg-transparent border-none text-[#94a3b8] cursor-pointer p-0.5"
                                             >
-                                                <i className="fas fa-times" style={{ fontSize: 10 }}></i>
+                                                <i className="fas fa-times text-[10px]"></i>
                                             </button>
                                         </div>
                                     )
@@ -415,96 +346,61 @@ function PlanView() {
                     </div>
                 )}
                 {stats.length > 0 && (
-                    <div
-                        style={{
-                            background: '#fff',
-                            borderRadius: 12,
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 8,
-                            marginBottom: 20,
-                            padding: 16
-                        }}
-                    >
+                    <div className="bg-white rounded-xl flex flex-wrap gap-2 mb-5 p-4">
                         {stats.map((s) => (
                             <div
                                 key={s.code}
-                                style={{
-                                    alignItems: 'center',
-                                    background: s.send > 0 || s.recv > 0 ? '#f0f9ff' : '#f8fafc',
-                                    borderRadius: 8,
-                                    display: 'flex',
-                                    gap: 8,
-                                    padding: '8px 12px'
-                                }}
+                                className={`flex items-center rounded-lg gap-2 px-3 py-2 ${s.send > 0 || s.recv > 0 ? 'bg-[#f0f9ff]' : 'bg-[#f8fafc]'}`}
                             >
-                                <span style={{ color: '#334155', fontSize: mobileFontSize, fontWeight: 600 }}>
+                                <span
+                                    className={`text-[#334155] font-semibold ${isMobile ? 'text-[13px]' : 'text-sm'}`}
+                                >
                                     {s.code}
                                 </span>
                                 <span
-                                    style={{
-                                        color: s.eff !== s.base ? accentColor : '#64748b',
-                                        fontSize: mobileFontSize,
-                                        fontWeight: 600
-                                    }}
+                                    className={`font-semibold ${isMobile ? 'text-[13px]' : 'text-sm'}`}
+                                    style={{ color: s.eff !== s.base ? accentColor : '#64748b' }}
                                 >
                                     {s.eff}
                                 </span>
                                 {s.send > 0 && (
-                                    <span style={{ color: '#dc2626', fontSize: isMobile ? 10 : 12 }}>-{s.send}</span>
+                                    <span className={`text-[#dc2626] ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                                        -{s.send}
+                                    </span>
                                 )}
                                 {s.recv > 0 && (
-                                    <span style={{ color: '#16a34a', fontSize: isMobile ? 10 : 12 }}>+{s.recv}</span>
+                                    <span className={`text-[#16a34a] ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                                        +{s.recv}
+                                    </span>
                                 )}
                             </div>
                         ))}
                     </div>
                 )}
-                <div style={{ background: '#fff', borderRadius: 12, marginBottom: 20, padding: isMobile ? 12 : 20 }}>
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginBottom: 16
-                        }}
-                    >
-                        <span style={{ color: '#1e293b', fontSize: isMobile ? 14 : 16, fontWeight: 600 }}>
+                <div className={`bg-white rounded-xl mb-5 ${isMobile ? 'p-3' : 'p-5'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <span className={`text-[#1e293b] font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
                             Assignments
                         </span>
                         <button
                             onClick={() => setAssignments((prev) => [...prev, createEmptyAssignment()])}
-                            style={{
-                                ...btnStyle,
-                                fontSize: mobileFontSize,
-                                padding: isMobile ? '8px 12px' : '10px 16px'
-                            }}
+                            className={`border-none rounded-lg cursor-pointer font-medium text-white ${isMobile ? 'text-[13px] px-3 py-2' : 'text-sm px-4 py-2.5'}`}
+                            style={{ background: accentColor }}
                         >
-                            <i className="fas fa-plus" style={{ marginRight: 6 }}></i>Add
+                            <i className="fas fa-plus mr-1.5"></i>Add
                         </button>
                     </div>
                     {!assignments.length ? (
                         <div
-                            style={{
-                                color: '#94a3b8',
-                                fontSize: mobileFontSize,
-                                padding: isMobile ? 30 : 40,
-                                textAlign: 'center'
-                            }}
+                            className={`text-[#94a3b8] text-center ${isMobile ? 'text-[13px] py-[30px]' : 'text-sm py-10'}`}
                         >
                             <i
-                                className="fas fa-truck"
-                                style={{
-                                    display: 'block',
-                                    fontSize: isMobile ? 28 : 32,
-                                    marginBottom: 12,
-                                    opacity: 0.5
-                                }}
+                                className={`fas fa-truck block mb-3 opacity-50 ${isMobile ? 'text-[28px]' : 'text-[32px]'}`}
                             ></i>
                             No assignments yet
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div className="flex flex-col gap-4">
                             {assignments.map((a, idx) => {
                                 const travelTime =
                                     a.fromPlant && a.toPlant ? getTravelTime(a.fromPlant, a.toPlant) : null
@@ -514,19 +410,11 @@ function PlanView() {
                                     a.fromPlant && a.driverCount > (mixerCountsByPlant[a.fromPlant] || 0)
                                 const missingTravelTime = travelTime === null && a.fromPlant && a.toPlant
                                 return (
-                                    <div key={a.id} style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
-                                        <div
-                                            style={{ alignItems: 'center', display: 'flex', gap: 10, marginBottom: 12 }}
-                                        >
+                                    <div key={a.id} className="bg-[#f8fafc] rounded-xl p-4">
+                                        <div className="flex items-center gap-2.5 mb-3">
                                             <span
-                                                style={{
-                                                    background: accentColor,
-                                                    borderRadius: 6,
-                                                    color: '#fff',
-                                                    fontSize: 12,
-                                                    fontWeight: 700,
-                                                    padding: '4px 10px'
-                                                }}
+                                                className="rounded-[6px] text-white text-xs font-bold px-2.5 py-1"
+                                                style={{ background: accentColor }}
                                             >
                                                 {idx + 1}
                                             </span>
@@ -536,38 +424,29 @@ function PlanView() {
                                                 plants={plants}
                                                 excludeValue={a.toPlant}
                                                 placeholder="From Plant"
-                                                style={{ flex: 1 }}
+                                                className="flex-1"
                                             />
-                                            <i className="fas fa-arrow-right" style={{ color: '#94a3b8' }}></i>
+                                            <i className="fas fa-arrow-right text-[#94a3b8]"></i>
                                             <PlantSelect
                                                 value={a.toPlant}
                                                 onChange={(e) => updateAssignment(a.id, 'toPlant', e.target.value)}
                                                 plants={plants}
                                                 excludeValue={a.fromPlant}
                                                 placeholder="To Plant"
-                                                style={{ flex: 1 }}
+                                                className="flex-1"
                                             />
                                             <button
                                                 onClick={() =>
                                                     setAssignments((prev) => prev.filter((x) => x.id !== a.id))
                                                 }
-                                                style={{
-                                                    background: '#fee2e2',
-                                                    border: 'none',
-                                                    borderRadius: 6,
-                                                    color: '#dc2626',
-                                                    cursor: 'pointer',
-                                                    padding: '8px 10px'
-                                                }}
+                                                className="bg-[#fee2e2] border-none rounded-[6px] text-[#dc2626] cursor-pointer px-2.5 py-2"
                                             >
-                                                <i className="fas fa-trash" style={{ fontSize: 12 }}></i>
+                                                <i className="fas fa-trash text-xs"></i>
                                             </button>
                                         </div>
-                                        <div
-                                            style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 12 }}
-                                        >
-                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
-                                                <span style={{ color: '#64748b', fontSize: 12 }}>Operators</span>
+                                        <div className="flex items-center flex-wrap gap-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[#64748b] text-xs">Operators</span>
                                                 <input
                                                     type="number"
                                                     min="1"
@@ -581,11 +460,11 @@ function PlanView() {
                                                                 : Math.max(1, parseInt(e.target.value) || 1)
                                                         )
                                                     }
-                                                    style={{ ...baseInputStyle, textAlign: 'center', width: 60 }}
+                                                    className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 text-center w-[60px]"
                                                 />
                                             </div>
-                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
-                                                <span style={{ color: '#64748b', fontSize: 12 }}>Arrive</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[#64748b] text-xs">Arrive</span>
                                                 <input
                                                     type="text"
                                                     placeholder="HH:MM"
@@ -594,11 +473,11 @@ function PlanView() {
                                                     onChange={(e) =>
                                                         updateAssignment(a.id, 'time', formatTimeInput(e.target.value))
                                                     }
-                                                    style={timeInputBaseStyle}
+                                                    className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 font-mono text-center w-[80px]"
                                                 />
                                             </div>
-                                            <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
-                                                <span style={{ color: '#64748b', fontSize: 12 }}>Leave</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[#64748b] text-xs">Leave</span>
                                                 <input
                                                     type="text"
                                                     placeholder="HH:MM"
@@ -611,30 +490,24 @@ function PlanView() {
                                                             formatTimeInput(e.target.value)
                                                         )
                                                     }
-                                                    style={timeInputBaseStyle}
+                                                    className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 font-mono text-center w-[80px]"
                                                 />
                                             </div>
-                                            <label
-                                                style={{
-                                                    alignItems: 'center',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    gap: 6
-                                                }}
-                                            >
+                                            <label className="flex items-center cursor-pointer gap-1.5">
                                                 <input
                                                     type="checkbox"
                                                     checked={a.loadFromPlant || false}
                                                     onChange={(e) =>
                                                         updateAssignment(a.id, 'loadFromPlant', e.target.checked)
                                                     }
-                                                    style={{ accentColor, cursor: 'pointer', height: 16, width: 16 }}
+                                                    className="cursor-pointer h-4 w-4"
+                                                    style={{ accentColor }}
                                                 />
-                                                <span style={{ color: '#64748b', fontSize: 12 }}>Load from Plant</span>
+                                                <span className="text-[#64748b] text-xs">Load from Plant</span>
                                             </label>
                                             {clockIn && (
                                                 <Pill background="#dcfce7" color="#16a34a">
-                                                    <span style={{ fontWeight: 600 }}>Clock in: {clockIn}</span>
+                                                    <span className="font-semibold">Clock in: {clockIn}</span>
                                                 </Pill>
                                             )}
                                             {travelTime !== null && (
@@ -644,10 +517,7 @@ function PlanView() {
                                             )}
                                             {hasCapacityWarning && (
                                                 <Pill background="#fef3c7" color="#92400e">
-                                                    <i
-                                                        className="fas fa-exclamation-triangle"
-                                                        style={{ marginRight: 4 }}
-                                                    ></i>
+                                                    <i className="fas fa-exclamation-triangle mr-1"></i>
                                                     Only {mixerCountsByPlant[a.fromPlant] || 0} available
                                                 </Pill>
                                             )}
@@ -658,29 +528,9 @@ function PlanView() {
                                             )}
                                         </div>
                                         {a.driverCount > 1 && (
-                                            <div
-                                                style={{
-                                                    borderTop: '1px solid #e2e8f0',
-                                                    marginTop: 16,
-                                                    paddingTop: 16
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        display: 'flex',
-                                                        gap: 12,
-                                                        marginBottom: 12
-                                                    }}
-                                                >
-                                                    <div
-                                                        style={{
-                                                            background: '#e2e8f0',
-                                                            borderRadius: 6,
-                                                            display: 'flex',
-                                                            overflow: 'hidden'
-                                                        }}
-                                                    >
+                                            <div className="border-t border-[#e2e8f0] mt-4 pt-4">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="bg-[#e2e8f0] rounded-[6px] flex overflow-hidden">
                                                         {['stagger', 'custom'].map((mode) => (
                                                             <button
                                                                 key={mode}
@@ -689,6 +539,7 @@ function PlanView() {
                                                                         ? switchToCustom(a.id)
                                                                         : updateAssignment(a.id, 'timeMode', 'stagger')
                                                                 }
+                                                                className="border-none cursor-pointer text-xs font-medium px-3.5 py-2"
                                                                 style={{
                                                                     background: (
                                                                         mode === 'custom'
@@ -697,18 +548,13 @@ function PlanView() {
                                                                     )
                                                                         ? accentColor
                                                                         : 'transparent',
-                                                                    border: 'none',
                                                                     color: (
                                                                         mode === 'custom'
                                                                             ? a.timeMode === 'custom'
                                                                             : a.timeMode !== 'custom'
                                                                     )
                                                                         ? '#fff'
-                                                                        : '#64748b',
-                                                                    cursor: 'pointer',
-                                                                    fontSize: 12,
-                                                                    fontWeight: 500,
-                                                                    padding: '8px 14px'
+                                                                        : '#64748b'
                                                                 }}
                                                             >
                                                                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -716,10 +562,8 @@ function PlanView() {
                                                         ))}
                                                     </div>
                                                     {a.timeMode !== 'custom' && (
-                                                        <div style={{ alignItems: 'center', display: 'flex', gap: 6 }}>
-                                                            <span style={{ color: '#64748b', fontSize: 12 }}>
-                                                                Every
-                                                            </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[#64748b] text-xs">Every</span>
                                                             <input
                                                                 type="number"
                                                                 min="5"
@@ -733,18 +577,14 @@ function PlanView() {
                                                                             DEFAULT_STAGGER_MINUTES
                                                                     )
                                                                 }
-                                                                style={{
-                                                                    ...baseInputStyle,
-                                                                    textAlign: 'center',
-                                                                    width: 60
-                                                                }}
+                                                                className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 text-center w-[60px]"
                                                             />
-                                                            <span style={{ color: '#64748b', fontSize: 12 }}>min</span>
+                                                            <span className="text-[#64748b] text-xs">min</span>
                                                         </div>
                                                     )}
                                                 </div>
                                                 {a.timeMode === 'custom' ? (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                    <div className="flex flex-col gap-2">
                                                         {Array.from({ length: a.driverCount }, (_, i) => {
                                                             const ct = a.customTimes?.[i] || {}
                                                             const opClockIn = ct.time
@@ -753,40 +593,16 @@ function PlanView() {
                                                             return (
                                                                 <div
                                                                     key={i}
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        background: '#fff',
-                                                                        borderRadius: 8,
-                                                                        display: 'flex',
-                                                                        gap: 10,
-                                                                        padding: 10
-                                                                    }}
+                                                                    className="flex items-center bg-white rounded-lg gap-2.5 p-2.5"
                                                                 >
                                                                     <span
-                                                                        style={{
-                                                                            background: accentColor,
-                                                                            borderRadius: 4,
-                                                                            color: '#fff',
-                                                                            fontSize: 11,
-                                                                            fontWeight: 600,
-                                                                            minWidth: 28,
-                                                                            padding: '4px 0',
-                                                                            textAlign: 'center'
-                                                                        }}
+                                                                        className="rounded text-white text-[11px] font-semibold min-w-[28px] py-1 text-center"
+                                                                        style={{ background: accentColor }}
                                                                     >
                                                                         {i + 1}
                                                                     </span>
-                                                                    <div
-                                                                        style={{
-                                                                            alignItems: 'center',
-                                                                            display: 'flex',
-                                                                            flex: 1,
-                                                                            gap: 8
-                                                                        }}
-                                                                    >
-                                                                        <span
-                                                                            style={{ color: '#94a3b8', fontSize: 11 }}
-                                                                        >
+                                                                    <div className="flex items-center flex-1 gap-2">
+                                                                        <span className="text-[#94a3b8] text-[11px]">
                                                                             Arrive
                                                                         </span>
                                                                         <input
@@ -802,24 +618,11 @@ function PlanView() {
                                                                                     formatTimeInput(e.target.value)
                                                                                 )
                                                                             }
-                                                                            style={{
-                                                                                ...timeInputBaseStyle,
-                                                                                flex: 1,
-                                                                                padding: '6px 8px'
-                                                                            }}
+                                                                            className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none font-mono text-center flex-1 px-2 py-1.5"
                                                                         />
                                                                     </div>
-                                                                    <div
-                                                                        style={{
-                                                                            alignItems: 'center',
-                                                                            display: 'flex',
-                                                                            flex: 1,
-                                                                            gap: 8
-                                                                        }}
-                                                                    >
-                                                                        <span
-                                                                            style={{ color: '#94a3b8', fontSize: 11 }}
-                                                                        >
+                                                                    <div className="flex items-center flex-1 gap-2">
+                                                                        <span className="text-[#94a3b8] text-[11px]">
                                                                             Leave
                                                                         </span>
                                                                         <input
@@ -835,26 +638,11 @@ function PlanView() {
                                                                                     formatTimeInput(e.target.value)
                                                                                 )
                                                                             }
-                                                                            style={{
-                                                                                ...timeInputBaseStyle,
-                                                                                flex: 1,
-                                                                                padding: '6px 8px'
-                                                                            }}
+                                                                            className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none font-mono text-center flex-1 px-2 py-1.5"
                                                                         />
                                                                     </div>
                                                                     <div
-                                                                        style={{
-                                                                            background: opClockIn
-                                                                                ? '#dcfce7'
-                                                                                : '#f1f5f9',
-                                                                            borderRadius: 6,
-                                                                            color: opClockIn ? '#16a34a' : '#94a3b8',
-                                                                            fontSize: 11,
-                                                                            fontWeight: 600,
-                                                                            minWidth: 60,
-                                                                            padding: '6px 8px',
-                                                                            textAlign: 'center'
-                                                                        }}
+                                                                        className={`rounded-[6px] text-[11px] font-semibold min-w-[60px] px-2 py-1.5 text-center ${opClockIn ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#f1f5f9] text-[#94a3b8]'}`}
                                                                     >
                                                                         {opClockIn || '--:--'}
                                                                     </div>
@@ -863,7 +651,7 @@ function PlanView() {
                                                         })}
                                                     </div>
                                                 ) : (
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                                    <div className="flex flex-wrap gap-2">
                                                         {Array.from({ length: a.driverCount }, (_, i) => {
                                                             const arr = a.time
                                                                 ? addMinutesToTime(
@@ -877,21 +665,14 @@ function PlanView() {
                                                             return (
                                                                 <div
                                                                     key={i}
-                                                                    style={{
-                                                                        background: '#fff',
-                                                                        borderRadius: 6,
-                                                                        fontSize: 12,
-                                                                        padding: '8px 12px'
-                                                                    }}
+                                                                    className="bg-white rounded-[6px] text-xs px-3 py-2"
                                                                 >
-                                                                    <span style={{ color: '#64748b' }}>
-                                                                        Op {i + 1}:
-                                                                    </span>{' '}
-                                                                    <span style={{ color: '#16a34a', fontWeight: 500 }}>
+                                                                    <span className="text-[#64748b]">Op {i + 1}:</span>{' '}
+                                                                    <span className="text-[#16a34a] font-medium">
                                                                         {opClockIn || '--'}
                                                                     </span>
-                                                                    <span style={{ color: '#94a3b8' }}> → </span>
-                                                                    <span style={{ color: '#334155', fontWeight: 500 }}>
+                                                                    <span className="text-[#94a3b8]"> → </span>
+                                                                    <span className="text-[#334155] font-medium">
                                                                         {arr || '--'}
                                                                     </span>
                                                                 </div>
@@ -911,59 +692,36 @@ function PlanView() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Notes (optional)..."
-                            style={{
-                                ...baseInputStyle,
-                                marginTop: 16,
-                                minHeight: 80,
-                                resize: 'vertical',
-                                width: '100%'
-                            }}
+                            className="bg-white border border-[#e2e8f0] rounded-lg text-sm outline-none py-2.5 px-3 mt-4 min-h-[80px] resize-y w-full"
                         />
                     )}
                 </div>
-                <div style={{ background: '#fff', borderRadius: 12, padding: 20 }}>
-                    <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginBottom: 16 }}>
-                        <span style={{ color: '#1e293b', flex: 1, fontSize: 16, fontWeight: 600 }}>
-                            Generated Message
-                        </span>
-                        <button onClick={generatePlanMessage} style={btnStyle}>
-                            <i className="fas fa-sync-alt" style={{ marginRight: 6 }}></i>Generate
+                <div className="bg-white rounded-xl p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="text-[#1e293b] flex-1 text-base font-semibold">Generated Message</span>
+                        <button
+                            onClick={generatePlanMessage}
+                            className="border-none rounded-lg cursor-pointer text-sm font-medium px-4 py-2.5 text-white"
+                            style={{ background: accentColor }}
+                        >
+                            <i className="fas fa-sync-alt mr-1.5"></i>Generate
                         </button>
                         {generatedMessage && (
                             <button
                                 onClick={copyToClipboard}
-                                style={{
-                                    ...btnStyle,
-                                    background: copied ? '#16a34a' : '#e2e8f0',
-                                    color: copied ? '#fff' : '#334155'
-                                }}
+                                className={`border-none rounded-lg cursor-pointer text-sm font-medium px-4 py-2.5 ${copied ? 'bg-[#16a34a] text-white' : 'bg-[#e2e8f0] text-[#334155]'}`}
                             >
-                                <i className={`fas fa-${copied ? 'check' : 'copy'}`} style={{ marginRight: 6 }}></i>
+                                <i className={`fas fa-${copied ? 'check' : 'copy'} mr-1.5`}></i>
                                 {copied ? 'Copied' : 'Copy'}
                             </button>
                         )}
                     </div>
                     {generatedMessage ? (
-                        <pre
-                            style={{
-                                background: '#f8fafc',
-                                borderRadius: 8,
-                                color: '#334155',
-                                fontFamily: 'monospace',
-                                fontSize: 13,
-                                lineHeight: 1.6,
-                                margin: 0,
-                                overflow: 'auto',
-                                padding: 16,
-                                whiteSpace: 'pre-wrap'
-                            }}
-                        >
+                        <pre className="bg-[#f8fafc] rounded-lg text-[#334155] font-mono text-[13px] leading-[1.6] m-0 overflow-auto p-4 whitespace-pre-wrap">
                             {generatedMessage}
                         </pre>
                     ) : (
-                        <div style={{ color: '#94a3b8', padding: 32, textAlign: 'center' }}>
-                            Click Generate to create the plan message
-                        </div>
+                        <div className="text-[#94a3b8] p-8 text-center">Click Generate to create the plan message</div>
                     )}
                 </div>
             </div>

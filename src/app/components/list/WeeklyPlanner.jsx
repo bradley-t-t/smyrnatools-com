@@ -52,16 +52,9 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
     return (
         <div
             onClick={() => onSelect?.(item)}
-            className="planner-task-card"
+            className="planner-task-card rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] cursor-pointer mb-2 overflow-hidden relative transition-all duration-200 ease-in-out"
             style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                borderRadius: '8px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)',
-                cursor: 'pointer',
-                marginBottom: '8px',
-                overflow: 'hidden',
-                position: 'relative',
-                transition: 'all 0.2s ease'
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
             }}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)'
@@ -73,45 +66,21 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
             }}
         >
             {isCompleted && (
-                <div
-                    className="flex flex-col items-center justify-center gap-1"
-                    style={{
-                        background: 'rgba(22, 163, 74, 0.85)',
-                        borderRadius: '8px',
-                        bottom: 0,
-                        left: 0,
-                        position: 'absolute',
-                        right: 0,
-                        top: 0,
-                        zIndex: 2
-                    }}
-                >
+                <div className="flex flex-col items-center justify-center gap-1 bg-[rgba(22,163,74,0.85)] rounded-lg absolute inset-0 z-[2]">
                     <i className="fas fa-check-circle text-white text-lg" />
                     <span className="text-white text-xs font-bold uppercase tracking-wide">Completed</span>
                 </div>
             )}
             {needsFollowUp && (
-                <div
-                    className="flex flex-col items-center justify-center gap-1"
-                    style={{
-                        background: 'rgba(220, 38, 38, 0.85)',
-                        borderRadius: '8px',
-                        bottom: 0,
-                        left: 0,
-                        position: 'absolute',
-                        right: 0,
-                        top: 0,
-                        zIndex: 2
-                    }}
-                >
+                <div className="flex flex-col items-center justify-center gap-1 bg-[rgba(220,38,38,0.85)] rounded-lg absolute inset-0 z-[2]">
                     <i className="fas fa-exclamation-triangle text-white text-lg" />
                     <span className="text-white text-xs font-bold uppercase tracking-wide">Needs Follow Up</span>
                 </div>
             )}
-            <div style={{ background: statusColor.text, height: '3px', width: '100%' }} />
-            <div style={{ padding: '10px 12px' }}>
-                <div style={{ alignItems: 'flex-start', display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
-                    <div style={{ color: '#1e293b', flex: 1, fontSize: '13px', fontWeight: 500, lineHeight: 1.4 }}>
+            <div className="h-[3px] w-full" style={{ background: statusColor.text }} />
+            <div className="px-3 py-[10px]">
+                <div className="flex items-start gap-2 justify-between">
+                    <div className="text-[#1e293b] flex-1 text-[13px] font-medium leading-[1.4]">
                         {item.description?.length > 45 ? `${item.description.slice(0, 45)}...` : item.description}
                     </div>
                     {onRemove && (
@@ -120,20 +89,7 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                                 e.stopPropagation()
                                 onRemove(item.id)
                             }}
-                            style={{
-                                alignItems: 'center',
-                                background: '#f1f5f9',
-                                border: 'none',
-                                borderRadius: '4px',
-                                color: '#94a3b8',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '10px',
-                                height: '20px',
-                                justifyContent: 'center',
-                                transition: 'all 0.15s',
-                                width: '20px'
-                            }}
+                            className="flex items-center justify-center bg-[#f1f5f9] border-none rounded text-[#94a3b8] cursor-pointer text-[10px] h-5 w-5 transition-all duration-150"
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = '#fee2e2'
                                 e.currentTarget.style.color = '#ef4444'
@@ -147,39 +103,23 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                         </button>
                     )}
                 </div>
-                <div style={{ alignItems: 'center', display: 'flex', gap: '6px', marginTop: '8px' }}>
+                <div className="flex items-center gap-1.5 mt-2">
                     <span
-                        style={{
-                            alignItems: 'center',
-                            background: accentColor,
-                            borderRadius: '4px',
-                            color: '#fff',
-                            display: 'flex',
-                            fontSize: '10px',
-                            fontWeight: 600,
-                            gap: '4px',
-                            padding: '3px 6px'
-                        }}
+                        className="flex items-center rounded text-white text-[10px] font-semibold gap-1 px-1.5 py-[3px]"
+                        style={{ background: accentColor }}
                     >
-                        <i className="fas fa-industry" style={{ fontSize: '8px' }} />
+                        <i className="fas fa-industry text-[8px]" />
                         {item.plant_code}
                     </span>
                     <span
+                        className="flex items-center rounded text-[9px] font-semibold gap-[3px] px-[5px] py-[2px] uppercase"
                         style={{
-                            alignItems: 'center',
                             background: statusColor.bg,
                             border: `1px solid ${statusColor.border}`,
-                            borderRadius: '4px',
-                            color: statusColor.text,
-                            display: 'flex',
-                            fontSize: '9px',
-                            fontWeight: 600,
-                            gap: '3px',
-                            padding: '2px 5px',
-                            textTransform: 'uppercase'
+                            color: statusColor.text
                         }}
                     >
-                        <i className={`fas ${statusColor.icon}`} style={{ fontSize: '8px' }} />
+                        <i className={`fas ${statusColor.icon} text-[8px]`} />
                         {item.status?.replace('_', ' ')}
                     </span>
                 </div>
@@ -204,130 +144,48 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
     if (!isOpen) return null
     return ReactDOM.createPortal(
         <>
-            <div
-                onClick={onClose}
-                style={{
-                    backdropFilter: 'blur(4px)',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    bottom: 0,
-                    left: 0,
-                    position: 'fixed',
-                    right: 0,
-                    top: 0,
-                    zIndex: 9999
-                }}
-            />
-            <div
-                style={{
-                    animation: 'modalSlideIn 0.2s ease-out',
-                    background: '#fff',
-                    borderRadius: '16px',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    left: '50%',
-                    maxHeight: '75vh',
-                    maxWidth: '520px',
-                    position: 'fixed',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '92vw',
-                    zIndex: 10000
-                }}
-            >
+            <div onClick={onClose} className="fixed inset-0 z-[9999] backdrop-blur-[4px] bg-[rgba(15,23,42,0.6)]" />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] bg-white rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] flex flex-col max-h-[75vh] max-w-[520px] w-[92vw] animate-[modalSlideIn_0.2s_ease-out]">
                 <style>{`@keyframes modalSlideIn { from { opacity: 0; transform: translate(-50%, -48%); } to { opacity: 1; transform: translate(-50%, -50%); } }`}</style>
                 <div
+                    className="rounded-t-2xl px-6 py-5"
                     style={{
-                        background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
-                        borderRadius: '16px 16px 0 0',
-                        padding: '20px 24px'
+                        background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`
                     }}
                 >
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginBottom: '16px'
-                        }}
-                    >
+                    <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 700, margin: 0 }}>
-                                Add Task to Plan
-                            </h3>
-                            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '13px', margin: '4px 0 0 0' }}>
+                            <h3 className="text-white text-lg font-bold m-0">Add Task to Plan</h3>
+                            <p className="text-[rgba(255,255,255,0.8)] text-[13px] mt-1 mb-0 mx-0">
                                 {filteredItems.length} task{filteredItems.length !== 1 ? 's' : ''} available
                             </p>
                         </div>
                         <button
                             onClick={onClose}
-                            style={{
-                                alignItems: 'center',
-                                background: 'rgba(255,255,255,0.2)',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '14px',
-                                height: '36px',
-                                justifyContent: 'center',
-                                transition: 'background 0.15s',
-                                width: '36px'
-                            }}
+                            className="flex items-center justify-center bg-[rgba(255,255,255,0.2)] border-none rounded-lg text-white cursor-pointer text-sm h-9 w-9 transition-[background] duration-150"
                             onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
                         >
                             <i className="fas fa-times" />
                         </button>
                     </div>
-                    <div style={{ position: 'relative' }}>
-                        <i
-                            className="fas fa-search"
-                            style={{
-                                color: 'rgba(255,255,255,0.6)',
-                                fontSize: '14px',
-                                left: '14px',
-                                position: 'absolute',
-                                top: '50%',
-                                transform: 'translateY(-50%)'
-                            }}
-                        />
+                    <div className="relative">
+                        <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.6)] text-sm" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search by description or plant..."
                             autoFocus
-                            style={{
-                                background: 'rgba(255,255,255,0.15)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                borderRadius: '10px',
-                                boxSizing: 'border-box',
-                                color: '#fff',
-                                fontSize: '14px',
-                                outline: 'none',
-                                padding: '12px 14px 12px 42px',
-                                width: '100%'
-                            }}
+                            className="bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)] rounded-[10px] box-border text-white text-sm outline-none py-3 pr-3.5 pl-[42px] w-full placeholder:text-[rgba(255,255,255,0.5)]"
                         />
                     </div>
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                <div className="flex-1 overflow-y-auto p-3">
                     {filteredItems.length === 0 ? (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                color: '#94a3b8',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '8px',
-                                padding: '40px 20px',
-                                textAlign: 'center'
-                            }}
-                        >
-                            <i className="fas fa-search" style={{ fontSize: '32px', opacity: 0.5 }} />
-                            <span style={{ fontSize: '14px' }}>
+                        <div className="flex flex-col items-center text-[#94a3b8] gap-2 px-5 py-10 text-center">
+                            <i className="fas fa-search text-[32px] opacity-50" />
+                            <span className="text-sm">
                                 {search ? 'No tasks match your search' : 'No available tasks'}
                             </span>
                         </div>
@@ -341,15 +199,7 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         onSelect(item.id)
                                         onClose()
                                     }}
-                                    style={{
-                                        background: '#fff',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '12px',
-                                        cursor: 'pointer',
-                                        marginBottom: '10px',
-                                        overflow: 'hidden',
-                                        transition: 'all 0.15s'
-                                    }}
+                                    className="bg-white border border-[#e5e7eb] rounded-xl cursor-pointer mb-2.5 overflow-hidden transition-all duration-150"
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.borderColor = accentColor
                                         e.currentTarget.style.boxShadow = `0 0 0 1px ${accentColor}`
@@ -359,74 +209,32 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         e.currentTarget.style.boxShadow = 'none'
                                     }}
                                 >
-                                    <div style={{ background: statusColor.bg, height: '4px', width: '100%' }} />
-                                    <div style={{ padding: '14px 16px' }}>
-                                        <div
-                                            style={{
-                                                color: '#1e293b',
-                                                fontSize: '14px',
-                                                fontWeight: 500,
-                                                lineHeight: 1.5,
-                                                marginBottom: '10px'
-                                            }}
-                                        >
+                                    <div className="h-1 w-full" style={{ background: statusColor.bg }} />
+                                    <div className="px-4 py-3.5">
+                                        <div className="text-[#1e293b] text-sm font-medium leading-normal mb-2.5">
                                             {item.description}
                                         </div>
-                                        <div
-                                            style={{
-                                                alignItems: 'center',
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: '8px'
-                                            }}
-                                        >
+                                        <div className="flex items-center flex-wrap gap-2">
                                             <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    background: accentColor,
-                                                    borderRadius: '6px',
-                                                    color: '#fff',
-                                                    display: 'flex',
-                                                    fontSize: '11px',
-                                                    fontWeight: 600,
-                                                    gap: '5px',
-                                                    padding: '4px 10px'
-                                                }}
+                                                className="flex items-center rounded-md text-white text-[11px] font-semibold gap-[5px] px-2.5 py-1"
+                                                style={{ background: accentColor }}
                                             >
-                                                <i className="fas fa-industry" style={{ fontSize: '10px' }} />
+                                                <i className="fas fa-industry text-[10px]" />
                                                 {item.plant_code}
                                             </span>
                                             <span
+                                                className="flex items-center rounded-md text-[10px] font-semibold gap-1 px-2 py-1 uppercase"
                                                 style={{
-                                                    alignItems: 'center',
                                                     background: statusColor.bg,
                                                     border: `1px solid ${statusColor.border}`,
-                                                    borderRadius: '6px',
-                                                    color: statusColor.text,
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 600,
-                                                    gap: '4px',
-                                                    padding: '4px 8px',
-                                                    textTransform: 'uppercase'
+                                                    color: statusColor.text
                                                 }}
                                             >
-                                                <i className={`fas ${statusColor.icon}`} style={{ fontSize: '9px' }} />
+                                                <i className={`fas ${statusColor.icon} text-[9px]`} />
                                                 {item.status?.replace('_', ' ')}
                                             </span>
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    color: '#64748b',
-                                                    display: 'flex',
-                                                    fontSize: '12px',
-                                                    gap: '5px'
-                                                }}
-                                            >
-                                                <i
-                                                    className="fas fa-calendar-alt"
-                                                    style={{ fontSize: '10px', opacity: 0.7 }}
-                                                />
+                                            <span className="flex items-center text-[#64748b] text-xs gap-[5px]">
+                                                <i className="fas fa-calendar-alt text-[10px] opacity-70" />
                                                 Due {new Date(item.deadline).toLocaleDateString()}
                                             </span>
                                         </div>
@@ -458,6 +266,7 @@ function DayColumn({
     const taskCount = dayPlannedItems.length
     return (
         <div
+            className={`flex flex-1 flex-col rounded-xl relative transition-all duration-200 ease-in-out ${isMobile ? 'min-h-[180px] min-w-[150px]' : 'min-h-[240px] min-w-[170px]'}`}
             style={{
                 background: day.isToday
                     ? `linear-gradient(180deg, ${accentColor}08 0%, ${accentColor}03 100%)`
@@ -465,91 +274,49 @@ function DayColumn({
                       ? '#fafafa'
                       : '#fff',
                 border: day.isToday ? `2px solid ${accentColor}` : '1px solid #e2e8f0',
-                borderRadius: '12px',
-                display: 'flex',
-                flex: 1,
-                flexDirection: 'column',
-                minHeight: isMobile ? '180px' : '240px',
-                minWidth: isMobile ? '150px' : '170px',
-                opacity: loading ? 0.6 : 1,
-                position: 'relative',
-                transition: 'all 0.2s ease'
+                opacity: loading ? 0.6 : 1
             }}
         >
             <div
+                className={`flex flex-col items-center gap-0.5 rounded-t-[10px] relative ${isMobile ? 'px-2 py-2.5' : 'px-3.5 py-3'}`}
                 style={{
-                    alignItems: 'center',
                     background: day.isToday
                         ? `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)`
-                        : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                    borderRadius: '10px 10px 0 0',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '2px',
-                    padding: isMobile ? '10px 8px' : '12px 14px',
-                    position: 'relative'
+                        : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
                 }}
             >
                 {day.isToday && (
                     <div
-                        style={{
-                            background: '#fff',
-                            borderRadius: '4px',
-                            color: accentColor,
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            letterSpacing: '0.5px',
-                            padding: '2px 6px',
-                            position: 'absolute',
-                            right: '8px',
-                            textTransform: 'uppercase',
-                            top: '8px'
-                        }}
+                        className="absolute top-2 right-2 bg-white rounded text-[9px] font-bold tracking-[0.5px] px-1.5 py-0.5 uppercase"
+                        style={{ color: accentColor }}
                     >
                         TODAY
                     </div>
                 )}
                 <span
-                    style={{
-                        color: day.isToday ? '#fff' : '#374151',
-                        fontSize: isMobile ? '13px' : '14px',
-                        fontWeight: 700
-                    }}
+                    className={`font-bold ${isMobile ? 'text-[13px]' : 'text-sm'}`}
+                    style={{ color: day.isToday ? '#fff' : '#374151' }}
                 >
                     {day.fullLabel}
                 </span>
                 <span
-                    style={{
-                        color: day.isToday ? 'rgba(255,255,255,0.85)' : '#64748b',
-                        fontSize: isMobile ? '11px' : '12px',
-                        fontWeight: 500
-                    }}
+                    className={`font-medium ${isMobile ? 'text-[11px]' : 'text-xs'}`}
+                    style={{ color: day.isToday ? 'rgba(255,255,255,0.85)' : '#64748b' }}
                 >
                     {day.date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                 </span>
                 {taskCount > 0 && (
                     <div
+                        className="rounded-[10px] text-white text-[10px] font-bold mt-1 px-2 py-0.5"
                         style={{
-                            background: day.isToday ? 'rgba(255,255,255,0.25)' : accentColor,
-                            borderRadius: '10px',
-                            color: '#fff',
-                            fontSize: '10px',
-                            fontWeight: 700,
-                            marginTop: '4px',
-                            padding: '2px 8px'
+                            background: day.isToday ? 'rgba(255,255,255,0.25)' : accentColor
                         }}
                     >
                         {taskCount} task{taskCount !== 1 ? 's' : ''}
                     </div>
                 )}
             </div>
-            <div
-                style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '10px'
-                }}
-            >
+            <div className="flex-1 overflow-y-auto p-2.5">
                 {dayPlannedItems.map((pi) => {
                     const item = items.find((i) => i.id === pi.list_item_id)
                     if (!item) return null
@@ -565,42 +332,21 @@ function DayColumn({
                     )
                 })}
                 {taskCount === 0 && (
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            color: '#cbd5e1',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '6px',
-                            justifyContent: 'center',
-                            minHeight: '80px',
-                            textAlign: 'center'
-                        }}
-                    >
-                        <i className="fas fa-calendar-plus" style={{ fontSize: '20px' }} />
-                        <span style={{ fontSize: '11px' }}>No tasks</span>
+                    <div className="flex flex-col items-center text-[#cbd5e1] gap-1.5 justify-center min-h-[80px] text-center">
+                        <i className="fas fa-calendar-plus text-xl" />
+                        <span className="text-[11px]">No tasks</span>
                     </div>
                 )}
             </div>
-            <div style={{ padding: '10px' }}>
+            <div className="p-2.5">
                 <button
                     onClick={() => setShowModal(true)}
                     disabled={loading}
+                    className={`flex items-center rounded-lg text-xs font-medium gap-1.5 justify-center px-3 py-2 transition-all duration-150 w-full ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     style={{
-                        alignItems: 'center',
                         background: day.isToday ? accentColor : 'transparent',
                         border: day.isToday ? 'none' : '1px dashed #cbd5e1',
-                        borderRadius: '8px',
-                        color: day.isToday ? '#fff' : '#64748b',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        fontSize: '12px',
-                        fontWeight: 500,
-                        gap: '6px',
-                        justifyContent: 'center',
-                        padding: '8px 12px',
-                        transition: 'all 0.15s',
-                        width: '100%'
+                        color: day.isToday ? '#fff' : '#64748b'
                     }}
                     onMouseEnter={(e) => {
                         if (!day.isToday && !loading) {
@@ -615,7 +361,7 @@ function DayColumn({
                         }
                     }}
                 >
-                    <i className="fas fa-plus" style={{ fontSize: '10px' }} />
+                    <i className="fas fa-plus text-[10px]" />
                     Add Task
                 </button>
             </div>
@@ -701,89 +447,36 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     }, [startDate, endDate, loadPlannedItems])
     const totalPlanned = plannedItems.length
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: isMobile ? '12px' : '20px',
-                padding: isMobile ? '10px' : '20px'
-            }}
-        >
+        <div className={`flex flex-col ${isMobile ? 'gap-3 p-2.5' : 'gap-5 p-5'}`}>
             <div
+                className={`border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex justify-between ${isMobile ? 'flex-col gap-3 rounded-[10px] p-3' : 'flex-row gap-4 rounded-[14px] px-5 py-4'}`}
                 style={{
-                    background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: isMobile ? '10px' : '14px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    gap: isMobile ? '12px' : '16px',
-                    justifyContent: 'space-between',
-                    padding: isMobile ? '12px' : '16px 20px'
+                    background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)'
                 }}
             >
                 <div
-                    style={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        gap: isMobile ? '8px' : '12px',
-                        justifyContent: isMobile ? 'space-between' : 'flex-start',
-                        width: isMobile ? '100%' : 'auto'
-                    }}
+                    className={`flex items-center ${isMobile ? 'gap-2 justify-between w-full' : 'gap-3 justify-start w-auto'}`}
                 >
-                    <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={() => setWeekOffset((w) => w - 1)}
-                            style={{
-                                alignItems: 'center',
-                                background: '#f1f5f9',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#475569',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: isMobile ? '12px' : '14px',
-                                height: isMobile ? '32px' : '36px',
-                                justifyContent: 'center',
-                                transition: 'all 0.15s',
-                                width: isMobile ? '32px' : '36px'
-                            }}
+                            className={`flex items-center justify-center bg-[#f1f5f9] border-none rounded-lg text-[#475569] cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
                         >
                             <i className="fas fa-chevron-left" />
                         </button>
                         <button
                             onClick={() => setWeekOffset((w) => w + 1)}
-                            style={{
-                                alignItems: 'center',
-                                background: '#f1f5f9',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#475569',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: isMobile ? '12px' : '14px',
-                                height: isMobile ? '32px' : '36px',
-                                justifyContent: 'center',
-                                transition: 'all 0.15s',
-                                width: isMobile ? '32px' : '36px'
-                            }}
+                            className={`flex items-center justify-center bg-[#f1f5f9] border-none rounded-lg text-[#475569] cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
                         >
                             <i className="fas fa-chevron-right" />
                         </button>
                     </div>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flex: isMobile ? 1 : 'none',
-                            flexDirection: 'column',
-                            textAlign: isMobile ? 'center' : 'left'
-                        }}
-                    >
-                        <span style={{ color: '#1e293b', fontSize: isMobile ? '14px' : '17px', fontWeight: 700 }}>
+                    <div className={`flex flex-col ${isMobile ? 'flex-1 text-center' : 'flex-none text-left'}`}>
+                        <span className={`text-[#1e293b] font-bold ${isMobile ? 'text-sm' : 'text-[17px]'}`}>
                             {weekLabel}
                         </span>
                         {!isMobile && (
-                            <span style={{ color: '#64748b', fontSize: '12px' }}>
+                            <span className="text-[#64748b] text-xs">
                                 Week{' '}
                                 {Math.ceil(
                                     (weekDates[0].date.getDate() +
@@ -800,72 +493,40 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     {weekOffset !== 0 && (
                         <button
                             onClick={() => setWeekOffset(0)}
+                            className={`flex items-center border-none rounded-lg shadow-[0_2px_4px_rgba(0,0,0,0.1)] text-white cursor-pointer font-semibold gap-[5px] transition-all duration-150 ${isMobile ? 'text-[11px] px-2.5 py-1.5' : 'text-xs px-3.5 py-2'}`}
                             style={{
-                                alignItems: 'center',
-                                background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
-                                border: 'none',
-                                borderRadius: '8px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: isMobile ? '11px' : '12px',
-                                fontWeight: 600,
-                                gap: '5px',
-                                padding: isMobile ? '6px 10px' : '8px 14px',
-                                transition: 'all 0.15s'
+                                background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`
                             }}
                         >
-                            <i className="fas fa-calendar-day" style={{ fontSize: '10px' }} />
+                            <i className="fas fa-calendar-day text-[10px]" />
                             Today
                         </button>
                     )}
                 </div>
-                <div
-                    style={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        gap: isMobile ? '8px' : '10px',
-                        justifyContent: isMobile ? 'center' : 'flex-end'
-                    }}
-                >
+                <div className={`flex items-center ${isMobile ? 'gap-2 justify-center' : 'gap-2.5 justify-end'}`}>
                     {loading && (
-                        <div
-                            style={{
-                                alignItems: 'center',
-                                color: accentColor,
-                                display: 'flex',
-                                fontSize: '13px',
-                                gap: '6px'
-                            }}
-                        >
+                        <div className="flex items-center text-[13px] gap-1.5" style={{ color: accentColor }}>
                             <i className="fas fa-circle-notch fa-spin" />
                             {!isMobile && <span>Loading...</span>}
                         </div>
                     )}
                     <div
+                        className={`flex items-center rounded-[10px] gap-1.5 ${isMobile ? 'px-2.5 py-1.5' : 'px-3.5 py-2'}`}
                         style={{
-                            alignItems: 'center',
                             background: totalPlanned > 0 ? `${accentColor}15` : '#f1f5f9',
-                            border: totalPlanned > 0 ? `1px solid ${accentColor}30` : '1px solid #e2e8f0',
-                            borderRadius: '10px',
-                            display: 'flex',
-                            gap: '6px',
-                            padding: isMobile ? '6px 10px' : '8px 14px'
+                            border: totalPlanned > 0 ? `1px solid ${accentColor}30` : '1px solid #e2e8f0'
                         }}
                     >
                         <i
-                            className="fas fa-clipboard-check"
+                            className={`fas fa-clipboard-check ${isMobile ? 'text-[11px]' : 'text-[13px]'}`}
                             style={{
-                                color: totalPlanned > 0 ? accentColor : '#64748b',
-                                fontSize: isMobile ? '11px' : '13px'
+                                color: totalPlanned > 0 ? accentColor : '#64748b'
                             }}
                         />
                         <span
+                            className={`font-semibold ${isMobile ? 'text-xs' : 'text-[13px]'}`}
                             style={{
-                                color: totalPlanned > 0 ? accentColor : '#475569',
-                                fontSize: isMobile ? '12px' : '13px',
-                                fontWeight: 600
+                                color: totalPlanned > 0 ? accentColor : '#475569'
                             }}
                         >
                             {totalPlanned} {isMobile ? '' : 'planned'}
@@ -875,36 +536,16 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                         <button
                             onClick={handleClearAll}
                             disabled={loading}
-                            style={{
-                                alignItems: 'center',
-                                background: '#fef2f2',
-                                border: '1px solid #fecaca',
-                                borderRadius: '8px',
-                                color: '#dc2626',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                fontSize: isMobile ? '11px' : '12px',
-                                fontWeight: 500,
-                                gap: '5px',
-                                padding: isMobile ? '6px 10px' : '8px 12px',
-                                transition: 'all 0.15s'
-                            }}
+                            className={`flex items-center bg-[#fef2f2] border border-[#fecaca] rounded-lg text-[#dc2626] font-medium gap-[5px] transition-all duration-150 ${loading ? 'cursor-not-allowed' : 'cursor-pointer'} ${isMobile ? 'text-[11px] px-2.5 py-1.5' : 'text-xs px-3 py-2'}`}
                         >
-                            <i className="fas fa-trash-alt" style={{ fontSize: '10px' }} />
+                            <i className="fas fa-trash-alt text-[10px]" />
                             {!isMobile && 'Clear'}
                         </button>
                     )}
                 </div>
             </div>
             <div
-                style={{
-                    WebkitOverflowScrolling: 'touch',
-                    display: 'flex',
-                    gap: isMobile ? '8px' : '14px',
-                    overflowX: 'auto',
-                    paddingBottom: '8px',
-                    scrollSnapType: isMobile ? 'x mandatory' : 'none'
-                }}
+                className={`flex overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch] ${isMobile ? 'gap-2 snap-x snap-mandatory' : 'gap-3.5 snap-none'}`}
             >
                 {weekDates.map((day) => (
                     <DayColumn
@@ -923,34 +564,17 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             </div>
             {!isMobile && (
                 <div
+                    className="flex items-center border border-[#bfdbfe] rounded-[10px] gap-2.5 px-4 py-3"
                     style={{
-                        alignItems: 'center',
-                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        gap: '10px',
-                        padding: '12px 16px'
+                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'
                     }}
                 >
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: '#3b82f6',
-                            borderRadius: '8px',
-                            color: '#fff',
-                            display: 'flex',
-                            fontSize: '14px',
-                            height: '32px',
-                            justifyContent: 'center',
-                            width: '32px'
-                        }}
-                    >
+                    <div className="flex items-center justify-center bg-[#3b82f6] rounded-lg text-white text-sm h-8 w-8">
                         <i className="fas fa-users" />
                     </div>
                     <div>
-                        <div style={{ color: '#1e40af', fontSize: '13px', fontWeight: 600 }}>Shared Team Schedule</div>
-                        <div style={{ color: '#3b82f6', fontSize: '12px' }}>
+                        <div className="text-[#1e40af] text-[13px] font-semibold">Shared Team Schedule</div>
+                        <div className="text-[#3b82f6] text-xs">
                             All team members can view and edit this weekly plan
                         </div>
                     </div>

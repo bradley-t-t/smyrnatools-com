@@ -39,6 +39,7 @@ module.exports = {
                 'fade-in': 'fadeIn 0.3s ease',
                 'slide-up': 'slideUp 0.3s ease',
                 'pulse-slow': 'pulse 2s ease-in-out infinite',
+                'msg-in': 'msgIn 0.3s ease-out',
             },
             keyframes: {
                 fadeIn: {
@@ -47,6 +48,10 @@ module.exports = {
                 },
                 slideUp: {
                     '0%': {opacity: '0', transform: 'translateY(20px)'},
+                    '100%': {opacity: '1', transform: 'translateY(0)'},
+                },
+                msgIn: {
+                    '0%': {opacity: '0', transform: 'translateY(-8px)'},
                     '100%': {opacity: '1', transform: 'translateY(0)'},
                 },
             },
