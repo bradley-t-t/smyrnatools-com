@@ -35,10 +35,10 @@ function ListViewModeSection({
     const styles = {
         actionBtn: {
             alignItems: 'center',
-            backgroundColor: 'white',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: isMobile ? '12px' : '14px',
@@ -52,7 +52,7 @@ function ListViewModeSection({
             gap: isMobile ? '4px' : '8px'
         },
         cell: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '12px' : '14px',
             fontWeight: 500,
             padding: isMobile ? '10px 8px' : '16px 20px',
@@ -70,7 +70,7 @@ function ListViewModeSection({
             whiteSpace: 'nowrap'
         },
         cellSecondary: {
-            color: '#475569',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '11px' : '13px',
             padding: isMobile ? '10px 8px' : '16px 20px',
             textAlign: 'left',
@@ -78,8 +78,8 @@ function ListViewModeSection({
             whiteSpace: 'nowrap'
         },
         container: {
-            backgroundColor: 'white',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px 8px 0 0' : '12px 12px 0 0',
             boxSizing: 'border-box',
             minWidth: isMobile ? '1100px' : 'auto',
@@ -92,12 +92,12 @@ function ListViewModeSection({
             marginBottom: '16px'
         },
         emptyState: {
-            backgroundColor: 'white',
+            backgroundColor: 'var(--bg-primary)',
             padding: isMobile ? '40px 20px' : '80px 40px',
             textAlign: 'center'
         },
         emptyText: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '14px' : '18px',
             fontWeight: 500,
             margin: 0
@@ -108,8 +108,8 @@ function ListViewModeSection({
             fontStyle: 'italic'
         },
         row: {
-            backgroundColor: 'white',
-            borderBottom: '1px solid #e2e8f0',
+            backgroundColor: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border-light)',
             cursor: 'pointer'
         },
         starEmpty: {
@@ -126,8 +126,8 @@ function ListViewModeSection({
             gap: '1px'
         },
         statusBadge: (status) => {
-            let bg = '#f1f5f9'
-            let textColor = '#475569'
+            let bg = 'var(--bg-tertiary)'
+            let textColor = 'var(--text-secondary)'
             if (status === 'Active') {
                 bg = '#dcfce7'
                 textColor = '#166534'
@@ -147,8 +147,8 @@ function ListViewModeSection({
                 bg = '#fef9c3'
                 textColor = '#a16207'
             } else if (status === 'Retired') {
-                bg = '#f1f5f9'
-                textColor = '#64748b'
+                bg = 'var(--bg-tertiary)'
+                textColor = 'var(--text-secondary)'
             }
             return {
                 backgroundColor: bg,
@@ -179,18 +179,18 @@ function ListViewModeSection({
             whiteSpace: 'nowrap'
         }),
         verifyNA: {
-            backgroundColor: '#f1f5f9',
+            backgroundColor: 'var(--bg-tertiary)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'inline-block',
             fontSize: isMobile ? '10px' : '12px',
             fontWeight: 600,
             padding: isMobile ? '6px 10px' : '8px 14px'
         },
         vinText: {
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--bg-secondary)',
             borderRadius: '4px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontFamily: 'ui-monospace, monospace',
             fontSize: isMobile ? '10px' : '12px',
             padding: isMobile ? '3px 6px' : '4px 8px'
@@ -233,7 +233,7 @@ function ListViewModeSection({
                     <table style={styles.table}>
                         <tbody>
                             {filteredItems.map((item, index) => {
-                                const alternatingBg = index % 2 === 0 ? 'white' : '#f8fafc'
+                                const alternatingBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
                                 const row = renderRow(
                                     item,
                                     handleSelectItem,
@@ -290,7 +290,7 @@ function ListViewModeSection({
                             const plant = plants?.find((p) => p.code === item.assignedPlant)
                             const number = item.identifyingNumber || item.truckNumber || item.trailerNumber || ''
                             const isVerified = typeof item.isVerified === 'function' ? item.isVerified() : item.verified
-                            const alternatingBg = index % 2 === 0 ? 'white' : '#f8fafc'
+                            const alternatingBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
                             return (
                                 <tr
                                     key={item.id}
@@ -370,9 +370,9 @@ function ListViewModeSection({
                                                     e.currentTarget.style.borderColor = 'var(--accent)'
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'white'
-                                                    e.currentTarget.style.color = '#64748b'
-                                                    e.currentTarget.style.borderColor = '#e2e8f0'
+                                                    e.currentTarget.style.backgroundColor = 'var(--bg-primary)'
+                                                    e.currentTarget.style.color = 'var(--text-secondary)'
+                                                    e.currentTarget.style.borderColor = 'var(--border-light)'
                                                 }}
                                             >
                                                 <i className="fas fa-comment"></i>
@@ -390,9 +390,9 @@ function ListViewModeSection({
                                                     e.currentTarget.style.borderColor = 'var(--accent)'
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'white'
-                                                    e.currentTarget.style.color = '#64748b'
-                                                    e.currentTarget.style.borderColor = '#e2e8f0'
+                                                    e.currentTarget.style.backgroundColor = 'var(--bg-primary)'
+                                                    e.currentTarget.style.color = 'var(--text-secondary)'
+                                                    e.currentTarget.style.borderColor = 'var(--border-light)'
                                                 }}
                                             >
                                                 <i className="fas fa-wrench"></i>

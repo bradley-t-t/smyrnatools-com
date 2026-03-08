@@ -108,27 +108,27 @@ const YardagePerHourCalculator = () => {
     const status = getPerformanceStatus()
     const styles = {
         container: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             padding: isMobile ? '1rem' : '2rem'
         },
         emptyIcon: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '2rem' : '3rem',
             marginBottom: '1rem'
         },
         emptyState: {
-            background: '#f8fafc',
-            border: '2px dashed #e5e7eb',
+            background: 'var(--bg-secondary)',
+            border: '2px dashed var(--border-color)',
             borderRadius: '12px',
             marginBottom: isMobile ? '1.5rem' : '2rem',
             padding: isMobile ? '2rem 1rem' : '3rem 2rem',
             textAlign: 'center'
         },
         emptyText: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem'
         },
         equals: {
@@ -168,16 +168,16 @@ const YardagePerHourCalculator = () => {
         },
         headerTitle: {
             alignItems: 'center',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '1rem' : '1.25rem',
             fontWeight: 700,
             gap: '0.75rem'
         },
         input: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 600,
             outline: 'none',
@@ -192,7 +192,7 @@ const YardagePerHourCalculator = () => {
             gap: '0.5rem'
         },
         inputUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             position: 'absolute',
@@ -204,7 +204,7 @@ const YardagePerHourCalculator = () => {
             position: 'relative'
         },
         label: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -233,7 +233,7 @@ const YardagePerHourCalculator = () => {
             background: active ? accentColor : 'transparent',
             border: 'none',
             borderRadius: '6px',
-            color: active ? 'white' : '#64748b',
+            color: active ? 'white' : 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
@@ -243,7 +243,7 @@ const YardagePerHourCalculator = () => {
             transition: 'all 0.2s'
         }),
         modeToggle: {
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '8px',
             display: 'flex',
             gap: '0.5rem',
@@ -251,10 +251,10 @@ const YardagePerHourCalculator = () => {
         },
         resetButton: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem',
@@ -275,8 +275,8 @@ const YardagePerHourCalculator = () => {
                         ? '#fffbeb'
                         : statusColor === 'error'
                           ? '#fef2f2'
-                          : 'white'
-                : 'white',
+                          : 'var(--card-background)'
+                : 'var(--card-background)',
             border: '3px solid',
             borderColor: hasResult
                 ? statusColor === 'success'
@@ -287,8 +287,8 @@ const YardagePerHourCalculator = () => {
                         ? '#f59e0b'
                         : statusColor === 'error'
                           ? '#ef4444'
-                          : '#e5e7eb'
-                : '#e5e7eb',
+                          : 'var(--border-color)'
+                : 'var(--border-color)',
             borderRadius: '12px',
             display: 'flex',
             flexDirection: 'column',
@@ -299,11 +299,11 @@ const YardagePerHourCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         }),
         resultEmpty: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '2rem' : '3rem'
         },
         resultUnit: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             marginTop: '0.5rem'
@@ -316,7 +316,7 @@ const YardagePerHourCalculator = () => {
         },
         sectionHeader: {
             alignItems: isMobile ? 'flex-start' : 'center',
-            borderBottom: '2px solid #f1f5f9',
+            borderBottom: '2px solid var(--border-light)',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             gap: isMobile ? '1rem' : '0',
@@ -325,7 +325,7 @@ const YardagePerHourCalculator = () => {
             paddingBottom: '1rem'
         },
         statDivider: {
-            background: '#e5e7eb',
+            background: 'var(--border-color)',
             display: isMobile ? 'none' : 'block',
             height: isMobile ? '30px' : '40px',
             width: '1px'
@@ -337,7 +337,7 @@ const YardagePerHourCalculator = () => {
             gap: '0.25rem'
         },
         statLabel: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -350,7 +350,7 @@ const YardagePerHourCalculator = () => {
         },
         statsRow: {
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '12px',
             display: 'flex',
             flexWrap: 'wrap',
@@ -368,7 +368,7 @@ const YardagePerHourCalculator = () => {
                         ? '#fef3c7'
                         : color === 'error'
                           ? '#fee2e2'
-                          : '#f1f5f9',
+                          : 'var(--bg-tertiary)',
             borderRadius: '8px',
             color:
                 color === 'success'
@@ -379,7 +379,7 @@ const YardagePerHourCalculator = () => {
                         ? '#f59e0b'
                         : color === 'error'
                           ? '#ef4444'
-                          : '#64748b',
+                          : 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 700,
             letterSpacing: '0.5px',
@@ -393,7 +393,7 @@ const YardagePerHourCalculator = () => {
             gap: isMobile ? '0.5rem' : '1rem'
         },
         timeTo: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600
         }
@@ -418,7 +418,7 @@ const YardagePerHourCalculator = () => {
                         style={styles.modeButton(!isOngoing, false)}
                         onClick={() => setIsOngoing(false)}
                         onMouseEnter={(e) => {
-                            if (isOngoing) e.currentTarget.style.background = '#f1f5f9'
+                            if (isOngoing) e.currentTarget.style.background = 'var(--bg-tertiary)'
                         }}
                         onMouseLeave={(e) => {
                             if (isOngoing) e.currentTarget.style.background = 'transparent'
@@ -430,7 +430,7 @@ const YardagePerHourCalculator = () => {
                         style={styles.modeButton(isOngoing, true)}
                         onClick={() => setIsOngoing(true)}
                         onMouseEnter={(e) => {
-                            if (!isOngoing) e.currentTarget.style.background = '#f1f5f9'
+                            if (!isOngoing) e.currentTarget.style.background = 'var(--bg-tertiary)'
                         }}
                         onMouseLeave={(e) => {
                             if (!isOngoing) e.currentTarget.style.background = 'transparent'
@@ -461,7 +461,7 @@ const YardagePerHourCalculator = () => {
                                             e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.borderColor = '#e5e7eb'
+                                            e.target.style.borderColor = 'var(--border-color)'
                                             e.target.style.boxShadow = 'none'
                                         }}
                                     />
@@ -485,7 +485,7 @@ const YardagePerHourCalculator = () => {
                                                 e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = '#e5e7eb'
+                                                e.target.style.borderColor = 'var(--border-color)'
                                                 e.target.style.boxShadow = 'none'
                                             }}
                                         />
@@ -511,7 +511,7 @@ const YardagePerHourCalculator = () => {
                                                     e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
                                                 }}
                                                 onBlur={(e) => {
-                                                    e.target.style.borderColor = '#e5e7eb'
+                                                    e.target.style.borderColor = 'var(--border-color)'
                                                     e.target.style.boxShadow = 'none'
                                                 }}
                                             />
@@ -571,12 +571,12 @@ const YardagePerHourCalculator = () => {
                     onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f8fafc'
-                        e.currentTarget.style.borderColor = '#cbd5e1'
+                        e.currentTarget.style.background = 'var(--bg-secondary)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white'
-                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.background = 'var(--card-background)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                 >
                     <i className="fas fa-redo"></i>

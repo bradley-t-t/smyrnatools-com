@@ -303,7 +303,7 @@ export default function DashboardView() {
     const revealClass = (direction, delay) => (revealContent ? `dash-reveal-${direction}` : '')
     const revealStyle = (delay) => (revealContent ? { animationDelay: `${delay}ms` } : undefined)
     return (
-        <div className="dashboard-full-width min-h-screen bg-slate-50 text-slate-900">
+        <div className="dashboard-full-width min-h-screen bg-bg-secondary text-text-primary">
             <style>{`
                 @keyframes dashRevealLeft {
                     from { opacity: 0; transform: translateX(-18px); }

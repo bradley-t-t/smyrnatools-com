@@ -43,7 +43,6 @@ export default function PeopleSection({
                 label="Operators"
                 value={displayStats.operators.total}
                 icon="fa-users"
-                iconBg="#e0f2fe"
                 iconColor="#0284c7"
                 className="mb-5"
             >

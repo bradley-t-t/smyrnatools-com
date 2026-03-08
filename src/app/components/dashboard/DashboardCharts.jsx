@@ -348,14 +348,14 @@ export default function DashboardCharts({
                     footer={
                         weeklyData.length >= 2 && (
                             <>
-                                <StatLabel color="#64748b">
+                                <StatLabel color="var(--text-secondary)">
                                     Avg:{' '}
                                     <strong className="text-accent">
                                         {Math.round(calcAverage(weeklyData, 'yardage')).toLocaleString()}
                                     </strong>{' '}
                                     yards/week
                                 </StatLabel>
-                                <StatLabel color="#64748b">
+                                <StatLabel color="var(--text-secondary)">
                                     Total: <strong className="text-accent">{totalYardage.toLocaleString()}</strong>{' '}
                                     yards
                                 </StatLabel>
@@ -371,10 +371,10 @@ export default function DashboardCharts({
                                     <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis
-                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                                 tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                             />
                             <Tooltip content={<ChartTooltip />} />
@@ -401,7 +401,7 @@ export default function DashboardCharts({
                             const { trend, avgYph: avg } = getYphTrend()
                             return (
                                 <>
-                                    <StatLabel color="#64748b">
+                                    <StatLabel color="var(--text-secondary)">
                                         Avg YPH: <strong className="text-accent">{avg.toFixed(2)}</strong>
                                     </StatLabel>
                                     <StatLabel color={trend >= 0 ? '#10b981' : '#ef4444'}>
@@ -415,9 +415,9 @@ export default function DashboardCharts({
                 >
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <LineChart data={weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 'auto']} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                            <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} domain={[0, 'auto']} />
                             <Tooltip content={<ChartTooltip />} />
                             <Line
                                 type="monotone"
@@ -453,16 +453,20 @@ export default function DashboardCharts({
                 >
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis
                                 yAxisId="left"
-                                tick={{ fill: '#64748b', fontSize: 11 }}
+                                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                                 tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                             />
-                            <YAxis yAxisId="right" orientation="right" tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                            />
                             <Tooltip content={<ProductionTooltip />} />
-                            <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                            <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar yAxisId="left" dataKey="yardage" fill="#0891b2" name="Yards" radius={[4, 4, 0, 0]} />
                             <Bar yAxisId="right" dataKey="hours" fill="#f97316" name="Hours" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -476,10 +480,10 @@ export default function DashboardCharts({
                     title="Weekly Operator Hours"
                     footer={
                         <>
-                            <StatLabel color="#64748b">
+                            <StatLabel color="var(--text-secondary)">
                                 Total: <strong className="text-accent">{totalHours.toLocaleString()}</strong> hours
                             </StatLabel>
-                            <StatLabel color="#64748b">
+                            <StatLabel color="var(--text-secondary)">
                                 Avg/Week:{' '}
                                 <strong className="text-accent">
                                     {Math.round(calcAverage(weeklyData, 'hours')).toLocaleString()}
@@ -490,9 +494,9 @@ export default function DashboardCharts({
                 >
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                            <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <Tooltip content={<ChartTooltip />} />
                             <Bar dataKey="hours" fill={COLORS.secondary} name="Hours" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -556,16 +560,21 @@ export default function DashboardCharts({
                 >
                     <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={shopTimeData} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 100]} unit="%" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis
+                                type="number"
+                                tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
+                                domain={[0, 100]}
+                                unit="%"
+                            />
                             <YAxis
                                 dataKey="label"
                                 type="category"
-                                tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 11 }}
+                                tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 10 : 11 }}
                                 width={isMobile ? 50 : 70}
                             />
                             <Tooltip content={<ChartTooltip />} />
-                            <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                            <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar dataKey="activePercent" stackId="a" fill={COLORS.active} name="Active %" />
                             <Bar dataKey="sparePercent" stackId="a" fill={COLORS.spare} name="Spare %" />
                             <Bar dataKey="shopPercent" stackId="a" fill={COLORS.shop} name="In Shop %" />
@@ -590,9 +599,9 @@ export default function DashboardCharts({
                         <BarChart
                             data={buildAssetData().map((a) => ({ allocation: a.allocationPercent, name: a.name }))}
                         >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 100]} unit="%" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                            <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} domain={[0, 100]} unit="%" />
                             <Tooltip content={<ChartTooltip />} />
                             <Bar dataKey="allocation" fill="#8b5cf6" name="Allocation %" radius={[4, 4, 0, 0]}>
                                 {buildAssetData().map((a, index) => (
@@ -625,11 +634,11 @@ export default function DashboardCharts({
                                 .slice(0, 4)
                                 .map((a) => ({ issues: a.issues, name: a.name, overdue: a.overdue }))}
                         >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                            <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
+                            <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <Tooltip content={<ChartTooltip />} />
-                            <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                            <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar dataKey="issues" fill="#f59e0b" name="Open Issues" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="overdue" fill="#dc2626" name="Overdue Service" radius={[4, 4, 0, 0]} />
                         </BarChart>

@@ -178,20 +178,20 @@ const ProportionsCalculator = () => {
             gap: '0.5rem'
         },
         addLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
             textTransform: 'uppercase'
         },
         addValue: (hasAdd) => ({
-            color: hasAdd ? '#16a34a' : '#94a3b8',
+            color: hasAdd ? '#16a34a' : 'var(--text-tertiary)',
             fontSize: '1.125rem',
             fontWeight: 700
         }),
         additionItem: (hasAdd) => ({
-            background: hasAdd ? '#dcfce7' : '#f8fafc',
-            border: `2px solid ${hasAdd ? '#16a34a' : '#e5e7eb'}`,
+            background: hasAdd ? '#dcfce7' : 'var(--bg-secondary)',
+            border: `2px solid ${hasAdd ? '#16a34a' : 'var(--border-color)'}`,
             borderRadius: '8px',
             display: 'flex',
             flexDirection: 'column',
@@ -211,7 +211,7 @@ const ProportionsCalculator = () => {
         },
         batchEstimate: {
             alignItems: 'center',
-            background: 'white',
+            background: 'var(--card-background)',
             border: '1px solid #dcfce7',
             borderRadius: '8px',
             display: 'flex',
@@ -221,7 +221,7 @@ const ProportionsCalculator = () => {
             padding: '1rem'
         },
         batchLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.875rem',
             fontWeight: 600
         },
@@ -231,27 +231,27 @@ const ProportionsCalculator = () => {
             fontWeight: 700
         },
         container: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             padding: isMobile ? '1rem' : '2rem'
         },
         emptyIcon: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             fontSize: '3rem',
             marginBottom: '1rem'
         },
         emptyState: {
-            background: '#f8fafc',
-            border: '2px dashed #e5e7eb',
+            background: 'var(--bg-secondary)',
+            border: '2px dashed var(--border-color)',
             borderRadius: '12px',
             marginBottom: '2rem',
             padding: '3rem 2rem',
             textAlign: 'center'
         },
         emptyText: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.9375rem'
         },
         footer: {
@@ -305,9 +305,9 @@ const ProportionsCalculator = () => {
             padding: isMobile ? '0.75rem' : '1rem'
         },
         input: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -316,7 +316,7 @@ const ProportionsCalculator = () => {
             width: '100%'
         },
         inputUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             position: 'absolute',
@@ -328,7 +328,7 @@ const ProportionsCalculator = () => {
             position: 'relative'
         },
         label: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -336,10 +336,10 @@ const ProportionsCalculator = () => {
         },
         resetButton: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.9375rem',
@@ -370,8 +370,8 @@ const ProportionsCalculator = () => {
         },
         sectionHeader: {
             alignItems: 'center',
-            borderBottom: '2px solid #f1f5f9',
-            color: '#1e293b',
+            borderBottom: '2px solid var(--border-light)',
+            color: 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
@@ -405,7 +405,7 @@ const ProportionsCalculator = () => {
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = '#e5e7eb'
+                                                e.target.style.borderColor = 'var(--border-color)'
                                                 e.target.style.boxShadow = 'none'
                                             }}
                                         />
@@ -429,7 +429,7 @@ const ProportionsCalculator = () => {
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = '#e5e7eb'
+                                                e.target.style.borderColor = 'var(--border-color)'
                                                 e.target.style.boxShadow = 'none'
                                             }}
                                         />
@@ -460,7 +460,7 @@ const ProportionsCalculator = () => {
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = '#e5e7eb'
+                                                e.target.style.borderColor = 'var(--border-color)'
                                                 e.target.style.boxShadow = 'none'
                                             }}
                                         />
@@ -484,7 +484,7 @@ const ProportionsCalculator = () => {
                                                 e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = '#e5e7eb'
+                                                e.target.style.borderColor = 'var(--border-color)'
                                                 e.target.style.boxShadow = 'none'
                                             }}
                                         />
@@ -517,7 +517,7 @@ const ProportionsCalculator = () => {
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = '#e5e7eb'
+                                    e.target.style.borderColor = 'var(--border-color)'
                                     e.target.style.boxShadow = 'none'
                                 }}
                             />
@@ -538,7 +538,7 @@ const ProportionsCalculator = () => {
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = '#e5e7eb'
+                                    e.target.style.borderColor = 'var(--border-color)'
                                     e.target.style.boxShadow = 'none'
                                 }}
                             />
@@ -559,7 +559,7 @@ const ProportionsCalculator = () => {
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = '#e5e7eb'
+                                    e.target.style.borderColor = 'var(--border-color)'
                                     e.target.style.boxShadow = 'none'
                                 }}
                             />
@@ -580,7 +580,7 @@ const ProportionsCalculator = () => {
                                     e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
                                 }}
                                 onBlur={(e) => {
-                                    e.target.style.borderColor = '#e5e7eb'
+                                    e.target.style.borderColor = 'var(--border-color)'
                                     e.target.style.boxShadow = 'none'
                                 }}
                             />
@@ -644,12 +644,12 @@ const ProportionsCalculator = () => {
                     onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f8fafc'
-                        e.currentTarget.style.borderColor = '#cbd5e1'
+                        e.currentTarget.style.background = 'var(--bg-secondary)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white'
-                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.background = 'var(--card-background)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                 >
                     <i className="fas fa-redo"></i>

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.9] - 2026-03-08
+
+- Converted inline styles to Tailwind CSS classes in VerificationRequirementsModal.jsx for improved maintainability and consistency with project styling guidelines.
+- Refactored VideoBackground.jsx to update styling or behavior, though specific changes are not fully detailed in the provided diff snippet.
+- Simplified and streamlined code in WeeklyPlanner.jsx, reducing complexity while maintaining functionality.
+- Optimized DetailViewSection.jsx by reducing code redundancy and improving readability.
+- Enhanced ListView.jsx with structural improvements for better performance and clarity.
+- Updated LoginView.jsx with refined UI elements and streamlined logic for a better user experience.
+- Improved PlanView.jsx by reorganizing components and reducing unnecessary code.
+- Added new configuration settings in tailwind.config.js to support updated styling needs.
+- Introduced new documentation files with coding guidelines and instructions in .github/instructions.md and CLAUDE.md to ensure consistent development practices.
+
 ## [27.8] - 2026-03-08
 
 - Updated the default deadline in ListAddView to be set to 14 days from the current date instead of the current day, while maintaining the time as 17:00.

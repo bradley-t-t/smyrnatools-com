@@ -81,13 +81,13 @@ const SlumpAdjustmentCalculator = () => {
             fontWeight: 700
         },
         constantUnit: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600
         },
         container: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             padding: isMobile ? '1rem' : '2rem'
@@ -104,13 +104,13 @@ const SlumpAdjustmentCalculator = () => {
             fontWeight: 700
         },
         eqUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600
         },
         equation: {
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '12px',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
@@ -138,9 +138,9 @@ const SlumpAdjustmentCalculator = () => {
             justifyContent: 'center'
         },
         input: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -150,9 +150,9 @@ const SlumpAdjustmentCalculator = () => {
             width: '100%'
         },
         inputLarge: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -167,7 +167,7 @@ const SlumpAdjustmentCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         },
         inputUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             position: 'absolute',
@@ -179,7 +179,7 @@ const SlumpAdjustmentCalculator = () => {
             position: 'relative'
         },
         label: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -194,11 +194,11 @@ const SlumpAdjustmentCalculator = () => {
             textTransform: 'uppercase'
         }),
         resEmpty: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '1.5rem' : '2rem'
         },
         resUnit: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600
         },
@@ -209,10 +209,10 @@ const SlumpAdjustmentCalculator = () => {
         },
         resetButton: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.9375rem',
@@ -224,8 +224,8 @@ const SlumpAdjustmentCalculator = () => {
         },
         result: (direction) => ({
             alignItems: 'center',
-            background: direction === 'add' ? '#dcfce7' : direction === 'reduce' ? '#fef2f2' : 'white',
-            border: `3px solid ${direction === 'add' ? '#16a34a' : direction === 'reduce' ? '#ef4444' : '#e5e7eb'}`,
+            background: direction === 'add' ? '#dcfce7' : direction === 'reduce' ? '#fef2f2' : 'var(--card-background)',
+            border: `3px solid ${direction === 'add' ? '#16a34a' : direction === 'reduce' ? '#ef4444' : 'var(--border-color)'}`,
             borderRadius: '12px',
             display: 'flex',
             flexDirection: 'column',
@@ -239,8 +239,8 @@ const SlumpAdjustmentCalculator = () => {
         },
         sectionHeader: {
             alignItems: 'center',
-            borderBottom: '2px solid #f1f5f9',
-            color: '#1e293b',
+            borderBottom: '2px solid var(--border-light)',
+            color: 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
@@ -250,8 +250,8 @@ const SlumpAdjustmentCalculator = () => {
         },
         totalAdjust: {
             alignItems: 'center',
-            background: 'white',
-            border: '2px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
             display: 'flex',
             flexDirection: 'column',
@@ -260,7 +260,7 @@ const SlumpAdjustmentCalculator = () => {
         },
         totalEquation: {
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '12px',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
@@ -308,7 +308,7 @@ const SlumpAdjustmentCalculator = () => {
     }
     const inputFocusHandlers = {
         onBlur: (e) => {
-            e.target.style.borderColor = '#e5e7eb'
+            e.target.style.borderColor = 'var(--border-color)'
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
@@ -469,12 +469,12 @@ const SlumpAdjustmentCalculator = () => {
                     onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f8fafc'
-                        e.currentTarget.style.borderColor = '#cbd5e1'
+                        e.currentTarget.style.background = 'var(--bg-secondary)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white'
-                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.background = 'var(--card-background)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                 >
                     <i className="fas fa-redo"></i>

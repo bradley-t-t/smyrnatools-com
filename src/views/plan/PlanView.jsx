@@ -271,8 +271,8 @@ function PlanView() {
                         onClick={() => setShowSettings(!showSettings)}
                         className={`border-none rounded-lg cursor-pointer text-sm font-medium ${isMobile ? 'px-2.5 py-2' : 'px-3 py-2.5'}`}
                         style={{
-                            background: showSettings ? accentColor : '#e2e8f0',
-                            color: showSettings ? '#fff' : '#64748b'
+                            background: showSettings ? accentColor : 'var(--border-light)',
+                            color: showSettings ? '#fff' : 'var(--text-secondary)'
                         }}
                     >
                         <i className="fas fa-cog"></i>
@@ -359,7 +359,7 @@ function PlanView() {
                                 </span>
                                 <span
                                     className={`font-semibold ${isMobile ? 'text-[13px]' : 'text-sm'}`}
-                                    style={{ color: s.eff !== s.base ? accentColor : '#64748b' }}
+                                    style={{ color: s.eff !== s.base ? accentColor : 'var(--text-secondary)' }}
                                 >
                                     {s.eff}
                                 </span>
@@ -554,7 +554,7 @@ function PlanView() {
                                                                             : a.timeMode !== 'custom'
                                                                     )
                                                                         ? '#fff'
-                                                                        : '#64748b'
+                                                                        : 'var(--text-secondary)'
                                                                 }}
                                                             >
                                                                 {mode.charAt(0).toUpperCase() + mode.slice(1)}

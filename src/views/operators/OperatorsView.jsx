@@ -512,7 +512,7 @@ function OperatorsView({
                     key={i}
                     className="fas fa-star"
                     style={{
-                        color: i <= rating ? '#f59e0b' : '#e2e8f0',
+                        color: i <= rating ? '#f59e0b' : 'var(--border-light)',
                         fontSize: '16px',
                         marginRight: i < 5 ? '2px' : '0'
                     }}
@@ -676,7 +676,7 @@ function OperatorsView({
                                         )
                                         const cellStyle = {
                                             backgroundColor: alternatingBg,
-                                            color: '#1e293b',
+                                            color: 'var(--text-primary)',
                                             fontSize: '15px',
                                             fontWeight: 500,
                                             padding: '20px 24px',
@@ -685,7 +685,7 @@ function OperatorsView({
                                         }
                                         const cellSecondaryStyle = {
                                             backgroundColor: alternatingBg,
-                                            color: '#475569',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '14px',
                                             padding: '20px 24px',
                                             textAlign: 'left',
@@ -734,10 +734,10 @@ function OperatorsView({
                                         }
                                         const actionBtnStyle = {
                                             alignItems: 'center',
-                                            backgroundColor: 'white',
-                                            border: '1px solid #e2e8f0',
+                                            backgroundColor: 'var(--bg-primary)',
+                                            border: '1px solid var(--border-light)',
                                             borderRadius: '12px',
-                                            color: '#64748b',
+                                            color: 'var(--text-secondary)',
                                             cursor: 'pointer',
                                             display: 'inline-flex',
                                             fontSize: '16px',
@@ -751,12 +751,14 @@ function OperatorsView({
                                                 key={operator.employeeId}
                                                 onClick={() => handleSelect(operator)}
                                                 style={{
-                                                    borderBottom: '1px solid #e2e8f0',
+                                                    borderBottom: '1px solid var(--border-light)',
                                                     cursor: 'pointer'
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach((cell) => (cell.style.backgroundColor = '#e0f2fe'))
+                                                    cells.forEach(
+                                                        (cell) => (cell.style.backgroundColor = 'var(--bg-tertiary)')
+                                                    )
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')
@@ -881,9 +883,11 @@ function OperatorsView({
                                                                 e.currentTarget.style.borderColor = 'var(--accent)'
                                                             }}
                                                             onMouseLeave={(e) => {
-                                                                e.currentTarget.style.backgroundColor = 'white'
-                                                                e.currentTarget.style.color = '#64748b'
-                                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                                                e.currentTarget.style.backgroundColor =
+                                                                    'var(--bg-primary)'
+                                                                e.currentTarget.style.color = 'var(--text-secondary)'
+                                                                e.currentTarget.style.borderColor =
+                                                                    'var(--border-light)'
                                                             }}
                                                         >
                                                             <i className="fas fa-comments"></i>
@@ -928,9 +932,11 @@ function OperatorsView({
                                                                 e.currentTarget.style.borderColor = 'var(--accent)'
                                                             }}
                                                             onMouseLeave={(e) => {
-                                                                e.currentTarget.style.backgroundColor = 'white'
-                                                                e.currentTarget.style.color = '#64748b'
-                                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                                                e.currentTarget.style.backgroundColor =
+                                                                    'var(--bg-primary)'
+                                                                e.currentTarget.style.color = 'var(--text-secondary)'
+                                                                e.currentTarget.style.borderColor =
+                                                                    'var(--border-light)'
                                                             }}
                                                         >
                                                             <i className="fas fa-history"></i>

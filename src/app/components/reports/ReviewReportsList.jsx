@@ -78,14 +78,14 @@ const MobileReviewCard = ({ report, isReviewed, getUserName, accentColor, onRevi
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const badge = ReportUtility.getWeekBadge(weekIso)
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     return (
         <div
             className="reports-row-animated p-4 last:border-b-0"
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0'
+                borderBottom: '1px solid var(--border-light)'
             }}
         >
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -126,14 +126,14 @@ const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onRevi
     const weekIso = report.week ? new Date(report.week).toISOString().slice(0, 10) : ''
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const badge = ReportUtility.getWeekBadge(weekIso)
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     return (
         <div
             className="reports-row-animated flex items-center py-3 px-4 lg:px-7"
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0'
+                borderBottom: '1px solid var(--border-light)'
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}

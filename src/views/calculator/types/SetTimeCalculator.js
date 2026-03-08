@@ -272,27 +272,27 @@ const SetTimeCalculator = () => {
     }
     const styles = {
         container: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             padding: isMobile ? '1rem' : '2rem'
         },
         emptyIcon: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '2rem' : '3rem',
             marginBottom: '1rem'
         },
         emptyState: {
-            background: '#f8fafc',
-            border: '2px dashed #e5e7eb',
+            background: 'var(--bg-secondary)',
+            border: '2px dashed var(--border-color)',
             borderRadius: '12px',
             marginBottom: isMobile ? '1.5rem' : '2rem',
             padding: isMobile ? '2rem 1rem' : '3rem 2rem',
             textAlign: 'center'
         },
         emptyText: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem',
             marginBottom: '1rem'
         },
@@ -306,10 +306,10 @@ const SetTimeCalculator = () => {
                       : type === 'sunny' || type === 'peak'
                         ? '#fef3c7'
                         : type === 'cloudy' || type === 'night'
-                          ? '#f1f5f9'
+                          ? 'var(--bg-tertiary)'
                           : type === 'high-cement'
                             ? '#f0fdf4'
-                            : 'white',
+                            : 'var(--card-background)',
             border: `1px solid ${
                 type === 'hot' || type === 'low-cement' || type === 'high-wc'
                     ? '#fee2e2'
@@ -318,10 +318,10 @@ const SetTimeCalculator = () => {
                       : type === 'sunny' || type === 'peak'
                         ? '#fef3c7'
                         : type === 'cloudy' || type === 'night'
-                          ? '#e5e7eb'
+                          ? 'var(--border-color)'
                           : type === 'high-cement'
                             ? '#dcfce7'
-                            : '#e5e7eb'
+                            : 'var(--border-color)'
             }`,
             borderRadius: '8px',
             color:
@@ -332,10 +332,10 @@ const SetTimeCalculator = () => {
                       : type === 'sunny' || type === 'peak'
                         ? '#f59e0b'
                         : type === 'cloudy' || type === 'night'
-                          ? '#64748b'
+                          ? 'var(--text-secondary)'
                           : type === 'high-cement'
                             ? '#16a34a'
-                            : '#1e293b',
+                            : 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
@@ -358,9 +358,9 @@ const SetTimeCalculator = () => {
             justifyContent: isMobile ? 'center' : 'space-between'
         },
         input: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -374,7 +374,7 @@ const SetTimeCalculator = () => {
             gap: '0.5rem'
         },
         inputUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             position: 'absolute',
@@ -391,7 +391,7 @@ const SetTimeCalculator = () => {
             gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'
         },
         label: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -423,29 +423,29 @@ const SetTimeCalculator = () => {
         },
         note: {
             alignItems: 'center',
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             display: 'flex',
             fontSize: '0.8125rem',
             fontStyle: 'italic',
             gap: '0.5rem'
         },
         requiredFields: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             display: 'flex',
             flexDirection: 'column',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             gap: '0.5rem'
         },
         requiredLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontWeight: 700
         },
         resetButton: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.9375rem',
@@ -479,7 +479,7 @@ const SetTimeCalculator = () => {
         }),
         resultHeader: {
             alignItems: 'center',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
@@ -487,7 +487,7 @@ const SetTimeCalculator = () => {
             marginBottom: isMobile ? '1rem' : '1.5rem'
         },
         retryButton: {
-            background: 'white',
+            background: 'var(--card-background)',
             border: '1px solid #ef4444',
             borderRadius: '8px',
             color: '#ef4444',
@@ -503,8 +503,8 @@ const SetTimeCalculator = () => {
         },
         sectionHeader: {
             alignItems: isMobile ? 'flex-start' : 'center',
-            borderBottom: '2px solid #f1f5f9',
-            color: '#1e293b',
+            borderBottom: '2px solid var(--border-light)',
+            color: 'var(--text-primary)',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             fontSize: isMobile ? '1rem' : '1.125rem',
@@ -515,8 +515,8 @@ const SetTimeCalculator = () => {
         },
         settimeBox: (isPrimary) => ({
             alignItems: 'center',
-            background: isPrimary ? '#dcfce7' : 'white',
-            border: `3px solid ${isPrimary ? '#16a34a' : '#e5e7eb'}`,
+            background: isPrimary ? '#dcfce7' : 'var(--card-background)',
+            border: `3px solid ${isPrimary ? '#16a34a' : 'var(--border-color)'}`,
             borderRadius: '12px',
             display: 'flex',
             flexDirection: 'column',
@@ -526,12 +526,12 @@ const SetTimeCalculator = () => {
             width: isMobile ? '100%' : 'auto'
         }),
         settimeDivider: {
-            color: '#cbd5e1',
+            color: 'var(--text-tertiary)',
             display: isMobile ? 'none' : 'block',
             fontSize: isMobile ? '1.25rem' : '1.5rem'
         },
         settimeLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -547,7 +547,7 @@ const SetTimeCalculator = () => {
             marginBottom: isMobile ? '1rem' : '1.5rem'
         },
         settimeSublabel: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem'
         },
         settimeValue: {
@@ -556,10 +556,10 @@ const SetTimeCalculator = () => {
             fontWeight: 700
         },
         toggleButton: (active) => ({
-            background: active ? '#f0f7ff' : 'white',
-            border: active ? '2px solid var(--accent)' : '1px solid #e5e7eb',
+            background: active ? '#f0f7ff' : 'var(--card-background)',
+            border: active ? '2px solid var(--accent)' : '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: active ? 'var(--accent)' : '#64748b',
+            color: active ? 'var(--accent)' : 'var(--text-secondary)',
             cursor: 'pointer',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600,
@@ -577,7 +577,7 @@ const SetTimeCalculator = () => {
                       ? '#fffbeb'
                       : level === 'hot'
                         ? '#fef2f2'
-                        : 'white',
+                        : 'var(--card-background)',
             border: `2px solid ${
                 level === 'cold' || level === 'cool'
                     ? '#3b82f6'
@@ -585,7 +585,7 @@ const SetTimeCalculator = () => {
                       ? '#f59e0b'
                       : level === 'hot'
                         ? '#ef4444'
-                        : '#e5e7eb'
+                        : 'var(--border-color)'
             }`,
             borderRadius: '12px',
             color:
@@ -595,7 +595,7 @@ const SetTimeCalculator = () => {
                       ? '#92400e'
                       : level === 'hot'
                         ? '#991b1b'
-                        : '#1e293b',
+                        : 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem',
             fontWeight: 600,
@@ -603,7 +603,7 @@ const SetTimeCalculator = () => {
             padding: isMobile ? '0.75rem 1rem' : '1rem 1.5rem'
         }),
         wcBreakdown: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem'
         },
         wcDisplay: {
@@ -618,7 +618,7 @@ const SetTimeCalculator = () => {
             padding: isMobile ? '0.75rem' : '1rem'
         },
         wcLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.75rem' : '0.875rem',
             fontWeight: 600
         },
@@ -629,7 +629,7 @@ const SetTimeCalculator = () => {
         },
         weatherDisplay: {
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '12px',
             display: 'flex',
             justifyContent: 'center',
@@ -647,7 +647,7 @@ const SetTimeCalculator = () => {
         },
         weatherLoading: {
             alignItems: 'center',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'flex',
             flexDirection: 'column',
             fontSize: isMobile ? '0.8125rem' : '0.9375rem',
@@ -655,7 +655,7 @@ const SetTimeCalculator = () => {
         },
         weatherStat: (isMain) => ({
             alignItems: 'center',
-            color: isMain ? 'var(--accent)' : '#64748b',
+            color: isMain ? 'var(--accent)' : 'var(--text-secondary)',
             display: 'flex',
             flexDirection: 'column',
             fontSize: isMain ? (isMobile ? '1.25rem' : '1.5rem') : isMobile ? '0.8125rem' : '0.9375rem',
@@ -671,7 +671,7 @@ const SetTimeCalculator = () => {
     }
     const inputFocusHandlers = {
         onBlur: (e) => {
-            e.target.style.borderColor = '#e5e7eb'
+            e.target.style.borderColor = 'var(--border-color)'
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
@@ -689,10 +689,10 @@ const SetTimeCalculator = () => {
                         style={styles.toggleButton(useManual)}
                         onClick={() => setUseManual(!useManual)}
                         onMouseEnter={(e) => {
-                            if (!useManual) e.currentTarget.style.background = '#f8fafc'
+                            if (!useManual) e.currentTarget.style.background = 'var(--bg-secondary)'
                         }}
                         onMouseLeave={(e) => {
-                            if (!useManual) e.currentTarget.style.background = 'white'
+                            if (!useManual) e.currentTarget.style.background = 'var(--card-background)'
                         }}
                     >
                         {useManual ? 'Use Location' : 'Manual Entry'}
@@ -787,7 +787,7 @@ const SetTimeCalculator = () => {
                                             e.currentTarget.style.background = '#fef2f2'
                                         }}
                                         onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = 'white'
+                                            e.currentTarget.style.background = 'var(--card-background)'
                                         }}
                                     >
                                         <i className="fas fa-redo"></i> Retry
@@ -1045,12 +1045,12 @@ const SetTimeCalculator = () => {
                     onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f8fafc'
-                        e.currentTarget.style.borderColor = '#cbd5e1'
+                        e.currentTarget.style.background = 'var(--bg-secondary)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white'
-                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.background = 'var(--card-background)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                 >
                     <i className="fas fa-redo"></i>

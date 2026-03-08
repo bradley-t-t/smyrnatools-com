@@ -54,7 +54,7 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
             onClick={() => onSelect?.(item)}
             className="planner-task-card rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] cursor-pointer mb-2 overflow-hidden relative transition-all duration-200 ease-in-out"
             style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)'
             }}
             onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)'
@@ -95,8 +95,8 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                                 e.currentTarget.style.color = '#ef4444'
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#f1f5f9'
-                                e.currentTarget.style.color = '#94a3b8'
+                                e.currentTarget.style.background = 'var(--bg-tertiary)'
+                                e.currentTarget.style.color = 'var(--text-secondary)'
                             }}
                         >
                             <i className="fas fa-times" />
@@ -205,7 +205,7 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         e.currentTarget.style.boxShadow = `0 0 0 1px ${accentColor}`
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = '#e5e7eb'
+                                        e.currentTarget.style.borderColor = 'var(--border-light)'
                                         e.currentTarget.style.boxShadow = 'none'
                                     }}
                                 >
@@ -271,9 +271,9 @@ function DayColumn({
                 background: day.isToday
                     ? `linear-gradient(180deg, ${accentColor}08 0%, ${accentColor}03 100%)`
                     : day.isPast
-                      ? '#fafafa'
-                      : '#fff',
-                border: day.isToday ? `2px solid ${accentColor}` : '1px solid #e2e8f0',
+                      ? 'var(--bg-secondary)'
+                      : 'var(--bg-primary)',
+                border: day.isToday ? `2px solid ${accentColor}` : '1px solid var(--border-light)',
                 opacity: loading ? 0.6 : 1
             }}
         >
@@ -282,7 +282,7 @@ function DayColumn({
                 style={{
                     background: day.isToday
                         ? `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)`
-                        : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+                        : 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%)'
                 }}
             >
                 {day.isToday && (
@@ -295,13 +295,13 @@ function DayColumn({
                 )}
                 <span
                     className={`font-bold ${isMobile ? 'text-[13px]' : 'text-sm'}`}
-                    style={{ color: day.isToday ? '#fff' : '#374151' }}
+                    style={{ color: day.isToday ? '#fff' : 'var(--text-primary)' }}
                 >
                     {day.fullLabel}
                 </span>
                 <span
                     className={`font-medium ${isMobile ? 'text-[11px]' : 'text-xs'}`}
-                    style={{ color: day.isToday ? 'rgba(255,255,255,0.85)' : '#64748b' }}
+                    style={{ color: day.isToday ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)' }}
                 >
                     {day.date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                 </span>
@@ -346,11 +346,11 @@ function DayColumn({
                     style={{
                         background: day.isToday ? accentColor : 'transparent',
                         border: day.isToday ? 'none' : '1px dashed #cbd5e1',
-                        color: day.isToday ? '#fff' : '#64748b'
+                        color: day.isToday ? '#fff' : 'var(--text-secondary)'
                     }}
                     onMouseEnter={(e) => {
                         if (!day.isToday && !loading) {
-                            e.currentTarget.style.background = '#f1f5f9'
+                            e.currentTarget.style.background = 'var(--bg-tertiary)'
                             e.currentTarget.style.borderColor = '#94a3b8'
                         }
                     }}
@@ -451,7 +451,7 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             <div
                 className={`border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex justify-between ${isMobile ? 'flex-col gap-3 rounded-[10px] p-3' : 'flex-row gap-4 rounded-[14px] px-5 py-4'}`}
                 style={{
-                    background: 'linear-gradient(135deg, #fff 0%, #f8fafc 100%)'
+                    background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)'
                 }}
             >
                 <div
@@ -513,20 +513,20 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     <div
                         className={`flex items-center rounded-[10px] gap-1.5 ${isMobile ? 'px-2.5 py-1.5' : 'px-3.5 py-2'}`}
                         style={{
-                            background: totalPlanned > 0 ? `${accentColor}15` : '#f1f5f9',
-                            border: totalPlanned > 0 ? `1px solid ${accentColor}30` : '1px solid #e2e8f0'
+                            background: totalPlanned > 0 ? `${accentColor}15` : 'var(--bg-tertiary)',
+                            border: totalPlanned > 0 ? `1px solid ${accentColor}30` : '1px solid var(--border-light)'
                         }}
                     >
                         <i
                             className={`fas fa-clipboard-check ${isMobile ? 'text-[11px]' : 'text-[13px]'}`}
                             style={{
-                                color: totalPlanned > 0 ? accentColor : '#64748b'
+                                color: totalPlanned > 0 ? accentColor : 'var(--text-secondary)'
                             }}
                         />
                         <span
                             className={`font-semibold ${isMobile ? 'text-xs' : 'text-[13px]'}`}
                             style={{
-                                color: totalPlanned > 0 ? accentColor : '#475569'
+                                color: totalPlanned > 0 ? accentColor : 'var(--text-secondary)'
                             }}
                         >
                             {totalPlanned} {isMobile ? '' : 'planned'}

@@ -715,7 +715,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                         ? '#16a34a'
                                         : leaderboardMetrics.netHelp < 0
                                           ? '#dc2626'
-                                          : '#64748b'
+                                          : 'var(--text-secondary)'
                                 }
                                 icon="fa-hands-helping"
                                 accentColor={accentColor}

@@ -662,8 +662,8 @@ function EquipmentsView({
                               )
                     const cellStyle = {
                         backgroundColor: alternatingBg,
-                        borderBottom: '1px solid #e5e7eb',
-                        color: '#374151',
+                        borderBottom: '1px solid var(--border-light)',
+                        color: 'var(--text-primary)',
                         fontSize: '14px',
                         padding: '20px 16px',
                         verticalAlign: 'middle'
@@ -715,10 +715,10 @@ function EquipmentsView({
                     })
                     const actionBtnStyle = {
                         alignItems: 'center',
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: 'var(--bg-primary)',
+                        border: '1px solid var(--border-light)',
                         borderRadius: '8px',
-                        color: '#64748b',
+                        color: 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         fontSize: '14px',
@@ -735,7 +735,7 @@ function EquipmentsView({
                             onMouseEnter={(e) => {
                                 e.currentTarget
                                     .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = '#e0f2fe'))
+                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget
@@ -826,7 +826,9 @@ function EquipmentsView({
                                             className="fas fa-star"
                                             style={{
                                                 color:
-                                                    i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                                    i < Math.round(item.cleanlinessRating || 0)
+                                                        ? '#f59e0b'
+                                                        : 'var(--border-light)',
                                                 fontSize: '14px'
                                             }}
                                         ></i>
@@ -841,7 +843,9 @@ function EquipmentsView({
                                             className="fas fa-star"
                                             style={{
                                                 color:
-                                                    i < Math.round(item.conditionRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                                    i < Math.round(item.conditionRating || 0)
+                                                        ? '#f59e0b'
+                                                        : 'var(--border-light)',
                                                 fontSize: '14px'
                                             }}
                                         ></i>
@@ -852,7 +856,7 @@ function EquipmentsView({
                                 {item.status === 'Retired' ? (
                                     <span
                                         style={{
-                                            backgroundColor: '#f1f5f9',
+                                            backgroundColor: 'var(--bg-secondary)',
                                             borderRadius: '8px',
                                             color: '#94a3b8',
                                             fontSize: '12px',
@@ -1055,14 +1059,14 @@ function EquipmentsView({
                                 <select
                                     style={{
                                         appearance: 'none',
-                                        backgroundColor: '#f8fafc',
+                                        backgroundColor: 'var(--bg-secondary)',
                                         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                         backgroundPosition: 'right 12px center',
                                         backgroundRepeat: 'no-repeat',
                                         backgroundSize: '18px',
-                                        border: '1px solid #e5e7eb',
+                                        border: '1px solid var(--border-light)',
                                         borderRadius: '12px',
-                                        color: '#1e293b',
+                                        color: 'var(--text-primary)',
                                         cursor: 'pointer',
                                         fontSize: '14px',
                                         minWidth: '140px',

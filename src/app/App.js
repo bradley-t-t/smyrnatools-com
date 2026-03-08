@@ -19,6 +19,7 @@ import WebOverlay from './components/common/WebOverlay'
 import { useTutorial } from './context/TutorialContext'
 import { useAuthSession } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
+import { useThemeMode } from './hooks/useThemeMode'
 import { useVersionCheck } from './hooks/useVersionCheck'
 const CHUNK_RELOAD_KEY = 'chunk_reload_attempted'
 /** Retries a failed dynamic import once by forcing a full page reload to clear stale chunk hashes. */
@@ -82,6 +83,7 @@ function AppContent() {
     const [sessionChecked, setSessionChecked] = useState(false)
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
     useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
+    useThemeMode()
     const { triggerTutorial } = useTutorial()
     useEffect(() => {
         sessionStorage.removeItem(CHUNK_RELOAD_KEY)

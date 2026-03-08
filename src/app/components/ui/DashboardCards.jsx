@@ -1,14 +1,14 @@
 import React from 'react'
-/** Allocation percentage tier styling (high/medium/low). */
-const ALLOCATION_STYLES = {
-    high: { background: '#dcfce7', color: '#16a34a' },
-    low: { background: '#fee2e2', color: '#dc2626' },
-    medium: { background: '#fef9c3', color: '#ca8a04' }
+/** Allocation percentage tier class names (high/medium/low). */
+const ALLOCATION_CLASSES = {
+    high: 'allocation-pill-high',
+    low: 'allocation-pill-low',
+    medium: 'allocation-pill-medium'
 }
-const getAllocationStyle = (percent) => {
-    if (percent >= 80) return ALLOCATION_STYLES.high
-    if (percent >= 50) return ALLOCATION_STYLES.medium
-    return ALLOCATION_STYLES.low
+const getAllocationClass = (percent) => {
+    if (percent >= 80) return ALLOCATION_CLASSES.high
+    if (percent >= 50) return ALLOCATION_CLASSES.medium
+    return ALLOCATION_CLASSES.low
 }
 /** Small gray pill displaying an inline status label (e.g. "Active 5"). */
 export function StatusPill({ children, className = '' }) {
@@ -22,9 +22,9 @@ export function StatusPill({ children, className = '' }) {
 }
 /** Color-coded pill showing allocation percentage (green >= 80, yellow >= 50, red < 50). */
 export function AllocationPill({ percent }) {
-    const style = getAllocationStyle(percent)
+    const cls = getAllocationClass(percent)
     return (
-        <span className="inline-block rounded-2xl px-2.5 py-1 text-xs font-medium mb-1.5 mr-1.5" style={style}>
+        <span className={`inline-block rounded-2xl px-2.5 py-1 text-xs font-medium mb-1.5 mr-1.5 ${cls}`}>
             {percent}% Allocated
         </span>
     )
@@ -35,7 +35,6 @@ export function MetricCard({
     value,
     subtitle,
     icon,
-    iconBg,
     iconColor,
     children,
     highlight = false,
@@ -44,11 +43,8 @@ export function MetricCard({
 }) {
     return (
         <div
-            className={`rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 ${className}`}
-            style={{
-                backgroundColor: '#f8fafc',
-                border: highlight ? `2px solid ${accentColor}` : '1px solid #e2e8f0'
-            }}
+            className={`metric-card rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 ${highlight ? 'metric-card-highlight' : ''} ${className}`}
+            style={highlight ? { borderColor: accentColor } : undefined}
         >
             <div className="flex items-start justify-between mb-3">
                 <div>
@@ -56,7 +52,7 @@ export function MetricCard({
                     <div className="text-2xl md:text-3xl font-bold text-slate-900">{value}</div>
                 </div>
                 {icon && (
-                    <div className="rounded-lg p-2" style={{ backgroundColor: iconBg }}>
+                    <div className="rounded-lg p-2" style={{ backgroundColor: `${iconColor}15` }}>
                         <i className={`fas ${icon}`} style={{ color: iconColor, fontSize: '20px' }}></i>
                     </div>
                 )}

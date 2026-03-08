@@ -5,6 +5,7 @@ const ChangelogView = lazy(() => import('../login/ChangelogView'))
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useTutorial } from '../../app/context/TutorialContext'
+import { useThemeMode } from '../../app/hooks/useThemeMode'
 import { useVersion } from '../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../app/utils/BrowserDetection'
 import { supabase } from '../../services/DatabaseService'
@@ -47,6 +48,7 @@ function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
     const { isMobile, resetAllTutorials, triggerTutorial } = useTutorial()
     const { signOut: authSignOut, verifyPassword, updatePassword: authUpdatePassword } = useAuth()
+    const { themeMode } = useThemeMode()
     const version = useVersion()
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState('')
@@ -939,6 +941,40 @@ function MyAccountView({ userId }) {
                                                         Reset to Default
                                                     </button>
                                                 )}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="mb-4">
+                                                <div className="font-medium text-gray-900">Theme</div>
+                                                <div className="text-sm text-gray-500">
+                                                    Switch between light and dark mode
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => updatePreferences('themeMode', 'light')}
+                                                    className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${themeMode === 'light' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                                    style={
+                                                        themeMode === 'light'
+                                                            ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                            : {}
+                                                    }
+                                                >
+                                                    <i className="fas fa-sun"></i>
+                                                    Light
+                                                </button>
+                                                <button
+                                                    onClick={() => updatePreferences('themeMode', 'dark')}
+                                                    className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${themeMode === 'dark' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                                    style={
+                                                        themeMode === 'dark'
+                                                            ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                            : {}
+                                                    }
+                                                >
+                                                    <i className="fas fa-moon"></i>
+                                                    Dark
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

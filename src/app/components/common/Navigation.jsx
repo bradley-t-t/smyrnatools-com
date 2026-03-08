@@ -235,10 +235,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         whiteSpace: 'nowrap'
     })
     const dropdownStyle = {
-        backgroundColor: 'white',
-        border: '1px solid #e5e7eb',
+        backgroundColor: 'var(--bg-primary)',
+        border: '1px solid var(--border-light)',
         borderRadius: '14px',
-        boxShadow: '0 12px 48px rgba(0,0,0,0.18)',
+        boxShadow: 'var(--shadow)',
         left: 0,
         marginTop: '8px',
         minWidth: '220px',
@@ -277,7 +277,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         alignItems: 'center',
                                         backgroundColor: isItemActive ? `${accentColor}12` : 'transparent',
                                         borderRadius: '8px',
-                                        color: isItemActive ? accentColor : '#374151',
+                                        color: isItemActive ? accentColor : 'var(--text-primary)',
                                         cursor: 'pointer',
                                         display: 'flex',
                                         fontWeight: isItemActive ? 600 : 400,
@@ -289,7 +289,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     onMouseEnter={(e) =>
                                         (e.currentTarget.style.backgroundColor = isItemActive
                                             ? `${accentColor}12`
-                                            : '#f9fafb')
+                                            : 'var(--bg-secondary)')
                                     }
                                     onMouseLeave={(e) =>
                                         (e.currentTarget.style.backgroundColor = isItemActive
@@ -299,9 +299,11 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 >
                                     <i
                                         className={`fas ${ICONS[item.id]}`}
-                                        style={{ color: '#64748b', fontSize: '14px', width: '18px' }}
+                                        style={{ color: 'var(--text-secondary)', fontSize: '14px', width: '18px' }}
                                     ></i>
-                                    <span style={{ color: isItemActive ? accentColor : '#374151' }}>{item.text}</span>
+                                    <span style={{ color: isItemActive ? accentColor : 'var(--text-primary)' }}>
+                                        {item.text}
+                                    </span>
                                 </div>
                             )
                         })}
@@ -433,8 +435,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         >
                             <div
                                 style={{
-                                    backgroundColor: 'white',
-                                    boxShadow: '-4px 0 20px rgba(0,0,0,0.1)',
+                                    backgroundColor: 'var(--bg-primary)',
+                                    boxShadow: 'var(--shadow)',
                                     height: '100%',
                                     overflowY: 'auto',
                                     padding: '20px',
@@ -448,7 +450,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 <div style={{ marginBottom: '20px' }}>
                                     <label
                                         style={{
-                                            color: '#64748b',
+                                            color: 'var(--text-secondary)',
                                             display: 'block',
                                             fontSize: '11px',
                                             fontWeight: 600,
@@ -468,14 +470,14 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                             e.currentTarget.style.outline = 'none'
                                         }}
                                         onBlur={(e) => {
-                                            e.currentTarget.style.borderColor = '#e5e7eb'
+                                            e.currentTarget.style.borderColor = 'var(--border-light)'
                                             e.currentTarget.style.boxShadow = 'none'
                                         }}
                                         style={{
-                                            backgroundColor: '#f8fafc',
-                                            border: '2px solid #e5e7eb',
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            border: '2px solid var(--border-light)',
                                             borderRadius: '10px',
-                                            color: '#1e293b',
+                                            color: 'var(--text-primary)',
                                             cursor: 'pointer',
                                             fontSize: '14px',
                                             fontWeight: 600,
@@ -839,7 +841,7 @@ function MobileSection({ title, children }) {
         <div style={{ marginBottom: '16px' }}>
             <div
                 style={{
-                    color: '#94a3b8',
+                    color: 'var(--text-secondary)',
                     fontSize: '11px',
                     fontWeight: 600,
                     letterSpacing: '0.5px',
@@ -863,7 +865,7 @@ function MobileMenuItem({ item, isActive, onClick, accentColor = '#1e3a5f' }) {
                 alignItems: 'center',
                 backgroundColor: isActive ? `${accentColor}12` : 'transparent',
                 borderRadius: '10px',
-                color: isActive ? accentColor : '#374151',
+                color: isActive ? accentColor : 'var(--text-primary)',
                 cursor: 'pointer',
                 display: 'flex',
                 fontWeight: isActive ? 600 : 400,
@@ -875,7 +877,7 @@ function MobileMenuItem({ item, isActive, onClick, accentColor = '#1e3a5f' }) {
         >
             <i
                 className={`fas ${ICONS[item.id] || 'fa-circle'}`}
-                style={{ color: isActive ? accentColor : '#64748b', fontSize: '16px', width: '20px' }}
+                style={{ color: isActive ? accentColor : 'var(--text-secondary)', fontSize: '16px', width: '20px' }}
             ></i>
             <span style={{ fontSize: '15px' }}>{item.text}</span>
         </div>

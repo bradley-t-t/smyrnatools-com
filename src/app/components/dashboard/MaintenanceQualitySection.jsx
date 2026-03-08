@@ -105,7 +105,6 @@ export default function MaintenanceQualitySection({
                     label="Service Overdue"
                     value={displayStats.overdueTotal}
                     icon="fa-exclamation-triangle"
-                    iconBg="#fee2e2"
                     iconColor="#dc2626"
                 >
                     {!isAggregate && <StatusPill>Mixers {displayStats.mixers.overdue}</StatusPill>}
@@ -117,7 +116,6 @@ export default function MaintenanceQualitySection({
                     label="Open Issues"
                     value={displayStats.openIssuesTotal}
                     icon="fa-wrench"
-                    iconBg="#fef3c7"
                     iconColor="#f59e0b"
                 >
                     {!isAggregate && <StatusPill>Mixers {displayStats.mixers.issues}</StatusPill>}
@@ -170,21 +168,21 @@ export default function MaintenanceQualitySection({
                     ) : (
                         <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
                             <BarChart data={chartData} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                                 <XAxis
                                     type="number"
                                     domain={[0, 100]}
                                     unit="%"
-                                    tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 11 }}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 10 : 11 }}
                                 />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 12 }}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 10 : 12 }}
                                     width={isMobile ? 55 : 80}
                                 />
                                 <Tooltip content={<HistoryTooltip />} />
-                                <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
+                                <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                                 <Bar dataKey="active" stackId="a" fill={STATUS_COLORS.Active} name="Active" />
                                 <Bar dataKey="spare" stackId="a" fill={STATUS_COLORS.Spare} name="Spare" />
                                 <Bar dataKey="inShop" stackId="a" fill={STATUS_COLORS['In Shop']} name="In Shop" />

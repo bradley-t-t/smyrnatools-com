@@ -62,12 +62,17 @@ const CalculatorView = () => {
                 return <SetTimeCalculator />
             default:
                 return (
-                    <div className="bg-white border border-slate-200 rounded-xl text-center p-8 md:p-16">
-                        <div className="text-slate-300 text-4xl md:text-6xl mb-4 md:mb-6">
+                    <div
+                        className="rounded-xl text-center p-8 md:p-16"
+                        style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-light)' }}
+                    >
+                        <div className="text-4xl md:text-6xl mb-4 md:mb-6" style={{ color: 'var(--text-secondary)' }}>
                             <i className="fas fa-hard-hat" />
                         </div>
-                        <h3 className="text-slate-900 text-lg md:text-2xl font-bold m-0">Coming Soon</h3>
-                        <p className="text-slate-500 text-sm md:text-base mt-2 mb-0">
+                        <h3 className="text-lg md:text-2xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>
+                            Coming Soon
+                        </h3>
+                        <p className="text-sm md:text-base mt-2 mb-0" style={{ color: 'var(--text-secondary)' }}>
                             This calculator is under development
                         </p>
                     </div>
@@ -77,18 +82,28 @@ const CalculatorView = () => {
     const headerSkeleton = (
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
             <div className="mb-6">
-                <div className="h-8 w-44 rounded-lg bg-slate-200 animate-pulse" />
-                <div className="h-4 w-64 rounded bg-slate-100 animate-pulse mt-2" />
+                <div className="h-8 w-44 rounded-lg animate-pulse" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
+                <div
+                    className="h-4 w-64 rounded animate-pulse mt-2"
+                    style={{ backgroundColor: 'var(--bg-secondary)' }}
+                />
             </div>
             <div className={`flex ${isMobile ? 'flex-wrap' : ''} gap-2`}>
                 {[72, 112, 104, 80, 72].map((w, i) => (
-                    <div key={i} className="h-9 rounded-lg bg-slate-100 animate-pulse" style={{ width: w }} />
+                    <div
+                        key={i}
+                        className="h-9 rounded-lg animate-pulse"
+                        style={{ width: w, backgroundColor: 'var(--bg-secondary)' }}
+                    />
                 ))}
             </div>
         </div>
     )
     return (
-        <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100">
+        <div
+            className="min-h-full"
+            style={{ background: 'linear-gradient(to bottom right, var(--bg-secondary), var(--bg-tertiary))' }}
+        >
             <style>{`
                 @keyframes calcRevealFromLeft {
                     from { opacity: 0; transform: translateX(-18px); }
@@ -105,7 +120,14 @@ const CalculatorView = () => {
                     animation: calcRevealFromRight 0.5s ease-out both;
                 }
             `}</style>
-            <header className="border-b border-slate-200 bg-white shadow-sm" style={GRID_PATTERN_STYLE(accentColor)}>
+            <header
+                className="border-b shadow-sm"
+                style={{
+                    ...GRID_PATTERN_STYLE(accentColor),
+                    borderColor: 'var(--border-light)',
+                    backgroundColor: 'var(--bg-primary)'
+                }}
+            >
                 {hideRealContent && headerSkeleton}
                 <div
                     className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8"
@@ -115,8 +137,10 @@ const CalculatorView = () => {
                         className={`mb-6${revealControls ? ' calc-reveal-left' : ''}`}
                         style={revealControls ? { animationDelay: '0ms' } : undefined}
                     >
-                        <h1 className="text-2xl font-bold text-slate-900 md:text-3xl m-0">Calculators</h1>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <h1 className="text-2xl font-bold md:text-3xl m-0" style={{ color: 'var(--text-primary)' }}>
+                            Calculators
+                        </h1>
+                        <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
                             Concrete industry tools and quick-reference calculators
                         </p>
                     </div>
@@ -131,7 +155,7 @@ const CalculatorView = () => {
                                     key={calc.id}
                                     type="button"
                                     onClick={() => setSelectedCalculator(calc.id)}
-                                    className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all md:px-4 ${isActive ? '' : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                                    className="flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all md:px-4"
                                     style={
                                         isActive
                                             ? {
@@ -139,7 +163,10 @@ const CalculatorView = () => {
                                                   boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
                                                   color: '#fff'
                                               }
-                                            : {}
+                                            : {
+                                                  backgroundColor: 'var(--bg-primary)',
+                                                  color: 'var(--text-secondary)'
+                                              }
                                     }
                                 >
                                     <i className={`fas ${calc.icon} text-xs`} />

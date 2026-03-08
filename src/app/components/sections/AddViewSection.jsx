@@ -91,7 +91,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             background: 'transparent',
             border: 'none',
             borderRadius: '6px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '1.25rem',
@@ -114,8 +114,8 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         },
         header: {
             alignItems: 'center',
-            background: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--bg-secondary)',
+            borderBottom: '1px solid var(--border-light)',
             borderRadius: '12px 12px 0 0',
             display: 'flex',
             justifyContent: 'space-between',
@@ -132,10 +132,10 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         },
         modal: {
             animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            boxShadow: 'var(--shadow-md)',
             display: 'flex',
             flexDirection: 'column',
             maxHeight: '90vh',
@@ -145,8 +145,8 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         },
         permissionDenied: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: '10px',
             display: 'flex',
             flexDirection: 'column',
@@ -161,26 +161,26 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
             opacity: 0.3
         },
         permissionSubtext: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.875rem',
             fontWeight: 500
         },
         permissionText: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1rem',
             fontWeight: 600,
             lineHeight: 1.5,
             margin: 0
         },
         subtitle: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.75rem',
             fontWeight: 500,
             letterSpacing: '0.5px',
             textTransform: 'uppercase'
         },
         title: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1.125rem',
             fontWeight: 700,
             lineHeight: 1.2,
@@ -221,12 +221,12 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                                 onClick={onClose}
                                 aria-label="Close"
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = '#e5e7eb'
-                                    e.currentTarget.style.color = '#1e293b'
+                                    e.currentTarget.style.background = 'var(--border-light)'
+                                    e.currentTarget.style.color = 'var(--text-primary)'
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.background = 'transparent'
-                                    e.currentTarget.style.color = '#64748b'
+                                    e.currentTarget.style.color = 'var(--text-secondary)'
                                 }}
                             >
                                 <i className="fas fa-times"></i>
@@ -279,8 +279,8 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     min-width: 0;
                 }
                 .add-view-form .form-section {
-                    background: #f8fafc;
-                    border: 1px solid #e5e7eb;
+                    background: var(--bg-secondary);
+                    border: 1px solid var(--border-light);
                     border-radius: 12px;
                     padding: 1rem;
                     display: flex;
@@ -297,11 +297,11 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     gap: 0.625rem;
                     font-size: 0.8125rem;
                     font-weight: 600;
-                    color: #64748b;
+                    color: var(--text-secondary);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
                     padding-bottom: 0.5rem;
-                    border-bottom: 1px solid #e5e7eb;
+                    border-bottom: 1px solid var(--border-light);
                 }
                 .add-view-form .form-section-title i {
                     font-size: 0.875rem;
@@ -326,7 +326,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 .add-view-form label {
                     font-size: 0.875rem;
                     font-weight: 500;
-                    color: #334155;
+                    color: var(--text-primary);
                 }
                 .add-view-form input[type="text"],
                 .add-view-form input[type="tel"],
@@ -337,11 +337,11 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     width: 100%;
                     max-width: 100%;
                     padding: 0.75rem 1rem;
-                    border: 1px solid #cbd5e1;
+                    border: 1px solid var(--border-light);
                     border-radius: 12px;
                     font-size: 0.875rem;
-                    color: #1e293b;
-                    background: white;
+                    color: var(--text-primary);
+                    background: var(--bg-primary);
                     outline: none;
                     transition: all 0.2s;
                     box-sizing: border-box;
@@ -355,11 +355,11 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     width: 100%;
                     max-width: 100%;
                     padding: 0.75rem 2.5rem 0.75rem 1rem;
-                    border: 1px solid #cbd5e1;
+                    border: 1px solid var(--border-light);
                     border-radius: 12px;
                     font-size: 0.875rem;
-                    color: #1e293b;
-                    background: white;
+                    color: var(--text-primary);
+                    background: var(--bg-primary);
                     cursor: pointer;
                     appearance: none;
                     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
@@ -376,23 +376,23 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 .add-view-form button[type="button"]:not(.form-submit) {
                     width: 100%;
                     padding: 0.75rem 1rem;
-                    border: 1px solid #cbd5e1;
+                    border: 1px solid var(--border-light);
                     border-radius: 12px;
                     font-size: 0.875rem;
-                    color: #1e293b;
-                    background: white;
+                    color: var(--text-primary);
+                    background: var(--bg-primary);
                     text-align: left;
                     cursor: pointer;
                     transition: all 0.2s;
                 }
                 .add-view-form button[type="button"]:not(.form-submit):hover {
-                    background: #f8fafc;
+                    background: var(--bg-secondary);
                 }
                 .add-view-form .form-actions {
                     display: flex;
                     justify-content: flex-end;
                     padding-top: 0.5rem;
-                    border-top: 1px solid #e5e7eb;
+                    border-top: 1px solid var(--border-light);
                     margin-top: 0.25rem;
                 }
                 .add-view-form button[type="submit"],
@@ -432,7 +432,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 }
                 .add-view-form .form-hint {
                     font-size: 0.75rem;
-                    color: #64748b;
+                    color: var(--text-secondary);
                     margin-top: 0.25rem;
                 }
                 .add-view-form .form-warning {
@@ -501,12 +501,12 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                             onClick={onClose}
                             aria-label="Close"
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#e5e7eb'
-                                e.currentTarget.style.color = '#1e293b'
+                                e.currentTarget.style.background = 'var(--border-light)'
+                                e.currentTarget.style.color = 'var(--text-primary)'
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.background = 'transparent'
-                                e.currentTarget.style.color = '#64748b'
+                                e.currentTarget.style.color = 'var(--text-secondary)'
                             }}
                         >
                             <i className="fas fa-times"></i>

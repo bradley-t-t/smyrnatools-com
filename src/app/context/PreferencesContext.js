@@ -24,6 +24,7 @@ const defaultPreferences = {
     accentColor: '#1e3a5f',
     acceptReportSubmittedEmails: true,
     defaultViewMode: null,
+    themeMode: 'light',
     equipmentFilters: {
         searchText: '',
         selectedPlant: '',
@@ -103,6 +104,7 @@ export const PreferencesProvider = ({ children }) => {
                     accent_color: updatedPreferences.accentColor,
                     created_at: now,
                     default_view_mode: updatedPreferences.defaultViewMode,
+                    theme_mode: updatedPreferences.themeMode,
                     equipment_filters: updatedPreferences.equipmentFilters,
                     last_viewed_filters: updatedPreferences.lastViewedFilters,
                     manager_filters: updatedPreferences.managerFilters,
@@ -203,6 +205,7 @@ export const PreferencesProvider = ({ children }) => {
                                       viewMode: data.trailer_filters.viewMode || 'list'
                                   }
                                 : { ...defaultPreferences.trailerFilters },
+                            themeMode: data.theme_mode || defaultPreferences.themeMode,
                             tutorials: data.tutorials === undefined ? true : data.tutorials
                         }
                     }

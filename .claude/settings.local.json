@@ -23,7 +23,10 @@
       "Bash(supabase functions:*)",
       "Bash(npx supabase:*)",
       "Bash(node:*)",
-      "Bash(npx nit:*)"
+      "Bash(npx nit:*)",
+      "Bash(npx react-app-rewired:*)",
+      "WebFetch(domain:x.ai)",
+      "WebFetch(domain:grok.com)"
     ]
   }
 }

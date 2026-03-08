@@ -691,8 +691,8 @@ function TractorsView({
                     const plant = plants.find((p) => p.code === item.assignedPlant)
                     const cellStyle = {
                         backgroundColor: alternatingBg,
-                        borderBottom: '1px solid #e5e7eb',
-                        color: '#374151',
+                        borderBottom: '1px solid var(--border-light)',
+                        color: 'var(--text-primary)',
                         fontSize: '14px',
                         padding: '20px 16px',
                         verticalAlign: 'middle'
@@ -744,10 +744,10 @@ function TractorsView({
                     })
                     const actionBtnStyle = {
                         alignItems: 'center',
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: 'var(--bg-primary)',
+                        border: '1px solid var(--border-light)',
                         borderRadius: '8px',
-                        color: '#64748b',
+                        color: 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         fontSize: '14px',
@@ -764,7 +764,7 @@ function TractorsView({
                             onMouseEnter={(e) => {
                                 e.currentTarget
                                     .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = '#e0f2fe'))
+                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget
@@ -875,7 +875,9 @@ function TractorsView({
                                             className="fas fa-star"
                                             style={{
                                                 color:
-                                                    i < Math.round(item.cleanlinessRating || 0) ? '#f59e0b' : '#e5e7eb',
+                                                    i < Math.round(item.cleanlinessRating || 0)
+                                                        ? '#f59e0b'
+                                                        : 'var(--border-light)',
                                                 fontSize: '14px'
                                             }}
                                         ></i>
@@ -885,7 +887,7 @@ function TractorsView({
                             <td
                                 style={{
                                     ...cellStyle,
-                                    color: '#64748b',
+                                    color: 'var(--text-secondary)',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
                                     width: '16%'
@@ -930,7 +932,7 @@ function TractorsView({
                                 {item.status === 'Retired' ? (
                                     <span
                                         style={{
-                                            backgroundColor: '#f1f5f9',
+                                            backgroundColor: 'var(--bg-secondary)',
                                             borderRadius: '8px',
                                             color: '#94a3b8',
                                             fontSize: '12px',

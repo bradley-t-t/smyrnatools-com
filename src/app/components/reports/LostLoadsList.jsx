@@ -61,7 +61,7 @@ const EmptyState = () => (
 )
 /** Mobile card for a single lost load report. */
 const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
         : report.week
@@ -73,7 +73,7 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0'
+                borderBottom: '1px solid var(--border-light)'
             }}
         >
             <div className="flex items-start justify-between gap-3 mb-2">
@@ -140,7 +140,7 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
 }
 /** Desktop row for a single lost load report. */
 const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
         : report.week
@@ -152,7 +152,7 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDelet
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0'
+                borderBottom: '1px solid var(--border-light)'
             }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}

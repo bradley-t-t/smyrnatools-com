@@ -45,7 +45,7 @@ const STATUS_COLORS = {
     waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' }
 }
 const BULK_ACTION_COLORS = {
-    cancel: { bg: '#f1f5f9', hover: '#e2e8f0', text: '#64748b' },
+    cancel: { bg: 'var(--bg-secondary)', hover: 'var(--border-light)', text: 'var(--text-secondary)' },
     complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
     delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' }
 }
@@ -603,11 +603,11 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                         onClick={() => onSelectItem(item.id)}
                                                         onMouseEnter={(e) => {
                                                             if (!isSelected && !item.completed)
-                                                                e.currentTarget.style.background = '#f8fafc'
+                                                                e.currentTarget.style.background = 'var(--bg-secondary)'
                                                         }}
                                                         onMouseLeave={(e) => {
                                                             if (!isSelected && !item.completed)
-                                                                e.currentTarget.style.background = 'white'
+                                                                e.currentTarget.style.background = 'var(--bg-primary)'
                                                         }}
                                                         className={`flex border-b border-slate-100 cursor-pointer transition-all duration-200 ${
                                                             isMobile
@@ -616,10 +616,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                         } ${item.completed ? 'opacity-70' : ''}`}
                                                         style={{
                                                             background: isSelected
-                                                                ? '#f0f7ff'
+                                                                ? 'var(--bg-tertiary)'
                                                                 : item.completed
-                                                                  ? '#f8fafc'
-                                                                  : 'white'
+                                                                  ? 'var(--bg-secondary)'
+                                                                  : 'var(--bg-primary)'
                                                         }}
                                                     >
                                                         <div

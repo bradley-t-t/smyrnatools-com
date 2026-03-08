@@ -23,7 +23,7 @@ const getDueDateStatus = (saturday) => {
     if (diffDays === 0) return { color: '#dc2626', label: 'Due Today', urgent: true }
     if (diffDays === 1) return { color: '#f59e0b', label: 'Due Tomorrow', urgent: true }
     if (diffDays <= 3) return { color: '#f59e0b', label: `${diffDays} days left`, urgent: false }
-    return { color: '#64748b', label: saturday.toLocaleDateString(), urgent: false }
+    return { color: 'var(--text-secondary)', label: saturday.toLocaleDateString(), urgent: false }
 }
 const BADGE_COLORS = {
     'Last Week': 'bg-amber-100 text-amber-800',
@@ -92,14 +92,14 @@ const MobileReportCard = ({ item, accentColor, onShowForm, index = 0 }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     return (
         <div
             className={`reports-row-animated p-4 last:border-b-0`}
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid var(--border-light)',
                 ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
             }}
         >
@@ -152,14 +152,14 @@ const DesktopReportRow = ({ item, accentColor, onShowForm, index = 0 }) => {
     })
     const badge = ReportUtility.getWeekBadge(weekIso)
     const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-    const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
+    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     return (
         <div
             className={`reports-row-animated flex items-center py-3 px-4 lg:px-7 ${dueDateInfo?.urgent ? '' : ''}`}
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid var(--border-light)',
                 cursor: 'default',
                 ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
             }}

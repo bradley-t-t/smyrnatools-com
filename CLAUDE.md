@@ -26,6 +26,12 @@ Be direct, concise, and informative. No filler, no fluff. State what you did and
 - If you encounter regular CSS anywhere in files you're touching, **stop and convert it to Tailwind before continuing your primary task.** Complete both: the CSS-to-Tailwind conversion AND the original task.
 - If the CSS conversion is complex or in a separate file from your main task, spin up a subagent to handle the conversion in parallel, but ensure both efforts are completed.
 
+## Efficiency
+- **Use sub-agents as much as possible** to parallelize independent work and increase throughput.
+
+## Comments & Code Hygiene
+- **Never reference AI chatbot context in code comments.** No mentions of "inspired by X", "as discussed", "per user request", or any other phrasing that reveals the code was generated in a conversation. Comments should read as if written by a developer — explain **why**, not the origin.
+
 ## Workflow
 1. Before writing code, review surrounding files for naming conventions, directory structure, and existing shared modules.
 2. If regular CSS is found in scope, flag it, fix it (Tailwind), then proceed with the primary task.

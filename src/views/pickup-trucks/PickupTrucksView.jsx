@@ -401,8 +401,8 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                         .toLowerCase()
                     const cellStyle = {
                         backgroundColor: alternatingBg,
-                        borderBottom: '1px solid #e5e7eb',
-                        color: '#374151',
+                        borderBottom: '1px solid var(--border-light)',
+                        color: 'var(--text-primary)',
                         fontSize: '14px',
                         padding: '20px 16px',
                         verticalAlign: 'middle'
@@ -444,10 +444,10 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                     }
                     const actionBtnStyle = {
                         alignItems: 'center',
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
+                        backgroundColor: 'var(--bg-primary)',
+                        border: '1px solid var(--border-light)',
                         borderRadius: '8px',
-                        color: '#64748b',
+                        color: 'var(--text-secondary)',
                         cursor: 'pointer',
                         display: 'inline-flex',
                         fontSize: '14px',
@@ -473,7 +473,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             onMouseEnter={(e) => {
                                 e.currentTarget
                                     .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = '#e0f2fe'))
+                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget
@@ -529,7 +529,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             <td
                                 style={{
                                     ...cellStyle,
-                                    color: '#64748b',
+                                    color: 'var(--text-secondary)',
                                     fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
                                     width: '15%'

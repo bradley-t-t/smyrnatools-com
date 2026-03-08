@@ -69,7 +69,7 @@ const WaterCementCalculator = () => {
     const styles = {
         breakdown: {
             alignItems: 'center',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'flex',
             fontSize: '0.9375rem',
             fontWeight: 600,
@@ -87,8 +87,8 @@ const WaterCementCalculator = () => {
             padding: isMobile ? '0.375rem 0.625rem' : '0.5rem 0.75rem'
         },
         container: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-light)',
             borderRadius: isMobile ? '8px' : '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             padding: isMobile ? '1rem' : '2rem'
@@ -115,7 +115,7 @@ const WaterCementCalculator = () => {
         },
         formulaRow: {
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             borderRadius: '12px',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
@@ -151,9 +151,9 @@ const WaterCementCalculator = () => {
             padding: isMobile ? '0.75rem' : '1rem'
         },
         input: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -162,9 +162,9 @@ const WaterCementCalculator = () => {
             width: '100%'
         },
         inputLarge: {
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: isMobile ? '0.875rem' : '1rem',
             fontWeight: 600,
             outline: 'none',
@@ -178,7 +178,7 @@ const WaterCementCalculator = () => {
             gap: '0.5rem'
         },
         inputUnit: {
-            color: '#94a3b8',
+            color: 'var(--text-tertiary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600,
             position: 'absolute',
@@ -190,7 +190,7 @@ const WaterCementCalculator = () => {
             position: 'relative'
         },
         label: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '0.625rem' : '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -213,7 +213,7 @@ const WaterCementCalculator = () => {
             padding: '1rem'
         },
         perYardLabel: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.5px',
@@ -226,10 +226,10 @@ const WaterCementCalculator = () => {
         },
         resetButton: {
             alignItems: 'center',
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--card-background)',
+            border: '1px solid var(--border-color)',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.9375rem',
@@ -249,7 +249,7 @@ const WaterCementCalculator = () => {
                         ? '#fef3c7'
                         : color === 'error'
                           ? '#fee2e2'
-                          : '#f1f5f9',
+                          : 'var(--bg-tertiary)',
             borderRadius: '6px',
             color:
                 color === 'success'
@@ -260,7 +260,7 @@ const WaterCementCalculator = () => {
                         ? '#f59e0b'
                         : color === 'error'
                           ? '#ef4444'
-                          : '#64748b',
+                          : 'var(--text-secondary)',
             fontSize: '0.75rem',
             fontWeight: 700,
             letterSpacing: '0.5px',
@@ -278,8 +278,8 @@ const WaterCementCalculator = () => {
                         ? '#fffbeb'
                         : statusColor === 'error'
                           ? '#fef2f2'
-                          : 'white'
-                : 'white',
+                          : 'var(--card-background)'
+                : 'var(--card-background)',
             border: `3px solid ${
                 hasData
                     ? statusColor === 'success'
@@ -290,8 +290,8 @@ const WaterCementCalculator = () => {
                             ? '#f59e0b'
                             : statusColor === 'error'
                               ? '#ef4444'
-                              : '#e5e7eb'
-                    : '#e5e7eb'
+                              : 'var(--border-color)'
+                    : 'var(--border-color)'
             }`,
             borderRadius: '12px',
             display: 'flex',
@@ -312,8 +312,8 @@ const WaterCementCalculator = () => {
         },
         sectionHeader: {
             alignItems: 'center',
-            borderBottom: '2px solid #f1f5f9',
-            color: '#1e293b',
+            borderBottom: '2px solid var(--border-light)',
+            color: 'var(--text-primary)',
             display: 'flex',
             fontSize: isMobile ? '1rem' : '1.125rem',
             fontWeight: 700,
@@ -324,7 +324,7 @@ const WaterCementCalculator = () => {
     }
     const inputFocusHandlers = {
         onBlur: (e) => {
-            e.target.style.borderColor = '#e5e7eb'
+            e.target.style.borderColor = 'var(--border-color)'
             e.target.style.boxShadow = 'none'
         },
         onFocus: (e) => {
@@ -448,12 +448,12 @@ const WaterCementCalculator = () => {
                     onClick={clearForm}
                     style={styles.resetButton}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f8fafc'
-                        e.currentTarget.style.borderColor = '#cbd5e1'
+                        e.currentTarget.style.background = 'var(--bg-secondary)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'white'
-                        e.currentTarget.style.borderColor = '#e5e7eb'
+                        e.currentTarget.style.background = 'var(--card-background)'
+                        e.currentTarget.style.borderColor = 'var(--border-color)'
                     }}
                 >
                     <i className="fas fa-redo"></i>
