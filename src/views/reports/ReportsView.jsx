@@ -25,9 +25,11 @@ import ReportsSubmitView from './ReportsSubmitView'
 function ReportsView() {
     const {
         addLostLoadReport,
+        deleteLostLoadReport,
         getUserName,
         hasAnyReviewPermission,
         hasAssigned,
+        hasLostLoadsDeletePermission,
         hasLostLoadsPermission,
         hasReviewPermission,
         isLoadingLostLoads,
@@ -366,6 +368,8 @@ function ReportsView() {
                         onPageSizeChange={lostLoadsPagination.changePageSize}
                         onPageChange={lostLoadsPagination.goToPage}
                         getUserName={getUserName}
+                        canDelete={hasLostLoadsDeletePermission}
+                        onDelete={deleteLostLoadReport}
                     />
                 )}
             </div>

@@ -24,6 +24,8 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
     const [plant, setPlant] = useState('')
     const [yardage, setYardage] = useState('')
     const [truckNumber, setTruckNumber] = useState('')
+    const [customerName, setCustomerName] = useState('')
+    const [ticketNumber, setTicketNumber] = useState('')
     const [reason, setReason] = useState('')
     const [explanation, setExplanation] = useState('')
     const [submitting, setSubmitting] = useState(false)
@@ -84,8 +86,8 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             setError('Please fill out all fields.')
             return
         }
-        if (reason === 'Other' && !explanation.trim()) {
-            setError('Please provide an explanation for "Other".')
+        if (!explanation.trim()) {
+            setError('Please explain what happened and what will be done to prevent this in the future.')
             return
         }
         if (isNaN(Number(yardage)) || Number(yardage) <= 0) {
@@ -96,14 +98,16 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
         setError('')
         try {
             const { monday, saturday } = getCurrentWeekBounds()
-            const fullReason = reason === 'Other' ? `Other: ${explanation.trim()}` : reason
+            const fullReason = reason === 'Other' ? `Other: ${explanation.trim()}` : `${reason}: ${explanation.trim()}`
             const { data, error: dbError } = await supabase
                 .from('reports')
                 .insert({
                     completed: true,
                     data: {
+                        customer_name: customerName.trim() || null,
                         plant,
                         reason: fullReason,
+                        ticket_number: ticketNumber.trim() || null,
                         truck_number: truckNumber.trim(),
                         yardage: Number(yardage)
                     },
@@ -287,6 +291,30 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         )}
                     </div>
                     <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Customer Name
+                        </label>
+                        <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="Enter customer name..."
+                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Ticket Number
+                        </label>
+                        <input
+                            type="text"
+                            value={ticketNumber}
+                            onChange={(e) => setTicketNumber(e.target.value)}
+                            placeholder="Enter ticket number..."
+                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reason</label>
                         <div className="grid grid-cols-1 gap-2">
                             {REASONS.map((r) => (
@@ -295,7 +323,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                     type="button"
                                     onClick={() => {
                                         setReason(r)
-                                        if (r !== 'Other') setExplanation('')
+                                        setExplanation('')
                                     }}
                                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm text-left transition-colors"
                                     style={
@@ -323,11 +351,11 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                 </button>
                             ))}
                         </div>
-                        {reason === 'Other' && (
+                        {reason && (
                             <textarea
                                 value={explanation}
                                 onChange={(e) => setExplanation(e.target.value)}
-                                placeholder="Please explain..."
+                                placeholder="Explain what happened and what will be done to prevent this..."
                                 rows={3}
                                 autoFocus
                                 className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 resize-none focus:outline-none mt-1"

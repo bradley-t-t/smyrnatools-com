@@ -81,14 +81,14 @@ function ReportsToolbar({
                 tab === 'review'
                     ? ['Week', 'Report Type', 'Submitted By', 'Submitted', 'Status', 'Actions']
                     : tab === 'lost_loads'
-                      ? ['Date', 'Plant', 'Yardage', 'Truck #', 'Reason', 'Submitted By']
+                      ? ['Date', 'Plant', 'Yardage', 'Truck #', 'Customer', 'Ticket #', 'Reason', 'Submitted By']
                       : ['Week', 'Report Type', 'Status', 'Due Date', 'Actions']
             }
             colWidths={
                 tab === 'review'
                     ? ['flex', 'flex', 'flex', '7rem', '7rem', '6rem']
                     : tab === 'lost_loads'
-                      ? ['9rem', '6rem', '6rem', '7rem', 'flex', 'flex']
+                      ? ['9rem', '6rem', '6rem', '7rem', '9rem', '7rem', 'flex', 'flex']
                       : ['flex', 'flex', '7rem', '7rem', '6rem']
             }
             searchPlaceholder="Search by name or report type"

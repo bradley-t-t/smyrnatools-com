@@ -34,6 +34,7 @@ export function useReportsData() {
     const [refreshKey, setRefreshKey] = useState(0)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [hasLostLoadsPermission, setHasLostLoadsPermission] = useState(false)
+    const [hasLostLoadsDeletePermission, setHasLostLoadsDeletePermission] = useState(false)
     const [lostLoadReports, setLostLoadReports] = useState([])
     const [isLoadingLostLoads, setIsLoadingLostLoads] = useState(false)
     const [lostLoadsLoaded, setLostLoadsLoaded] = useState(false)
@@ -165,10 +166,14 @@ export function useReportsData() {
                     ).some(Boolean)
                 })
             )
-            const lostLoads = await UserService.hasPermission(user.id, 'reports.lostloads')
+            const [lostLoads, lostLoadsDelete] = await Promise.all([
+                UserService.hasPermission(user.id, 'reports.lostloads'),
+                UserService.hasPermission(user.id, 'reports.lostloads.delete')
+            ])
             setHasAssigned(assigned)
             setHasReviewPermission(review)
             setHasLostLoadsPermission(lostLoads)
+            setHasLostLoadsDeletePermission(lostLoadsDelete)
             setIsLoadingPermissions(false)
         }
         checkAssignedAndReview()
@@ -358,6 +363,11 @@ export function useReportsData() {
         }
         setLostLoadReports((prev) => [mapped, ...prev])
     }, [])
+    const deleteLostLoadReport = useCallback(async (reportId) => {
+        const { error } = await supabase.from('reports').delete().eq('id', reportId)
+        if (error) throw error
+        setLostLoadReports((prev) => prev.filter((r) => r.id !== reportId))
+    }, [])
     const triggerRefresh = useCallback(() => {
         setIsRefreshing(true)
         setRefreshKey((prev) => prev + 1)
@@ -386,9 +396,11 @@ export function useReportsData() {
     )
     return {
         addLostLoadReport,
+        deleteLostLoadReport,
         getUserName,
         hasAnyReviewPermission,
         hasAssigned,
+        hasLostLoadsDeletePermission,
         hasLostLoadsPermission,
         hasReviewPermission,
         isLoadingLostLoads,

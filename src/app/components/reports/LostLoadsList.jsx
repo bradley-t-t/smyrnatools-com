@@ -60,7 +60,7 @@ const EmptyState = () => (
     </div>
 )
 /** Mobile card for a single lost load report. */
-const MobileLostLoadCard = ({ report, getUserName, index = 0 }) => {
+const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
     const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
@@ -100,22 +100,46 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0 }) => {
                             </span>
                         )}
                     </div>
+                    <div className="flex items-center gap-3 text-sm text-slate-700 mb-1">
+                        {report.data?.customer_name && (
+                            <span className="flex items-center gap-1">
+                                <i className="fas fa-user-tie text-[10px] text-slate-400" />
+                                {report.data.customer_name}
+                            </span>
+                        )}
+                        {report.data?.ticket_number && (
+                            <span className="flex items-center gap-1">
+                                <i className="fas fa-ticket-alt text-[10px] text-slate-400" />#
+                                {report.data.ticket_number}
+                            </span>
+                        )}
+                    </div>
                     {report.data?.reason && (
                         <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{report.data.reason}</p>
                     )}
                 </div>
             </div>
-            <div className="flex items-center text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
                 <span className="flex items-center gap-1">
                     <i className="fas fa-user text-[10px]" />
                     {getUserName(report.userId)}
                 </span>
+                {canDelete && (
+                    <button
+                        type="button"
+                        onClick={() => onDeleteClick(report)}
+                        className="flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors"
+                    >
+                        <i className="fas fa-trash-alt text-[10px]" />
+                        Delete
+                    </button>
+                )}
             </div>
         </div>
     )
 }
 /** Desktop row for a single lost load report. */
-const DesktopLostLoadRow = ({ report, getUserName, index = 0 }) => {
+const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
     const altBg = index % 2 === 0 ? 'white' : '#f8fafc'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
@@ -147,8 +171,22 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0 }) => {
                 {report.data?.yardage != null ? `${report.data.yardage}` : '—'}
             </div>
             <div className="w-28 shrink-0 pr-3 text-sm text-slate-600">{report.data?.truck_number || '—'}</div>
+            <div className="w-36 shrink-0 pr-3 text-sm text-slate-600 truncate">
+                {report.data?.customer_name || '—'}
+            </div>
+            <div className="w-28 shrink-0 pr-3 text-sm text-slate-600">{report.data?.ticket_number || '—'}</div>
             <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">{report.data?.reason || '—'}</div>
-            <div className="flex-1 min-w-0 text-sm text-slate-600 truncate">{getUserName(report.userId)}</div>
+            <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">{getUserName(report.userId)}</div>
+            {canDelete && (
+                <button
+                    type="button"
+                    onClick={() => onDeleteClick(report)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                    title="Delete report"
+                >
+                    <i className="fas fa-trash-alt text-xs" />
+                </button>
+            )}
         </div>
     )
 }
@@ -161,10 +199,18 @@ function LostLoadsList({
     totalPages,
     onPageSizeChange,
     onPageChange,
-    getUserName
+    getUserName,
+    canDelete,
+    onDelete
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
+    const handleDelete = async (report) => {
+        if (!window.confirm('Are you sure you want to delete this lost load report?')) return
+        try {
+            await onDelete(report.id)
+        } catch {}
+    }
     if (items.length === 0 && !isLoading) {
         return (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -184,7 +230,7 @@ function LostLoadsList({
                 }
             `}</style>
             {isLoading ? (
-                <ReportsListSkeleton columnCount={6} />
+                <ReportsListSkeleton columnCount={8} />
             ) : (
                 <>
                     <div className="hidden md:block">
@@ -194,6 +240,8 @@ function LostLoadsList({
                                 report={report}
                                 index={index}
                                 getUserName={getUserName}
+                                canDelete={canDelete}
+                                onDeleteClick={handleDelete}
                             />
                         ))}
                     </div>
@@ -204,6 +252,8 @@ function LostLoadsList({
                                 report={report}
                                 index={index}
                                 getUserName={getUserName}
+                                canDelete={canDelete}
+                                onDeleteClick={handleDelete}
                             />
                         ))}
                     </div>
