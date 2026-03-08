@@ -39,11 +39,12 @@ export function MetricCard({
     iconColor,
     children,
     highlight = false,
-    accentColor
+    accentColor,
+    className = ''
 }) {
     return (
         <div
-            className="rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
+            className={`rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5 ${className}`}
             style={{
                 backgroundColor: '#f8fafc',
                 border: highlight ? `2px solid ${accentColor}` : '1px solid #e2e8f0'

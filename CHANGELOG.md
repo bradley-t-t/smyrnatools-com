@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.5] - 2026-03-08
+
+- Added a new optional className prop to the MetricCard component in DashboardCards.jsx, allowing for additional custom styling by appending the provided className to the existing class string.
+
 ## [27.4] - 2026-03-08
 
 - Added customer name and ticket number fields to the Lost Load Report Modal, allowing users to input additional details for lost load reports.

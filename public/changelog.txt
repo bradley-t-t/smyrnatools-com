@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.4] - 2026-03-08
+
+- Added customer name and ticket number fields to the Lost Load Report Modal, allowing users to input additional details for lost load reports.
+- Updated the Lost Load Report Modal to require an explanation for all reasons, not just "Other", with a new placeholder text guiding users to explain what happened and steps to prevent future occurrences.
+- Enhanced the Lost Loads List component to display customer name and ticket number in both mobile and desktop views, improving report detail visibility.
+- Introduced a delete functionality for lost load reports, with permission checks to control access, and added delete buttons in both mobile and desktop views of the Lost Loads List.
+- Updated the Reports Toolbar to include columns for customer name and ticket number in the lost loads tab, adjusting column widths for better layout.
+- Modified the useReportsData hook to support deletion of lost load reports and to check for delete permissions, ensuring only authorized users can remove reports.
+
 ## [27.3] - 2026-03-08
 
 - Updated the plant efficiency ranking system to support tied ranks, where plants with identical efficiency scores share the same rank position, implemented in usePlantNotifications.js with logic to compute and assign tied ranks based on efficiency differences less than 0.05.
