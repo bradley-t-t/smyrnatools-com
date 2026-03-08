@@ -108,6 +108,8 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
 .operator-select-container .operator-select-button { flex: 1; }
 .unassign-operator-button { padding: 0.875rem; background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .unassign-operator-button:hover { background: #fee2e2; border-color: #f87171; }
+html.dark .unassign-operator-button { background: #3b1114; color: #f87171; border-color: #5c1d21; }
+html.dark .unassign-operator-button:hover { background: #4c1d21; border-color: #7f1d1d; }
 .assign-operator-button { padding: 0.875rem; background: #f0fdf4; color: #16a34a; border: 1.5px solid #bbf7d0; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .assign-operator-button:hover { background: #dcfce7; border-color: #86efac; }
 .primary-button { width: 100%; padding: 0.875rem 1.5rem; background: ${accent}; color: white; border: none; border-radius: 10px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }

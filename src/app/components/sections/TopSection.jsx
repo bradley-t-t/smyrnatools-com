@@ -31,9 +31,9 @@ const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) 
         )}
     </div>
 )
-const Badge = ({ children, onClick, accentColor }) => {
+const Badge = ({ children, onClick, accentColor, isDark }) => {
     const baseClasses = 'inline-flex items-center gap-2 rounded-lg text-sm font-semibold px-4 py-2'
-    const style = { backgroundColor: `${accentColor}15`, color: accentColor }
+    const style = { backgroundColor: `${accentColor}${isDark ? '30' : '15'}`, color: accentColor }
     return onClick ? (
         <button className={`${baseClasses} border-none cursor-pointer`} style={style} onClick={onClick}>
             <i className="fas fa-user-clock" />
@@ -246,6 +246,7 @@ function TopSection({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
+    const isDark = preferences.themeMode === 'dark'
     const isMobile = useIsMobile()
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -391,7 +392,7 @@ function TopSection({
                             >
                                 <h1 className="text-[22px] font-bold text-slate-900 m-0">{title}</h1>
                                 {badge && (
-                                    <Badge onClick={onBadgeClick} accentColor={accentColor}>
+                                    <Badge onClick={onBadgeClick} accentColor={accentColor} isDark={isDark}>
                                         {badge}
                                     </Badge>
                                 )}
@@ -601,7 +602,7 @@ function TopSection({
                             <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
                             {badge && (
                                 <div className="ml-4">
-                                    <Badge onClick={onBadgeClick} accentColor={accentColor}>
+                                    <Badge onClick={onBadgeClick} accentColor={accentColor} isDark={isDark}>
                                         {badge}
                                     </Badge>
                                 </div>

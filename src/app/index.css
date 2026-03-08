@@ -192,34 +192,34 @@ body {
 }
 
 html.dark {
-    /* Pure black base, 3 surface layers, subtle borders and shadows */
+    /* Slightly lifted dark base with 3 surface layers */
     --primary-color: #4d8bd6;
     --primary-hover: #5a9ae6;
     --accent-color: #3d9eff;
     --success-color: #34c759;
     --warning-color: #ff9f0a;
     --danger-color: #ff453a;
-    --background-color: #000000;
-    --card-background: #171717;
+    --background-color: #0a0a0a;
+    --card-background: #1a1a1a;
     --text-color: #fafafa;
-    --text-secondary: #888888;
-    --text-light: #555555;
-    --border-color: #1f1f1f;
+    --text-secondary: #919191;
+    --text-light: #606060;
+    --border-color: #262626;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
     --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
-    --bg-primary: #000000;
-    --bg-secondary: #171717;
-    --bg-tertiary: #212121;
-    --bg-hover: #2a2a2a;
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #262626;
+    --bg-hover: #303030;
     --text-primary: #fafafa;
     --accent-light: color-mix(in srgb, var(--accent) 12%, black);
     --accent-dark: color-mix(in srgb, var(--accent) 70%, white);
     --accent-hover: color-mix(in srgb, var(--accent) 70%, white);
     --accent-transparent: color-mix(in srgb, var(--accent) 10%, transparent);
-    --border-light: #1f1f1f;
-    --border-medium: #2a2a2a;
-    --border-dark: #383838;
+    --border-light: #262626;
+    --border-medium: #333333;
+    --border-dark: #404040;
     --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
     --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
     --danger: #ef4444;
@@ -284,76 +284,76 @@ textarea {
 
 /* Surfaces */
 html.dark .bg-white {
-    background-color: #000000;
+    background-color: #0a0a0a;
 }
 html.dark .bg-white\/95 {
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: rgba(10, 10, 10, 0.95);
 }
 html.dark .bg-white\/90 {
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: rgba(10, 10, 10, 0.9);
 }
 html.dark .bg-white\/80 {
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(10, 10, 10, 0.8);
 }
 html.dark .bg-white\/60 {
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(10, 10, 10, 0.6);
 }
 html.dark .bg-gray-50 {
-    background-color: #0d0d0d;
+    background-color: #111111;
 }
 html.dark .bg-gray-100 {
-    background-color: #171717;
+    background-color: #1a1a1a;
 }
 html.dark .bg-gray-200 {
-    background-color: #212121;
+    background-color: #262626;
 }
 html.dark .bg-gray-300 {
-    background-color: #2a2a2a;
+    background-color: #303030;
 }
 html.dark .from-slate-50 {
-    --tw-gradient-from: #0d0d0d var(--tw-gradient-from-position);
-    --tw-gradient-to: rgb(13 13 13 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: #111111 var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(17 17 17 / 0) var(--tw-gradient-to-position);
 }
 html.dark .to-slate-100 {
-    --tw-gradient-to: #171717 var(--tw-gradient-to-position);
+    --tw-gradient-to: #1a1a1a var(--tw-gradient-to-position);
 }
 html.dark .bg-slate-50 {
-    background-color: #0d0d0d;
+    background-color: #111111;
 }
 html.dark .bg-slate-50\/80 {
-    background-color: rgba(13, 13, 13, 0.8);
+    background-color: rgba(17, 17, 17, 0.8);
 }
 html.dark .bg-slate-100 {
-    background-color: #171717;
+    background-color: #1a1a1a;
 }
 html.dark .bg-slate-200 {
-    background-color: #212121;
+    background-color: #262626;
 }
 html.dark .bg-slate-300 {
-    background-color: #2a2a2a;
+    background-color: #303030;
 }
 
 /* Hover */
 html.dark .hover\:bg-gray-50:hover {
-    background-color: #171717;
+    background-color: #1a1a1a;
 }
 html.dark .hover\:bg-gray-100:hover {
-    background-color: #212121;
+    background-color: #262626;
 }
 html.dark .hover\:bg-gray-200:hover {
-    background-color: #2a2a2a;
+    background-color: #303030;
 }
 html.dark .hover\:bg-slate-50:hover {
-    background-color: #171717;
+    background-color: #1a1a1a;
 }
 html.dark .hover\:bg-slate-100:hover {
-    background-color: #212121;
+    background-color: #262626;
 }
 html.dark .hover\:bg-slate-200:hover {
-    background-color: #2a2a2a;
+    background-color: #303030;
 }
 html.dark .hover\:bg-white:hover {
-    background-color: #0d0d0d;
+    background-color: #111111;
 }
 
 /* Text */
@@ -402,76 +402,76 @@ html.dark .text-slate-300 {
 
 /* Borders */
 html.dark .border-gray-100 {
-    border-color: #1f1f1f;
+    border-color: #262626;
 }
 html.dark .border-gray-200 {
-    border-color: #2a2a2a;
+    border-color: #333333;
 }
 html.dark .border-gray-300 {
-    border-color: #383838;
+    border-color: #404040;
 }
 html.dark .border-slate-100 {
-    border-color: #1f1f1f;
+    border-color: #262626;
 }
 html.dark .border-slate-200 {
-    border-color: #2a2a2a;
+    border-color: #333333;
 }
 html.dark .border-slate-300 {
-    border-color: #383838;
+    border-color: #404040;
 }
 html.dark .border-white\/15 {
     border-color: rgba(255, 255, 255, 0.1);
 }
 html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #1f1f1f;
+    border-color: #262626;
 }
 html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #2a2a2a;
+    border-color: #333333;
 }
 
 /* Rings */
 html.dark .ring-gray-100 {
-    --tw-ring-color: #1f1f1f;
+    --tw-ring-color: #262626;
 }
 html.dark .ring-gray-200 {
-    --tw-ring-color: #2a2a2a;
+    --tw-ring-color: #333333;
 }
 
 /* Alerts */
 html.dark .bg-red-50 {
-    background-color: #1a0a0a;
+    background-color: #1f0e0e;
 }
 html.dark .bg-red-100 {
-    background-color: #261010;
+    background-color: #2c1414;
 }
 html.dark .bg-green-50 {
-    background-color: #0a1a0a;
+    background-color: #0e1f0e;
 }
 html.dark .bg-green-100 {
-    background-color: #102610;
+    background-color: #142c14;
 }
 html.dark .bg-yellow-50 {
-    background-color: #1a170a;
+    background-color: #1f1c0e;
 }
 html.dark .bg-yellow-100 {
-    background-color: #262010;
+    background-color: #2c2614;
 }
 html.dark .bg-blue-50 {
-    background-color: #0a0f1a;
+    background-color: #0e131f;
 }
 html.dark .bg-blue-100 {
-    background-color: #101826;
+    background-color: #141d2c;
 }
 
 /* Accent backgrounds (stat icons, badges) */
 html.dark .bg-emerald-50 {
-    background-color: #0a1a14;
+    background-color: #0e1f18;
 }
 html.dark .bg-amber-50 {
-    background-color: #1a150a;
+    background-color: #1f1a0e;
 }
 html.dark .bg-indigo-50 {
-    background-color: #0e0a1a;
+    background-color: #120e1f;
 }
 
 /* Accent text (stat icons, badges) */
@@ -487,27 +487,27 @@ html.dark .text-indigo-600 {
 
 /* Alert borders */
 html.dark .border-red-200 {
-    border-color: #3d1515;
+    border-color: #451a1a;
 }
 html.dark .border-green-200 {
-    border-color: #153d15;
+    border-color: #1a451a;
 }
 html.dark .border-yellow-200 {
-    border-color: #3d3815;
+    border-color: #454019;
 }
 html.dark .border-blue-200 {
-    border-color: #15203d;
+    border-color: #1a2645;
 }
 html.dark .border-amber-200 {
-    border-color: #3d3015;
+    border-color: #45381a;
 }
 
 /* Placeholder text */
 html.dark .placeholder-gray-400::placeholder {
-    color: #444444;
+    color: #4d4d4d;
 }
 html.dark .placeholder-gray-500::placeholder {
-    color: #555555;
+    color: #5c5c5c;
 }
 
 /* Shadows */

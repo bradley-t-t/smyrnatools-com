@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.11] - 2026-03-08
+
+- Implemented theme mode support by replacing hardcoded colors with CSS variables across multiple components for consistent styling based on theme preferences.
+- Updated StatusHistoryBar component to use CSS variables for background, border, and text colors, enhancing theme integration.
+- Adjusted TutorialPopup styling to use theme-based background and border colors for better visual consistency.
+- Enhanced LeaderboardCategorySelector by applying theme-specific background and text colors for selected tabs.
+- Refined WeeklyPlanner component by updating status color definitions to include Tailwind CSS classes and adjusting visual elements like bars and backgrounds for tasks.
+- Improved RegionsDetailView by replacing static color values with theme variables for text elements.
+- Revamped LostLoadReportModal with theme-consistent styling, using CSS variables for backgrounds, borders, and text, and improving UI elements like dropdowns and input fields.
+- Applied theme styling updates to various section components (AddViewSection, CardSection, CommentModalSection, DetailViewSection, IssueModalSection, ListViewModeSection, TopSection, VerificationCardSection) for uniform appearance.
+- Updated RatingChart component to align with theme styling using CSS variables.
+- Added significant styling updates to index.css, introducing new CSS variables and styles to support theme functionality.
+- Enhanced multiple view components (EquipmentDetailView, EquipmentsView, ListAddView, ListDetailView, MaintenanceCreateFormView, MaintenanceView, ManagerDetailView, ManagersView, MixerDetailView, MixersView, OperatorsView, PickupTrucksView, WeeklySafetyManagerReport, TractorDetailView, TractorsView, TrailersView) with structural improvements and theme styling adjustments for better performance and visual consistency.
+
 ## [27.10] - 2026-03-08
 
 - Implemented theme mode support with a new useThemeMode hook to manage theme preferences dynamically.
