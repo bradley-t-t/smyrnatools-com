@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from 'react'
 
+import FlagSmyrnaLogo from '../../../assets/images/FlagSmyrnaLogo.webp'
 import { usePreferences } from '../../context/PreferencesContext'
 import { buildRegionChatContext, useDashboardChat } from '../../hooks/useDashboardChat'
 /** Skeleton pulse block. */
@@ -431,7 +432,7 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
             >
                 <div className="flex items-center flex-1 gap-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-white/15 rounded-xl">
-                        <i className="fas fa-globe text-white text-xl" />
+                        <img src={FlagSmyrnaLogo} alt="Smyrna" className="w-8 h-8 object-contain" />
                     </div>
                     <div className="flex-1">
                         <h2 className={`text-white font-bold m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>

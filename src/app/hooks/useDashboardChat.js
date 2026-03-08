@@ -174,7 +174,7 @@ export function buildPlantChatContext({
     if (m) {
         parts.push(
             '\n=== LEADERBOARD METRICS ===',
-            `Efficiency Rank: #${m.rank} of ${m.totalPlants}`,
+            `Efficiency Rank: #${m.rank} of ${m.totalPlants} (ties share the same rank — check the leaderboard below for plants with identical efficiency)`,
             `Efficiency Score: ${m.efficiency?.toFixed(1)}%`,
             `Adjusted YPH: ${m.adjustedYPH?.toFixed(2)} (target: 3.0)`,
             `Raw YPH: ${m.rawYPH?.toFixed(2)}`,

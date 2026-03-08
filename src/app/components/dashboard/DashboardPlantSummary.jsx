@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from 'react'
 
+import FlagSmyrnaLogo from '../../../assets/images/FlagSmyrnaLogo.webp'
 import { usePreferences } from '../../context/PreferencesContext'
 import { buildPlantChatContext, useDashboardChat } from '../../hooks/useDashboardChat'
 
@@ -645,8 +646,10 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                     <div
                         className={`flex items-center justify-center bg-white/15 rounded-xl transition-all duration-300 ${isMinimized ? 'w-10 h-10' : 'w-12 h-12'}`}
                     >
-                        <i
-                            className={`fas fa-building text-white transition-all duration-300 ${isMinimized ? 'text-lg' : 'text-xl'}`}
+                        <img
+                            src={FlagSmyrnaLogo}
+                            alt="Smyrna"
+                            className={`object-contain transition-all duration-300 ${isMinimized ? 'w-6 h-6' : 'w-8 h-8'}`}
                         />
                     </div>
                     <div className="flex-1">

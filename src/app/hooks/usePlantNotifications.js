@@ -321,9 +321,25 @@ export function useLeaderboardMetrics({
                 const sortedByEfficiency = plantMetricsArray
                     .filter((p) => typeof p.avgEfficiency === 'number' && p.avgWeeklyHours > 0)
                     .sort((a, b) => b.avgEfficiency - a.avgEfficiency)
-                const plantRank = sortedByEfficiency.findIndex((p) => p.plantCode === dashboardPlant) + 1
                 const plantMetrics = sortedByEfficiency.find((p) => p.plantCode === dashboardPlant)
                 if (cancelled || !plantMetrics) return
+                // Compute tied ranks: plants with the same efficiency share the same rank
+                const tiedRanks = sortedByEfficiency.map((p, idx) => {
+                    if (idx === 0) return 1
+                    const prev = sortedByEfficiency[idx - 1]
+                    const prevRank = idx // will be overwritten below
+                    return Math.abs((p.avgEfficiency || 0) - (prev.avgEfficiency || 0)) < 0.05
+                        ? -1 // placeholder, filled in next pass
+                        : idx + 1
+                })
+                // Forward-fill tied ranks from the first in each group
+                for (let i = 0; i < tiedRanks.length; i++) {
+                    if (i === 0) {
+                        tiedRanks[i] = 1
+                        continue
+                    }
+                    tiedRanks[i] = tiedRanks[i] === -1 ? tiedRanks[i - 1] : i + 1
+                }
                 const allPlantRankings = sortedByEfficiency.map((p, idx) => ({
                     adjustedYPH: p.avgYPH,
                     avgCleanliness: p.avgFleetCleanliness || 0,
@@ -336,13 +352,14 @@ export function useLeaderboardMetrics({
                     netHelp: p.netHelp,
                     operators: p.operators || 0,
                     plantCode: p.plantCode,
-                    rank: idx + 1,
+                    rank: tiedRanks[idx],
                     rawYPH: p.rawYPH,
                     safetyIncidents: p.safetyReportsCount || 0,
                     totalAssets: p.totalAssets || 0,
                     tractors: p.tractors || 0,
                     trailers: p.trailers || 0
                 }))
+                const plantRanking = allPlantRankings.find((p) => p.plantCode === dashboardPlant)
                 setPlantNotifications((prev) => ({
                     ...prev,
                     allPlantRankings,
@@ -353,7 +370,7 @@ export function useLeaderboardMetrics({
                         helpGiven: plantMetrics.helpGiven,
                         helpReceived: plantMetrics.helpReceived,
                         netHelp: plantMetrics.netHelp,
-                        rank: plantRank,
+                        rank: plantRanking?.rank || 1,
                         rawYPH: plantMetrics.rawYPH,
                         safetyIncidents: plantMetrics.safetyReportsCount || 0,
                         totalPlants: sortedByEfficiency.length

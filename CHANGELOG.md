@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.3] - 2026-03-08
+
+- Updated the plant efficiency ranking system to support tied ranks, where plants with identical efficiency scores share the same rank position, implemented in usePlantNotifications.js with logic to compute and assign tied ranks based on efficiency differences less than 0.05.
+- Modified the AI context for plant summary analysis in context.json to include guidance on tied ranks, emphasizing that multiple plants can share the same rank if their efficiency scores are identical and to check actual efficiency scores beyond just rank numbers.
+- Updated efficiency rank display messages in useDashboardChat.js and AIService.js to clarify that ties share the same rank, providing additional context to users about checking leaderboard details for identical efficiency scores.
+- Replaced the FontAwesome icons with the Smyrna logo image in DashboardPlantSummary.jsx and DashboardRegionSummary.jsx for both plant and region summary components, improving visual branding with responsive sizing based on minimization state.
+
 ## [27.2] - 2026-03-08
 
 - Fixed the import path for RegionService in DetailViewSection.jsx to correctly reference the service from '../../../services/RegionService' instead of '../../services/RegionService' for both loadRegions and loadPlants functions.

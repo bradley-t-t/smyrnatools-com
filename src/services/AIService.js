@@ -436,7 +436,7 @@ class AIInsightsServiceClass {
         const m = plantData.leaderboardMetrics
         if (!m) return
         parts.push(
-            `Efficiency Rank: #${m.rank} of ${m.totalPlants} in region`,
+            `Efficiency Rank: #${m.rank} of ${m.totalPlants} in region (ties share the same rank — multiple plants can hold the same position)`,
             `Efficiency Score: ${m.efficiency?.toFixed(1)}%`,
             `ADJUSTED YPH: ${m.adjustedYPH?.toFixed(2)} (target: 3.0 YPH = 100% — accounts for help given/received — 90% of efficiency score)`,
             `Raw YPH: ${m.rawYPH?.toFixed(2)} (unadjusted, for context only)`,
