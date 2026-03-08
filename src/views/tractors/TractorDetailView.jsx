@@ -1050,7 +1050,14 @@ function TractorDetailView({ tractorId, onClose }) {
                             {lastServiceDate && TractorUtility.isServiceOverdue(lastServiceDate) && (
                                 <div className="warning-text">Service overdue</div>
                             )}
-                            <div style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}>
+                            <div
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    fontSize: '11px',
+                                    lineHeight: '1.4',
+                                    marginTop: '4px'
+                                }}
+                            >
                                 Service will show as overdue if it has been more than 6 months since last serviced.
                                 Service is determined by hours on the asset - check hours of service.
                             </div>

@@ -61,7 +61,7 @@ function ListViewModeSection({
             whiteSpace: 'nowrap'
         },
         cellHighlight: {
-            color: 'var(--accent)',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '13px' : '15px',
             fontWeight: 700,
             padding: isMobile ? '10px 8px' : '16px 20px',
@@ -103,7 +103,7 @@ function ListViewModeSection({
             margin: 0
         },
         notRated: {
-            color: '#94a3b8',
+            color: 'var(--text-secondary)',
             fontSize: isMobile ? '10px' : '12px',
             fontStyle: 'italic'
         },
@@ -126,58 +126,28 @@ function ListViewModeSection({
             gap: '1px'
         },
         statusBadge: (status) => {
-            let bg = 'var(--bg-tertiary)'
-            let textColor = 'var(--text-secondary)'
-            if (status === 'Active') {
-                bg = '#dcfce7'
-                textColor = '#166534'
-            } else if (status === 'Spare') {
-                bg = '#f3e8ff'
-                textColor = '#7c3aed'
-            } else if (status === 'In Shop') {
-                bg = '#dbeafe'
-                textColor = '#1e40af'
-            } else if (status === 'Down In Yard') {
-                bg = '#fee2e2'
-                textColor = '#dc2626'
-            } else if (status === 'Waiting For Shop') {
-                bg = '#ffedd5'
-                textColor = '#c2410c'
-            } else if (status === 'Third Party Work') {
-                bg = '#fef9c3'
-                textColor = '#a16207'
-            } else if (status === 'Retired') {
-                bg = 'var(--bg-tertiary)'
-                textColor = 'var(--text-secondary)'
+            const colorMap = {
+                Active: 'bg-[#dcfce7] text-[#166534]',
+                'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
+                'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
+                'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
             }
-            return {
-                backgroundColor: bg,
-                borderRadius: '16px',
-                color: textColor,
-                display: 'inline-block',
-                fontSize: isMobile ? '10px' : '12px',
-                fontWeight: 600,
-                padding: isMobile ? '4px 8px' : '6px 12px'
-            }
+            const colors = colorMap[status] || 'bg-bg-tertiary text-text-secondary'
+            const size = isMobile ? 'text-[10px] px-2 py-1' : 'text-xs px-3 py-1.5'
+            return `inline-block rounded-2xl font-semibold ${size} ${colors}`
         },
         table: {
             borderCollapse: 'collapse',
             width: '100%'
         },
-        verifyBtn: (isVerified) => ({
-            alignItems: 'center',
-            backgroundColor: isVerified ? '#dcfce7' : '#fef3c7',
-            border: 'none',
-            borderRadius: '8px',
-            color: isVerified ? '#166534' : '#92400e',
-            cursor: isVerified ? 'default' : 'pointer',
-            display: 'inline-flex',
-            fontSize: isMobile ? '10px' : '12px',
-            fontWeight: 600,
-            gap: isMobile ? '4px' : '6px',
-            padding: isMobile ? '6px 10px' : '8px 14px',
-            whiteSpace: 'nowrap'
-        }),
+        verifyBtn: (isVerified) => {
+            const colors = isVerified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
+            const cursor = isVerified ? 'cursor-default' : 'cursor-pointer'
+            const size = isMobile ? 'text-[10px] gap-1 px-2.5 py-1.5' : 'text-xs gap-1.5 px-3.5 py-2'
+            return `inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap ${size} ${cursor} ${colors}`
+        },
         verifyNA: {
             backgroundColor: 'var(--bg-tertiary)',
             borderRadius: '8px',
@@ -315,11 +285,13 @@ function ListViewModeSection({
                                         {item.truckNumber || item.trailerNumber || '-'}
                                     </td>
                                     <td style={styles.cellSecondary}>
-                                        <span style={styles.statusBadge(item.status)}>{item.status}</span>
+                                        <span className={styles.statusBadge(item.status)}>{item.status}</span>
                                     </td>
                                     <td style={styles.cellSecondary}>
                                         {operator?.name || (
-                                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Assigned</span>
+                                            <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                Not Assigned
+                                            </span>
                                         )}
                                     </td>
                                     <td style={styles.cellSecondary}>{renderStars(item.cleanlinessRating)}</td>
@@ -327,7 +299,7 @@ function ListViewModeSection({
                                         {item.vinNumber || item.vin ? (
                                             <span style={styles.vinText}>{item.vinNumber || item.vin}</span>
                                         ) : (
-                                            <span style={{ color: '#94a3b8' }}>-</span>
+                                            <span style={{ color: 'var(--text-secondary)' }}>-</span>
                                         )}
                                     </td>
                                     <td style={styles.cellSecondary}>
@@ -342,16 +314,13 @@ function ListViewModeSection({
                                                     }
                                                 }}
                                                 title={isVerified ? 'Verified' : 'Click to verify'}
-                                                style={styles.verifyBtn(isVerified)}
+                                                className={styles.verifyBtn(isVerified)}
                                                 disabled={isVerified}
                                             >
                                                 <i
                                                     className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
-                                                    style={{ color: isVerified ? '#166534' : '#92400e' }}
                                                 ></i>
-                                                <span style={{ color: isVerified ? '#166534' : '#92400e' }}>
-                                                    {isVerified ? 'Verified' : 'Verify'}
-                                                </span>
+                                                <span>{isVerified ? 'Verified' : 'Verify'}</span>
                                             </button>
                                         )}
                                     </td>

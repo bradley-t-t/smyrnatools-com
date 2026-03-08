@@ -14,13 +14,49 @@ const DAYS = [
 ]
 /** Color, icon, and border styling per task status. */
 const STATUS_COLORS = {
-    blocked: { bg: '#fef2f2', border: '#fecaca', icon: 'fa-ban', text: '#dc2626' },
-    completed: { bg: '#f0fdf4', border: '#bbf7d0', icon: 'fa-check', text: '#16a34a' },
-    in_progress: { bg: '#eff6ff', border: '#bfdbfe', icon: 'fa-spinner', text: '#2563eb' },
-    ordered_materials: { bg: '#eff6ff', border: '#bfdbfe', icon: 'fa-truck', text: '#2563eb' },
-    overdue: { bg: '#fef2f2', border: '#fecaca', icon: 'fa-exclamation', text: '#dc2626' },
-    pending: { bg: '#fffbeb', border: '#fde68a', icon: 'fa-clock', text: '#d97706' },
-    waiting: { bg: '#fefce8', border: '#fef08a', icon: 'fa-hourglass-half', text: '#ca8a04' }
+    blocked: { bar: '#dc2626', bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', icon: 'fa-ban', text: 'text-[#dc2626]' },
+    completed: {
+        bar: '#16a34a',
+        bg: 'bg-[#f0fdf4]',
+        border: 'border-[#bbf7d0]',
+        icon: 'fa-check',
+        text: 'text-[#16a34a]'
+    },
+    in_progress: {
+        bar: '#2563eb',
+        bg: 'bg-[#eff6ff]',
+        border: 'border-[#bfdbfe]',
+        icon: 'fa-spinner',
+        text: 'text-[#2563eb]'
+    },
+    ordered_materials: {
+        bar: '#2563eb',
+        bg: 'bg-[#eff6ff]',
+        border: 'border-[#bfdbfe]',
+        icon: 'fa-truck',
+        text: 'text-[#2563eb]'
+    },
+    overdue: {
+        bar: '#dc2626',
+        bg: 'bg-[#fef2f2]',
+        border: 'border-[#fecaca]',
+        icon: 'fa-exclamation',
+        text: 'text-[#dc2626]'
+    },
+    pending: {
+        bar: '#d97706',
+        bg: 'bg-[#fffbeb]',
+        border: 'border-[#fde68a]',
+        icon: 'fa-clock',
+        text: 'text-[#d97706]'
+    },
+    waiting: {
+        bar: '#ca8a04',
+        bg: 'bg-[#fefce8]',
+        border: 'border-[#fef08a]',
+        icon: 'fa-hourglass-half',
+        text: 'text-[#ca8a04]'
+    }
 }
 /**
  * Computes an array of day objects for the Mon-Sat week at the given offset.
@@ -77,7 +113,7 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                     <span className="text-white text-xs font-bold uppercase tracking-wide">Needs Follow Up</span>
                 </div>
             )}
-            <div className="h-[3px] w-full" style={{ background: statusColor.text }} />
+            <div className="h-[3px] w-full" style={{ background: statusColor.bar }} />
             <div className="px-3 py-[10px]">
                 <div className="flex items-start gap-2 justify-between">
                     <div className="text-[#1e293b] flex-1 text-[13px] font-medium leading-[1.4]">
@@ -112,12 +148,7 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                         {item.plant_code}
                     </span>
                     <span
-                        className="flex items-center rounded text-[9px] font-semibold gap-[3px] px-[5px] py-[2px] uppercase"
-                        style={{
-                            background: statusColor.bg,
-                            border: `1px solid ${statusColor.border}`,
-                            color: statusColor.text
-                        }}
+                        className={`flex items-center rounded text-[9px] font-semibold gap-[3px] px-[5px] py-[2px] uppercase border ${statusColor.bg} ${statusColor.border} ${statusColor.text}`}
                     >
                         <i className={`fas ${statusColor.icon} text-[8px]`} />
                         {item.status?.replace('_', ' ')}
@@ -209,7 +240,7 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         e.currentTarget.style.boxShadow = 'none'
                                     }}
                                 >
-                                    <div className="h-1 w-full" style={{ background: statusColor.bg }} />
+                                    <div className={`h-1 w-full ${statusColor.bg}`} />
                                     <div className="px-4 py-3.5">
                                         <div className="text-[#1e293b] text-sm font-medium leading-normal mb-2.5">
                                             {item.description}
@@ -223,12 +254,7 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                                 {item.plant_code}
                                             </span>
                                             <span
-                                                className="flex items-center rounded-md text-[10px] font-semibold gap-1 px-2 py-1 uppercase"
-                                                style={{
-                                                    background: statusColor.bg,
-                                                    border: `1px solid ${statusColor.border}`,
-                                                    color: statusColor.text
-                                                }}
+                                                className={`flex items-center rounded-md text-[10px] font-semibold gap-1 px-2 py-1 uppercase border ${statusColor.bg} ${statusColor.border} ${statusColor.text}`}
                                             >
                                                 <i className={`fas ${statusColor.icon} text-[9px]`} />
                                                 {item.status?.replace('_', ' ')}

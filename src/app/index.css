@@ -578,6 +578,33 @@ html.dark .bg-\[\#fef3c7\] {
 html.dark .bg-\[\#dbeafe\] {
     background-color: #0a0f1a;
 }
+html.dark .bg-\[\#f3e8ff\] {
+    background-color: #140a1a;
+}
+html.dark .bg-\[\#ffedd5\] {
+    background-color: #1a100a;
+}
+html.dark .bg-\[\#fef9c3\] {
+    background-color: #1a170a;
+}
+html.dark .bg-\[\#f0fdf4\] {
+    background-color: #0a1a0a;
+}
+html.dark .bg-\[\#eff6ff\] {
+    background-color: #0a0f1a;
+}
+html.dark .bg-\[\#fffbeb\] {
+    background-color: #1a150a;
+}
+html.dark .bg-\[\#fefce8\] {
+    background-color: #1a170a;
+}
+html.dark .bg-\[\#e0e7ff\] {
+    background-color: #0e0a1a;
+}
+html.dark .bg-\[\#f1f5f9\] {
+    background-color: #171717;
+}
 
 /* Text */
 html.dark .text-\[\#374151\] {
@@ -642,6 +669,42 @@ html.dark .text-\[\#3b82f6\] {
 html.dark .text-\[\#0891b2\] {
     color: #22d3ee;
 }
+html.dark .text-\[\#7c3aed\] {
+    color: #c084fc;
+}
+html.dark .text-\[\#c2410c\] {
+    color: #fb923c;
+}
+html.dark .text-\[\#a16207\] {
+    color: #fcd34d;
+}
+html.dark .text-\[\#2563eb\] {
+    color: #60a5fa;
+}
+html.dark .text-\[\#d97706\] {
+    color: #fbbf24;
+}
+html.dark .text-\[\#ca8a04\] {
+    color: #fbbf24;
+}
+html.dark .text-\[\#3730a3\] {
+    color: #a5b4fc;
+}
+html.dark .text-\[\#64748b\] {
+    color: #94a3b8;
+}
+html.dark .text-\[\#4338ca\] {
+    color: #a5b4fc;
+}
+html.dark .text-\[\#b91c1c\] {
+    color: #fca5a5;
+}
+html.dark .text-\[\#475569\] {
+    color: #94a3b8;
+}
+html.dark .bg-\[\#fecaca\] {
+    background-color: #261010;
+}
 
 /* Borders */
 html.dark .border-\[\#e2e8f0\] {
@@ -664,6 +727,15 @@ html.dark .border-\[\#fecaca\] {
 }
 html.dark .border-\[\#f59e0b\] {
     border-color: #fbbf24;
+}
+html.dark .border-\[\#bbf7d0\] {
+    border-color: #153d15;
+}
+html.dark .border-\[\#fde68a\] {
+    border-color: #3d3015;
+}
+html.dark .border-\[\#fef08a\] {
+    border-color: #3d3815;
 }
 
 /* ── Dashboard metric card overrides ── */

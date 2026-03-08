@@ -148,7 +148,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
         >
             <div
                 style={{
-                    background: '#e2e8f0',
+                    background: 'var(--bg-hover)',
                     borderRadius: '6px',
                     display: 'flex',
                     height: '6px',
@@ -160,7 +160,8 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     <div
                         style={{
                             animation: 'shimmer 1.5s infinite',
-                            background: 'linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%)',
+                            background:
+                                'linear-gradient(90deg, var(--bg-hover) 0%, var(--bg-secondary) 50%, var(--bg-hover) 100%)',
                             backgroundSize: '200% 100%',
                             height: '100%',
                             width: '100%'
@@ -186,8 +187,8 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
             {isHovered && !loading && statusPercentages && statusPercentages.length > 0 && (
                 <div
                     style={{
-                        background: 'white',
-                        border: '1px solid #e2e8f0',
+                        background: 'var(--bg-primary)',
+                        border: '1px solid var(--border-light)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         left: '50%',
@@ -201,7 +202,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                 >
                     <div
                         style={{
-                            color: '#64748b',
+                            color: 'var(--text-secondary)',
                             fontSize: '9px',
                             fontWeight: 600,
                             marginBottom: '6px',
@@ -232,7 +233,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                             <span style={{ color: '#334155', flex: 1, fontSize: '11px', fontWeight: 500 }}>
                                 {item.status}
                             </span>
-                            <span style={{ color: '#64748b', fontSize: '10px' }}>{item.percentage}%</span>
+                            <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{item.percentage}%</span>
                         </div>
                     ))}
                 </div>

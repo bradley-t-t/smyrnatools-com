@@ -226,7 +226,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
     const styles = {
         backBtn: {
             alignItems: 'center',
-            background: '#f1f5f9',
+            background: 'var(--bg-tertiary)',
             border: 'none',
             borderRadius: '8px',
             color: 'var(--accent)',
@@ -254,7 +254,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             width: '18px'
         },
         container: {
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             minHeight: '100vh',
             width: '100%'
         },
@@ -286,8 +286,8 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         fieldTypeBtn: {
             alignItems: 'center',
-            background: 'white',
-            border: '2px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: '2px solid var(--border-light)',
             borderRadius: '8px',
             color: 'var(--accent)',
             cursor: 'pointer',
@@ -320,8 +320,8 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         header: {
             alignItems: 'center',
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border-light)',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             display: 'flex',
             gap: '1rem',
@@ -334,9 +334,9 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             flex: 1
         },
         input: (hasError) => ({
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            border: hasError ? '2px solid #ef4444' : '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '0.9375rem',
             outline: 'none',
             padding: '0.75rem 1rem',
@@ -344,7 +344,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             width: '100%'
         }),
         label: {
-            color: '#374151',
+            color: 'var(--text-primary)',
             display: 'block',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -352,7 +352,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         plantChip: {
             alignItems: 'center',
-            background: '#eff6ff',
+            background: 'var(--bg-secondary)',
             border: '1px solid #3b82f6',
             borderRadius: '6px',
             color: 'var(--accent)',
@@ -369,10 +369,10 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         plantSelectorBtn: (hasError) => ({
             alignItems: 'center',
-            background: 'white',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: hasError ? '2px solid #ef4444' : '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.9375rem',
@@ -388,7 +388,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         },
         roleCheckbox: {
             alignItems: 'center',
-            border: '2px solid #e5e7eb',
+            border: '2px solid var(--border-light)',
             borderRadius: '8px',
             cursor: 'pointer',
             display: 'flex',
@@ -397,7 +397,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             transition: 'all 0.2s'
         },
         roleCheckboxChecked: {
-            background: '#f0f7ff',
+            background: 'var(--bg-secondary)',
             border: '2px solid var(--accent)'
         },
         rolesGrid: {
@@ -406,23 +406,23 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))'
         },
         section: {
-            background: 'white',
+            background: 'var(--bg-primary)',
             borderRadius: '12px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             marginBottom: '1.5rem',
             padding: '2rem'
         },
         sectionTitle: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1.25rem',
             fontWeight: 700,
             marginBottom: '1.5rem'
         },
         select: (hasError) => ({
-            background: 'white',
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: hasError ? '2px solid #ef4444' : '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             cursor: 'pointer',
             fontSize: '0.9375rem',
             outline: 'none',
@@ -436,9 +436,9 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             gap: '0.5rem'
         },
         textarea: (hasError) => ({
-            border: hasError ? '2px solid #ef4444' : '2px solid #e5e7eb',
+            border: hasError ? '2px solid #ef4444' : '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '0.9375rem',
             minHeight: '100px',
             outline: 'none',
@@ -448,7 +448,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             width: '100%'
         }),
         title: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1.5rem',
             fontWeight: 700,
             margin: 0
@@ -463,8 +463,8 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                 <button
                     style={styles.backBtn}
                     onClick={onBack}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-tertiary)')}
                 >
                     <i className="fas fa-arrow-left"></i>
                 </button>
@@ -503,7 +503,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                             }}
                             onBlur={(e) => {
                                 if (!errors.title) {
-                                    e.target.style.borderColor = '#e5e7eb'
+                                    e.target.style.borderColor = 'var(--border-light)'
                                     e.target.style.boxShadow = 'none'
                                 }
                             }}
@@ -553,7 +553,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
                                 }}
                                 onBlur={(e) => {
                                     if (!errors.plants) {
-                                        e.currentTarget.style.borderColor = '#e5e7eb'
+                                        e.currentTarget.style.borderColor = 'var(--border-light)'
                                         e.currentTarget.style.boxShadow = 'none'
                                     }
                                 }}

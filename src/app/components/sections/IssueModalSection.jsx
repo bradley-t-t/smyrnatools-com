@@ -183,11 +183,11 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                 }
                 .issue-card-hover:hover {
                     transform: translateX(4px);
-                    box-shadow: -4px 0 0 0 #64748b, 0 4px 20px rgba(0,0,0,0.08);
+                    box-shadow: -4px 0 0 0 var(--text-secondary), 0 4px 20px rgba(0,0,0,0.08);
                 }
                 .issue-card-resolved:hover {
                     transform: translateX(4px);
-                    box-shadow: -4px 0 0 0 #94a3b8, 0 4px 20px rgba(0,0,0,0.08);
+                    box-shadow: -4px 0 0 0 var(--text-secondary), 0 4px 20px rgba(0,0,0,0.08);
                 }
                 @media (max-width: 480px) {
                     .issue-modal-header { padding: 1rem !important; }
@@ -222,7 +222,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                     onClick={(e) => e.stopPropagation()}
                     style={{
                         animation: 'issueSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        background: '#f8fafc',
+                        background: 'var(--bg-secondary)',
                         borderRadius: '20px',
                         boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
                         display: 'flex',
@@ -236,8 +236,8 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                     <div
                         className="issue-modal-header"
                         style={{
-                            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-                            borderBottom: '1px solid #e2e8f0',
+                            background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-hover) 100%)',
+                            borderBottom: '1px solid var(--bg-hover)',
                             padding: '1.5rem',
                             position: 'relative'
                         }}
@@ -246,10 +246,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                             onClick={onClose}
                             style={{
                                 alignItems: 'center',
-                                background: '#e2e8f0',
+                                background: 'var(--bg-hover)',
                                 border: 'none',
                                 borderRadius: '10px',
-                                color: '#64748b',
+                                color: 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 fontSize: '1rem',
@@ -261,8 +261,8 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 transition: 'all 0.2s',
                                 width: '36px'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#cbd5e1')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#e2e8f0')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border-medium)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
                         >
                             <i className="fas fa-times"></i>
                         </button>
@@ -271,7 +271,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 className="issue-modal-header-icon"
                                 style={{
                                     alignItems: 'center',
-                                    background: '#e2e8f0',
+                                    background: 'var(--bg-hover)',
                                     borderRadius: '14px',
                                     display: 'flex',
                                     height: '52px',
@@ -281,13 +281,13 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                             >
                                 <i
                                     className="fas fa-exclamation-circle"
-                                    style={{ color: '#475569', fontSize: '1.5rem' }}
+                                    style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}
                                 ></i>
                             </div>
                             <div>
                                 <div
                                     style={{
-                                        color: '#64748b',
+                                        color: 'var(--text-secondary)',
                                         fontSize: '0.75rem',
                                         fontWeight: 600,
                                         letterSpacing: '1px',
@@ -299,7 +299,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 </div>
                                 <div
                                     className="issue-modal-title"
-                                    style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}
+                                    style={{ color: 'var(--text-primary)', fontSize: '1.375rem', fontWeight: 700 }}
                                 >
                                     {itemNumber || itemId}
                                 </div>
@@ -310,10 +310,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 onClick={() => setActiveTab('open')}
                                 style={{
                                     alignItems: 'center',
-                                    background: activeTab === 'open' ? '#1e293b' : '#e2e8f0',
+                                    background: activeTab === 'open' ? 'var(--text-primary)' : 'var(--bg-hover)',
                                     border: 'none',
                                     borderRadius: '10px',
-                                    color: activeTab === 'open' ? 'white' : '#64748b',
+                                    color: activeTab === 'open' ? 'var(--bg-primary)' : 'var(--text-secondary)',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     fontSize: '0.8125rem',
@@ -328,9 +328,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 {openIssues.length > 0 && (
                                     <span
                                         style={{
-                                            background: activeTab === 'open' ? 'rgba(255,255,255,0.2)' : '#cbd5e1',
+                                            background:
+                                                activeTab === 'open' ? 'rgba(255,255,255,0.2)' : 'var(--border-medium)',
                                             borderRadius: '6px',
-                                            color: activeTab === 'open' ? 'white' : '#475569',
+                                            color: activeTab === 'open' ? 'white' : 'var(--text-secondary)',
                                             fontSize: '0.6875rem',
                                             fontWeight: 700,
                                             padding: '2px 6px'
@@ -344,10 +345,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 onClick={() => setActiveTab('resolved')}
                                 style={{
                                     alignItems: 'center',
-                                    background: activeTab === 'resolved' ? '#1e293b' : '#e2e8f0',
+                                    background: activeTab === 'resolved' ? 'var(--text-primary)' : 'var(--bg-hover)',
                                     border: 'none',
                                     borderRadius: '10px',
-                                    color: activeTab === 'resolved' ? 'white' : '#64748b',
+                                    color: activeTab === 'resolved' ? 'var(--bg-primary)' : 'var(--text-secondary)',
                                     cursor: 'pointer',
                                     display: 'flex',
                                     fontSize: '0.8125rem',
@@ -362,9 +363,12 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 {resolvedIssues.length > 0 && (
                                     <span
                                         style={{
-                                            background: activeTab === 'resolved' ? 'rgba(255,255,255,0.2)' : '#cbd5e1',
+                                            background:
+                                                activeTab === 'resolved'
+                                                    ? 'rgba(255,255,255,0.2)'
+                                                    : 'var(--border-medium)',
                                             borderRadius: '6px',
-                                            color: activeTab === 'resolved' ? 'white' : '#475569',
+                                            color: activeTab === 'resolved' ? 'white' : 'var(--text-secondary)',
                                             fontSize: '0.6875rem',
                                             fontWeight: 700,
                                             padding: '2px 6px'
@@ -383,7 +387,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                 <div
                                     className="issue-modal-form-inner"
                                     style={{
-                                        background: 'white',
+                                        background: 'var(--bg-primary)',
                                         borderRadius: '14px',
                                         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                                         padding: '1rem'
@@ -396,10 +400,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                         disabled={isSubmitting}
                                         rows="2"
                                         style={{
-                                            background: '#f8fafc',
+                                            background: 'var(--bg-secondary)',
                                             border: '2px solid transparent',
                                             borderRadius: '10px',
-                                            color: '#1e293b',
+                                            color: 'var(--text-primary)',
                                             fontFamily: 'inherit',
                                             fontSize: '0.9375rem',
                                             outline: 'none',
@@ -410,11 +414,11 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                         }}
                                         onFocus={(e) => {
                                             e.currentTarget.style.borderColor = '#dc2626'
-                                            e.currentTarget.style.background = 'white'
+                                            e.currentTarget.style.background = 'var(--bg-primary)'
                                         }}
                                         onBlur={(e) => {
                                             e.currentTarget.style.borderColor = 'transparent'
-                                            e.currentTarget.style.background = '#f8fafc'
+                                            e.currentTarget.style.background = 'var(--bg-secondary)'
                                         }}
                                     />
                                     <div
@@ -446,10 +450,10 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                         onClick={() => setSeverity(sev)}
                                                         style={{
                                                             alignItems: 'center',
-                                                            background: isActive ? config.bg : '#f1f5f9',
+                                                            background: isActive ? config.bg : 'var(--bg-tertiary)',
                                                             border: 'none',
                                                             borderRadius: '8px',
-                                                            color: isActive ? config.color : '#64748b',
+                                                            color: isActive ? config.color : 'var(--text-secondary)',
                                                             cursor: 'pointer',
                                                             display: 'flex',
                                                             fontSize: '0.75rem',
@@ -475,7 +479,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                 alignItems: 'center',
                                                 background:
                                                     isSubmitting || !newIssue.trim()
-                                                        ? '#cbd5e1'
+                                                        ? 'var(--border-medium)'
                                                         : 'linear-gradient(135deg, var(--accent), #0f172a)',
                                                 border: 'none',
                                                 borderRadius: '10px',
@@ -541,7 +545,14 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                         }}
                                     ></i>
                                 </div>
-                                <p style={{ color: '#64748b', fontSize: '0.9375rem', fontWeight: 500, margin: 0 }}>
+                                <p
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '0.9375rem',
+                                        fontWeight: 500,
+                                        margin: 0
+                                    }}
+                                >
                                     {activeTab === 'open' ? 'No open issues' : 'No resolved issues yet'}
                                 </p>
                             </div>
@@ -557,7 +568,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                             key={issue.id}
                                             className={isResolved ? 'issue-card-resolved' : 'issue-card-hover'}
                                             style={{
-                                                background: 'white',
+                                                background: 'var(--bg-primary)',
                                                 borderRadius: '12px',
                                                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                                                 opacity: isResolved ? 0.75 : 1,
@@ -596,7 +607,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                     >
                                                         <span
                                                             style={{
-                                                                color: '#1e293b',
+                                                                color: 'var(--text-primary)',
                                                                 fontSize: '0.875rem',
                                                                 fontWeight: 600
                                                             }}
@@ -622,13 +633,18 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                             ></i>
                                                             {issue.severity}
                                                         </span>
-                                                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                                                        <span
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        >
                                                             {formatDate(issue.time_created)}
                                                         </span>
                                                     </div>
                                                     <p
                                                         style={{
-                                                            color: '#475569',
+                                                            color: 'var(--text-secondary)',
                                                             fontSize: '0.9375rem',
                                                             lineHeight: 1.5,
                                                             margin: 0,

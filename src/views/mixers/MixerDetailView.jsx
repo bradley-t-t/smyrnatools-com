@@ -877,9 +877,9 @@ function MixerDetailView({ mixerId, onClose }) {
                                 <div
                                     style={{
                                         alignItems: 'center',
-                                        background: '#fef3c7',
+                                        background: 'var(--bg-hover)',
                                         borderRadius: '6px',
-                                        color: '#92400e',
+                                        color: 'var(--text-secondary)',
                                         display: 'flex',
                                         fontSize: '0.8125rem',
                                         gap: '0.5rem',
@@ -929,7 +929,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 </div>
                                 <div
                                     className="down-in-yard-note"
-                                    style={{ color: '#64748b', fontSize: '12px', marginTop: '4px' }}
+                                    style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px' }}
                                 >
                                     {shopStatus === 'down_in_yard' &&
                                         'The shop has to come fix it where it is - it cannot move.'}
@@ -1085,9 +1085,9 @@ function MixerDetailView({ mixerId, onClose }) {
                                 <div
                                     style={{
                                         alignItems: 'center',
-                                        background: '#fef3c7',
+                                        background: 'var(--bg-hover)',
                                         borderRadius: '6px',
-                                        color: '#92400e',
+                                        color: 'var(--text-secondary)',
                                         display: 'flex',
                                         fontSize: '0.8125rem',
                                         gap: '0.5rem',
@@ -1165,7 +1165,14 @@ function MixerDetailView({ mixerId, onClose }) {
                             {lastServiceDate && MixerUtility.isServiceOverdue(lastServiceDate) && (
                                 <div className="warning-text">Service overdue</div>
                             )}
-                            <div style={{ color: '#64748b', fontSize: '11px', lineHeight: '1.4', marginTop: '4px' }}>
+                            <div
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    fontSize: '11px',
+                                    lineHeight: '1.4',
+                                    marginTop: '4px'
+                                }}
+                            >
                                 Service will show as overdue if it has been more than 6 months since last serviced.
                                 Service is determined by hours on the asset - check hours of service.
                             </div>

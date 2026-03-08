@@ -503,7 +503,9 @@ function OperatorsView({
     const renderStars = (val) => {
         const rating = Math.round(Number(val) || 0)
         if (!rating || rating <= 0) {
-            return <span style={{ color: '#94a3b8', fontSize: '14px', fontStyle: 'italic' }}>Not Rated</span>
+            return (
+                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontStyle: 'italic' }}>Not Rated</span>
+            )
         }
         const stars = []
         for (let i = 1; i <= 5; i++) {
@@ -524,7 +526,7 @@ function OperatorsView({
     const renderStarsOrNA = (operator) => {
         const allowedStatuses = ['Active', 'Light Duty', 'Training']
         if (!allowedStatuses.includes(operator.status)) {
-            return <span style={{ color: '#94a3b8', fontSize: '14px', fontStyle: 'italic' }}>N/A</span>
+            return <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontStyle: 'italic' }}>N/A</span>
         }
         return renderStars(operator.rating)
     }
@@ -693,7 +695,7 @@ function OperatorsView({
                                         }
                                         const cellHighlightStyle = {
                                             backgroundColor: alternatingBg,
-                                            color: 'var(--accent)',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '16px',
                                             fontWeight: 700,
                                             padding: '20px 24px',
@@ -701,36 +703,16 @@ function OperatorsView({
                                             verticalAlign: 'middle'
                                         }
                                         const statusBadgeStyle = (status) => {
-                                            let bg = '#f1f5f9'
-                                            let textColor = '#475569'
-                                            if (status === 'Active') {
-                                                bg = '#dcfce7'
-                                                textColor = '#166534'
-                                            } else if (status === 'Light Duty') {
-                                                bg = '#fef3c7'
-                                                textColor = '#92400e'
-                                            } else if (status === 'Pending Start') {
-                                                bg = '#dbeafe'
-                                                textColor = '#1e40af'
-                                            } else if (status === 'Training') {
-                                                bg = '#e0e7ff'
-                                                textColor = '#4338ca'
-                                            } else if (status === 'Terminated') {
-                                                bg = '#fecaca'
-                                                textColor = '#991b1b'
-                                            } else if (status === 'No Hire') {
-                                                bg = '#fee2e2'
-                                                textColor = '#b91c1c'
+                                            const colorMap = {
+                                                Active: 'bg-[#dcfce7] text-[#166534]',
+                                                'Light Duty': 'bg-[#fef3c7] text-[#92400e]',
+                                                'No Hire': 'bg-[#fee2e2] text-[#b91c1c]',
+                                                'Pending Start': 'bg-[#dbeafe] text-[#1e40af]',
+                                                Terminated: 'bg-[#fecaca] text-[#991b1b]',
+                                                Training: 'bg-[#e0e7ff] text-[#4338ca]'
                                             }
-                                            return {
-                                                backgroundColor: bg,
-                                                borderRadius: '24px',
-                                                color: textColor,
-                                                display: 'inline-block',
-                                                fontSize: '13px',
-                                                fontWeight: 600,
-                                                padding: '8px 16px'
-                                            }
+                                            const colors = colorMap[status] || 'bg-[#f1f5f9] text-[#475569]'
+                                            return `inline-block rounded-3xl text-[13px] font-semibold px-4 py-2 ${colors}`
                                         }
                                         const actionBtnStyle = {
                                             alignItems: 'center',
@@ -790,7 +772,7 @@ function OperatorsView({
                                                                 icon.style.color = '#22c55e'
                                                                 setTimeout(() => {
                                                                     icon.className = 'fas fa-copy'
-                                                                    icon.style.color = '#94a3b8'
+                                                                    icon.style.color = ''
                                                                 }, 1500)
                                                             }}
                                                             title="Copy name"
@@ -798,7 +780,7 @@ function OperatorsView({
                                                                 alignItems: 'center',
                                                                 background: 'transparent',
                                                                 border: 'none',
-                                                                color: '#94a3b8',
+                                                                color: 'var(--text-secondary)',
                                                                 cursor: 'pointer',
                                                                 display: 'inline-flex',
                                                                 fontSize: '12px',
@@ -821,7 +803,7 @@ function OperatorsView({
                                                 </td>
                                                 <td style={{ ...cellSecondaryStyle, width: '14%' }}>
                                                     <div>
-                                                        <span style={statusBadgeStyle(operator.status)}>
+                                                        <span className={statusBadgeStyle(operator.status)}>
                                                             {operator.status || '\u2014'}
                                                             {operator.status &&
                                                                 operator.status !== 'Terminated' &&

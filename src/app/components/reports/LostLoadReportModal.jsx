@@ -136,10 +136,13 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
-                style={{ maxHeight: '90vh' }}
+                className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
+                style={{ maxHeight: '90vh', backgroundColor: 'var(--bg-primary)' }}
             >
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <div
+                    className="flex items-center justify-between px-6 py-4"
+                    style={{ borderBottom: '1px solid var(--border-light)' }}
+                >
                     <div className="flex items-center gap-3">
                         <div
                             className="flex items-center justify-center w-9 h-9 rounded-lg"
@@ -147,11 +150,14 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         >
                             <i className="fas fa-exclamation-triangle text-sm" style={{ color: accentColor }} />
                         </div>
-                        <h2 className="text-base font-semibold text-slate-800 m-0">Lost Load Report</h2>
+                        <h2 className="text-base font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
+                            Lost Load Report
+                        </h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg"
+                        style={{ color: 'var(--text-secondary)' }}
                         type="button"
                     >
                         <i className="fas fa-times text-sm" />
@@ -165,13 +171,23 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         </div>
                     )}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Plant</label>
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Plant
+                        </label>
                         <select
                             value={plant}
                             onChange={(e) => {
                                 setPlant(e.target.value)
                             }}
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                            style={{
+                                backgroundColor: 'var(--bg-primary)',
+                                border: '1px solid var(--border-light)',
+                                color: 'var(--text-primary)'
+                            }}
                         >
                             <option value="">Select plant...</option>
                             {plants.map((p) => (
@@ -182,63 +198,101 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         </select>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Yardage</label>
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Yardage
+                        </label>
                         <input
                             type="number"
                             value={yardage}
                             onChange={(e) => setYardage(e.target.value)}
                             placeholder="Enter yardage..."
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                            style={{
+                                backgroundColor: 'var(--bg-primary)',
+                                border: '1px solid var(--border-light)',
+                                color: 'var(--text-primary)'
+                            }}
                             min="0"
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             Truck Number
                         </label>
                         <button
                             type="button"
                             onClick={() => setTruckPickerOpen((v) => !v)}
-                            className="flex items-center justify-between px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-left transition-colors hover:border-slate-300"
+                            className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-left transition-colors"
+                            style={{
+                                backgroundColor: 'var(--bg-primary)',
+                                border: '1px solid var(--border-light)',
+                                color: 'var(--text-primary)'
+                            }}
                         >
                             {truckNumber ? (
-                                <span className="flex items-center gap-2 text-slate-800">
+                                <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                                     <span
                                         className="px-2 py-0.5 rounded-md text-xs font-bold text-white"
                                         style={{ backgroundColor: accentColor }}
                                     >
                                         #{truckNumber}
                                     </span>
-                                    <span className="text-slate-600">
+                                    <span style={{ color: 'var(--text-secondary)' }}>
                                         {operatorMap[
                                             regionalMixers.find((m) => m.truckNumber === truckNumber)?.assignedOperator
                                         ] || 'Unassigned'}
                                     </span>
                                 </span>
                             ) : (
-                                <span className="text-slate-400">Select truck...</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>Select truck...</span>
                             )}
-                            <i className={`fas fa-chevron-${truckPickerOpen ? 'up' : 'down'} text-xs text-slate-400`} />
+                            <i
+                                className={`fas fa-chevron-${truckPickerOpen ? 'up' : 'down'} text-xs`}
+                                style={{ color: 'var(--text-secondary)' }}
+                            />
                         </button>
                         {truckPickerOpen && (
-                            <div className="border border-slate-200 rounded-lg overflow-hidden bg-white shadow-md">
-                                <div className="p-2 border-b border-slate-100">
+                            <div
+                                className="rounded-lg overflow-hidden shadow-md"
+                                style={{
+                                    border: '1px solid var(--border-light)',
+                                    backgroundColor: 'var(--bg-primary)'
+                                }}
+                            >
+                                <div className="p-2" style={{ borderBottom: '1px solid var(--border-light)' }}>
                                     <input
                                         type="text"
                                         value={truckSearch}
                                         onChange={(e) => setTruckSearch(e.target.value)}
                                         placeholder="Search truck #, operator, or plant..."
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none"
+                                        className="w-full rounded-md px-3 py-2 text-sm focus:outline-none"
+                                        style={{
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            border: '1px solid var(--border-light)',
+                                            color: 'var(--text-primary)'
+                                        }}
                                         autoFocus
                                     />
                                 </div>
                                 {regionalMixers.length === 0 ? (
-                                    <div className="px-4 py-5 text-center text-sm text-slate-400">
+                                    <div
+                                        className="px-4 py-5 text-center text-sm"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
                                         <i className="fas fa-truck mb-2 text-lg block" />
                                         No mixers found
                                     </div>
                                 ) : (
-                                    <div className="max-h-48 overflow-y-auto divide-y divide-slate-50">
+                                    <div
+                                        className="max-h-48 overflow-y-auto"
+                                        style={{ borderColor: 'var(--border-light)' }}
+                                    >
                                         {regionalMixers.map((m) => {
                                             const opName = operatorMap[m.assignedOperator] || null
                                             const isSelected = truckNumber === m.truckNumber
@@ -251,7 +305,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                                         setTruckPickerOpen(false)
                                                         setTruckSearch('')
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
                                                     style={isSelected ? { backgroundColor: `${accentColor}08` } : {}}
                                                 >
                                                     <span
@@ -264,16 +318,25 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                                     </span>
                                                     <span className="flex-1 min-w-0">
                                                         {opName ? (
-                                                            <span className="text-sm font-medium text-slate-700 truncate block">
+                                                            <span
+                                                                className="text-sm font-medium truncate block"
+                                                                style={{ color: 'var(--text-primary)' }}
+                                                            >
                                                                 {opName}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-sm text-slate-400 italic">
+                                                            <span
+                                                                className="text-sm italic"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
                                                                 Unassigned
                                                             </span>
                                                         )}
                                                     </span>
-                                                    <span className="text-[10px] text-slate-400 font-medium flex-shrink-0">
+                                                    <span
+                                                        className="text-[10px] font-medium flex-shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
                                                         {m.assignedPlant || '-'}
                                                     </span>
                                                     {isSelected && (
@@ -291,7 +354,10 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         )}
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             Customer Name
                         </label>
                         <input
@@ -299,11 +365,19 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
                             placeholder="Enter customer name..."
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                            style={{
+                                backgroundColor: 'var(--bg-primary)',
+                                border: '1px solid var(--border-light)',
+                                color: 'var(--text-primary)'
+                            }}
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             Ticket Number
                         </label>
                         <input
@@ -311,11 +385,21 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                             value={ticketNumber}
                             onChange={(e) => setTicketNumber(e.target.value)}
                             placeholder="Enter ticket number..."
-                            className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 focus:outline-none"
+                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none"
+                            style={{
+                                backgroundColor: 'var(--bg-primary)',
+                                border: '1px solid var(--border-light)',
+                                color: 'var(--text-primary)'
+                            }}
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reason</label>
+                        <label
+                            className="text-xs font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Reason
+                        </label>
                         <div className="grid grid-cols-1 gap-2">
                             {REASONS.map((r) => (
                                 <button
@@ -333,12 +417,16 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                                   borderColor: accentColor,
                                                   color: accentColor
                                               }
-                                            : { borderColor: '#e2e8f0', color: '#475569' }
+                                            : { borderColor: 'var(--border-light)', color: 'var(--text-secondary)' }
                                     }
                                 >
                                     <div
                                         className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                                        style={reason === r ? { borderColor: accentColor } : { borderColor: '#cbd5e1' }}
+                                        style={
+                                            reason === r
+                                                ? { borderColor: accentColor }
+                                                : { borderColor: 'var(--border-light)' }
+                                        }
                                     >
                                         {reason === r && (
                                             <div
@@ -358,15 +446,24 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                 placeholder="Explain what happened and what will be done to prevent this..."
                                 rows={3}
                                 autoFocus
-                                className="bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 resize-none focus:outline-none mt-1"
+                                className="rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none mt-1"
+                                style={{
+                                    backgroundColor: 'var(--bg-primary)',
+                                    border: '1px solid var(--border-light)',
+                                    color: 'var(--text-primary)'
+                                }}
                             />
                         )}
                     </div>
                 </div>
-                <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
+                <div
+                    className="px-6 py-4 flex items-center justify-end gap-3"
+                    style={{ borderTop: '1px solid var(--border-light)' }}
+                >
                     <button
                         onClick={onClose}
-                        className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200"
+                        className="px-4 py-2.5 rounded-lg text-sm font-medium"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
                         type="button"
                     >
                         Cancel

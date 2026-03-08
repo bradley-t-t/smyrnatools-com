@@ -670,49 +670,24 @@ function EquipmentsView({
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        color: 'var(--accent)',
+                        color: 'var(--text-secondary)',
                         fontSize: '15px',
                         fontWeight: 700
                     }
                     const statusBadge = (status) => {
-                        let bg = '#f1f5f9',
-                            color = '#64748b'
-                        if (status === 'Active') {
-                            bg = '#dcfce7'
-                            color = '#166534'
-                        } else if (status === 'Spare') {
-                            bg = '#f3e8ff'
-                            color = '#7c3aed'
-                        } else if (status === 'In Shop') {
-                            bg = '#dbeafe'
-                            color = '#1e40af'
-                        } else if (status === 'Retired') {
-                            bg = '#f1f5f9'
-                            color = '#64748b'
-                        }
-                        return {
-                            backgroundColor: bg,
-                            borderRadius: '20px',
-                            color: color,
-                            display: 'inline-block',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            padding: '6px 14px'
-                        }
+                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                        if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
+                        if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
+                        if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
+                        return `${base} bg-[#f1f5f9] text-[#64748b]`
                     }
-                    const verifyBtnStyle = (verified) => ({
-                        alignItems: 'center',
-                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: verified ? '#166534' : '#92400e',
-                        cursor: verified ? 'default' : 'pointer',
-                        display: 'inline-flex',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        gap: '6px',
-                        padding: '8px 14px'
-                    })
+                    const verifyBtnStyle = (verified) => {
+                        const base =
+                            'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
+                        const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
+                        const cursor = verified ? 'cursor-default' : 'cursor-pointer'
+                        return `${base} ${colors} ${cursor}`
+                    }
                     const actionBtnStyle = {
                         alignItems: 'center',
                         backgroundColor: 'var(--bg-primary)',
@@ -759,7 +734,7 @@ function EquipmentsView({
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy equipment number"
@@ -767,7 +742,7 @@ function EquipmentsView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -793,7 +768,7 @@ function EquipmentsView({
                             </td>
                             <td style={{ ...cellStyle, width: '8%' }}>
                                 <div>
-                                    <span style={statusBadge(item.status)}>
+                                    <span className={statusBadge(item.status)}>
                                         {item.status || '---'}
                                         {item.status &&
                                             item.status !== 'Retired' &&
@@ -858,7 +833,7 @@ function EquipmentsView({
                                         style={{
                                             backgroundColor: 'var(--bg-secondary)',
                                             borderRadius: '8px',
-                                            color: '#94a3b8',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '12px',
                                             fontWeight: 600,
                                             padding: '8px 14px'
@@ -874,15 +849,12 @@ function EquipmentsView({
                                             if (onVerify) onVerify(item.id, item.identifyingNumber)
                                         }}
                                         title={isVerified ? 'Verified' : 'Click to verify'}
-                                        style={verifyBtnStyle(isVerified)}
+                                        className={verifyBtnStyle(isVerified)}
                                     >
                                         <i
                                             className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
-                                            style={{ color: isVerified ? '#166534' : '#92400e' }}
                                         ></i>
-                                        <span style={{ color: isVerified ? '#166534' : '#92400e' }}>
-                                            {isVerified ? 'Verified' : 'Verify'}
-                                        </span>
+                                        <span>{isVerified ? 'Verified' : 'Verify'}</span>
                                     </button>
                                 )}
                             </td>

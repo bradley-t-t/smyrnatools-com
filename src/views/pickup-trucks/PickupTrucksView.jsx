@@ -409,38 +409,19 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        color: 'var(--accent)',
+                        color: 'var(--text-secondary)',
                         fontSize: '15px',
                         fontWeight: 700
                     }
                     const statusBadge = (status) => {
-                        let bg = '#f1f5f9',
-                            color = '#64748b'
-                        if (status === 'Active') {
-                            bg = '#dcfce7'
-                            color = '#166534'
-                        } else if (status === 'Spare') {
-                            bg = '#f3e8ff'
-                            color = '#7c3aed'
-                        } else if (status === 'In Shop') {
-                            bg = '#dbeafe'
-                            color = '#1e40af'
-                        } else if (status === 'Stationary') {
-                            bg = '#e0e7ff'
-                            color = '#3730a3'
-                        } else if (status === 'Sold' || status === 'Retired') {
-                            bg = '#f1f5f9'
-                            color = '#64748b'
+                        const colorMap = {
+                            Active: 'bg-[#dcfce7] text-[#166534]',
+                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                            Stationary: 'bg-[#e0e7ff] text-[#3730a3]'
                         }
-                        return {
-                            backgroundColor: bg,
-                            borderRadius: '20px',
-                            color: color,
-                            display: 'inline-block',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            padding: '6px 14px'
-                        }
+                        const colors = colorMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
+                        return `inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5 ${colors}`
                     }
                     const actionBtnStyle = {
                         alignItems: 'center',
@@ -456,15 +437,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                         marginRight: '8px',
                         width: '36px'
                     }
-                    const warningBadge = {
-                        backgroundColor: '#fef3c7',
-                        borderRadius: '6px',
-                        color: '#92400e',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        marginLeft: '8px',
-                        padding: '4px 8px'
-                    }
+                    const warningBadge = 'bg-[#fef3c7] text-[#92400e] rounded-md text-[10px] font-bold ml-2 px-2 py-1'
                     return (
                         <tr
                             key={item.id}
@@ -484,7 +457,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             <td style={{ ...cellStyle, width: '12%' }}>{item.assignedPlant || '---'}</td>
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <div>
-                                    <span style={statusBadge(item.status)}>
+                                    <span className={statusBadge(item.status)}>
                                         {item.status || '---'}
                                         {item.status &&
                                             item.status !== 'Retired' &&
@@ -512,7 +485,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 {item.assigned || '---'}
                                 {duplicateAssigned.has(assignedKey) && (
-                                    <span style={warningBadge} title="Assigned to multiple pickups">
+                                    <span className={warningBadge} title="Assigned to multiple pickups">
                                         <i className="fas fa-exclamation-triangle"></i>
                                     </span>
                                 )}
@@ -548,7 +521,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy VIN"
@@ -556,7 +529,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -566,7 +539,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                             <i className="fas fa-copy"></i>
                                         </button>
                                         {duplicateVINs.has(vinKey) && (
-                                            <span style={warningBadge} title="Duplicate VIN">
+                                            <span className={warningBadge} title="Duplicate VIN">
                                                 <i className="fas fa-exclamation-triangle"></i>
                                             </span>
                                         )}
@@ -581,11 +554,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                                         {item.mileage.toLocaleString()}
                                         {item.mileage > 300000 && (
                                             <span
-                                                style={{
-                                                    ...warningBadge,
-                                                    backgroundColor: '#fef2f2',
-                                                    color: '#991b1b'
-                                                }}
+                                                className="bg-[#fef2f2] text-[#991b1b] rounded-md text-[10px] font-bold ml-2 px-2 py-1"
                                                 title="High mileage"
                                             >
                                                 <i className="fas fa-exclamation-triangle"></i>

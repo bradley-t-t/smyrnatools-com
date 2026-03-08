@@ -150,7 +150,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                 }
                 .comment-card-hover:hover {
                     transform: translateX(4px);
-                    box-shadow: -4px 0 0 0 #94a3b8, 0 4px 20px rgba(0,0,0,0.08);
+                    box-shadow: -4px 0 0 0 var(--text-secondary), 0 4px 20px rgba(0,0,0,0.08);
                 }
                 @media (max-width: 480px) {
                     .comment-modal-header { padding: 1rem !important; }
@@ -183,7 +183,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                     onClick={(e) => e.stopPropagation()}
                     style={{
                         animation: 'commentSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        background: '#f8fafc',
+                        background: 'var(--bg-secondary)',
                         borderRadius: '20px',
                         boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
                         display: 'flex',
@@ -197,8 +197,8 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                     <div
                         className="comment-modal-header"
                         style={{
-                            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-                            borderBottom: '1px solid #e2e8f0',
+                            background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-hover) 100%)',
+                            borderBottom: '1px solid var(--border-light)',
                             padding: '1.5rem',
                             position: 'relative'
                         }}
@@ -207,10 +207,10 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                             onClick={onClose}
                             style={{
                                 alignItems: 'center',
-                                background: '#e2e8f0',
+                                background: 'var(--bg-hover)',
                                 border: 'none',
                                 borderRadius: '10px',
-                                color: '#64748b',
+                                color: 'var(--text-secondary)',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 fontSize: '1rem',
@@ -222,8 +222,8 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 transition: 'all 0.2s',
                                 width: '36px'
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#cbd5e1')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = '#e2e8f0')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border-medium)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
                         >
                             <i className="fas fa-times"></i>
                         </button>
@@ -232,7 +232,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 className="comment-modal-header-icon"
                                 style={{
                                     alignItems: 'center',
-                                    background: '#e2e8f0',
+                                    background: 'var(--bg-hover)',
                                     borderRadius: '14px',
                                     display: 'flex',
                                     height: '52px',
@@ -240,12 +240,15 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                     width: '52px'
                                 }}
                             >
-                                <i className="fas fa-comments" style={{ color: '#475569', fontSize: '1.5rem' }}></i>
+                                <i
+                                    className="fas fa-comments"
+                                    style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}
+                                ></i>
                             </div>
                             <div>
                                 <div
                                     style={{
-                                        color: '#64748b',
+                                        color: 'var(--text-secondary)',
                                         fontSize: '0.75rem',
                                         fontWeight: 600,
                                         letterSpacing: '1px',
@@ -257,7 +260,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 </div>
                                 <div
                                     className="comment-modal-title"
-                                    style={{ color: '#1e293b', fontSize: '1.375rem', fontWeight: 700 }}
+                                    style={{ color: 'var(--text-primary)', fontSize: '1.375rem', fontWeight: 700 }}
                                 >
                                     {itemNumber || itemId}
                                 </div>
@@ -266,9 +269,9 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                         <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                             <span
                                 style={{
-                                    background: '#e2e8f0',
+                                    background: 'var(--bg-hover)',
                                     borderRadius: '8px',
-                                    color: '#475569',
+                                    color: 'var(--text-secondary)',
                                     fontSize: '0.8125rem',
                                     fontWeight: 600,
                                     padding: '0.5rem 0.875rem'
@@ -285,7 +288,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                             <div
                                 className="comment-modal-form-inner"
                                 style={{
-                                    background: 'white',
+                                    background: 'var(--bg-primary)',
                                     borderRadius: '14px',
                                     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                                     padding: '1rem'
@@ -298,10 +301,10 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                     disabled={isSubmitting}
                                     rows="2"
                                     style={{
-                                        background: '#f8fafc',
+                                        background: 'var(--bg-secondary)',
                                         border: '2px solid transparent',
                                         borderRadius: '10px',
-                                        color: '#1e293b',
+                                        color: 'var(--text-primary)',
                                         fontFamily: 'inherit',
                                         fontSize: '0.9375rem',
                                         outline: 'none',
@@ -312,11 +315,11 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                     }}
                                     onFocus={(e) => {
                                         e.currentTarget.style.borderColor = '#dc2626'
-                                        e.currentTarget.style.background = 'white'
+                                        e.currentTarget.style.background = 'var(--bg-primary)'
                                     }}
                                     onBlur={(e) => {
                                         e.currentTarget.style.borderColor = 'transparent'
-                                        e.currentTarget.style.background = '#f8fafc'
+                                        e.currentTarget.style.background = 'var(--bg-secondary)'
                                     }}
                                 />
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
@@ -327,7 +330,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                             alignItems: 'center',
                                             background:
                                                 isSubmitting || !newComment.trim()
-                                                    ? '#cbd5e1'
+                                                    ? 'var(--border-medium)'
                                                     : 'linear-gradient(135deg, var(--accent), #0f172a)',
                                             border: 'none',
                                             borderRadius: '10px',
@@ -375,7 +378,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 <div
                                     style={{
                                         alignItems: 'center',
-                                        background: '#e2e8f0',
+                                        background: 'var(--bg-hover)',
                                         borderRadius: '50%',
                                         display: 'flex',
                                         height: '64px',
@@ -386,13 +389,26 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                 >
                                     <i
                                         className="fas fa-comment-dots"
-                                        style={{ color: '#64748b', fontSize: '1.5rem' }}
+                                        style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}
                                     ></i>
                                 </div>
-                                <p style={{ color: '#64748b', fontSize: '0.9375rem', fontWeight: 500, margin: 0 }}>
+                                <p
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '0.9375rem',
+                                        fontWeight: 500,
+                                        margin: 0
+                                    }}
+                                >
                                     No comments yet
                                 </p>
-                                <p style={{ color: '#94a3b8', fontSize: '0.8125rem', margin: '0.25rem 0 0 0' }}>
+                                <p
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: '0.8125rem',
+                                        margin: '0.25rem 0 0 0'
+                                    }}
+                                >
                                     Be the first to add a comment
                                 </p>
                             </div>
@@ -406,7 +422,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                             key={comment.id}
                                             className="comment-card-hover"
                                             style={{
-                                                background: 'white',
+                                                background: 'var(--bg-primary)',
                                                 borderRadius: '12px',
                                                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                                                 padding: '1rem',
@@ -444,20 +460,25 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
                                                     >
                                                         <span
                                                             style={{
-                                                                color: '#1e293b',
+                                                                color: 'var(--text-primary)',
                                                                 fontSize: '0.875rem',
                                                                 fontWeight: 600
                                                             }}
                                                         >
                                                             {authorName}
                                                         </span>
-                                                        <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                                                        <span
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        >
                                                             {formatDate(comment.createdAt || comment.created_at)}
                                                         </span>
                                                     </div>
                                                     <p
                                                         style={{
-                                                            color: '#475569',
+                                                            color: 'var(--text-secondary)',
                                                             fontSize: '0.9375rem',
                                                             lineHeight: 1.5,
                                                             margin: 0,

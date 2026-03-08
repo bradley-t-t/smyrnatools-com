@@ -182,7 +182,14 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             <DetailViewSection.Section id="plants" title="Assigned Plants" icon="fas fa-industry">
                 <DetailViewSection.Card title={`Plants (${plantCodes.length} selected)`} icon="fas fa-sitemap">
                     {noPlantsAvailable ? (
-                        <div style={{ color: '#94a3b8', fontSize: 14, padding: '16px 0', textAlign: 'center' }}>
+                        <div
+                            style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: 14,
+                                padding: '16px 0',
+                                textAlign: 'center'
+                            }}
+                        >
                             No plants available. Please add plants to the system.
                         </div>
                     ) : (
@@ -276,7 +283,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                 {!filteredPlants.length && (
                                     <div
                                         style={{
-                                            color: '#94a3b8',
+                                            color: 'var(--text-secondary)',
                                             fontSize: 14,
                                             padding: '16px 0',
                                             textAlign: 'center'

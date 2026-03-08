@@ -5,24 +5,24 @@ const cardStyles = `
         justify-content: space-between;
         align-items: center;
         padding: 8px 0;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid var(--border-light);
     }
     .detail-row:last-child {
         border-bottom: none;
     }
     .detail-label {
-        color: #64748b;
+        color: var(--text-secondary);
         font-size: 0.875rem;
         font-weight: 500;
     }
     .detail-value {
-        color: #1e293b;
+        color: var(--text-primary);
         font-size: 0.875rem;
         font-weight: 600;
         text-align: right;
     }
     .detail-value.overdue {
-        color: #dc2626;
+        color: var(--danger);
         font-weight: 700;
     }
     .stars-container {
@@ -33,7 +33,7 @@ const cardStyles = `
         color: #facc15;
     }
     .stars-container .empty-star {
-        color: #e5e7eb;
+        color: var(--border-medium);
     }
     .in-yard-badge {
         background-color: #fef2f2;
@@ -42,6 +42,10 @@ const cardStyles = `
         font-size: 10px;
         font-weight: 700;
         padding: 4px 8px;
+    }
+    html.dark .in-yard-badge {
+        background-color: #1a0a0a;
+        color: #fca5a5;
     }
 `
 /**
@@ -72,10 +76,10 @@ function CardSection({
     const cardProps = onSelect ? { onClick: handleCardClick } : {}
     const styles = {
         card: {
-            background: 'white',
-            border: '1px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: '12px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            boxShadow: 'var(--shadow)',
             cursor: onSelect ? 'pointer' : 'default',
             marginBottom: '24px',
             overflow: 'hidden',
@@ -92,7 +96,7 @@ function CardSection({
         },
         cardHeader: {
             alignItems: 'flex-start',
-            borderBottom: '2px solid #e5e7eb',
+            borderBottom: '2px solid var(--border-light)',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
@@ -112,7 +116,7 @@ function CardSection({
         },
         itemSubtitle: {
             alignItems: 'center',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'flex',
             fontSize: '1rem',
             fontWeight: 600,

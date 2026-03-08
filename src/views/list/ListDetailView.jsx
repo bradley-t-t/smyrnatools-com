@@ -349,7 +349,7 @@ function ListDetailView({ itemId, onClose }) {
                                         disabled={isImprovingDescription}
                                         className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                                         style={{
-                                            backgroundColor: '#eff6ff',
+                                            backgroundColor: 'var(--bg-secondary)',
                                             border: 'none',
                                             color: 'var(--accent)',
                                             cursor: isImprovingDescription ? 'not-allowed' : 'pointer'

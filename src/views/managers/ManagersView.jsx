@@ -322,7 +322,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                     colWidths={['10%', '23%', '14%', '14%', '17%', '22%']}
                                     renderRow={(manager, handleSelect) => {
                                         const cellStyle = {
-                                            color: '#1e293b',
+                                            color: 'var(--text-primary)',
                                             fontSize: '15px',
                                             fontWeight: 500,
                                             padding: '20px 24px',
@@ -330,40 +330,35 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                             verticalAlign: 'middle'
                                         }
                                         const cellSecondaryStyle = {
-                                            color: '#475569',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '14px',
                                             padding: '20px 24px',
                                             textAlign: 'left',
                                             verticalAlign: 'middle'
                                         }
                                         const cellHighlightStyle = {
-                                            color: 'var(--accent)',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '16px',
                                             fontWeight: 700,
                                             padding: '20px 24px',
                                             textAlign: 'left',
                                             verticalAlign: 'middle'
                                         }
-                                        const roleBadgeStyle = {
-                                            backgroundColor: '#e0e7ff',
-                                            borderRadius: '24px',
-                                            color: '#4338ca',
-                                            display: 'inline-block',
-                                            fontSize: '13px',
-                                            fontWeight: 600,
-                                            padding: '8px 16px'
-                                        }
+                                        const roleBadgeCls =
+                                            'bg-[#e0e7ff] text-[#4338ca] inline-block rounded-3xl text-[13px] font-semibold px-4 py-2'
                                         return (
                                             <tr
                                                 key={manager.id}
                                                 onClick={() => handleSelect(manager)}
                                                 style={{
-                                                    borderBottom: '1px solid #e2e8f0',
+                                                    borderBottom: '1px solid var(--border-light)',
                                                     cursor: 'pointer'
                                                 }}
                                                 onMouseEnter={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach((cell) => (cell.style.backgroundColor = '#e0f2fe'))
+                                                    cells.forEach(
+                                                        (cell) => (cell.style.backgroundColor = 'var(--bg-hover)')
+                                                    )
                                                 }}
                                                 onMouseLeave={(e) => {
                                                     const cells = e.currentTarget.querySelectorAll('td')
@@ -404,7 +399,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                                 </td>
                                                 <td style={{ ...cellSecondaryStyle, width: '17%' }}>
                                                     {manager.roleName ? (
-                                                        <span style={roleBadgeStyle}>{manager.roleName}</span>
+                                                        <span className={roleBadgeCls}>{manager.roleName}</span>
                                                     ) : (
                                                         '\u2014'
                                                     )}

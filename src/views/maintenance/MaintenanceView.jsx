@@ -146,7 +146,7 @@ export default function MaintenanceView() {
     }
     const styles = {
         container: {
-            background: '#f8fafc',
+            background: 'var(--bg-secondary)',
             minHeight: '100%',
             width: '100%'
         },
@@ -178,27 +178,27 @@ export default function MaintenanceView() {
             textAlign: 'center'
         },
         emptyIcon: {
-            color: '#cbd5e1',
+            color: 'var(--border-medium)',
             fontSize: '4rem',
             marginBottom: '1rem'
         },
         emptyText: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.9375rem',
             marginBottom: '1.5rem'
         },
         emptyTitle: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1.25rem',
             fontWeight: 700,
             marginBottom: '0.5rem'
         },
         filterButton: (active) => ({
             alignItems: 'center',
-            background: 'white',
-            border: active ? '2px solid var(--accent)' : '2px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: active ? '2px solid var(--accent)' : '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: active ? 'var(--accent)' : '#1e293b',
+            color: active ? 'var(--accent)' : 'var(--text-primary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -211,10 +211,10 @@ export default function MaintenanceView() {
         }),
         filterClearBtn: {
             alignItems: 'center',
-            background: '#f1f5f9',
+            background: 'var(--bg-tertiary)',
             border: 'none',
             borderRadius: '8px',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -230,17 +230,17 @@ export default function MaintenanceView() {
         },
         filterLabel: {
             alignItems: 'center',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'flex',
             fontSize: '0.875rem',
             fontWeight: 600,
             gap: '0.5rem'
         },
         filterSelect: {
-            background: 'white',
-            border: '2px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            border: '2px solid var(--border-light)',
             borderRadius: '8px',
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             cursor: 'pointer',
             fontSize: '0.875rem',
             fontWeight: 600,
@@ -255,8 +255,8 @@ export default function MaintenanceView() {
             marginBottom: '1.5rem'
         },
         header: {
-            background: 'white',
-            borderBottom: '1px solid #e5e7eb',
+            background: 'var(--bg-primary)',
+            borderBottom: '1px solid var(--border-light)',
             padding: '1.5rem 2rem'
         },
         headerInner: {
@@ -265,8 +265,8 @@ export default function MaintenanceView() {
         },
         item: (status) => ({
             alignItems: 'flex-start',
-            background: status === 'completed' ? '#f8fafc' : 'white',
-            border: '1px solid #e5e7eb',
+            background: status === 'completed' ? 'var(--bg-secondary)' : 'var(--bg-primary)',
+            border: '1px solid var(--border-light)',
             borderRadius: '12px',
             cursor: 'pointer',
             display: 'flex',
@@ -280,7 +280,7 @@ export default function MaintenanceView() {
             minWidth: 0
         },
         itemDesc: {
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             fontSize: '0.875rem',
             marginBottom: '0.75rem'
         },
@@ -313,7 +313,7 @@ export default function MaintenanceView() {
             flexShrink: 0
         },
         itemTitle: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1rem',
             fontWeight: 600,
             marginBottom: '0.25rem'
@@ -325,13 +325,13 @@ export default function MaintenanceView() {
         },
         metaItem: {
             alignItems: 'center',
-            color: '#64748b',
+            color: 'var(--text-secondary)',
             display: 'flex',
             fontSize: '0.8125rem',
             gap: '0.375rem'
         },
         plantTag: {
-            background: '#eff6ff',
+            background: 'var(--bg-secondary)',
             border: '1px solid #3b82f6',
             borderRadius: '6px',
             color: '#3b82f6',
@@ -340,10 +340,10 @@ export default function MaintenanceView() {
         },
         reviewSubTab: (active) => ({
             alignItems: 'center',
-            background: active ? '#f0f7ff' : 'transparent',
+            background: active ? 'var(--bg-secondary)' : 'transparent',
             border: active ? '1px solid var(--accent)' : '1px solid transparent',
             borderRadius: '8px',
-            color: active ? 'var(--accent)' : '#64748b',
+            color: active ? 'var(--accent)' : 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -353,41 +353,35 @@ export default function MaintenanceView() {
             transition: 'all 0.2s'
         }),
         reviewSubTabs: {
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: '1px solid var(--border-light)',
             display: 'flex',
             gap: '0.5rem',
             marginBottom: '1.5rem',
             paddingBottom: '0.5rem'
         },
         section: {
-            background: 'white',
+            background: 'var(--bg-primary)',
+            borderRadius: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            padding: '1.5rem'
+        },
+        sectionWithBg: {
+            background: 'var(--bg-primary)',
             borderRadius: '12px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
             padding: '1.5rem'
         },
         statusBadge: (status) => {
-            const colors = {
-                approved: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                completed: { bg: '#d1fae5', border: '#10b981', text: '#059669' },
-                default: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' },
-                overdue: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                pending: { bg: '#fef3c7', border: '#f59e0b', text: '#d97706' },
-                rejected: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626' },
-                submitted: { bg: '#e0e7ff', border: '#6366f1', text: '#4f46e5' }
+            const classes = {
+                approved: 'bg-emerald-100 text-emerald-700 border border-emerald-500',
+                completed: 'bg-emerald-100 text-emerald-700 border border-emerald-500',
+                default: 'bg-indigo-100 text-indigo-700 border border-indigo-500',
+                overdue: 'bg-red-100 text-red-700 border border-red-500',
+                pending: 'bg-amber-100 text-amber-700 border border-amber-500',
+                rejected: 'bg-red-100 text-red-700 border border-red-500',
+                submitted: 'bg-indigo-100 text-indigo-700 border border-indigo-500'
             }
-            const color = colors[status] || colors.default
-            return {
-                background: color.bg,
-                border: `1px solid ${color.border}`,
-                borderRadius: '6px',
-                color: color.text,
-                display: 'inline-block',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                letterSpacing: '0.5px',
-                padding: '0.375rem 0.75rem',
-                textTransform: 'uppercase'
-            }
+            return `inline-block rounded-md text-xs font-bold uppercase tracking-wide px-3 py-1.5 ${classes[status] || classes.default}`
         },
         subTabBadge: {
             alignItems: 'center',
@@ -407,7 +401,7 @@ export default function MaintenanceView() {
             background: 'transparent',
             border: 'none',
             borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
-            color: active ? 'var(--accent)' : '#64748b',
+            color: active ? 'var(--accent)' : 'var(--text-secondary)',
             cursor: 'pointer',
             display: 'flex',
             fontSize: '0.875rem',
@@ -431,12 +425,12 @@ export default function MaintenanceView() {
             padding: '0 0.375rem'
         },
         tabs: {
-            borderBottom: '2px solid #e5e7eb',
+            borderBottom: '2px solid var(--border-light)',
             display: 'flex',
             gap: '0.5rem'
         },
         title: {
-            color: '#1e293b',
+            color: 'var(--text-primary)',
             fontSize: '1.75rem',
             fontWeight: 700,
             margin: 0
@@ -495,7 +489,7 @@ export default function MaintenanceView() {
                                 if (activeTab !== 'due') e.currentTarget.style.color = 'var(--accent)'
                             }}
                             onMouseLeave={(e) => {
-                                if (activeTab !== 'due') e.currentTarget.style.color = '#64748b'
+                                if (activeTab !== 'due') e.currentTarget.style.color = 'var(--text-secondary)'
                             }}
                         >
                             <i className="fas fa-clipboard-list"></i>
@@ -514,7 +508,7 @@ export default function MaintenanceView() {
                                     if (activeTab !== 'review') e.currentTarget.style.color = 'var(--accent)'
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (activeTab !== 'review') e.currentTarget.style.color = '#64748b'
+                                    if (activeTab !== 'review') e.currentTarget.style.color = 'var(--text-secondary)'
                                 }}
                             >
                                 <i className="fas fa-clipboard-check"></i>
@@ -532,7 +526,7 @@ export default function MaintenanceView() {
                                     if (activeTab !== 'manage') e.currentTarget.style.color = 'var(--accent)'
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (activeTab !== 'manage') e.currentTarget.style.color = '#64748b'
+                                    if (activeTab !== 'manage') e.currentTarget.style.color = 'var(--text-secondary)'
                                 }}
                             >
                                 <i className="fas fa-cog"></i>
@@ -589,8 +583,12 @@ export default function MaintenanceView() {
                                                     setPlantFilter('')
                                                     setFormTypeFilter('')
                                                 }}
-                                                onMouseEnter={(e) => (e.currentTarget.style.background = '#e2e8f0')}
-                                                onMouseLeave={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                                                onMouseEnter={(e) =>
+                                                    (e.currentTarget.style.background = 'var(--bg-hover)')
+                                                }
+                                                onMouseLeave={(e) =>
+                                                    (e.currentTarget.style.background = 'var(--bg-tertiary)')
+                                                }
                                             >
                                                 <i className="fas fa-times"></i>
                                                 <span>Clear Filters</span>
@@ -670,7 +668,9 @@ export default function MaintenanceView() {
                                                     </div>
                                                 </div>
                                                 <div style={styles.itemStatus}>
-                                                    <span style={styles.statusBadge(item.status)}>{item.status}</span>
+                                                    <span className={styles.statusBadge(item.status)}>
+                                                        {item.status}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))}
@@ -757,7 +757,7 @@ export default function MaintenanceView() {
                                                             </div>
                                                         </div>
                                                         <div style={styles.itemStatus}>
-                                                            <span style={styles.statusBadge(submission.status)}>
+                                                            <span className={styles.statusBadge(submission.status)}>
                                                                 {submission.status}
                                                             </span>
                                                         </div>

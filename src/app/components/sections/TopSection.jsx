@@ -54,8 +54,8 @@ const ActionButton = ({ icon, label, onClick, variant = 'subtle', accentColor, c
         <button
             className={`${baseClasses} ${className}`}
             style={{
-                backgroundColor: isPrimary ? accentColor : '#f1f5f9',
-                color: isPrimary ? 'white' : '#475569'
+                backgroundColor: isPrimary ? accentColor : 'var(--bg-tertiary)',
+                color: isPrimary ? 'white' : 'var(--text-secondary)'
             }}
             onClick={onClick}
             type="button"
@@ -80,7 +80,7 @@ const ViewToggle = ({ viewMode, onChange, accentColor }) => (
                     className="flex items-center justify-center w-10 h-10 rounded-lg text-[15px] border-none cursor-pointer transition-all duration-150"
                     style={{
                         backgroundColor: isActive ? accentColor : 'transparent',
-                        color: isActive ? 'white' : '#64748b'
+                        color: isActive ? 'white' : 'var(--text-secondary)'
                     }}
                     onClick={() => onChange?.(mode)}
                     aria-label={`${mode} view`}
@@ -180,7 +180,7 @@ const MobileViewToggle = ({ viewMode, onChange, accentColor }) => (
                     style={{
                         backgroundColor: isActive ? `${accentColor}15` : 'white',
                         borderColor: isActive ? accentColor : '#e5e7eb',
-                        color: isActive ? accentColor : '#64748b'
+                        color: isActive ? accentColor : 'var(--text-secondary)'
                     }}
                     onClick={() => onChange?.(mode)}
                     aria-label={`${label} view`}
@@ -446,7 +446,7 @@ function TopSection({
                                     style={{
                                         backgroundColor: showMobileFilters ? `${accentColor}15` : '#f8fafc',
                                         borderColor: showMobileFilters ? accentColor : '#e5e7eb',
-                                        color: showMobileFilters ? accentColor : '#64748b'
+                                        color: showMobileFilters ? accentColor : 'var(--text-secondary)'
                                     }}
                                     onClick={() => setShowMobileFilters(!showMobileFilters)}
                                     type="button"

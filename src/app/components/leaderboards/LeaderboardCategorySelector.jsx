@@ -25,7 +25,11 @@ function CategoryTab({ category, isSelected, onSelect, variant, accentColor }) {
             style={
                 isSelected
                     ? isDark
-                        ? { background: '#fff', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', color: '#0f172a' }
+                        ? {
+                              background: 'var(--bg-primary)',
+                              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                              color: 'var(--text-primary)'
+                          }
                         : { background: accentColor, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', color: '#fff' }
                     : {}
             }

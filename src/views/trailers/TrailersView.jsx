@@ -491,35 +491,16 @@ function TrailersView({
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        color: 'var(--accent)',
+                        color: 'var(--text-secondary)',
                         fontSize: '15px',
                         fontWeight: 700
                     }
                     const statusBadge = (status) => {
-                        let bg = '#f1f5f9',
-                            color = '#64748b'
-                        if (status === 'Active') {
-                            bg = '#dcfce7'
-                            color = '#166534'
-                        } else if (status === 'Spare') {
-                            bg = '#f3e8ff'
-                            color = '#7c3aed'
-                        } else if (status === 'In Shop') {
-                            bg = '#dbeafe'
-                            color = '#1e40af'
-                        } else if (status === 'Retired') {
-                            bg = '#f1f5f9'
-                            color = '#64748b'
-                        }
-                        return {
-                            backgroundColor: bg,
-                            borderRadius: '20px',
-                            color: color,
-                            display: 'inline-block',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            padding: '6px 14px'
-                        }
+                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                        if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
+                        if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
+                        if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
+                        return `${base} bg-[#f1f5f9] text-[#64748b]`
                     }
                     const actionBtnStyle = {
                         alignItems: 'center',
@@ -566,7 +547,7 @@ function TrailersView({
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy trailer number"
@@ -574,7 +555,7 @@ function TrailersView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -590,7 +571,7 @@ function TrailersView({
                             </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <div>
-                                    <span style={statusBadge(item.status)}>
+                                    <span className={statusBadge(item.status)}>
                                         {item.status || '---'}
                                         {item.status &&
                                             item.status !== 'Retired' &&
@@ -649,7 +630,7 @@ function TrailersView({
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy tractor number"
@@ -657,7 +638,7 @@ function TrailersView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -711,7 +692,7 @@ function TrailersView({
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy VIN"
@@ -719,7 +700,7 @@ function TrailersView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',

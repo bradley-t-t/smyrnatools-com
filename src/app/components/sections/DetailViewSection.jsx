@@ -119,9 +119,9 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
 .danger-button:active { transform: translateY(0); }
 .danger-button:disabled { background: var(--text-secondary); cursor: not-allowed; transform: none; }
 .cancel-button { width: 100%; padding: 0.875rem 1.5rem; background: var(--bg-secondary); color: var(--text-secondary); border: 1.5px solid var(--border-light); border-radius: 10px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-.cancel-button:hover { background: var(--bg-tertiary); border-color: #cbd5e1; }
+.cancel-button:hover { background: var(--bg-tertiary); border-color: var(--border-medium); }
 .global-button-secondary { padding: 0.625rem 1rem; background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.5rem; }
-.global-button-secondary:hover { background: var(--bg-tertiary); border-color: #cbd5e1; }
+.global-button-secondary:hover { background: var(--bg-tertiary); border-color: var(--border-medium); }
 .global-button-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 .global-button-secondary i { font-size: 0.8125rem; }
 .sidebar-readonly-notice { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fcd34d; border-radius: 10px; color: #92400e; font-size: 0.8125rem; font-weight: 600; width: 100%; }
@@ -140,7 +140,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
 .toggle-label { display: inline-flex; align-items: center; gap: 0.75rem; cursor: pointer; }
 .toggle-label.disabled { opacity: 0.6; cursor: not-allowed; }
 .toggle-checkbox { display: none; }
-.toggle-switch { position: relative; width: 44px; height: 24px; background: #cbd5e1; border-radius: 12px; transition: all 0.2s; }
+.toggle-switch { position: relative; width: 44px; height: 24px; background: var(--border-medium); border-radius: 12px; transition: all 0.2s; }
 .toggle-checkbox:checked + .toggle-switch { background: ${accent}; }
 .toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .toggle-checkbox:checked + .toggle-switch .toggle-slider { left: 22px; }
@@ -786,7 +786,7 @@ DetailViewSection.Card = function Card({ title, icon, children, actions, fullWid
             className={`overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${fullWidth ? 'col-[1_/_-1]' : ''}`}
         >
             {title && (
-                <div className="flex items-center justify-between gap-2.5 border-b border-gray-200 bg-[#fafbfc] px-5 py-3.5">
+                <div className="flex items-center justify-between gap-2.5 border-b border-gray-200 bg-slate-50 px-5 py-3.5">
                     <div className="flex items-center gap-2.5 text-[15px] font-semibold text-slate-800">
                         {icon && <i className={icon} style={{ color: accent, fontSize: 15 }}></i>}
                         {title}
@@ -953,7 +953,7 @@ DetailViewSection.Toggle = function Toggle({ label, checked, onChange, disabled 
         <label className={`flex items-center gap-3 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
             <div
                 className="relative h-7 w-[52px] rounded-[14px] p-[3px] transition-colors duration-200"
-                style={{ background: checked ? accent : '#cbd5e1' }}
+                style={{ background: checked ? accent : 'var(--border-medium)' }}
             >
                 <div
                     className="h-[22px] w-[22px] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition-transform duration-200"

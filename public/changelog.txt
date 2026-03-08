@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.10] - 2026-03-08
+
+- Implemented theme mode support with a new useThemeMode hook to manage theme preferences dynamically.
+- Updated Navigation component styling to use CSS variables for colors and backgrounds, ensuring consistency with theme changes.
+- Refactored DashboardCharts to replace hardcoded colors with CSS variables for better theme integration across chart elements like grids, axes, and legends.
+- Adjusted FleetOverviewSection by removing hardcoded icon background colors, aligning with the new theme system.
+- Enhanced MaintenanceQualitySection with CSS variables for chart styling, replacing static color values for grids and text.
+- Updated various dashboard components like DashboardPlantSummary and PeopleSection to adopt theme-consistent color variables.
+- Improved UI consistency in WeeklyPlanner, reports components (LostLoadsList, MyReportsList, ReviewReportsList), and view sections (AddViewSection, DetailViewSection, ListViewModeSection) by refining layouts and styling.
+- Revamped CalculatorView and related calculator types (ProportionsCalculator, SetTimeCalculator, SlumpAdjustmentCalculator, WaterCementCalculator, YardagePerHourCalculator) with updated UI and logic for better user interaction.
+- Applied structural improvements across multiple view components (EquipmentsView, ListView, MixersView, OperatorsView, PickupTrucksView, PlanView, PlantsView, RegionsView, TractorsView, TrailersView) for enhanced performance and readability.
+- Added new content and styling to MyAccountView to improve user account management experience.
+- Expanded index.css with significant updates, likely adding new styles and theme-related CSS variables to support the updated visual design.
+
 ## [27.9] - 2026-03-08
 
 - Converted inline styles to Tailwind CSS classes in VerificationRequirementsModal.jsx for improved maintainability and consistency with project styling guidelines.

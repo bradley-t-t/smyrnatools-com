@@ -417,8 +417,8 @@ function ManagerDetailView({ managerId, onClose }) {
                 {(isReadOnly || !canEditManager) && (
                     <div
                         style={{
-                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                            border: '1px solid #fcd34d',
+                            background: 'linear-gradient(135deg, var(--bg-hover) 0%, var(--border-medium) 100%)',
+                            border: '1px solid var(--border-medium)',
                             borderRadius: 12,
                             display: 'flex',
                             gap: 12,
@@ -426,12 +426,17 @@ function ManagerDetailView({ managerId, onClose }) {
                             padding: '16px 20px'
                         }}
                     >
-                        <i className="fas fa-lock" style={{ color: '#b45309', fontSize: 20, marginTop: 2 }}></i>
+                        <i
+                            className="fas fa-lock"
+                            style={{ color: 'var(--text-secondary)', fontSize: 20, marginTop: 2 }}
+                        ></i>
                         <div>
-                            <div style={{ color: '#92400e', fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+                            <div
+                                style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 600, marginBottom: 4 }}
+                            >
                                 View-Only Mode
                             </div>
-                            <div style={{ color: '#a16207', fontSize: 13, lineHeight: 1.5 }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5 }}>
                                 You do not have permission to edit this manager. Contact an administrator if you need to
                                 make changes.
                             </div>
@@ -513,7 +518,7 @@ function ManagerDetailView({ managerId, onClose }) {
                             <div className="form-group">
                                 <label>Password</label>
                                 <div style={{ alignItems: 'center', display: 'flex', gap: 12, marginTop: 8 }}>
-                                    <span style={{ color: '#64748b', fontSize: 14 }}>••••••••</span>
+                                    <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>••••••••</span>
                                     <button
                                         className="global-button-secondary"
                                         onClick={() => setShowPasswordField(true)}
@@ -522,7 +527,14 @@ function ManagerDetailView({ managerId, onClose }) {
                                         <i className="fas fa-key"></i> Change Password
                                     </button>
                                 </div>
-                                <p style={{ color: '#64748b', fontSize: 13, marginBottom: 0, marginTop: 8 }}>
+                                <p
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: 13,
+                                        marginBottom: 0,
+                                        marginTop: 8
+                                    }}
+                                >
                                     Click &quot;Change Password&quot; to set a new password for this manager.
                                 </p>
                             </div>
@@ -537,7 +549,14 @@ function ManagerDetailView({ managerId, onClose }) {
                                     className="form-control"
                                     autoFocus
                                 />
-                                <p style={{ color: '#64748b', fontSize: 13, marginBottom: 12, marginTop: 8 }}>
+                                <p
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: 13,
+                                        marginBottom: 12,
+                                        marginTop: 8
+                                    }}
+                                >
                                     Enter a new password and click &quot;Save&quot; to apply it.
                                 </p>
                                 <button

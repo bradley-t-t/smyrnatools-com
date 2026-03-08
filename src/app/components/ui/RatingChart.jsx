@@ -45,11 +45,11 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
                                         y1={y}
                                         x2={USABLE_WIDTH}
                                         y2={y}
-                                        stroke="#e5e7eb"
+                                        stroke="var(--border-light)"
                                         strokeWidth="1"
                                         strokeDasharray="4"
                                     />
-                                    <text x="-10" y={y + 5} textAnchor="end" fontSize="12" fill="#64748b">
+                                    <text x="-10" y={y + 5} textAnchor="end" fontSize="12" fill="var(--text-secondary)">
                                         {rating}\u2605
                                     </text>
                                 </g>
@@ -77,7 +77,7 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
                                         y={CHART_HEIGHT + 20}
                                         textAnchor="middle"
                                         fontSize="11"
-                                        fill="#64748b"
+                                        fill="var(--text-secondary)"
                                         transform={`rotate(-45, ${x}, ${CHART_HEIGHT + 20})`}
                                     >
                                         {FormatUtility.formatDate(point.timestamp)}

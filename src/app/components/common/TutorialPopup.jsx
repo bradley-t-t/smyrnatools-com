@@ -168,7 +168,7 @@ function TutorialPopup({ tutorialId, onDismiss }) {
             case 'bottom':
                 return {
                     ...base,
-                    borderColor: `white transparent transparent transparent`,
+                    borderColor: `var(--bg-primary) transparent transparent transparent`,
                     borderWidth: '8px 8px 0 8px',
                     bottom: -8,
                     left: '50%',
@@ -186,7 +186,7 @@ function TutorialPopup({ tutorialId, onDismiss }) {
             case 'right':
                 return {
                     ...base,
-                    borderColor: `transparent transparent transparent white`,
+                    borderColor: `transparent transparent transparent var(--bg-primary)`,
                     borderWidth: '8px 0 8px 8px',
                     right: -8,
                     top: '50%',
@@ -263,7 +263,7 @@ function TutorialPopup({ tutorialId, onDismiss }) {
             <div
                 ref={popupRef}
                 style={{
-                    background: 'white',
+                    background: 'var(--bg-primary)',
                     borderRadius: 12,
                     boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
                     left: position ? position.left : -9999,
@@ -304,7 +304,7 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                     <span style={{ color: 'white', fontSize: 14, fontWeight: 600 }}>{tutorial.title}</span>
                 </div>
                 <div style={{ padding: 16 }}>
-                    <p style={{ color: '#475569', fontSize: 13, lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5, margin: '0 0 16px 0' }}>
                         {tutorial.message}
                     </p>
                     <button

@@ -138,7 +138,7 @@ function VerificationCardSection({
                     <div
                         style={{
                             alignItems: 'center',
-                            background: isVerified ? accentColor : 'white',
+                            background: isVerified ? accentColor : 'var(--bg-primary)',
                             border: `2px solid ${accentColor}`,
                             borderRadius: 12,
                             display: 'flex',
@@ -153,10 +153,10 @@ function VerificationCardSection({
                         ></i>
                     </div>
                     <div>
-                        <div style={{ color: '#1e293b', fontSize: 16, fontWeight: 700 }}>
+                        <div style={{ color: 'var(--text-primary)', fontSize: 16, fontWeight: 700 }}>
                             {isVerified ? 'Verified' : verificationLabel || 'Needs Verification'}
                         </div>
-                        <div style={{ color: '#64748b', fontSize: 12 }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
                             {lastVerifiedDate
                                 ? `Last verified ${formatRelativeTime(lastVerifiedDate)}`
                                 : 'Never verified'}{' '}
@@ -187,14 +187,15 @@ function VerificationCardSection({
                     </button>
                 )}
             </div>
-            <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
+            <div style={{ borderTop: '1px solid var(--border-light)' }}></div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {verificationItems.map((item, index) => (
                     <div
                         key={index}
                         style={{
                             alignItems: 'center',
-                            borderBottom: index < verificationItems.length - 1 ? '1px solid #f1f5f9' : 'none',
+                            borderBottom:
+                                index < verificationItems.length - 1 ? '1px solid var(--bg-tertiary)' : 'none',
                             display: 'flex',
                             gap: 14,
                             padding: '14px 0'
@@ -205,18 +206,22 @@ function VerificationCardSection({
                             className={item.icon}
                             style={{ color: accentColor, fontSize: 14, textAlign: 'center', width: 20 }}
                         ></i>
-                        <div style={{ color: '#64748b', fontSize: 12, fontWeight: 500, width: 90 }}>{item.label}</div>
-                        <div style={{ color: '#1e293b', flex: 1, fontSize: 13, fontWeight: 600 }}>{item.value}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, width: 90 }}>
+                            {item.label}
+                        </div>
+                        <div style={{ color: 'var(--text-primary)', flex: 1, fontSize: 13, fontWeight: 600 }}>
+                            {item.value}
+                        </div>
                     </div>
                 ))}
             </div>
             {recentHistory.length > 0 && (
                 <>
-                    <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
+                    <div style={{ borderTop: '1px solid var(--border-light)' }}></div>
                     <div>
                         <div
                             style={{
-                                color: '#64748b',
+                                color: 'var(--text-secondary)',
                                 fontSize: 11,
                                 fontWeight: 600,
                                 letterSpacing: 0.5,
@@ -233,21 +238,28 @@ function VerificationCardSection({
                                     style={{
                                         borderBottom:
                                             index < Math.min(recentHistory.length, 4) - 1
-                                                ? '1px solid #f1f5f9'
+                                                ? '1px solid var(--bg-tertiary)'
                                                 : 'none',
                                         display: 'flex',
                                         gap: 12,
                                         padding: '10px 0'
                                     }}
                                 >
-                                    <div style={{ color: '#94a3b8', flexShrink: 0, fontSize: 11, width: 70 }}>
+                                    <div
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            flexShrink: 0,
+                                            fontSize: 11,
+                                            width: 70
+                                        }}
+                                    >
                                         {formatRelativeTime(entry.changed_at)}
                                     </div>
-                                    <div style={{ color: '#475569', flex: 1, fontSize: 12 }}>
+                                    <div style={{ color: 'var(--text-secondary)', flex: 1, fontSize: 12 }}>
                                         <span style={{ fontWeight: 600 }}>{formatFieldName(entry.field_name)}</span>
-                                        <span style={{ color: '#94a3b8' }}> changed from </span>
+                                        <span style={{ color: 'var(--text-secondary)' }}> changed from </span>
                                         <span>{formatValue(entry.old_value, entry.field_name)}</span>
-                                        <span style={{ color: '#94a3b8' }}> to </span>
+                                        <span style={{ color: 'var(--text-secondary)' }}> to </span>
                                         <span>{formatValue(entry.new_value, entry.field_name)}</span>
                                     </div>
                                 </div>
@@ -258,13 +270,15 @@ function VerificationCardSection({
             )}
             {noticeText && (
                 <>
-                    <div style={{ borderTop: '1px solid #e2e8f0' }}></div>
+                    <div style={{ borderTop: '1px solid var(--border-light)' }}></div>
                     <div style={{ alignItems: 'flex-start', display: 'flex', gap: 10 }}>
                         <i
                             className="fas fa-info-circle"
                             style={{ color: accentColor, fontSize: 12, marginTop: 2 }}
                         ></i>
-                        <p style={{ color: '#64748b', fontSize: 12, lineHeight: 1.5, margin: 0 }}>{noticeText}</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.5, margin: 0 }}>
+                            {noticeText}
+                        </p>
                     </div>
                 </>
             )}

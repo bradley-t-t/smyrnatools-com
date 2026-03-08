@@ -409,7 +409,7 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                 }
                 .add-view-form button[type="submit"]:hover,
                 .add-view-form .form-submit:hover {
-                    background: #2d4a6f;
+                    filter: brightness(0.85);
                 }
                 .add-view-form button[type="submit"]:disabled,
                 .add-view-form .form-submit:disabled {
@@ -463,8 +463,8 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     align-items: center;
                     gap: 0.5rem;
                     padding: 0.375rem 0.75rem;
-                    background: #dbeafe;
-                    color: #1e40af;
+                    background: var(--bg-tertiary);
+                    color: var(--text-primary);
                     border-radius: 0.5rem;
                     font-size: 0.8125rem;
                 }
@@ -474,16 +474,16 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: #bfdbfe;
+                    background: var(--bg-hover);
                     border: none;
                     border-radius: 50%;
-                    color: #1e40af;
+                    color: var(--text-primary);
                     cursor: pointer;
                     padding: 0;
                     font-size: 0.625rem;
                 }
                 .add-view-form .selected-item-chip button:hover {
-                    background: #93c5fd;
+                    background: var(--border-medium);
                 }
             `}</style>
             <div style={styles.backdrop} onPointerDown={handleBackdropPointerDown} onClick={handleBackdropClick}>

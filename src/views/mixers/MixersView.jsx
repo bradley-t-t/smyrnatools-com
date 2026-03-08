@@ -760,58 +760,30 @@ function MixersView({
                     }
                     const cellBoldStyle = {
                         ...cellStyle,
-                        color: 'var(--accent)',
+                        color: 'var(--text-secondary)',
                         fontSize: '15px',
                         fontWeight: 700
                     }
                     const statusBadge = (status) => {
-                        let bg = '#f1f5f9',
-                            color = '#64748b'
-                        if (status === 'Active') {
-                            bg = '#dcfce7'
-                            color = '#166534'
-                        } else if (status === 'Spare') {
-                            bg = '#f3e8ff'
-                            color = '#7c3aed'
-                        } else if (status === 'In Shop') {
-                            bg = '#dbeafe'
-                            color = '#1e40af'
-                        } else if (status === 'Waiting For Shop') {
-                            bg = '#ffedd5'
-                            color = '#c2410c'
-                        } else if (status === 'Down In Yard') {
-                            bg = '#fee2e2'
-                            color = '#dc2626'
-                        } else if (status === 'Third Party Work') {
-                            bg = '#fef9c3'
-                            color = '#a16207'
-                        } else if (status === 'Retired') {
-                            bg = '#f1f5f9'
-                            color = '#64748b'
+                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                        const statusMap = {
+                            Active: 'bg-[#dcfce7] text-[#166534]',
+                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]',
+                            'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
+                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]'
                         }
-                        return {
-                            backgroundColor: bg,
-                            borderRadius: '20px',
-                            color: color,
-                            display: 'inline-block',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            padding: '6px 14px'
-                        }
+                        const colors = statusMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
+                        return `${base} ${colors}`
                     }
-                    const verifyBtnStyle = (verified) => ({
-                        alignItems: 'center',
-                        backgroundColor: verified ? '#dcfce7' : '#fef3c7',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: verified ? '#166534' : '#92400e',
-                        cursor: verified ? 'default' : 'pointer',
-                        display: 'inline-flex',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        gap: '6px',
-                        padding: '8px 14px'
-                    })
+                    const verifyBtnStyle = (verified) => {
+                        const base =
+                            'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
+                        const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
+                        const cursor = verified ? 'cursor-default' : 'cursor-pointer'
+                        return `${base} ${colors} ${cursor}`
+                    }
                     const actionBtnStyle = {
                         alignItems: 'center',
                         backgroundColor: 'var(--bg-primary)',
@@ -856,7 +828,7 @@ function MixersView({
                                             icon.style.color = '#22c55e'
                                             setTimeout(() => {
                                                 icon.className = 'fas fa-copy'
-                                                icon.style.color = '#94a3b8'
+                                                icon.style.color = ''
                                             }, 1500)
                                         }}
                                         title="Copy truck number"
@@ -864,7 +836,7 @@ function MixersView({
                                             alignItems: 'center',
                                             background: 'transparent',
                                             border: 'none',
-                                            color: '#94a3b8',
+                                            color: 'var(--text-secondary)',
                                             cursor: 'pointer',
                                             display: 'inline-flex',
                                             fontSize: '12px',
@@ -878,7 +850,7 @@ function MixersView({
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 <div>
                                     <span
-                                        style={statusBadge(
+                                        className={statusBadge(
                                             (() => {
                                                 if (item.status !== 'In Shop') return item.status
                                                 switch (item.shopStatus) {
@@ -947,7 +919,7 @@ function MixersView({
                                                     icon.style.color = '#22c55e'
                                                     setTimeout(() => {
                                                         icon.className = 'fas fa-copy'
-                                                        icon.style.color = '#94a3b8'
+                                                        icon.style.color = ''
                                                     }, 1500)
                                                 }
                                             }}
@@ -956,7 +928,7 @@ function MixersView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -967,12 +939,14 @@ function MixersView({
                                         </button>
                                     </div>
                                 ) : (
-                                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Not Assigned</span>
+                                    <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                        Not Assigned
+                                    </span>
                                 )}
                             </td>
                             <td style={{ ...cellStyle, width: '12%' }}>
                                 {item.status === 'Retired' ? (
-                                    <span style={{ color: '#94a3b8' }}>N/A</span>
+                                    <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
                                 ) : (
                                     <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
                                         {Array.from({ length: 5 }).map((_, i) => (
@@ -1028,7 +1002,7 @@ function MixersView({
                                                 icon.style.color = '#22c55e'
                                                 setTimeout(() => {
                                                     icon.className = 'fas fa-copy'
-                                                    icon.style.color = '#94a3b8'
+                                                    icon.style.color = ''
                                                 }, 1500)
                                             }}
                                             title="Copy VIN"
@@ -1036,7 +1010,7 @@ function MixersView({
                                                 alignItems: 'center',
                                                 background: 'transparent',
                                                 border: 'none',
-                                                color: '#94a3b8',
+                                                color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
                                                 display: 'inline-flex',
                                                 fontSize: '12px',
@@ -1056,7 +1030,7 @@ function MixersView({
                                         style={{
                                             backgroundColor: 'var(--bg-secondary)',
                                             borderRadius: '8px',
-                                            color: '#94a3b8',
+                                            color: 'var(--text-secondary)',
                                             fontSize: '12px',
                                             fontWeight: 600,
                                             padding: '8px 14px'
@@ -1072,15 +1046,12 @@ function MixersView({
                                             if (onVerify) onVerify(item.id, item.truckNumber)
                                         }}
                                         title={item.isVerified() ? 'Verified' : 'Click to verify'}
-                                        style={verifyBtnStyle(item.isVerified())}
+                                        className={verifyBtnStyle(item.isVerified())}
                                     >
                                         <i
                                             className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
-                                            style={{ color: item.isVerified() ? '#166534' : '#92400e' }}
                                         ></i>
-                                        <span style={{ color: item.isVerified() ? '#166534' : '#92400e' }}>
-                                            {item.isVerified() ? 'Verified' : 'Verify'}
-                                        </span>
+                                        <span>{item.isVerified() ? 'Verified' : 'Verify'}</span>
                                     </button>
                                 )}
                             </td>

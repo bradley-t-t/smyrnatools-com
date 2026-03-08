@@ -56,7 +56,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
         >
             <div
                 style={{
-                    background: 'white',
+                    background: 'var(--bg-primary)',
                     borderRadius: 12,
                     boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                     display: 'flex',
@@ -71,21 +71,23 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                 <div
                     style={{
                         alignItems: 'center',
-                        background: '#f8fafc',
-                        borderBottom: '1px solid #e5e7eb',
+                        background: 'var(--bg-secondary)',
+                        borderBottom: '1px solid var(--border-light)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         padding: '16px 20px'
                     }}
                 >
-                    <h3 style={{ color: '#1e293b', fontSize: 18, fontWeight: 600, margin: 0 }}>Select Categories</h3>
+                    <h3 style={{ color: 'var(--text-primary)', fontSize: 18, fontWeight: 600, margin: 0 }}>
+                        Select Categories
+                    </h3>
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#64748b',
+                            color: 'var(--text-secondary)',
                             cursor: 'pointer',
                             fontSize: 16,
                             padding: 8
@@ -94,16 +96,16 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                <div style={{ borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 8, padding: 12 }}>
+                <div style={{ borderBottom: '1px solid var(--border-light)', display: 'flex', gap: 8, padding: 12 }}>
                     <button
                         type="button"
                         onClick={selectAll}
                         style={{
                             alignItems: 'center',
-                            background: '#f1f5f9',
-                            border: '1px solid #e5e7eb',
+                            background: 'var(--bg-tertiary)',
+                            border: '1px solid var(--border-light)',
                             borderRadius: 6,
-                            color: '#475569',
+                            color: 'var(--text-secondary)',
                             cursor: 'pointer',
                             display: 'flex',
                             fontSize: 13,
@@ -119,10 +121,10 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         onClick={clearAll}
                         style={{
                             alignItems: 'center',
-                            background: '#f1f5f9',
-                            border: '1px solid #e5e7eb',
+                            background: 'var(--bg-tertiary)',
+                            border: '1px solid var(--border-light)',
                             borderRadius: 6,
-                            color: '#475569',
+                            color: 'var(--text-secondary)',
                             cursor: 'pointer',
                             display: 'flex',
                             fontSize: 13,
@@ -134,19 +136,19 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         <i className="fas fa-times"></i> Clear All
                     </button>
                 </div>
-                <div style={{ borderBottom: '1px solid #e5e7eb', padding: 12 }}>
+                <div style={{ borderBottom: '1px solid var(--border-light)', padding: 12 }}>
                     <div
                         style={{
                             alignItems: 'center',
-                            background: '#f8fafc',
-                            border: '1px solid #e5e7eb',
+                            background: 'var(--bg-secondary)',
+                            border: '1px solid var(--border-light)',
                             borderRadius: 8,
                             display: 'flex',
                             gap: 10,
                             padding: '10px 12px'
                         }}
                     >
-                        <i className="fas fa-search" style={{ color: '#94a3b8', fontSize: 14 }}></i>
+                        <i className="fas fa-search" style={{ color: 'var(--text-secondary)', fontSize: 14 }}></i>
                         <input
                             type="text"
                             placeholder="Search tags..."
@@ -155,7 +157,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                             style={{
                                 background: 'transparent',
                                 border: 'none',
-                                color: '#1e293b',
+                                color: 'var(--text-primary)',
                                 flex: 1,
                                 fontSize: 14,
                                 outline: 'none'
@@ -165,7 +167,11 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                 </div>
                 <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
                     {filtered.map((opt) => {
-                        const tagStyle = TAG_COLORS[opt] || { bg: '#f1f5f9', color: '#64748b', icon: 'fas fa-tag' }
+                        const tagStyle = TAG_COLORS[opt] || {
+                            bg: 'var(--bg-tertiary)',
+                            color: 'var(--text-secondary)',
+                            icon: 'fas fa-tag'
+                        }
                         const isSelected = value.includes(opt)
                         return (
                             <div
@@ -173,7 +179,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                                 onClick={() => toggle(opt)}
                                 style={{
                                     alignItems: 'center',
-                                    background: isSelected ? '#eff6ff' : 'transparent',
+                                    background: isSelected ? 'var(--bg-secondary)' : 'transparent',
                                     borderRadius: 8,
                                     cursor: 'pointer',
                                     display: 'flex',
@@ -185,8 +191,8 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                                 <div
                                     style={{
                                         alignItems: 'center',
-                                        background: isSelected ? 'var(--accent)' : 'white',
-                                        border: isSelected ? 'none' : '2px solid #e5e7eb',
+                                        background: isSelected ? 'var(--accent)' : 'var(--bg-primary)',
+                                        border: isSelected ? 'none' : '2px solid var(--border-light)',
                                         borderRadius: 6,
                                         color: 'white',
                                         display: 'flex',
@@ -201,7 +207,11 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                                 <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
                                     <i className={tagStyle.icon} style={{ color: tagStyle.color, fontSize: 14 }}></i>
                                     <span
-                                        style={{ color: '#1e293b', fontSize: 15, fontWeight: isSelected ? 600 : 400 }}
+                                        style={{
+                                            color: 'var(--text-primary)',
+                                            fontSize: 15,
+                                            fontWeight: isSelected ? 600 : 400
+                                        }}
                                     >
                                         {opt}
                                     </span>
@@ -210,7 +220,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         )
                     })}
                     {filtered.length === 0 && (
-                        <div style={{ color: '#94a3b8', padding: 32, textAlign: 'center' }}>
+                        <div style={{ color: 'var(--text-secondary)', padding: 32, textAlign: 'center' }}>
                             <i
                                 className="fas fa-search"
                                 style={{ display: 'block', fontSize: 24, marginBottom: 8 }}
@@ -219,7 +229,13 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         </div>
                     )}
                 </div>
-                <div style={{ background: '#f8fafc', borderTop: '1px solid #e5e7eb', padding: 16 }}>
+                <div
+                    style={{
+                        background: 'var(--bg-secondary)',
+                        borderTop: '1px solid var(--border-light)',
+                        padding: 16
+                    }}
+                >
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
