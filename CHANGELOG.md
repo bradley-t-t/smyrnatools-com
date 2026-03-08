@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.8] - 2026-03-08
+
+- Updated the default deadline in ListAddView to be set to 14 days from the current date instead of the current day, while maintaining the time as 17:00.
+- Removed the deadline input field from the UI in ListAddView, eliminating the ability for users to manually set a deadline.
+- Adjusted the form layout in ListAddView by changing the grid from a responsive two-column layout on medium screens to a single-column layout on all screen sizes.
+- Removed the validation check for the deadline field in ListAddView, as it is no longer user-editable.
+
 ## [27.7] - 2026-03-08
 
 - Enhanced responsiveness in DashboardCharts by introducing a dynamic chart height (180px on mobile, 220px on desktop) and adjusting the grid layout to use a single column on mobile devices.

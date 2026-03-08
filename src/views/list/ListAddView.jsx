@@ -24,9 +24,10 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const [plantCode, setPlantCode] = useState('')
     const [selectedPlantCodes, setSelectedPlantCodes] = useState([])
     const [deadline, setDeadline] = useState(() => {
-        const today = new Date()
-        today.setHours(17, 0, 0, 0)
-        return today.toISOString().slice(0, 16)
+        const d = new Date()
+        d.setDate(d.getDate() + 14)
+        d.setHours(17, 0, 0, 0)
+        return d.toISOString().slice(0, 16)
     })
     const [comments, setComments] = useState('')
     const [status, setStatus] = useState('pending')
@@ -140,7 +141,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         } else {
             if (!plantCode) newErrors.plantCode = 'Plant is required'
         }
-        if (!deadline) newErrors.deadline = 'Deadline is required'
         setErrors(newErrors)
         return !Object.keys(newErrors).length
     }
@@ -286,7 +286,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                         </div>
                     </div>
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                        <div className="grid grid-cols-1 gap-4 min-w-0">
                             <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="plantCode" className="text-sm font-medium text-slate-700">
                                     {selectedPlantCodes.length > 0 ? 'Plants*' : 'Plant*'}
@@ -343,19 +343,6 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                         {plantDisplayText}
                                     </button>
                                 )}
-                            </div>
-                            <div className="flex flex-col gap-2 min-w-0">
-                                <label htmlFor="deadline" className="text-sm font-medium text-slate-700">
-                                    Deadline*
-                                </label>
-                                <input
-                                    id="deadline"
-                                    type="datetime-local"
-                                    className="w-full max-w-full box-border px-3 sm:px-4 py-3 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    value={deadline}
-                                    onChange={(e) => setDeadline(e.target.value)}
-                                    required
-                                />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
