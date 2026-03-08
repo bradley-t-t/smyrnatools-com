@@ -26,7 +26,8 @@
       "Bash(npx nit:*)",
       "Bash(npx react-app-rewired:*)",
       "WebFetch(domain:x.ai)",
-      "WebFetch(domain:grok.com)"
+      "WebFetch(domain:grok.com)",
+      "Bash(wc:*)"
     ]
   }
 }

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.1] - 2026-03-08
+
+- Expanded CLAUDE.md with a new section on "Modern, Best-Practice Code" detailing guidelines for writing idiomatic, declarative code using modern constructs, proper TypeScript usage, clean async patterns, and framework conventions.
+- Added a "Proactive Architecture & Simplification" section to CLAUDE.md, emphasizing simpler solutions, reusable patterns, reducing unnecessary abstraction, and consolidating logic for better maintainability.
+- Updated the workflow steps in CLAUDE.md to include evaluating simpler approaches before implementation, creating shared modules when needed, and listing broader improvement suggestions outside immediate task scope.
+- Enhanced code hygiene guidelines in CLAUDE.md to explicitly mention removing dead code, commented-out blocks, and unused imports, and to clarify acceptable use of TODO comments.
+
 ## [28.0] - 2026-03-08
 
 - Enhanced dark mode styling in DetailViewSection by adding specific styles for the unassign-operator-button, adjusting background, border, and hover colors for better visibility in dark mode.

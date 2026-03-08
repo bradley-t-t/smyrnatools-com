@@ -60,4 +60,4 @@ Be direct, concise, and informative. No filler, no fluff. State what you did and
 4. Refactor for clarity and readability while preserving all edge case behavior.
 5. Use existing Services/Utilities/Helpers — don't reinvent what's already architected. If a shared module *should* exist but doesn't, create it in the right place.
 6. Deliver clean, well-commented, convention-compliant, modern code.
-7. If you spotted broader improvements outside the immediate task scope, briefly list them at the end of your response with a one-line rationale each.
+7. If youY spotted broader improvements outside the immediate task scope, briefly list them at the end of your response with a one-line rationale each.
