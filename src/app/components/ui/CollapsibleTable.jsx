@@ -47,7 +47,7 @@ export function CollapsibleTable({
                                     {headers.map((header, idx) => (
                                         <th
                                             key={idx}
-                                            className="px-4 py-3 text-left font-medium text-slate-500 border-b border-slate-200"
+                                            className="px-2 py-2 md:px-4 md:py-3 text-left text-xs md:text-sm font-medium text-slate-500 border-b border-slate-200"
                                         >
                                             {header}
                                         </th>
@@ -58,7 +58,10 @@ export function CollapsibleTable({
                                 {rows.map((row, idx) => (
                                     <tr key={row.id || idx} className="border-b border-slate-100">
                                         {renderRow(row).map((cell, cellIdx) => (
-                                            <td key={cellIdx} className="px-4 py-3 text-gray-700">
+                                            <td
+                                                key={cellIdx}
+                                                className="px-2 py-2 md:px-4 md:py-3 text-xs md:text-sm text-gray-700"
+                                            >
                                                 {cell}
                                             </td>
                                         ))}
