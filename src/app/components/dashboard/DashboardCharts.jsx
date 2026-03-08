@@ -73,8 +73,8 @@ const PieChartTooltip = ({ active, payload }) => {
 }
 /** Reusable card wrapper for individual chart panels with icon header and optional footer. */
 const ChartCard = ({ icon, iconColor, title, children, footer }) => (
-    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-        <h4 className="flex items-center gap-2 text-accent text-[15px] font-semibold mb-4">
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4">
+        <h4 className="flex items-center gap-2 text-accent text-[13px] md:text-[15px] font-semibold mb-3 md:mb-4">
             <i className={`fa-solid ${icon}`} style={{ color: iconColor }} />
             {title}
         </h4>
@@ -101,7 +101,7 @@ const calcAverage = (data, key) => (data.length > 0 ? data.reduce((sum, item) =>
 /** Computes the sum of a numeric field across an array of objects. */
 const calcTotal = (data, key) => data.reduce((sum, item) => sum + item[key], 0)
 /** Pie chart card with a centered total footer and optional donut (innerRadius) mode. */
-const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0 }) => (
+const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 0, height = 220 }) => (
     <ChartCard
         icon={icon}
         iconColor={iconColor}
@@ -112,7 +112,7 @@ const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 
             </span>
         }
     >
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={height}>
             <PieChart>
                 <Pie
                     data={data}
@@ -154,7 +154,8 @@ export default function DashboardCharts({
     allPlants,
     statusHistoryData,
     isAggregate,
-    stats
+    stats,
+    isMobile
 }) {
     const [weeklyData, setWeeklyData] = useState([])
     const [cleanlinessData, setCleanlinessData] = useState({ avg: 0, data: [] })
@@ -310,6 +311,7 @@ export default function DashboardCharts({
             </div>
         )
     }
+    const chartHeight = isMobile ? 180 : 220
     const totalYardage = calcTotal(weeklyData, 'yardage')
     const totalHours = calcTotal(weeklyData, 'hours')
     const avgYph = totalHours > 0 ? (totalYardage / totalHours).toFixed(2) : 0
@@ -334,7 +336,10 @@ export default function DashboardCharts({
             stats.pickups.total > 0 && filterFn('pickups') && { color: '#ec4899', name: 'Pickups', ...stats.pickups }
         ].filter(Boolean)
     return (
-        <div className="grid gap-4 mt-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
+        <div
+            className={`grid gap-3 md:gap-4 mt-4 ${isMobile ? 'grid-cols-1' : ''}`}
+            style={isMobile ? undefined : { gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}
+        >
             {weeklyData.length > 0 && (
                 <ChartCard
                     icon="fa-chart-line"
@@ -358,7 +363,7 @@ export default function DashboardCharts({
                         )
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <AreaChart data={weeklyData}>
                             <defs>
                                 <linearGradient id="yardageGradient" x1="0" y1="0" x2="0" y2="1">
@@ -408,7 +413,7 @@ export default function DashboardCharts({
                         })()
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <LineChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
@@ -446,7 +451,7 @@ export default function DashboardCharts({
                         </>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
@@ -483,7 +488,7 @@ export default function DashboardCharts({
                         </>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 11 }} />
@@ -526,6 +531,7 @@ export default function DashboardCharts({
                         }
                     ].filter(Boolean)}
                     footerText={`Total Operators: ${stats.operators.total}`}
+                    height={chartHeight}
                 />
             )}
             {stats?.fleetTotal > 0 && (
@@ -536,6 +542,7 @@ export default function DashboardCharts({
                     data={buildAssetData().map((a) => ({ ...a, total: stats.fleetTotal, value: a.total }))}
                     innerRadius={45}
                     footerText={`Total Assets: ${stats.fleetTotal}`}
+                    height={chartHeight}
                 />
             )}
             {shopTimeData.length > 0 && (
@@ -547,15 +554,15 @@ export default function DashboardCharts({
                         <span className="text-slate-500 text-[11px]">Based on historical status tracking data</span>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart data={shopTimeData} layout="vertical">
                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                             <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} domain={[0, 100]} unit="%" />
                             <YAxis
                                 dataKey="label"
                                 type="category"
-                                tick={{ fill: '#64748b', fontSize: 11 }}
-                                width={70}
+                                tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 11 }}
+                                width={isMobile ? 50 : 70}
                             />
                             <Tooltip content={<ChartTooltip />} />
                             <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
@@ -579,7 +586,7 @@ export default function DashboardCharts({
                         </div>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart
                             data={buildAssetData().map((a) => ({ allocation: a.allocationPercent, name: a.name }))}
                         >
@@ -612,7 +619,7 @@ export default function DashboardCharts({
                         </>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <BarChart
                             data={buildAssetData(() => true)
                                 .slice(0, 4)
@@ -664,7 +671,7 @@ export default function DashboardCharts({
                         </div>
                     }
                 >
-                    <ResponsiveContainer width="100%" height={220}>
+                    <ResponsiveContainer width="100%" height={chartHeight}>
                         <PieChart>
                             <Pie
                                 data={cleanlinessData.data.map((d) => ({

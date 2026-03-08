@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.7] - 2026-03-08
+
+- Enhanced responsiveness in DashboardCharts by introducing a dynamic chart height (180px on mobile, 220px on desktop) and adjusting the grid layout to use a single column on mobile devices.
+- Updated ChartCard component styling with reduced padding (p-3 on mobile, md:p-4 on desktop) and smaller title font size (text-[13px] on mobile, md:text-[15px] on desktop) for better mobile display.
+- Added a customizable height prop to PieChartCard component, allowing for flexible chart dimensions across different screen sizes.
+- Improved mobile layout in EmbeddedViewModal by adjusting modal dimensions to full width on mobile (max-w-full) with a taller height (95vh on mobile, 85vh on desktop), reducing padding (p-2 on mobile, md:p-4 on desktop), and scaling down font sizes and spacing in the header.
+- Adjusted MaintenanceQualitySection for better mobile responsiveness by reducing font sizes and spacing, including smaller title text (text-sm on mobile, md:text-base) and tighter button styling (text-[10px] on mobile, md:text-xs).
+- Modified chart heights in MaintenanceQualitySection to be shorter on mobile (220px) compared to desktop (280px), and adjusted tick font sizes and Y-axis width for better readability on smaller screens.
+
 ## [27.6] - 2026-03-08
 
 - Updated the CollapsibleTable component to improve responsiveness by adjusting padding and font sizes for table headers and cells, using smaller values for mobile views (px-2 py-2, text-xs) and restoring original values for medium screens and up (md:px-4 md:py-3, md:text-sm).

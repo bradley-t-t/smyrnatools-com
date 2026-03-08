@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.6] - 2026-03-08
+
+- Updated the CollapsibleTable component to improve responsiveness by adjusting padding and font sizes for table headers and cells, using smaller values for mobile views (px-2 py-2, text-xs) and restoring original values for medium screens and up (md:px-4 md:py-3, md:text-sm).
+
 ## [27.5] - 2026-03-08
 
 - Added a new optional className prop to the MetricCard component in DashboardCards.jsx, allowing for additional custom styling by appending the provided className to the existing class string.

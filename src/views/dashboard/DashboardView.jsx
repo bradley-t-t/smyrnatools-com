@@ -426,6 +426,7 @@ export default function DashboardView() {
                                     statusHistoryData={statusHistoryData}
                                     isAggregate={isAggregate}
                                     stats={stats}
+                                    isMobile={isMobile}
                                 />
                             </DashboardCard>
                         </div>

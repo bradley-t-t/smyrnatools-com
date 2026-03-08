@@ -127,14 +127,16 @@ export default function MaintenanceQualitySection({
                 </MetricCard>
             </div>
             <div className="border-t border-slate-200 pt-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-                    <h4 className="text-base font-semibold text-slate-900 m-0">Historical Status Distribution</h4>
-                    <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-5">
+                    <h4 className="text-sm md:text-base font-semibold text-slate-900 m-0">
+                        Historical Status Distribution
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
                         {DATE_FILTER_LABELS.map((filter) => (
                             <button
                                 key={filter}
                                 onClick={() => handleQuickDateFilter(filter)}
-                                className="bg-slate-100 border-none rounded-md text-slate-600 text-xs font-medium px-3 py-1.5 cursor-pointer hover:bg-slate-200"
+                                className="bg-slate-100 border-none rounded-md text-slate-600 text-[10px] md:text-xs font-medium px-2 py-1 md:px-3 md:py-1.5 cursor-pointer hover:bg-slate-200"
                             >
                                 {formatFilterLabel(filter)}
                             </button>
@@ -166,20 +168,20 @@ export default function MaintenanceQualitySection({
                     {chartData.length === 0 ? (
                         <div className="text-center py-5 text-slate-400 text-sm">No historical data available</div>
                     ) : (
-                        <ResponsiveContainer width="100%" height={280}>
+                        <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
                             <BarChart data={chartData} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                 <XAxis
                                     type="number"
                                     domain={[0, 100]}
                                     unit="%"
-                                    tick={{ fill: '#64748b', fontSize: 11 }}
+                                    tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 11 }}
                                 />
                                 <YAxis
                                     dataKey="name"
                                     type="category"
-                                    tick={{ fill: '#64748b', fontSize: 12 }}
-                                    width={80}
+                                    tick={{ fill: '#64748b', fontSize: isMobile ? 10 : 12 }}
+                                    width={isMobile ? 55 : 80}
                                 />
                                 <Tooltip content={<HistoryTooltip />} />
                                 <Legend wrapperStyle={{ color: '#64748b', fontSize: 11 }} />
