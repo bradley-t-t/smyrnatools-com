@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.0] - 2026-03-08
+
+- Enhanced dark mode styling in DetailViewSection by adding specific styles for the unassign-operator-button, adjusting background, border, and hover colors for better visibility in dark mode.
+- Updated TopSection component to support dynamic badge styling based on theme mode, with adjusted background opacity for badges in dark mode to improve contrast.
+- Refined dark mode color palette in index.css by moving away from pure black to slightly lighter dark tones for backgrounds, borders, and text, creating a more visually comfortable experience with updated values for surfaces, hover states, alerts, and accent colors.
+
 ## [27.12] - 2026-03-08
 
 - Enhanced dark mode styling in DetailViewSection by adding specific styles for the unassign-operator-button in dark mode, adjusting background, border, and hover colors for better visibility.
