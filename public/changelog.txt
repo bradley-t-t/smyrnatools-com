@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [26.9] - 2026-03-08
+
+- Updated dependencies in package.json to ensure compatibility with the latest versions.
+- Adjusted package-lock.json to reflect the updated dependency tree for consistency across environments.
+
 ## [26.8] - 2026-03-07
 
 - No visible code changes to report. The provided diff does not contain any explicit modifications to the codebase.

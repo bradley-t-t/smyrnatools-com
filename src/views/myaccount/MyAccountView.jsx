@@ -874,6 +874,7 @@ function MyAccountView({ userId }) {
                                             <div className="flex flex-wrap items-center gap-3">
                                                 {[
                                                     { color: '#1e3a5f', name: 'Navy' },
+                                                    { color: '#1D4D81', name: 'Steel Blue' },
                                                     { color: '#7f1d1d', name: 'Red' },
                                                     { color: '#374151', name: 'Gray' },
                                                     { color: '#0a0a0a', name: 'Black' }
