@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.2] - 2026-03-08
+
+- Updated CLAUDE.md with a new section on "Modern, Best-Practice Code" to provide guidelines for writing idiomatic, declarative code with modern constructs, proper TypeScript usage, clean async patterns, and framework conventions.
+- Added a "Proactive Architecture & Simplification" section to CLAUDE.md, focusing on simpler solutions, reusable patterns, reducing unnecessary abstraction, and consolidating logic for improved maintainability.
+- Revised workflow steps in CLAUDE.md to include evaluating simpler approaches before implementation, creating shared modules when needed, and listing broader improvement suggestions outside the immediate task scope.
+- Strengthened code hygiene guidelines in CLAUDE.md by explicitly addressing the removal of dead code, commented-out blocks, and unused imports, while clarifying the acceptable use of TODO comments.
+- Added support for the "Bash(wc:*)" command in the Claude settings configuration to expand the range of bash commands recognized in the development environment.
+
 ## [28.1] - 2026-03-08
 
 - Expanded CLAUDE.md with a new section on "Modern, Best-Practice Code" detailing guidelines for writing idiomatic, declarative code using modern constructs, proper TypeScript usage, clean async patterns, and framework conventions.

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.3] - 2026-03-08
+
+- Added changelog entry documenting the v28.2 release changes including CLAUDE.md improvements and settings updates
+- Expanded Claude local settings with additional allowed permissions for file reads and bash commands
+
 ## [28.2] - 2026-03-08
 
 - Updated CLAUDE.md with a new section on "Modern, Best-Practice Code" to provide guidelines for writing idiomatic, declarative code with modern constructs, proper TypeScript usage, clean async patterns, and framework conventions.

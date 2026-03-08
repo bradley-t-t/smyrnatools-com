@@ -27,7 +27,11 @@
       "Bash(npx react-app-rewired:*)",
       "WebFetch(domain:x.ai)",
       "WebFetch(domain:grok.com)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Read(//c/Users/trent/WebstormProjects/nit/**)",
+      "Read(//c/Users/trent/**)",
+      "Bash(printf N\\\\nN\\\\n:*)",
+      "Bash(yes N:*)"
     ]
   }
 }
