@@ -263,7 +263,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         if (!showTransfer || !hasTransferPerm) return
         const loadRegions = async () => {
             try {
-                const { RegionService } = await import('../../services/RegionService')
+                const { RegionService } = await import('../../../services/RegionService')
                 setRegions((await RegionService.fetchRegions()) || [])
             } catch {
                 setTransferErr('Failed to load regions')
@@ -278,7 +278,7 @@ textarea.form-control { min-height: 120px; resize: vertical; line-height: 1.6; }
         }
         const loadPlants = async () => {
             try {
-                const { RegionService } = await import('../../services/RegionService')
+                const { RegionService } = await import('../../../services/RegionService')
                 setPlants((await RegionService.fetchRegionPlants(targetRegion)) || [])
                 setTargetPlant('')
             } catch {

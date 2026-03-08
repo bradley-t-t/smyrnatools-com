@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.1] - 2026-03-08
+
+- Updated the MyAccountView component to include new user profile fields for enhanced personalization.
+- Fixed a display issue in MyAccountView where the save button was misaligned on smaller screens.
+- Added validation logic in MyAccountView to ensure email updates are properly formatted before submission.
+
 ## [27.0] - 2026-03-08
 
 - Updated the MyAccountView component to include new user profile fields for better personalization.

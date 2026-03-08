@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [27.2] - 2026-03-08
+
+- Fixed the import path for RegionService in DetailViewSection.jsx to correctly reference the service from '../../../services/RegionService' instead of '../../services/RegionService' for both loadRegions and loadPlants functions.
+
 ## [27.1] - 2026-03-08
 
 - Updated the MyAccountView component to include new user profile fields for enhanced personalization.
