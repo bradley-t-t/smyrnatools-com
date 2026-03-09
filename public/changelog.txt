@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.8] - 2026-03-09
+
+- Added "additional assigned plants" support for managers, allowing multiple plant assignments beyond the primary plant
+- Added additional plants UI to ManagerDetailView with multi-select plant modal and removable tag chips
+- Added additional plants display to MyAccountView so users can see their extra plant assignments
+- Created UserService methods for fetching and updating additional assigned plants (getMainAssignedPlant, getAdditionalAssignedPlants, updateAdditionalAssignedPlants)
+- Added "user-additional-plants" and "update-additional-plants" endpoints to the user-service edge function
+- Added database migration for the additional_assigned_plants column on users_profiles
+- Added "My Plants" option to PlantDropdownModal for filtering by the current user's assigned plants
+- Added hideSearchBar prop to TopSection to allow views to opt out of the search input
+- Refactored PlanView with a full redesign: added TopSection integration, skeleton loading state, theme-aware styling, and improved layout for both mobile and desktop
+- Added plant-service endpoint for fetching additional assigned plants
+- Hardened UserService.getDisplayName to fall back to profile fields when the edge function returns a non-string response
+- Updated getAllUsersWithProfilesAndRoles to select all profile columns and include additionalAssignedPlants in the returned data
+- Added useReportsData hooks to load the current user's main and additional assigned plants
+
 ## [28.7] - 2026-03-09
 
 - Added District Manager plant-responsibility feature with a new DistrictManagerPlantsSection component for assigning/unassigning plants within a manager's region

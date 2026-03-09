@@ -60,7 +60,7 @@ const EmptyState = () => (
     </div>
 )
 /** Mobile card for a single lost load report. */
-const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
+const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDeleteClick, onClick }) => {
     const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
@@ -69,12 +69,13 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
           : '—'
     return (
         <div
-            className="reports-row-animated p-4 last:border-b-0"
+            className="reports-row-animated p-4 last:border-b-0 cursor-pointer"
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
                 borderBottom: '1px solid var(--border-light)'
             }}
+            onClick={() => onClick?.(report)}
         >
             <div className="flex items-start justify-between gap-3 mb-2">
                 <div className="flex-1 min-w-0">
@@ -127,7 +128,10 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
                 {canDelete && (
                     <button
                         type="button"
-                        onClick={() => onDeleteClick(report)}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onDeleteClick(report)
+                        }}
                         className="flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors"
                     >
                         <i className="fas fa-trash-alt text-[10px]" />
@@ -139,7 +143,7 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
     )
 }
 /** Desktop row for a single lost load report. */
-const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDeleteClick }) => {
+const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDeleteClick, onClick }) => {
     const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
     const submittedDate = report.submitted_at
         ? new Date(report.submitted_at).toLocaleDateString()
@@ -148,12 +152,13 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDelet
           : '—'
     return (
         <div
-            className="reports-row-animated flex items-center py-3 px-4 lg:px-7"
+            className="reports-row-animated flex items-center py-3 px-4 lg:px-7 cursor-pointer"
             style={{
                 animationDelay: `${getRowDelay(index)}ms`,
                 backgroundColor: altBg,
                 borderBottom: '1px solid var(--border-light)'
             }}
+            onClick={() => onClick?.(report)}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
@@ -180,7 +185,10 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDelet
             {canDelete && (
                 <button
                     type="button"
-                    onClick={() => onDeleteClick(report)}
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteClick(report)
+                    }}
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
                     title="Delete report"
                 >
@@ -201,7 +209,8 @@ function LostLoadsList({
     onPageChange,
     getUserName,
     canDelete,
-    onDelete
+    onDelete,
+    onRowClick
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -242,6 +251,7 @@ function LostLoadsList({
                                 getUserName={getUserName}
                                 canDelete={canDelete}
                                 onDeleteClick={handleDelete}
+                                onClick={onRowClick}
                             />
                         ))}
                     </div>
@@ -254,6 +264,7 @@ function LostLoadsList({
                                 getUserName={getUserName}
                                 canDelete={canDelete}
                                 onDeleteClick={handleDelete}
+                                onClick={onRowClick}
                             />
                         ))}
                     </div>

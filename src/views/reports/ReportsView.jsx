@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
+import LostLoadDetailModal from '../../app/components/reports/LostLoadDetailModal'
 import LostLoadReportModal from '../../app/components/reports/LostLoadReportModal'
 import LostLoadsList from '../../app/components/reports/LostLoadsList'
 import MyReportsList from '../../app/components/reports/MyReportsList'
@@ -71,6 +72,7 @@ function ReportsView() {
     const [reviewData, setReviewData] = useState(null)
     const [tab, setTab] = useState('all')
     const [showLostLoadModal, setShowLostLoadModal] = useState(false)
+    const [selectedLostLoad, setSelectedLostLoad] = useState(null)
     const [bannerDismissed, setBannerDismissed] = useState(false)
     const [submitInitialData, setSubmitInitialData] = useState(null)
     const [filterReportType, setFilterReportType] = useState('')
@@ -387,6 +389,7 @@ function ReportsView() {
                         getUserName={getUserName}
                         canDelete={hasLostLoadsDeletePermission}
                         onDelete={deleteLostLoadReport}
+                        onRowClick={setSelectedLostLoad}
                     />
                 )}
             </div>
@@ -412,6 +415,13 @@ function ReportsView() {
                     }}
                     plants={regionalPlants}
                     user={user}
+                />
+            )}
+            {selectedLostLoad && (
+                <LostLoadDetailModal
+                    report={selectedLostLoad}
+                    getUserName={getUserName}
+                    onClose={() => setSelectedLostLoad(null)}
                 />
             )}
         </div>
