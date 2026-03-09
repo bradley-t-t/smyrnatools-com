@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.7] - 2026-03-09
+
+- Added District Manager plant-responsibility feature with a new DistrictManagerPlantsSection component for assigning/unassigning plants within a manager's region
+- Created DistrictManagerService for managing eligible roles and user plant assignments with caching
+- Added district-manager-service edge function with endpoints for eligible roles and user plant CRUD operations
+- Created database migration for district_manager_eligible_roles and district_manager_plants tables with RLS policies and indexes
+- Refactored ManagerDetailView to fetch roles through UserService.getAllRoles() instead of direct DatabaseService/Supabase queries
+- Hardened UserService.getAllRoles() to return an empty array when the response is not an array
+- Removed authentication requirement from the all-roles endpoint in the user-service edge function
+
 ## [28.6] - 2026-03-09
 
 - Fixed TopSection hiding real content after reveal animation had already played, preventing content from flickering back to skeleton on re-renders

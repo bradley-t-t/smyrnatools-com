@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.6] - 2026-03-09
+
+- Fixed TopSection hiding real content after reveal animation had already played, preventing content from flickering back to skeleton on re-renders
+- Added changelog entry for v28.5
+
 ## [28.5] - 2026-03-09
 
 - Added changelog entry for v28.4 documenting dark mode theming updates to OnlineUsersModal and hover color replacements across list components

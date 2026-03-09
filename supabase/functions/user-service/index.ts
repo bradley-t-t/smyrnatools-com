@@ -120,8 +120,6 @@ Deno.serve(async (req) => {
                 return jsonResponse(userId.slice(0, 8), headers);
             }
             case "all-roles": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
                 const {data} = await supabase.from(ROLES_TABLE).select('*').order('weight', {ascending: false});
                 return jsonResponse(data ?? [], headers);
             }

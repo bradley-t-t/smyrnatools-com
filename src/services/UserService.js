@@ -115,7 +115,7 @@ class UserServiceImpl {
     }
     async getAllRoles() {
         const { json } = await postUser('all-roles')
-        return json ?? []
+        return Array.isArray(json) ? json : []
     }
     async getRoleById(roleId) {
         if (!roleId) throw new Error('Role ID is required')

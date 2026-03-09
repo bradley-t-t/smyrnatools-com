@@ -4,7 +4,7 @@ import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
 import { useAuth } from '../../app/context/AuthContext'
 import { usePreferences } from '../../app/context/PreferencesContext'
-import { DatabaseService, supabase } from '../../services/DatabaseService'
+import { supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
 import APIUtility from '../../utils/APIUtility'
@@ -152,14 +152,8 @@ function ManagerDetailView({ managerId, onClose }) {
     }
     async function fetchRoles() {
         try {
-            const rolesData = await DatabaseService.getAllRecords('users_roles')
-            if (rolesData?.length) {
-                setAvailableRoles(rolesData)
-                return
-            }
-            const { data, error } = await supabase.from('users_roles').select('*')
-            if (error) throw error
-            setAvailableRoles(data || [])
+            const rolesData = await UserService.getAllRoles()
+            setAvailableRoles(rolesData)
         } catch {
             setAvailableRoles([])
         }
