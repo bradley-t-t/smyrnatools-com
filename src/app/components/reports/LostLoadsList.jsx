@@ -154,7 +154,7 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDelet
                 backgroundColor: altBg,
                 borderBottom: '1px solid var(--border-light)'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
             <div className="w-36 shrink-0 pr-3 text-sm text-slate-600">{submittedDate}</div>

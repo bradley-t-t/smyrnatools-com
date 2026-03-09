@@ -273,7 +273,7 @@ function ListViewModeSection({
                                     onClick={() => handleSelectItem(item.id)}
                                     onMouseEnter={(e) => {
                                         const cells = e.currentTarget.querySelectorAll('td')
-                                        cells.forEach((cell) => (cell.style.backgroundColor = '#e0f2fe'))
+                                        cells.forEach((cell) => (cell.style.backgroundColor = 'var(--bg-hover)'))
                                     }}
                                     onMouseLeave={(e) => {
                                         const cells = e.currentTarget.querySelectorAll('td')

@@ -135,7 +135,7 @@ const DesktopReviewRow = ({ report, isReviewed, getUserName, accentColor, onRevi
                 backgroundColor: altBg,
                 borderBottom: '1px solid var(--border-light)'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
             <div className="flex-1 min-w-0 pr-3">

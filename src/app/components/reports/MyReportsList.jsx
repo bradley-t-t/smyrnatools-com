@@ -163,7 +163,7 @@ const DesktopReportRow = ({ item, accentColor, onShowForm, index = 0 }) => {
                 cursor: 'default',
                 ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
         >
             <div className="flex-1 min-w-0 pr-3">

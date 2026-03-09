@@ -31,7 +31,9 @@
       "Read(//c/Users/trent/WebstormProjects/nit/**)",
       "Read(//c/Users/trent/**)",
       "Bash(printf N\\\\nN\\\\n:*)",
-      "Bash(yes N:*)"
+      "Bash(yes N:*)",
+      "Bash(npm list:*)",
+      "Bash(nit:*)"
     ]
   }
 }
