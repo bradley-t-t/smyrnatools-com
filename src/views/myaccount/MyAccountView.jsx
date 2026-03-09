@@ -57,6 +57,7 @@ function MyAccountView({ userId }) {
     const [email, setEmail] = useState('')
     const [userRole, setUserRole] = useState('')
     const [plantCode, setPlantCode] = useState('')
+    const [additionalPlants, setAdditionalPlants] = useState([])
     const [regionName, setRegionName] = useState('')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [currentPassword, setCurrentPassword] = useState('')
@@ -122,7 +123,7 @@ function MyAccountView({ userId }) {
                 const [profileData, userData, highestRole, regionsList] = await Promise.all([
                     supabase
                         .from('users_profiles')
-                        .select('first_name, last_name, plant_code')
+                        .select('*')
                         .eq('id', uid)
                         .single()
                         .then((r) => r.data)
@@ -146,6 +147,8 @@ function MyAccountView({ userId }) {
                     if (profileData.first_name) setFirstName(profileData.first_name)
                     if (profileData.last_name) setLastName(profileData.last_name)
                     if (profileData.plant_code) setPlantCode(profileData.plant_code)
+                    if (Array.isArray(profileData.additional_assigned_plants))
+                        setAdditionalPlants(profileData.additional_assigned_plants)
                 }
                 if (regionsList && regionsList.length) {
                     setPermittedRegions(regionsList)
@@ -730,6 +733,24 @@ function MyAccountView({ userId }) {
                                                     <span className="text-sm font-medium">Plant Code</span>
                                                 </div>
                                                 <span className="font-semibold text-gray-900">{plantCode}</span>
+                                            </div>
+                                        )}
+                                        {additionalPlants.length > 0 && (
+                                            <div className="py-4">
+                                                <div className="flex items-center gap-3 text-gray-600">
+                                                    <i className="fas fa-building w-5"></i>
+                                                    <span className="text-sm font-medium">Additional Plants</span>
+                                                </div>
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {additionalPlants.map((code) => (
+                                                        <span
+                                                            key={code}
+                                                            className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                                                        >
+                                                            {code}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

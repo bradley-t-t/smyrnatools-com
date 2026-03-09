@@ -12,6 +12,7 @@ import { useAccentColor } from '../../hooks/useAccentColor'
  * @param {Function} props.onSelect - Called with the selected plant code string.
  * @param {string} [props.searchPlaceholder] - Placeholder text for the search input.
  * @param {boolean} [props.showAllPlants=false] - When true in single-select mode, shows an "All Plants" option.
+ * @param {boolean} [props.showMyPlants=false] - When true in single-select mode, shows a "My Plants" option that selects 'MY_PLANTS'.
  * @param {boolean} [props.allowMultiple=false] - Enables multi-select mode with checkboxes.
  * @param {string[]} [props.selectedPlantCodes] - Pre-selected plant codes for multi-select mode.
  */
@@ -22,6 +23,7 @@ function PlantDropdownModal({
     onSelect,
     searchPlaceholder = 'Search plants...',
     showAllPlants = false,
+    showMyPlants = false,
     allowMultiple = false,
     selectedPlantCodes = []
 }) {
@@ -91,6 +93,18 @@ function PlantDropdownModal({
                             }}
                         >
                             All Plants
+                        </div>
+                    )}
+                    {showMyPlants && !allowMultiple && (
+                        <div
+                            className="mb-1 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium text-gray-700 hover:bg-slate-100"
+                            onClick={() => {
+                                onSelect('MY_PLANTS')
+                                onClose()
+                            }}
+                        >
+                            <i className="fas fa-user-circle" style={{ color: accentColor }} />
+                            My Plants
                         </div>
                     )}
                     {sortedPlants.map((plant) => {

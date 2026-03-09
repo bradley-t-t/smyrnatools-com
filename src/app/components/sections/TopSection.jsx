@@ -235,6 +235,7 @@ function TopSection({
     colWidths,
     customFilters,
     hidePlantFilter = false,
+    hideSearchBar = false,
     onHeaderClick,
     sortKey,
     sortDirection,
@@ -426,18 +427,20 @@ function TopSection({
                             </div>
                         </div>
                         <div className="flex items-center gap-3 mt-0.5">
-                            <div
-                                className={`flex-1${revealControls ? ' top-reveal-left' : ''}`}
-                                style={revealControls ? { animationDelay: '120ms' } : undefined}
-                            >
-                                <SearchInput
-                                    value={searchInput}
-                                    onChange={onSearchInputChange}
-                                    onClear={onClearSearch}
-                                    placeholder={searchPlaceholder}
-                                    className="w-full"
-                                />
-                            </div>
+                            {!hideSearchBar && (
+                                <div
+                                    className={`flex-1${revealControls ? ' top-reveal-left' : ''}`}
+                                    style={revealControls ? { animationDelay: '120ms' } : undefined}
+                                >
+                                    <SearchInput
+                                        value={searchInput}
+                                        onChange={onSearchInputChange}
+                                        onClear={onClearSearch}
+                                        placeholder={searchPlaceholder}
+                                        className="w-full"
+                                    />
+                                </div>
+                            )}
                             <div
                                 className={revealControls ? 'top-reveal-right' : ''}
                                 style={revealControls ? { animationDelay: '140ms' } : undefined}
@@ -640,18 +643,20 @@ function TopSection({
                         role="region"
                         aria-label="Search and filters"
                     >
-                        <div
-                            className={revealControls ? 'top-reveal-left' : ''}
-                            style={revealControls ? { animationDelay: '120ms' } : undefined}
-                        >
-                            <SearchInput
-                                value={searchInput}
-                                onChange={onSearchInputChange}
-                                onClear={onClearSearch}
-                                placeholder={searchPlaceholder}
-                                className="min-w-[220px] max-w-[420px]"
-                            />
-                        </div>
+                        {!hideSearchBar && (
+                            <div
+                                className={revealControls ? 'top-reveal-left' : ''}
+                                style={revealControls ? { animationDelay: '120ms' } : undefined}
+                            >
+                                <SearchInput
+                                    value={searchInput}
+                                    onChange={onSearchInputChange}
+                                    onClear={onClearSearch}
+                                    placeholder={searchPlaceholder}
+                                    className="min-w-[220px] max-w-[420px]"
+                                />
+                            </div>
+                        )}
                         <div
                             className={`flex items-center flex-wrap gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
                             role="group"

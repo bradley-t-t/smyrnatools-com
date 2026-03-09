@@ -77,11 +77,26 @@ Deno.serve(async (req) => {
                 const body = await parseBody(req);
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
+                const now = nowISO();
                 const [{error: profilesError}, {error}] = await Promise.all([
-                    supabase.from(PROFILES_TABLE).update({plant_code: "", updated_at: nowISO()}).eq("plant_code", plantCode),
+                    supabase.from(PROFILES_TABLE).update({plant_code: "", updated_at: now}).eq("plant_code", plantCode),
                     supabase.from(PLANTS_TABLE).delete().eq("plant_code", plantCode)
                 ]);
                 if (profilesError || error) return errorResponse("Operation failed", headers, 400);
+                // Remove the deleted plant code from any additional_assigned_plants arrays
+                const {data: profilesWithAdditional} = await supabase
+                    .from(PROFILES_TABLE)
+                    .select("id, additional_assigned_plants")
+                    .contains("additional_assigned_plants", [plantCode]);
+                if (profilesWithAdditional?.length) {
+                    await Promise.all(profilesWithAdditional.map((profile: any) => {
+                        const filtered = (profile.additional_assigned_plants ?? []).filter((code: string) => code !== plantCode);
+                        return supabase.from(PROFILES_TABLE).update({
+                            additional_assigned_plants: filtered.length ? filtered : null,
+                            updated_at: now
+                        }).eq("id", profile.id);
+                    }));
+                }
                 return jsonResponse({success: true}, headers);
             }
             case "get-with-regions": {

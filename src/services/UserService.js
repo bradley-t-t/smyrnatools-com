@@ -106,7 +106,11 @@ class UserServiceImpl {
         if (!userId) return 'System'
         if (userId === 'anonymous') return 'Anonymous'
         const { json } = await postUser('display-name', { userId }, { skipAuthCheck: true })
-        return json
+        if (typeof json === 'string') return json
+        const firstName = await fetchProfileField(userId, 'first_name')
+        const lastName = await fetchProfileField(userId, 'last_name')
+        const fullName = `${firstName} ${lastName}`.trim()
+        return fullName || fallbackName(userId)
     }
     async getUserWeight(userId) {
         if (!userId) return 0
@@ -207,6 +211,32 @@ class UserServiceImpl {
         const { json } = await postUser('user-plant', { userId: resolveEntityId(userId) })
         return json ?? null
     }
+    async getMainAssignedPlant(userId) {
+        if (!userId) return null
+        const { json } = await postUser('user-plant', { userId: resolveEntityId(userId) })
+        return json ?? null
+    }
+    async getAdditionalAssignedPlants(userId) {
+        if (!userId) return []
+        const { json } = await postUser(
+            'user-additional-plants',
+            { userId: resolveEntityId(userId) },
+            { maxRetries: 0 }
+        )
+        return Array.isArray(json) ? json : []
+    }
+    async updateAdditionalAssignedPlants(userId, additionalPlants) {
+        if (!userId) throw new Error(USER_ID_REQUIRED)
+        const { json } = await postUser(
+            'update-additional-plants',
+            {
+                additionalPlants: Array.isArray(additionalPlants) ? additionalPlants : [],
+                userId: resolveEntityId(userId)
+            },
+            { maxRetries: 0 }
+        )
+        return !!json
+    }
     async getUserFirstName(userId) {
         return fetchProfileField(userId, 'first_name')
     }
@@ -216,7 +246,7 @@ class UserServiceImpl {
     async getAllUsersWithProfilesAndRoles() {
         const results = await Promise.all([
             supabase.from('users').select('id, email, last_login_at, created_at, updated_at'),
-            supabase.from(PROFILES_TABLE).select('id, first_name, last_name, plant_code, created_at, updated_at'),
+            supabase.from(PROFILES_TABLE).select('*'),
             supabase.from('users_permissions').select('user_id, role_id'),
             supabase.from('users_roles').select('id, name, weight')
         ])
@@ -227,6 +257,9 @@ class UserServiceImpl {
             const permission = permissions.find((p) => p.user_id === user.id)
             const role = permission?.role_id ? rolesList.find((r) => r.id === permission.role_id) : null
             return {
+                additionalAssignedPlants: Array.isArray(profile.additional_assigned_plants)
+                    ? profile.additional_assigned_plants
+                    : [],
                 createdAt: user.created_at,
                 email: user.email,
                 firstName: profile.first_name || '',

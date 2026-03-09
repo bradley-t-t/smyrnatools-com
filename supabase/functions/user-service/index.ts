@@ -253,6 +253,25 @@ Deno.serve(async (req) => {
                 const {data} = await supabase.from(PROFILES_TABLE).select('plant_code').eq('id', resolveUserId(userId)).single();
                 return jsonResponse(data?.plant_code ?? null, headers);
             }
+            case "user-additional-plants": {
+                const {userId} = body;
+                if (!userId) return jsonResponse([], headers);
+                const {data} = await supabase.from(PROFILES_TABLE).select('additional_assigned_plants').eq('id', resolveUserId(userId)).single();
+                return jsonResponse(data?.additional_assigned_plants ?? [], headers);
+            }
+            case "update-additional-plants": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
+                const {userId, additionalPlants} = body;
+                if (!userId) return errorResponse("User ID is required", headers);
+                const plantCodes = Array.isArray(additionalPlants) ? additionalPlants : [];
+                const {error} = await supabase.from(PROFILES_TABLE).update({
+                    additional_assigned_plants: plantCodes.length ? plantCodes : null,
+                    updated_at: nowISO()
+                }).eq('id', resolveUserId(userId));
+                if (error) return errorResponse("Failed to update additional plants", headers, 500);
+                return jsonResponse(true, headers);
+            }
             default:
                 return jsonResponse({error: "Invalid endpoint", path: url.pathname}, headers, 404);
         }

@@ -56,6 +56,8 @@ function ReportsView() {
         triggerRefresh,
         updateLocalReport,
         user,
+        userAdditionalPlants,
+        userPlantCode,
         userProfiles,
         weeksToShow
     } = useReportsData()
@@ -84,11 +86,22 @@ function ReportsView() {
             (item) => item.title?.toLowerCase().includes(searchLower) || item.name?.toLowerCase().includes(searchLower)
         )
     }, [myReportsByWeek, searchLower])
+    const myPlantCodesSet = useMemo(() => {
+        if (!userPlantCode && !userAdditionalPlants.length) return null
+        const codes = new Set()
+        if (userPlantCode) codes.add(userPlantCode)
+        userAdditionalPlants.forEach((code) => codes.add(code))
+        return codes
+    }, [userPlantCode, userAdditionalPlants])
+    const hasMyPlants = userAdditionalPlants.length > 0
     const visibleReviewReports = useMemo(
         () =>
             reviewableReports.filter((report) => {
                 const reporterPlant = reporterPlantMap[report.userId] || ''
-                const matchPlant = !filterPlant || filterPlant === 'All' || reporterPlant === filterPlant
+                const matchPlant =
+                    !filterPlant ||
+                    filterPlant === 'All' ||
+                    (filterPlant === 'MY_PLANTS' ? myPlantCodesSet?.has(reporterPlant) : reporterPlant === filterPlant)
                 const matchRegion =
                     !preferences.selectedRegion?.code ||
                     !regionPlantCodes ||
@@ -111,7 +124,8 @@ function ReportsView() {
             regionPlantCodes,
             reporterPlantMap,
             searchLower,
-            getUserName
+            getUserName,
+            myPlantCodesSet
         ]
     )
     const myPagination = usePagination({
@@ -147,9 +161,12 @@ function ReportsView() {
         [plants, preferences.selectedRegion?.code, regionPlantCodes]
     )
     const selectedPlantObj = regionalPlants.find((p) => p.plant_code === filterPlant)
-    const plantDisplayText = filterPlant
-        ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
-        : 'All Plants'
+    const plantDisplayText =
+        filterPlant === 'MY_PLANTS'
+            ? 'My Plants'
+            : filterPlant
+              ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
+              : 'All Plants'
     const isMyReportsLoading = isLoadingUser || isLoadingMy || isLoadingPermissions
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
     useEffect(() => {
@@ -383,6 +400,7 @@ function ReportsView() {
                         setIsPlantModalOpen(false)
                     }}
                     showAllPlants={true}
+                    showMyPlants={hasMyPlants}
                 />
             )}
             {showLostLoadModal && (

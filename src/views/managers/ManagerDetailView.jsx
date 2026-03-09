@@ -35,11 +35,13 @@ function ManagerDetailView({ managerId, onClose }) {
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
     const [plantCode, setPlantCode] = useState('')
+    const [additionalPlants, setAdditionalPlants] = useState([])
     const [roleName, setRoleName] = useState('')
     const [password, setPassword] = useState('')
     const [showPasswordField, setShowPasswordField] = useState(false)
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showPlantModal, setShowPlantModal] = useState(false)
+    const [showAdditionalPlantsModal, setShowAdditionalPlantsModal] = useState(false)
     const [canEditManager, setCanEditManager] = useState(false)
     const [canDeleteManager, setCanDeleteManager] = useState(false)
     useEffect(() => {
@@ -53,15 +55,30 @@ function ManagerDetailView({ managerId, onClose }) {
     }, [managerId])
     useEffect(() => {
         if (!manager || isLoading) return
+        const additionalPlantsChanged =
+            JSON.stringify([...(additionalPlants || [])].sort()) !==
+            JSON.stringify([...(originalValues.additionalPlants || [])].sort())
         const hasChanges =
             firstName !== originalValues.firstName ||
             lastName !== originalValues.lastName ||
             email !== originalValues.email ||
             plantCode !== originalValues.plantCode ||
             roleName !== originalValues.roleName ||
+            additionalPlantsChanged ||
             (showPasswordField && password)
         setHasUnsavedChanges(hasChanges)
-    }, [firstName, lastName, email, plantCode, roleName, password, showPasswordField, originalValues, isLoading])
+    }, [
+        firstName,
+        lastName,
+        email,
+        plantCode,
+        roleName,
+        additionalPlants,
+        password,
+        showPasswordField,
+        originalValues,
+        isLoading
+    ])
     // Enforce read-only mode unless the current user outranks this manager (or has weight > 75).
     useEffect(() => {
         if (!manager) return
@@ -188,7 +205,11 @@ function ManagerDetailView({ managerId, onClose }) {
                     roleWeight = roleData.weight || 0
                 }
             }
+            const additionalAssignedPlants = Array.isArray(profileData.additional_assigned_plants)
+                ? profileData.additional_assigned_plants
+                : []
             const managerData = {
+                additionalAssignedPlants: additionalAssignedPlants,
                 createdAt: profileData.created_at,
                 email: userData.email,
                 firstName: profileData.first_name,
@@ -205,8 +226,10 @@ function ManagerDetailView({ managerId, onClose }) {
             setLastName(managerData.lastName)
             setEmail(managerData.email)
             setPlantCode(managerData.plantCode)
+            setAdditionalPlants(additionalAssignedPlants)
             setRoleName(managerData.roleName)
             setOriginalValues({
+                additionalPlants: additionalAssignedPlants,
                 email: managerData.email,
                 firstName: managerData.firstName,
                 lastName: managerData.lastName,
@@ -251,6 +274,7 @@ function ManagerDetailView({ managerId, onClose }) {
                 supabase
                     .from('users_profiles')
                     .update({
+                        additional_assigned_plants: additionalPlants.length ? additionalPlants : null,
                         first_name: firstName,
                         last_name: lastName,
                         plant_code: plantCode,
@@ -292,7 +316,7 @@ function ManagerDetailView({ managerId, onClose }) {
             }
             setMessage('Changes saved successfully!')
             setTimeout(() => setMessage(''), 3000)
-            setOriginalValues({ email, firstName, lastName, plantCode, roleName })
+            setOriginalValues({ additionalPlants, email, firstName, lastName, plantCode, roleName })
             setHasUnsavedChanges(false)
             setShowPasswordField(false)
             setPassword('')
@@ -393,18 +417,35 @@ function ManagerDetailView({ managerId, onClose }) {
                     : 'Are you sure you want to delete this manager? This action cannot be undone.'
             }
             modals={
-                showPlantModal && (
-                    <PlantDropdownModal
-                        isOpen={showPlantModal}
-                        onClose={() => setShowPlantModal(false)}
-                        plants={filteredPlants}
-                        onSelect={(code) => {
-                            setPlantCode(code)
-                            setShowPlantModal(false)
-                        }}
-                        searchPlaceholder="Search plants..."
-                    />
-                )
+                <>
+                    {showPlantModal && (
+                        <PlantDropdownModal
+                            isOpen={showPlantModal}
+                            onClose={() => setShowPlantModal(false)}
+                            plants={filteredPlants}
+                            onSelect={(code) => {
+                                setPlantCode(code)
+                                setShowPlantModal(false)
+                            }}
+                            searchPlaceholder="Search plants..."
+                        />
+                    )}
+                    {showAdditionalPlantsModal && (
+                        <PlantDropdownModal
+                            isOpen={showAdditionalPlantsModal}
+                            onClose={() => setShowAdditionalPlantsModal(false)}
+                            plants={filteredPlants.filter((p) => p.plant_code !== plantCode)}
+                            onSelect={(code) => {
+                                setAdditionalPlants((prev) =>
+                                    prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+                                )
+                            }}
+                            searchPlaceholder="Search plants..."
+                            allowMultiple={true}
+                            selectedPlantCodes={additionalPlants}
+                        />
+                    )}
+                </>
             }
         >
             <DetailViewSection.Section id="basic" title="Manager Information" icon="fas fa-user">
@@ -483,6 +524,53 @@ function ManagerDetailView({ managerId, onClose }) {
                                 {plantDisplayText}
                             </span>
                         </button>
+                    </div>
+                    <div className="form-group">
+                        <label>Additional Plants</label>
+                        <button
+                            className="operator-select-button form-control"
+                            onClick={() => !isReadOnly && canEditManager && setShowAdditionalPlantsModal(true)}
+                            type="button"
+                            disabled={isReadOnly || !canEditManager}
+                            style={{ cursor: isReadOnly || !canEditManager ? 'not-allowed' : 'pointer' }}
+                        >
+                            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {additionalPlants.length
+                                    ? additionalPlants
+                                          .map((code) => {
+                                              const p = plants.find((pl) => pl.plant_code === code)
+                                              return `(${code}) ${p?.plant_name || ''}`
+                                          })
+                                          .join(', ')
+                                    : 'No additional plants'}
+                            </span>
+                        </button>
+                        {additionalPlants.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {additionalPlants.map((code) => {
+                                    const p = plants.find((pl) => pl.plant_code === code)
+                                    return (
+                                        <span
+                                            key={code}
+                                            className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                                        >
+                                            ({code}) {p?.plant_name || ''}
+                                            {!isReadOnly && canEditManager && (
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 text-blue-400 hover:text-blue-700"
+                                                    onClick={() =>
+                                                        setAdditionalPlants((prev) => prev.filter((c) => c !== code))
+                                                    }
+                                                >
+                                                    <i className="fas fa-times text-[10px]" />
+                                                </button>
+                                            )}
+                                        </span>
+                                    )
+                                })}
+                            </div>
+                        )}
                     </div>
                     <div className="form-group">
                         <label>Role</label>

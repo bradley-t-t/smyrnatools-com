@@ -22,6 +22,8 @@ export function useReportsData() {
     const [plants, setPlants] = useState([])
     const [regionType, setRegionType] = useState(null)
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [userPlantCode, setUserPlantCode] = useState('')
+    const [userAdditionalPlants, setUserAdditionalPlants] = useState([])
     const [reporterPlantMap, setReporterPlantMap] = useState({})
     const [reviewedByCurrentUser, setReviewedByCurrentUser] = useState(new Set())
     const [reviewLoadedWeeks, setReviewLoadedWeeks] = useState(new Set())
@@ -147,6 +149,18 @@ export function useReportsData() {
         }
         init()
     }, [])
+    useEffect(() => {
+        if (!user?.id) return
+        async function loadUserPlants() {
+            const [mainPlant, additional] = await Promise.all([
+                UserService.getMainAssignedPlant(user.id).catch(() => ''),
+                UserService.getAdditionalAssignedPlants(user.id).catch(() => [])
+            ])
+            setUserPlantCode(mainPlant || '')
+            setUserAdditionalPlants(Array.isArray(additional) ? additional : [])
+        }
+        loadUserPlants()
+    }, [user?.id])
     useEffect(() => {
         async function checkAssignedAndReview() {
             if (!user?.id) {
@@ -428,6 +442,8 @@ export function useReportsData() {
         triggerRefresh,
         updateLocalReport,
         user,
+        userAdditionalPlants,
+        userPlantCode,
         userProfiles,
         weeksToShow
     }
