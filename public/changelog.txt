@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.5] - 2026-03-09
+
+- Added changelog entry for v28.4 documenting dark mode theming updates to OnlineUsersModal and hover color replacements across list components
+- Added curl to allowed Bash commands in local Claude settings
+
 ## [28.4] - 2026-03-09
 
 - Updated OnlineUsersModal to use CSS custom properties (theme variables) instead of hardcoded Tailwind slate colors, adding full dark mode support

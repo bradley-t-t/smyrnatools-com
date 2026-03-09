@@ -310,7 +310,7 @@ function TopSection({
         wasLoadingRef.current = isLoading
     }, [isLoading])
     // While loading or awaiting reveal animation start, hide real content completely
-    const hideRealContent = isLoading || (needsRevealRef.current && !revealControls)
+    const hideRealContent = !hasRevealedRef.current && (isLoading || (needsRevealRef.current && !revealControls))
     const skeletonContent = (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
