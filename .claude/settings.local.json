@@ -33,7 +33,8 @@
       "Bash(printf N\\\\nN\\\\n:*)",
       "Bash(yes N:*)",
       "Bash(npm list:*)",
-      "Bash(nit:*)"
+      "Bash(nit:*)",
+      "Bash(curl:*)"
     ]
   }
 }

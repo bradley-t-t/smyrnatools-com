@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.4] - 2026-03-09
+
+- Updated OnlineUsersModal to use CSS custom properties (theme variables) instead of hardcoded Tailwind slate colors, adding full dark mode support
+- Replaced hardcoded hover color (#e0f2fe) with var(--bg-hover) across LostLoadsList, MyReportsList, ReviewReportsList, and ListViewModeSection
+- Added changelog entry for v28.3 release
+
 ## [28.3] - 2026-03-08
 
 - Added changelog entry documenting the v28.2 release changes including CLAUDE.md improvements and settings updates
