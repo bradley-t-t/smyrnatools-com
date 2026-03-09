@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [28.9] - 2026-03-09
+
+- Added LostLoadDetailModal for viewing full details of a lost load report, including date, plant, yardage, truck number, customer, ticket number, reason, and submitter info
+- Made lost load rows clickable in both mobile and desktop views to open the new detail modal
+- Added stopPropagation on delete buttons in lost load rows to prevent triggering the detail modal when deleting
+- Updated changelog with v28.8 release notes
+
 ## [28.8] - 2026-03-09
 
 - Added "additional assigned plants" support for managers, allowing multiple plant assignments beyond the primary plant

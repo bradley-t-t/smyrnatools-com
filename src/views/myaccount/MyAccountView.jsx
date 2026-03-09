@@ -405,8 +405,11 @@ function MyAccountView({ userId }) {
     }
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="relative overflow-hidden border-b border-gray-200 bg-white">
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div
+                    className="relative overflow-hidden"
+                    style={{ backgroundColor: 'var(--bg-primary)', borderBottom: '1px solid var(--border-light)' }}
+                >
                     <div
                         className="absolute inset-0"
                         style={{
@@ -420,54 +423,123 @@ function MyAccountView({ userId }) {
                         }}
                     ></div>
                     <div className="relative mx-auto max-w-6xl px-4 py-6 md:px-8">
-                        <div className="h-8 w-48 animate-pulse rounded bg-gray-200"></div>
-                        <div className="mt-2 h-4 w-72 animate-pulse rounded bg-gray-200"></div>
+                        <div
+                            className="h-8 w-48 animate-pulse rounded"
+                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                        ></div>
+                        <div
+                            className="mt-2 h-4 w-72 animate-pulse rounded"
+                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                        ></div>
                     </div>
                 </div>
                 <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="lg:col-span-1">
-                            <div className="animate-pulse overflow-hidden rounded-2xl bg-white shadow-sm">
-                                <div className="h-32 bg-gradient-to-br from-gray-200 to-gray-300"></div>
+                            <div
+                                className="animate-pulse overflow-hidden rounded-2xl shadow-sm"
+                                style={{ backgroundColor: 'var(--bg-primary)' }}
+                            >
+                                <div className="h-32" style={{ backgroundColor: 'var(--bg-tertiary)' }}></div>
                                 <div className="-mt-8 px-6 pb-6">
-                                    <div className="rounded-xl bg-white p-4 shadow-lg">
-                                        <div className="mx-auto mb-2 h-6 w-32 rounded bg-gray-200"></div>
-                                        <div className="mx-auto h-4 w-48 rounded bg-gray-200"></div>
+                                    <div
+                                        className="rounded-xl p-4 shadow-lg"
+                                        style={{ backgroundColor: 'var(--bg-primary)' }}
+                                    >
+                                        <div
+                                            className="mx-auto mb-2 h-6 w-32 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
+                                        <div
+                                            className="mx-auto h-4 w-48 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-6 animate-pulse rounded-2xl bg-white p-2 shadow-sm">
-                                <div className="h-12 rounded-lg bg-gray-100"></div>
-                                <div className="mt-1 h-12 rounded-lg bg-gray-100"></div>
+                            <div
+                                className="mt-6 animate-pulse rounded-2xl p-2 shadow-sm"
+                                style={{ backgroundColor: 'var(--bg-primary)' }}
+                            >
+                                <div
+                                    className="h-12 rounded-lg"
+                                    style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                ></div>
+                                <div
+                                    className="mt-1 h-12 rounded-lg"
+                                    style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                ></div>
                             </div>
                         </div>
                         <div className="space-y-6 lg:col-span-2">
-                            <div className="animate-pulse rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                            <div
+                                className="animate-pulse rounded-2xl p-6 shadow-sm md:p-8"
+                                style={{ backgroundColor: 'var(--bg-primary)' }}
+                            >
                                 <div className="mb-6 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-gray-200"></div>
+                                    <div
+                                        className="h-10 w-10 rounded-xl"
+                                        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                    ></div>
                                     <div>
-                                        <div className="h-5 w-40 rounded bg-gray-200"></div>
-                                        <div className="mt-2 h-4 w-56 rounded bg-gray-200"></div>
+                                        <div
+                                            className="h-5 w-40 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
+                                        <div
+                                            className="mt-2 h-4 w-56 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
                                     </div>
                                 </div>
                                 <div className="grid gap-5 sm:grid-cols-2">
-                                    <div className="h-20 rounded-xl bg-gray-100"></div>
-                                    <div className="h-20 rounded-xl bg-gray-100"></div>
+                                    <div
+                                        className="h-20 rounded-xl"
+                                        style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                    ></div>
+                                    <div
+                                        className="h-20 rounded-xl"
+                                        style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                    ></div>
                                 </div>
-                                <div className="mt-5 h-12 w-36 rounded-xl bg-gray-200"></div>
+                                <div
+                                    className="mt-5 h-12 w-36 rounded-xl"
+                                    style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                ></div>
                             </div>
-                            <div className="animate-pulse rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                            <div
+                                className="animate-pulse rounded-2xl p-6 shadow-sm md:p-8"
+                                style={{ backgroundColor: 'var(--bg-primary)' }}
+                            >
                                 <div className="mb-6 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-gray-200"></div>
+                                    <div
+                                        className="h-10 w-10 rounded-xl"
+                                        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                    ></div>
                                     <div>
-                                        <div className="h-5 w-36 rounded bg-gray-200"></div>
-                                        <div className="mt-2 h-4 w-48 rounded bg-gray-200"></div>
+                                        <div
+                                            className="h-5 w-36 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
+                                        <div
+                                            className="mt-2 h-4 w-48 rounded"
+                                            style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                                        ></div>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <div className="h-14 rounded-lg bg-gray-100"></div>
-                                    <div className="h-14 rounded-lg bg-gray-100"></div>
-                                    <div className="h-14 rounded-lg bg-gray-100"></div>
+                                    <div
+                                        className="h-14 rounded-lg"
+                                        style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                    ></div>
+                                    <div
+                                        className="h-14 rounded-lg"
+                                        style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                    ></div>
+                                    <div
+                                        className="h-14 rounded-lg"
+                                        style={{ backgroundColor: 'var(--bg-secondary)' }}
+                                    ></div>
                                 </div>
                             </div>
                         </div>

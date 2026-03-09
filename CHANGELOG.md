@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.0] - 2026-03-09
+
+- Updated My Account loading skeleton to use CSS custom properties (--bg-primary, --bg-secondary, --bg-tertiary, --border-light) instead of hardcoded Tailwind gray colors, adding dark mode support
+- Updated changelog with v28.9 release notes
+
 ## [28.9] - 2026-03-09
 
 - Added LostLoadDetailModal for viewing full details of a lost load report, including date, plant, yardage, truck number, customer, ticket number, reason, and submitter info
