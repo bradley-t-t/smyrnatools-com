@@ -84,7 +84,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
         if (item) {
             setDescription(item.description || '')
             setPlantCode(item.plantCode || '')
-            setDeadline(item.deadline ? new Date(item.deadline).toISOString().slice(0, 16) : deadline)
+            setDeadline((prev) => (item.deadline ? new Date(item.deadline).toISOString().slice(0, 16) : prev))
             setComments(item.comments || '')
         }
     }, [item])

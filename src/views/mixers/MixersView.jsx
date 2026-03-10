@@ -26,6 +26,16 @@ import MixerCard from './MixerCard'
 import MixerCommentModal from './MixerCommentModal'
 import MixerDetailView from './MixerDetailView'
 import MixerIssueModal from './MixerIssueModal'
+const MIXER_SORT_MAPPINGS = {
+    Cleanliness: 'cleanlinessRating',
+    More: null,
+    Operator: 'assignedOperator',
+    Plant: 'assignedPlant',
+    Status: 'status',
+    'Truck #': 'truckNumber',
+    VIN: 'vinNumber',
+    Verified: null
+}
 /**
  * Main list/grid view for the mixer (concrete truck) fleet. Handles data
  * fetching, Supabase realtime subscriptions for live updates, region-scoped
@@ -51,6 +61,8 @@ function MixersView({
     const { preferences, updateMixerFilter, resetMixerFilters, saveLastViewedFilters, updateOperatorFilter } =
         usePreferences()
     const headerRef = useRef(null)
+    const updateMixerFilterRef = useRef(updateMixerFilter)
+    updateMixerFilterRef.current = updateMixerFilter
     const [mixers, setMixers] = useState([])
     const [allMixers, setAllMixers] = useState([])
     const [operators, setOperators] = useState([])
@@ -110,16 +122,6 @@ function MixersView({
         'Not Verified',
         'Open Issues'
     ]
-    const sortMappings = {
-        Cleanliness: 'cleanlinessRating',
-        More: null,
-        Operator: 'assignedOperator',
-        Plant: 'assignedPlant',
-        Status: 'status',
-        'Truck #': 'truckNumber',
-        VIN: 'vinNumber',
-        Verified: null
-    }
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -291,7 +293,7 @@ function MixersView({
             const lastUsed = localStorage.getItem('mixers_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
-    }, [preferences])
+    }, [preferences, fetchMixersWithDetails])
     useEffect(() => {
         let cancelled = false
         async function loadAllowedPlants() {
@@ -305,7 +307,7 @@ function MixersView({
                     .toUpperCase()
                 if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('')
-                    updateMixerFilter('selectedPlant', '')
+                    updateMixerFilterRef.current('selectedPlant', '')
                 }
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
@@ -317,7 +319,7 @@ function MixersView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
+    }, [preferences.selectedRegion?.code, selectedPlant])
     async function fetchOperators() {
         try {
             const data = await OperatorService.fetchOperators()
@@ -333,7 +335,7 @@ function MixersView({
             setPlants(data)
         } catch (error) {}
     }
-    const loadDetailsForMixers = async (mixersList) => {
+    const loadDetailsForMixers = useCallback(async (mixersList) => {
         if (!mixersList || mixersList.length === 0) return
         const mixerIds = mixersList.map((m) => m.id).filter(Boolean)
         if (mixerIds.length === 0) return
@@ -359,59 +361,72 @@ function MixersView({
         } catch (e) {
             console.error('Error loading mixer details:', e)
         }
-    }
-    async function fetchMixersWithDetails(codes) {
-        try {
-            const processedBase = await MixerService.fetchMixersWithDetails(codes)
-            const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
-            if (cleanupResult.fixed > 0) {
-                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
-                setMixers(refreshedMixers)
-                setAllMixers(refreshedMixers)
-                setMixersLoaded(true)
-                loadDetailsForMixers(refreshedMixers)
-                setTimeout(() => {
-                    runVerificationCheck(refreshedMixers)
-                }, 1000)
-            } else {
-                setMixers(processedBase)
-                setAllMixers(processedBase)
-                setMixersLoaded(true)
-                loadDetailsForMixers(processedBase)
-                setTimeout(() => {
-                    runVerificationCheck(processedBase)
-                }, 1000)
+    }, [])
+    const operatorsRef = useRef(operators)
+    operatorsRef.current = operators
+    const regionCodeRef = useRef(preferences.selectedRegion?.code)
+    regionCodeRef.current = preferences.selectedRegion?.code
+    const runVerificationCheck = useCallback(
+        async (mixersToCheck) => {
+            if (!mixersToCheck || mixersToCheck.length === 0) return
+            try {
+                const verificationResult = await CleanupUtility.verificationCheck(
+                    mixersToCheck,
+                    MixerService.updateMixer,
+                    'mixer',
+                    operatorsRef.current
+                )
+                if (verificationResult.fixed > 0) {
+                    const codes = await RegionService.getAllowedPlantCodes(regionCodeRef.current)
+                    const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                    setMixers(refreshedMixers)
+                    setAllMixers(refreshedMixers)
+                    loadDetailsForMixers(refreshedMixers)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForMixers]
+    )
+    const fetchMixersWithDetails = useCallback(
+        async (codes) => {
+            try {
+                const processedBase = await MixerService.fetchMixersWithDetails(codes)
+                const cleanupResult = await MixerService.cleanupNullOperators(processedBase)
+                if (cleanupResult.fixed > 0) {
+                    const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
+                    setMixers(refreshedMixers)
+                    setAllMixers(refreshedMixers)
+                    setMixersLoaded(true)
+                    loadDetailsForMixers(refreshedMixers)
+                    setTimeout(() => {
+                        runVerificationCheck(refreshedMixers)
+                    }, 1000)
+                } else {
+                    setMixers(processedBase)
+                    setAllMixers(processedBase)
+                    setMixersLoaded(true)
+                    loadDetailsForMixers(processedBase)
+                    setTimeout(() => {
+                        runVerificationCheck(processedBase)
+                    }, 1000)
+                }
+            } catch (error) {
+                console.error('[MIXERS VIEW] Error fetching mixers:', error)
             }
-        } catch (error) {
-            console.error('[MIXERS VIEW] Error fetching mixers:', error)
-        }
-    }
-    async function runVerificationCheck(mixersToCheck) {
-        if (!mixersToCheck || mixersToCheck.length === 0) return
-        try {
-            const verificationResult = await CleanupUtility.verificationCheck(
-                mixersToCheck,
-                MixerService.updateMixer,
-                'mixer',
-                operators
-            )
-            if (verificationResult.fixed > 0) {
-                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
-                const refreshedMixers = await MixerService.fetchMixersWithDetails(codes)
-                setMixers(refreshedMixers)
-                setAllMixers(refreshedMixers)
-                loadDetailsForMixers(refreshedMixers)
+        },
+        [loadDetailsForMixers, runVerificationCheck]
+    )
+    const handleSelectMixer = useCallback(
+        (mixerId) => {
+            const mixer = mixers.find((m) => m.id === mixerId)
+            if (mixer) {
+                saveLastViewedFilters()
+                setSelectedMixer(mixer)
+                onSelectMixer?.(mixerId)
             }
-        } catch (error) {}
-    }
-    function handleSelectMixer(mixerId) {
-        const mixer = mixers.find((m) => m.id === mixerId)
-        if (mixer) {
-            saveLastViewedFilters()
-            setSelectedMixer(mixer)
-            onSelectMixer?.(mixerId)
-        }
-    }
+        },
+        [mixers, saveLastViewedFilters, onSelectMixer]
+    )
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -607,7 +622,7 @@ function MixersView({
                 if (!sortKey) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
                 }
-                const prop = sortMappings[sortKey]
+                const prop = MIXER_SORT_MAPPINGS[sortKey]
                 let aVal, bVal
                 if (sortKey === 'Status') {
                     const getStatusOrder = (item) => {
@@ -685,11 +700,12 @@ function MixersView({
         plants,
         exactMatch
     ])
-    const debouncedSetSearchText = useCallback(
-        AsyncUtility.debounce((value) => {
-            setSearchText(value)
-            updateMixerFilter('searchText', value)
-        }, 300),
+    const debouncedSetSearchText = useMemo(
+        () =>
+            AsyncUtility.debounce((value) => {
+                setSearchText(value)
+                updateMixerFilterRef.current('searchText', value)
+            }, 300),
         []
     )
     const canShowUnassignedOverlay = mixersLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
@@ -768,11 +784,11 @@ function MixersView({
                         const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
                         const statusMap = {
                             Active: 'bg-[#dcfce7] text-[#166534]',
-                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
-                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
-                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]',
                             'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
-                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]'
+                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
+                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
                         }
                         const colors = statusMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
                         return `${base} ${colors}`
@@ -1167,8 +1183,8 @@ function MixersView({
         statusFilter,
         operators,
         plants,
-        mixers,
-        handleVerifyMixer
+        handleVerifyMixer,
+        handleSelectMixer
     ])
     useEffect(() => {
         function updateStickyCoverHeight() {

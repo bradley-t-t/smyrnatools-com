@@ -93,7 +93,7 @@ const CalculatorView = () => {
                     <div
                         key={i}
                         className="h-9 rounded-lg animate-pulse"
-                        style={{ width: w, backgroundColor: 'var(--bg-secondary)' }}
+                        style={{ backgroundColor: 'var(--bg-secondary)', width: w }}
                     />
                 ))}
             </div>
@@ -124,8 +124,8 @@ const CalculatorView = () => {
                 className="border-b shadow-sm"
                 style={{
                     ...GRID_PATTERN_STYLE(accentColor),
-                    borderColor: 'var(--border-light)',
-                    backgroundColor: 'var(--bg-primary)'
+                    backgroundColor: 'var(--bg-primary)',
+                    borderColor: 'var(--border-light)'
                 }}
             >
                 {hideRealContent && headerSkeleton}

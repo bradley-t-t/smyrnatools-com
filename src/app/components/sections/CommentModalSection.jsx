@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
@@ -21,12 +21,7 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState(null)
     const [userNames, setUserNames] = useState({})
-    useEffect(() => {
-        if (itemId) {
-            fetchComments()
-        }
-    }, [itemId])
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setIsLoading(true)
         setError(null)
         try {
@@ -52,7 +47,12 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [itemId, service])
+    useEffect(() => {
+        if (itemId) {
+            fetchComments()
+        }
+    }, [itemId, fetchComments])
     const handleDeleteComment = async (commentId) => {
         if (!window.confirm('Are you sure you want to delete this comment?')) return
         try {

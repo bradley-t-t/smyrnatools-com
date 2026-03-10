@@ -63,7 +63,7 @@ function RolesView() {
         loadData,
         message,
         removePermissionFromAllRoles,
-        removePermissionFromRole,
+        removePermissionFromRole: _removePermissionFromRole,
         roles,
         setError,
         updateRolePermissions,
@@ -617,7 +617,7 @@ function RolesView() {
 }
 
 /** Single cell in the permission matrix — a compact styled checkbox. */
-function MatrixCell({ has, isSaving, canEdit, accentColor, onClick }) {
+function MatrixCell({ has, isSaving, canEdit, accentColor: _accentColor, onClick }) {
     if (isSaving) {
         return (
             <div className="inline-flex items-center justify-center w-5 h-5">
@@ -686,8 +686,6 @@ function RowActions({ perm, roles, onGrantAll, onRevokeAll, onSelectRoles }) {
  * and locked so the user just picks which roles to grant it to.
  */
 function AddPermissionModal({ isOpen, onClose, onGrant, roles, initialPerm }) {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
     const [perm, setPerm] = useState('')
     const [selectedRoleIds, setSelectedRoleIds] = useState(new Set())
     const [submitting, setSubmitting] = useState(false)
@@ -919,12 +917,12 @@ function MobileHeader({ accentColor, hasITAccess, totalRoles, totalPermissions, 
 /** Mobile role list — each role is an expandable card showing its permissions. */
 function MobileRoleList({
     roles,
-    hasITAccess,
+    hasITAccess: _hasITAccess,
     accentColor,
     showMobileRole,
     setShowMobileRole,
-    onTogglePermission,
-    savingCells
+    onTogglePermission: _onTogglePermission,
+    savingCells: _savingCells
 }) {
     if (roles.length === 0) {
         return (

@@ -59,7 +59,7 @@ export function useDocumentsData() {
         return () => {
             cancelled = true
         }
-    }, [uploaderIds])
+    }, [uploaderIds, profiles])
     const uploadFile = useCallback(
         async (file) => {
             setUploading(true)

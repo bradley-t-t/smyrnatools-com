@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { usePreferences } from '../../../app/context/PreferencesContext'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
 const BASE_ROW_DELAY_MS = 160
@@ -212,8 +211,6 @@ function LostLoadsList({
     onDelete,
     onRowClick
 }) {
-    const { preferences } = usePreferences()
-    const accentColor = preferences.accentColor || '#1e3a5f'
     const handleDelete = async (report) => {
         if (!window.confirm('Are you sure you want to delete this lost load report?')) return
         try {

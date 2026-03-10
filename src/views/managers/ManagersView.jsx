@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import GridViewModeSection from '../../app/components/sections/GridViewModeSection'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
@@ -58,9 +58,18 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         }
         fetchCurrentUser()
     }, [])
+    const fetchAllData = useCallback(async function fetchAllData() {
+        setIsLoading(true)
+        try {
+            await Promise.all([fetchManagers(), fetchPlants(), fetchRoles()])
+        } catch {
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
     useEffect(() => {
         fetchAllData()
-    }, [])
+    }, [fetchAllData])
     useEffect(() => {
         if (preferences.managerFilters) {
             setSearchText(preferences.managerFilters.searchText || '')
@@ -102,7 +111,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
+    }, [preferences.selectedRegion?.code, selectedPlant, updateManagerFilter])
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -120,15 +129,6 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         } else {
             setSortKey(label)
             setSortDirection('asc')
-        }
-    }
-    async function fetchAllData() {
-        setIsLoading(true)
-        try {
-            await Promise.all([fetchManagers(), fetchPlants(), fetchRoles()])
-        } catch {
-        } finally {
-            setIsLoading(false)
         }
     }
     /** Fetches all users with profiles/roles; falls back to a 1-hour localStorage cache on failure. */

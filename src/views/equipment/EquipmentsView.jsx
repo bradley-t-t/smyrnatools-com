@@ -23,6 +23,17 @@ import EquipmentCard from './EquipmentCard'
 import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentDetailView from './EquipmentDetailView'
 import EquipmentIssueModal from './EquipmentIssueModal'
+const EQUIPMENT_SORT_MAPPINGS = {
+    Cleanliness: 'cleanlinessRating',
+    Condition: 'conditionRating',
+    'Equipment #': 'identifyingNumber',
+    'Make & Model': 'equipmentMake',
+    More: null,
+    Plant: 'assignedPlant',
+    Status: 'status',
+    Type: 'equipmentType',
+    Verified: 'verified'
+}
 /**
  * Main list/grid view for the heavy equipment fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant filtering,
@@ -45,6 +56,8 @@ function EquipmentsView({
 }) {
     const { preferences, updateEquipmentFilter, resetEquipmentFilters, saveLastViewedFilters } = usePreferences()
     const safeUpdateEquipmentFilter = typeof updateEquipmentFilter === 'function' ? updateEquipmentFilter : () => {}
+    const safeUpdateEquipmentFilterRef = useRef(safeUpdateEquipmentFilter)
+    safeUpdateEquipmentFilterRef.current = safeUpdateEquipmentFilter
     const [equipments, setEquipments] = useState([])
     const [plants, setPlants] = useState([])
     const [isLoading, setIsLoading] = useState(true)
@@ -127,18 +140,6 @@ function EquipmentsView({
         'Unknown'
     ]
     const headerRef = useRef(null)
-    /** Maps list-view column header labels to their corresponding equipment property keys. */
-    const sortMappings = {
-        Cleanliness: 'cleanlinessRating',
-        Condition: 'conditionRating',
-        'Equipment #': 'identifyingNumber',
-        'Make & Model': 'equipmentMake',
-        More: null,
-        Plant: 'assignedPlant',
-        Status: 'status',
-        Type: 'equipmentType',
-        Verified: 'verified'
-    }
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -260,7 +261,7 @@ function EquipmentsView({
             setEquipmentTypeFilter(preferences.equipmentFilters.equipmentTypeFilter || '')
             setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
-    }, [preferences])
+    }, [preferences, fetchEquipments])
     // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
@@ -276,7 +277,7 @@ function EquipmentsView({
                 setRegionPlantCodes(codes)
                 if (selectedPlant && codes && !codes.has(selectedPlant)) {
                     setSelectedPlant('')
-                    safeUpdateEquipmentFilter('selectedPlant', '')
+                    safeUpdateEquipmentFilterRef.current('selectedPlant', '')
                 }
             } catch {
                 setRegionPlantCodes(new Set())
@@ -286,46 +287,9 @@ function EquipmentsView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
-    async function fetchEquipments() {
-        try {
-            const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
-            setEquipments(processedBase)
-            loadDetailsForEquipments(processedBase)
-            if (processedBase && processedBase.length > 0) {
-                // Defer verification check 1s so the UI renders before the background audit runs.
-                setTimeout(() => {
-                    runVerificationCheck(processedBase)
-                }, 1000)
-            }
-        } catch {
-            setEquipments([])
-        }
-    }
-    async function fetchPlants(codes) {
-        try {
-            const data = await PlantService.fetchPlants(codes)
-            setPlants(data)
-        } catch {}
-    }
-    /** Runs a background verification integrity check and re-fetches if any records were auto-corrected. */
-    async function runVerificationCheck(equipmentsToCheck) {
-        if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
-        try {
-            const verificationResult = await CleanupUtility.verificationCheck(
-                equipmentsToCheck,
-                EquipmentService.updateEquipment,
-                'equipment'
-            )
-            if (verificationResult.fixed > 0) {
-                const refreshedEquipments = await EquipmentService.fetchEquipmentsWithDetails()
-                setEquipments(refreshedEquipments)
-                loadDetailsForEquipments(refreshedEquipments)
-            }
-        } catch (error) {}
-    }
+    }, [preferences.selectedRegion?.code, selectedPlant])
     /** Batch-loads comment and open-issue counts for all equipment and merges them into local state. */
-    const loadDetailsForEquipments = async (equipmentsList) => {
+    const loadDetailsForEquipments = useCallback(async (equipmentsList) => {
         if (!equipmentsList || equipmentsList.length === 0) return
         const equipmentIds = equipmentsList.map((e) => e.id).filter(Boolean)
         if (equipmentIds.length === 0) return
@@ -344,8 +308,48 @@ function EquipmentsView({
         } catch (e) {
             console.error('Error loading equipment details:', e)
         }
+    }, [])
+    /** Runs a background verification integrity check and re-fetches if any records were auto-corrected. */
+    const runVerificationCheck = useCallback(
+        async (equipmentsToCheck) => {
+            if (!equipmentsToCheck || equipmentsToCheck.length === 0) return
+            try {
+                const verificationResult = await CleanupUtility.verificationCheck(
+                    equipmentsToCheck,
+                    EquipmentService.updateEquipment,
+                    'equipment'
+                )
+                if (verificationResult.fixed > 0) {
+                    const refreshedEquipments = await EquipmentService.fetchEquipmentsWithDetails()
+                    setEquipments(refreshedEquipments)
+                    loadDetailsForEquipments(refreshedEquipments)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForEquipments]
+    )
+    const fetchEquipments = useCallback(async () => {
+        try {
+            const processedBase = await EquipmentService.fetchEquipmentsWithDetails()
+            setEquipments(processedBase)
+            loadDetailsForEquipments(processedBase)
+            if (processedBase && processedBase.length > 0) {
+                // Defer verification check 1s so the UI renders before the background audit runs.
+                setTimeout(() => {
+                    runVerificationCheck(processedBase)
+                }, 1000)
+            }
+        } catch {
+            setEquipments([])
+        }
+    }, [loadDetailsForEquipments, runVerificationCheck])
+    async function fetchPlants(codes) {
+        try {
+            const data = await PlantService.fetchPlants(codes)
+            setPlants(data)
+        } catch {}
     }
-    function handleDetailViewSaved(updated) {
+    function _handleDetailViewSaved(updated) {
         if (updated && updated.id) {
             setEquipments((prev) => {
                 const arr = prev.slice()
@@ -360,13 +364,16 @@ function EquipmentsView({
         await fetchEquipments()
         setSelectedEquipment(null)
     }
-    function handleSelectEquipment(equipmentId) {
-        const equipment = equipments.find((e) => e.id === equipmentId)
-        if (!equipment || !equipment.id) return
-        saveLastViewedFilters()
-        setSelectedEquipment(equipment)
-        if (onSelectEquipment) onSelectEquipment(equipmentId)
-    }
+    const handleSelectEquipment = useCallback(
+        (equipmentId) => {
+            const equipment = equipments.find((e) => e.id === equipmentId)
+            if (!equipment || !equipment.id) return
+            saveLastViewedFilters()
+            setSelectedEquipment(equipment)
+            if (onSelectEquipment) onSelectEquipment(equipmentId)
+        },
+        [equipments, saveLastViewedFilters, onSelectEquipment]
+    )
     const handleVerifyEquipment = useCallback(
         async (equipmentId) => {
             const equipment = equipments.find((e) => e.id === equipmentId)
@@ -429,12 +436,13 @@ function EquipmentsView({
             alert('Failed to verify equipment. Please try again.')
         }
     }, [verifyEquipment, verifyVin, verifyMake, verifyModel, verifyYear, verifyLastServiceDate])
-    const debouncedSetSearchText = useCallback(
-        debounce((value) => {
-            setSearchText(value)
-            safeUpdateEquipmentFilter('searchText', value)
-        }, 300),
-        [safeUpdateEquipmentFilter]
+    const debouncedSetSearchText = useMemo(
+        () =>
+            debounce((value) => {
+                setSearchText(value)
+                safeUpdateEquipmentFilterRef.current('searchText', value)
+            }, 300),
+        []
     )
     /** Applies search, plant, region, status, and type filters, then sorts with retired items pushed to the end. */
     const filteredEquipments = useMemo(() => {
@@ -479,7 +487,7 @@ function EquipmentsView({
                 if (!sortKey) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
                 }
-                const prop = sortMappings[sortKey]
+                const prop = EQUIPMENT_SORT_MAPPINGS[sortKey]
                 let aVal, bVal
                 if (sortKey === 'Verified') {
                     aVal =
@@ -969,7 +977,8 @@ function EquipmentsView({
         statusFilter,
         equipmentTypeFilter,
         plants,
-        equipments
+        handleSelectEquipment,
+        handleVerifyEquipment
     ])
     const showReset =
         searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter

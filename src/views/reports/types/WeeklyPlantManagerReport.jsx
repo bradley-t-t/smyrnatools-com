@@ -131,7 +131,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
     const [historicalData, setHistoricalData] = useState([])
     const [loading, setLoading] = useState(true)
     const [yearlyTotals, setYearlyTotals] = useState(null)
-    const [yearlyLoading, setYearlyLoading] = useState(true)
+    const [_yearlyLoading, setYearlyLoading] = useState(true)
     const [userNames, setUserNames] = useState({})
     const [timelineUserNames, setTimelineUserNames] = useState({})
     const effectivePlantCode = plantCode || user?.plant_code || ''

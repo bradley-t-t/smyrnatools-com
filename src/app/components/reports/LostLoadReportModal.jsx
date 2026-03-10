@@ -137,7 +137,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
         >
             <div
                 className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
-                style={{ maxHeight: '90vh', backgroundColor: 'var(--bg-primary)' }}
+                style={{ backgroundColor: 'var(--bg-primary)', maxHeight: '90vh' }}
             >
                 <div
                     className="flex items-center justify-between px-6 py-4"
@@ -261,8 +261,8 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                             <div
                                 className="rounded-lg overflow-hidden shadow-md"
                                 style={{
-                                    border: '1px solid var(--border-light)',
-                                    backgroundColor: 'var(--bg-primary)'
+                                    backgroundColor: 'var(--bg-primary)',
+                                    border: '1px solid var(--border-light)'
                                 }}
                             >
                                 <div className="p-2" style={{ borderBottom: '1px solid var(--border-light)' }}>

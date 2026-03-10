@@ -24,7 +24,6 @@ const defaultPreferences = {
     accentColor: '#1e3a5f',
     acceptReportSubmittedEmails: true,
     defaultViewMode: null,
-    themeMode: 'light',
     equipmentFilters: {
         searchText: '',
         selectedPlant: '',
@@ -53,6 +52,7 @@ const defaultPreferences = {
     },
     regionOverlayMinimized: true,
     selectedRegion: { code: '', name: '', type: '' },
+    themeMode: 'light',
     tractorFilters: {
         searchText: '',
         selectedPlant: '',
@@ -104,13 +104,13 @@ export const PreferencesProvider = ({ children }) => {
                     accent_color: updatedPreferences.accentColor,
                     created_at: now,
                     default_view_mode: updatedPreferences.defaultViewMode,
-                    theme_mode: updatedPreferences.themeMode,
                     equipment_filters: updatedPreferences.equipmentFilters,
                     last_viewed_filters: updatedPreferences.lastViewedFilters,
                     manager_filters: updatedPreferences.managerFilters,
                     mixer_filters: updatedPreferences.mixerFilters,
                     operator_filters: updatedPreferences.operatorFilters,
                     selected_region: updatedPreferences.selectedRegion,
+                    theme_mode: updatedPreferences.themeMode,
                     tractor_filters: updatedPreferences.tractorFilters,
                     trailer_filters: updatedPreferences.trailerFilters,
                     tutorials: updatedPreferences.tutorials,
@@ -193,6 +193,7 @@ export const PreferencesProvider = ({ children }) => {
                             selectedRegion: data.selected_region
                                 ? { ...defaultPreferences.selectedRegion, ...data.selected_region }
                                 : defaultPreferences.selectedRegion,
+                            themeMode: data.theme_mode || defaultPreferences.themeMode,
                             tractorFilters: data.tractor_filters
                                 ? {
                                       ...data.tractor_filters,
@@ -205,7 +206,6 @@ export const PreferencesProvider = ({ children }) => {
                                       viewMode: data.trailer_filters.viewMode || 'list'
                                   }
                                 : { ...defaultPreferences.trailerFilters },
-                            themeMode: data.theme_mode || defaultPreferences.themeMode,
                             tutorials: data.tutorials === undefined ? true : data.tutorials
                         }
                     }

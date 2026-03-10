@@ -37,7 +37,6 @@ class DocumentServiceImpl {
     async upload(file) {
         const user = await UserService.getCurrentUser()
         if (!user?.id) throw new Error('Authentication required')
-        const ext = file.name.split('.').pop().toLowerCase()
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
         const storagePath = `${STORAGE_PREFIX}/${user.id}/${Date.now()}_${safeName}`
         const { error: uploadError } = await supabase.storage

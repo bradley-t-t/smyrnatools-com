@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.4] - 2026-03-10
+
+- Wrapped fetch functions in VerificationRequirementsModal with useCallback and added missing dependencies to useEffect dependency arrays
+- Wrapped fetch and handler functions in CommentModalSection, IssueModalSection, and RecapModalSection with useCallback for proper memoization
+- Wrapped fetchHistory and related handlers in HistoryViewSection with useCallback and fixed dependency arrays
+- Converted useHistoryData fetch functions to useCallback with proper dependency tracking
+- Converted useDashboardChat message handlers and fetch logic to useCallback
+- Converted useDashboardData refresh and fetch functions to useCallback
+- Converted useReportsData and useDocumentsData fetch functions to useCallback
+- Converted UserNotificationsService notification methods to useCallback
+- Converted DistrictManagerService fetch methods to useCallback
+- Converted useReportData hook internals to useCallback with proper dependencies
+- Removed unused renderAssetPill function from DashboardPlantSummary and DashboardRegionSummary
+- Removed unused usePreferences import and accentColor variable from LostLoadsList
+- Removed unused DocumentService import from DocumentService
+- Removed dead code block (defaultCategories) from SetTimeCalculator
+- Prefixed unused variables with underscore (_selectedTractor in App.js, _s in NotificationsModal, _identifierField in AssetIssuesExport)
+- Added regionCode to useEffect dependency array in RegionsDetailView
+- Added missing dependencies to useEffect in PreferencesContext
+- Alphabetically sorted object property keys in style objects and configuration objects across dashboard skeletons, regions, reports, and multiple view files
+- Refactored EquipmentsView, MixersView, TractorsView, TrailersView, OperatorsView, ManagersView, and PickupTrucksView with reorganized layout and improved code structure
+- Refactored OperatorDetailView, ManagerDetailView, and ListDetailView with cleaner component organization
+- Refactored WeeklyGeneralManagerReport and WeeklyReadyMixInstructorReport with restructured rendering logic
+- Updated LoginView, MaintenanceView, MaintenanceCreateFormView, CalculatorView, RolesView, MyAccountView, and DashboardView with minor structural improvements
+- Cleaned up ListView and ListAddView with layout adjustments
+- Updated LeaderboardsUtility and GrammarUtility with minor refactoring
+
 ## [29.3] - 2026-03-10
 
 - Redesigned dashboard notification rows in both DashboardPlantSummary and DashboardRegionSummary — replaced bordered rows with tinted background cards, rounded pill styles, and icon circles for better visual grouping

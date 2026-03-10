@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { supabase } from '../../../services/DatabaseService'
@@ -152,7 +152,7 @@ export default function VerificationRequirementsModal({
             }, 250)
         }
         return () => timers.forEach(clearTimeout)
-    }, [open, assignedOperator, itemId])
+    }, [open, assignedOperator, itemId, fetchOperatorData, fetchIssues, fetchComments, service])
     useEffect(() => {
         if (!open) return
         const allSectionsReady = Object.values(sectionsReady).every((ready) => ready)
@@ -192,7 +192,7 @@ export default function VerificationRequirementsModal({
         serviceOverdue,
         comments.length
     ])
-    const fetchOperatorData = async () => {
+    const fetchOperatorData = useCallback(async () => {
         setIsLoadingOperator(true)
         try {
             const { data, error } = await supabase
@@ -214,8 +214,8 @@ export default function VerificationRequirementsModal({
         } finally {
             setIsLoadingOperator(false)
         }
-    }
-    const fetchIssues = async () => {
+    }, [assignedOperator])
+    const fetchIssues = useCallback(async () => {
         setIsLoadingIssues(true)
         try {
             const fetchedIssues = await service.fetchIssues(itemId)
@@ -242,8 +242,8 @@ export default function VerificationRequirementsModal({
         } finally {
             setIsLoadingIssues(false)
         }
-    }
-    const fetchComments = async () => {
+    }, [service, itemId])
+    const fetchComments = useCallback(async () => {
         setIsLoadingComments(true)
         try {
             const fetchedComments = await service.fetchComments(itemId)
@@ -270,7 +270,7 @@ export default function VerificationRequirementsModal({
         } finally {
             setIsLoadingComments(false)
         }
-    }
+    }, [service, itemId])
     const handleSaveOperatorPhone = async () => {
         if (!operatorPhone || !assignedOperator) return
         setIsSavingPhone(true)

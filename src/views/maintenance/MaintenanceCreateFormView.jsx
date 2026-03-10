@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../app/context/PreferencesContext'
@@ -39,9 +39,6 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             populateForm(editingForm)
         }
     }, [editingForm])
-    useEffect(() => {
-        loadRegionalPlants()
-    }, [preferences.selectedRegion?.code])
     const loadOptions = async () => {
         try {
             const roles = await UserService.getAllRoles()
@@ -55,7 +52,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
             setAvailableRoles([])
         }
     }
-    const loadRegionalPlants = async () => {
+    const loadRegionalPlants = useCallback(async () => {
         try {
             const regionCode = preferences.selectedRegion?.code
             if (regionCode) {
@@ -67,7 +64,10 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         } catch (error) {
             setAvailablePlants([])
         }
-    }
+    }, [preferences.selectedRegion?.code])
+    useEffect(() => {
+        loadRegionalPlants()
+    }, [preferences.selectedRegion?.code, loadRegionalPlants])
     /** Hydrates all form state from an existing form record, mapping DB field rows into the local builder shape. */
     const populateForm = (form) => {
         setTitle(form.title || '')

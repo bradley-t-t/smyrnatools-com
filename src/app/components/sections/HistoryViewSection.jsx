@@ -1238,12 +1238,12 @@ function HistoryViewSection({ item, type, onClose }) {
                         <div
                             className="min-w-0 transition-all duration-500 ease-in-out"
                             style={{
+                                borderColor: '#e5e7eb',
+                                borderLeftWidth: analysisVisible ? '1px' : '0px',
                                 flex: analysisVisible ? '2' : '0',
                                 opacity: analysisVisible ? 1 : 0,
                                 overflow: 'hidden',
-                                borderLeftWidth: analysisVisible ? '1px' : '0px',
-                                paddingLeft: analysisVisible ? '1.25rem' : '0px',
-                                borderColor: '#e5e7eb'
+                                paddingLeft: analysisVisible ? '1.25rem' : '0px'
                             }}
                         >
                             {renderAISummary()}

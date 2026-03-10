@@ -23,7 +23,7 @@ export default function EfficiencyInfoCard() {
     return (
         <div
             className="mb-6 overflow-hidden rounded-2xl border md:mb-8"
-            style={{ borderColor: `${accent}20`, background: `linear-gradient(135deg, ${accent}08, ${accent}04)` }}
+            style={{ background: `linear-gradient(135deg, ${accent}08, ${accent}04)`, borderColor: `${accent}20` }}
         >
             <button
                 type="button"

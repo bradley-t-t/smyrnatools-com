@@ -15,7 +15,7 @@ const SEVERITY_COLORS = {
 }
 const MAX_COLUMN_COUNT = 10
 /** Groups assets by their assigned plant code, sorted numerically with Unassigned last. */
-function groupAssetsByPlant(assets, plants, identifierField) {
+function groupAssetsByPlant(assets, plants, _identifierField) {
     const plantNameMap = {}
     plants.forEach((p) => {
         const code = p.plantCode || p.plant_code || ''

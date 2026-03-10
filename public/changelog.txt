@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.3] - 2026-03-10
+
+- Redesigned dashboard notification rows in both DashboardPlantSummary and DashboardRegionSummary — replaced bordered rows with tinted background cards, rounded pill styles, and icon circles for better visual grouping
+- Added SummaryStrip component to both plant and region dashboards showing at-a-glance colored badge counters for issues, shop assets, unassigned/pending/training operators
+- Moved Fleet Alert banner to the top of the alerts section and restyled it with a red gradient background instead of the previous bordered card
+- Updated asset and operator pills from bordered rectangles to borderless rounded-full pills with hover brightness and active scale effects
+- Improved expand/collapse buttons to match their parent row color instead of the generic sky-blue style, with "Show less" / "+N more" labels
+- Redesigned the "All clear" empty state with a rounded icon container and refined typography
+- Overhauled ListView with restructured layout, added a weekly planner integration, and expanded list management capabilities
+- Enhanced WeeklyPlanner component with improved layout and interaction patterns
+- Updated TopSection with minor structural adjustments
+- Fixed optional chaining on expandedSections access to prevent potential undefined errors
+- Updated usePlantNotifications hook logic
+- Added MyAccountView updates for account management UI changes
+
 ## [29.2] - 2026-03-10
 
 - Added district grouping support to PlantDropdownModal with "My District" shortcut and district-based plant selection

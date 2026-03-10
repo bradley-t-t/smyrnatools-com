@@ -18,7 +18,7 @@ export default function MaintenanceView() {
     const [activeTab, setActiveTab] = useState('due')
     const [dueItems, setDueItems] = useState([])
     const [pendingReviews, setPendingReviews] = useState([])
-    const [allPlants, setAllPlants] = useState([])
+    const [allPlants, _setAllPlants] = useState([])
     const [reviewedSubmissions, setReviewedSubmissions] = useState([])
     const [mySubmissions, setMySubmissions] = useState([])
     const [myForms, setMyForms] = useState([])
@@ -101,12 +101,12 @@ export default function MaintenanceView() {
         })
     }
     const filteredDueItems = filterItems(dueItems, false)
-    const filteredPendingReviews = filterItems(pendingReviews, true)
-    const filteredReviewedSubmissions = filterItems(reviewedSubmissions, true)
+    const _filteredPendingReviews = filterItems(pendingReviews, true)
+    const _filteredReviewedSubmissions = filterItems(reviewedSubmissions, true)
     const duePlants = getUniquePlants(dueItems)
     const dueFormTypes = getUniqueFormTypes(dueItems, false)
-    const reviewPlants = getUniquePlants([...pendingReviews, ...reviewedSubmissions])
-    const reviewFormTypes = getUniqueFormTypes([...pendingReviews, ...reviewedSubmissions], true)
+    const _reviewPlants = getUniquePlants([...pendingReviews, ...reviewedSubmissions])
+    const _reviewFormTypes = getUniqueFormTypes([...pendingReviews, ...reviewedSubmissions], true)
     /** Opens an item for filling or editing. Completed items re-fetch their full submission data for inline editing. */
     const handleItemClick = async (item) => {
         if (item.status === 'completed' && item.submission_id) {

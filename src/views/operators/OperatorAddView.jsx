@@ -41,7 +41,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                 setAssignedPlant('')
             }
         }
-    }, [allowedPlantCodes])
+    }, [allowedPlantCodes, assignedPlant])
     useEffect(() => {
         async function checkPermission() {
             const userId = sessionStorage.getItem('userId')

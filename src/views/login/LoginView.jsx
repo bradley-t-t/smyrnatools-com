@@ -56,8 +56,15 @@ const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
         </div>
     )
 })
-const TRIM_END_SECONDS = 10
-const SKIP_START_SECONDS = 5
+/** Constant-time string comparison to prevent timing attacks on password matching. */
+const constantTimeEqual = (a, b) => {
+    if (a.length !== b.length) return false
+    let mismatch = 0
+    for (let i = 0; i < a.length; i++) {
+        mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i)
+    }
+    return mismatch === 0
+}
 /** Returns Tailwind classes for floating-label inputs. */
 const getInputClasses = (isFocused) =>
     `w-full bg-white border-0 rounded-none text-slate-800 text-base outline-none pt-4 pb-3 border-b-2 transition-colors placeholder-transparent autofill:shadow-[inset_0_0_0px_1000px_white] autofill:[-webkit-text-fill-color:theme(colors.slate.800)] ${isFocused ? 'border-[#1e3a5f]' : 'border-slate-200'}`
@@ -200,7 +207,7 @@ function LoginView() {
                         setIsSubmitting(false)
                         return
                     }
-                    if (password !== confirmPassword) {
+                    if (!constantTimeEqual(password, confirmPassword)) {
                         setErrorMessage('Passwords do not match.')
                         if (timeoutRef.current) clearTimeout(timeoutRef.current)
                         setIsSubmitting(false)

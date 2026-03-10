@@ -96,7 +96,7 @@ function ReportsView() {
         userAdditionalPlants.forEach((code) => codes.add(code))
         return codes
     }, [userPlantCode, userAdditionalPlants])
-    const hasMyPlants = userAdditionalPlants.length > 0
+    const _hasMyPlants = userAdditionalPlants.length > 0
     const districtPlantSet = useMemo(() => {
         if (!filterPlant?.startsWith('DISTRICT:')) return null
         const districtName = filterPlant.slice(9)
@@ -428,7 +428,7 @@ function ReportsView() {
                         setIsPlantModalOpen(false)
                     }}
                     showAllPlants={true}
-                    showMyPlants={hasMyPlants}
+                    showMyPlants={false}
                     userPlantCode={userPlantCode}
                 />
             )}

@@ -81,7 +81,7 @@ export default function DashboardView() {
         userAdditionalPlants.forEach((code) => codes.add(code))
         return codes
     }, [userPlantCode, userAdditionalPlants])
-    const hasMyPlants = userAdditionalPlants.length > 0
+    const _hasMyPlants = userAdditionalPlants.length > 0
     const isMultiPlantFilter = dashboardPlant === 'MY_PLANTS' || dashboardPlant?.startsWith('DISTRICT:')
     const plantFilter = usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants, myPlantCodesSet)
     const {
@@ -303,17 +303,17 @@ export default function DashboardView() {
                 (allTrailersRef.current || []).filter(inScope),
                 (allEquipmentRef.current || []).filter(inScope)
             ),
+            issues: buildIssueDomain(assetIssueDetails),
             operators: buildOperatorDomain(
                 (allOperatorsRef.current || []).filter(inScope),
                 filteredTrainingOperators,
                 filteredPendingStartOperators,
                 filteredLightDutyOperators
-            ),
-            issues: buildIssueDomain(assetIssueDetails)
+            )
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dataReady, dashboardPlant, dashboardRegionCode, stats.fleetTotal])
-    const revealClass = (direction, delay) => (revealContent ? `dash-reveal-${direction}` : '')
+    const revealClass = (direction, _delay) => (revealContent ? `dash-reveal-${direction}` : '')
     const revealStyle = (delay) => (revealContent ? { animationDelay: `${delay}ms` } : undefined)
     return (
         <div className="dashboard-full-width min-h-screen bg-bg-secondary text-text-primary">

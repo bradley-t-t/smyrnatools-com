@@ -212,7 +212,7 @@ export function useReportsData() {
             setIsLoadingMy(false)
         }
         loadInitial()
-    }, [user?.id, isLoadingPermissions, hasAssigned, regionType, refreshKey, fetchReportsBatch])
+    }, [user, isLoadingPermissions, hasAssigned, regionType, refreshKey, fetchReportsBatch])
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
         let cancelled = false

@@ -36,6 +36,20 @@ const DOMAIN_KEYWORDS = {
         'spare',
         'roster'
     ],
+    issues: [
+        'issue',
+        'problem',
+        'broken',
+        'maintenance',
+        'repair',
+        'down',
+        'fix',
+        'overdue',
+        'ticket',
+        'reported',
+        'resolved',
+        'open issue'
+    ],
     operators: [
         'operator',
         'driver',
@@ -51,20 +65,6 @@ const DOMAIN_KEYWORDS = {
         'position',
         'who drives',
         'who operates'
-    ],
-    issues: [
-        'issue',
-        'problem',
-        'broken',
-        'maintenance',
-        'repair',
-        'down',
-        'fix',
-        'overdue',
-        'ticket',
-        'reported',
-        'resolved',
-        'open issue'
     ]
 }
 function classifyQuestion(question) {
