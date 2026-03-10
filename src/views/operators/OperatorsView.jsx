@@ -197,6 +197,79 @@ function OperatorsView({
         }
         fetchCurrentUser()
     }, [])
+    /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */
+    const fetchCommentCounts = useCallback(async (operatorsList) => {
+        if (!operatorsList || operatorsList.length === 0) return
+        const operatorIds = operatorsList.map((op) => op.employeeId).filter(Boolean)
+        if (operatorIds.length === 0) return
+        try {
+            const commentsCounts = await OperatorService.fetchAllCommentsCounts(operatorIds)
+            setOperators((prevOperators) => {
+                return prevOperators.map((op) => ({
+                    ...op,
+                    commentsCount: commentsCounts[op.employeeId] || 0
+                }))
+            })
+        } catch (e) {
+            console.error('Error loading operator comment counts:', e)
+        }
+    }, [])
+    const fetchOperators = useCallback(
+        async (codes) => {
+            try {
+                const data = await OperatorService.fetchOperators(codes)
+                setOperators(data)
+                localStorage.setItem('cachedOperators', JSON.stringify(data))
+                localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
+                fetchCommentCounts(data)
+            } catch {
+                const cachedData = localStorage.getItem('cachedOperators')
+                const cacheDate = localStorage.getItem('cachedOperatorsDate')
+                if (cachedData && cacheDate) {
+                    const cachedTime = new Date(cacheDate).getTime()
+                    const hourAgo = new Date().getTime() - 3600000
+                    if (cachedTime > hourAgo) {
+                        const parsedData = JSON.parse(cachedData)
+                        setOperators(parsedData)
+                        fetchCommentCounts(parsedData)
+                    }
+                }
+            }
+        },
+        [fetchCommentCounts]
+    )
+    const fetchPlants = async (codes) => {
+        try {
+            const data = await PlantService.fetchPlants(codes)
+            setPlants(data)
+        } catch {
+            setPlants([])
+        }
+    }
+    const fetchTrainers = async () => {
+        try {
+            const data = await OperatorService.fetchTrainers()
+            setTrainers(data)
+        } catch {
+            setTrainers([])
+        }
+    }
+    const fetchMixers = async (codes) => {
+        try {
+            const data = await MixerService.fetchMixers(codes)
+            setMixers(data)
+        } catch {
+            setMixers([])
+        }
+    }
+    const fetchTractors = async (codes) => {
+        try {
+            const data = await TractorService.fetchTractors(codes)
+            setTractors(data)
+        } catch {
+            setTractors([])
+        }
+    }
     const fetchAllData = useCallback(async () => {
         setIsLoading(true)
         try {
@@ -274,79 +347,6 @@ function OperatorsView({
             updateOperatorFilter('selectedPlant', '')
         }
     }, [plants, selectedPlant, updateOperatorFilter])
-    /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */
-    const fetchCommentCounts = useCallback(async (operatorsList) => {
-        if (!operatorsList || operatorsList.length === 0) return
-        const operatorIds = operatorsList.map((op) => op.employeeId).filter(Boolean)
-        if (operatorIds.length === 0) return
-        try {
-            const commentsCounts = await OperatorService.fetchAllCommentsCounts(operatorIds)
-            setOperators((prevOperators) => {
-                return prevOperators.map((op) => ({
-                    ...op,
-                    commentsCount: commentsCounts[op.employeeId] || 0
-                }))
-            })
-        } catch (e) {
-            console.error('Error loading operator comment counts:', e)
-        }
-    }, [])
-    const fetchOperators = useCallback(
-        async (codes) => {
-            try {
-                const data = await OperatorService.fetchOperators(codes)
-                setOperators(data)
-                localStorage.setItem('cachedOperators', JSON.stringify(data))
-                localStorage.setItem('cachedOperatorsDate', new Date().toISOString())
-                fetchCommentCounts(data)
-            } catch {
-                const cachedData = localStorage.getItem('cachedOperators')
-                const cacheDate = localStorage.getItem('cachedOperatorsDate')
-                if (cachedData && cacheDate) {
-                    const cachedTime = new Date(cacheDate).getTime()
-                    const hourAgo = new Date().getTime() - 3600000
-                    if (cachedTime > hourAgo) {
-                        const parsedData = JSON.parse(cachedData)
-                        setOperators(parsedData)
-                        fetchCommentCounts(parsedData)
-                    }
-                }
-            }
-        },
-        [fetchCommentCounts]
-    )
-    const fetchPlants = async (codes) => {
-        try {
-            const data = await PlantService.fetchPlants(codes)
-            setPlants(data)
-        } catch {
-            setPlants([])
-        }
-    }
-    const fetchTrainers = async () => {
-        try {
-            const data = await OperatorService.fetchTrainers()
-            setTrainers(data)
-        } catch {
-            setTrainers([])
-        }
-    }
-    const fetchMixers = async (codes) => {
-        try {
-            const data = await MixerService.fetchMixers(codes)
-            setMixers(data)
-        } catch {
-            setMixers([])
-        }
-    }
-    const fetchTractors = async (codes) => {
-        try {
-            const data = await TractorService.fetchTractors(codes)
-            setTractors(data)
-        } catch {
-            setTractors([])
-        }
-    }
     const reloadAll = async () => {
         await fetchAllData()
     }
