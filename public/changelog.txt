@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.5] - 2026-03-10
+
+- Added changelog entry documenting v29.4 changes
+- Added blank line between React and service imports in DistrictManagerPlantsSection for consistent formatting
+
 ## [29.4] - 2026-03-10
 
 - Fixed MixersView to properly await loadDetailsForMixers before running the verification check, preventing a potential race condition

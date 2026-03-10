@@ -110,16 +110,6 @@ function MixersView({
         'Not Verified',
         'Open Issues'
     ]
-    const sortMappings = {
-        Cleanliness: 'cleanlinessRating',
-        More: null,
-        Operator: 'assignedOperator',
-        Plant: 'assignedPlant',
-        Status: 'status',
-        'Truck #': 'truckNumber',
-        VIN: 'vinNumber',
-        Verified: null
-    }
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -291,6 +281,7 @@ function MixersView({
             const lastUsed = localStorage.getItem('mixers_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preferences])
     useEffect(() => {
         let cancelled = false
@@ -317,6 +308,7 @@ function MixersView({
         return () => {
             cancelled = true
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [preferences.selectedRegion?.code])
     async function fetchOperators() {
         try {
@@ -404,14 +396,17 @@ function MixersView({
             }
         } catch (error) {}
     }
-    function handleSelectMixer(mixerId) {
-        const mixer = mixers.find((m) => m.id === mixerId)
-        if (mixer) {
-            saveLastViewedFilters()
-            setSelectedMixer(mixer)
-            onSelectMixer?.(mixerId)
-        }
-    }
+    const handleSelectMixer = useCallback(
+        (mixerId) => {
+            const mixer = mixers.find((m) => m.id === mixerId)
+            if (mixer) {
+                saveLastViewedFilters()
+                setSelectedMixer(mixer)
+                onSelectMixer?.(mixerId)
+            }
+        },
+        [mixers, saveLastViewedFilters, onSelectMixer]
+    )
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -545,6 +540,16 @@ function MixersView({
         })
     }, [operators, selectedPlant, regionPlantCodes])
     const filteredMixers = useMemo(() => {
+        const sortMappings = {
+            Cleanliness: 'cleanlinessRating',
+            More: null,
+            Operator: 'assignedOperator',
+            Plant: 'assignedPlant',
+            Status: 'status',
+            'Truck #': 'truckNumber',
+            VIN: 'vinNumber',
+            Verified: null
+        }
         const filtered = mixers.filter((mixer) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
             let matchesSearch = true
@@ -685,6 +690,7 @@ function MixersView({
         plants,
         exactMatch
     ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedSetSearchText = useCallback(
         AsyncUtility.debounce((value) => {
             setSearchText(value)
@@ -768,11 +774,11 @@ function MixersView({
                         const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
                         const statusMap = {
                             Active: 'bg-[#dcfce7] text-[#166534]',
-                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
-                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
-                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]',
                             'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
-                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]'
+                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
+                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
                         }
                         const colors = statusMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
                         return `${base} ${colors}`
@@ -1167,7 +1173,7 @@ function MixersView({
         statusFilter,
         operators,
         plants,
-        mixers,
+        handleSelectMixer,
         handleVerifyMixer
     ])
     useEffect(() => {

@@ -287,7 +287,8 @@ function TractorsView({
             const lastUsed = localStorage.getItem('tractors_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
-    }, [preferences, fetchTractors])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences])
     useEffect(() => {
         if (preferences.tractorFilters?.viewMode !== undefined && preferences.tractorFilters?.viewMode !== null)
             setViewMode(preferences.tractorFilters.viewMode)
@@ -323,7 +324,8 @@ function TractorsView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code, selectedPlant])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences.selectedRegion?.code])
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)

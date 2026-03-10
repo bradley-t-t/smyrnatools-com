@@ -261,7 +261,8 @@ function EquipmentsView({
             setEquipmentTypeFilter(preferences.equipmentFilters.equipmentTypeFilter || '')
             setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid')
         }
-    }, [preferences, fetchEquipments])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences])
     // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
     useEffect(() => {
         const code = preferences.selectedRegion?.code || ''
@@ -287,7 +288,8 @@ function EquipmentsView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code, selectedPlant])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences.selectedRegion?.code])
     /** Batch-loads comment and open-issue counts for all equipment and merges them into local state. */
     const loadDetailsForEquipments = useCallback(async (equipmentsList) => {
         if (!equipmentsList || equipmentsList.length === 0) return

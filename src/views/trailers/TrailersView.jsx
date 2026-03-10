@@ -213,7 +213,8 @@ function TrailersView({
             const lastUsed = localStorage.getItem('trailers_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
-    }, [preferences, reloadTrailers, fetchTrailers])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences, reloadTrailers])
     useEffect(() => {
         if (preferences.trailerFilters?.viewMode !== undefined && preferences.trailerFilters?.viewMode !== null) {
             setViewMode(preferences.trailerFilters.viewMode)
@@ -248,7 +249,8 @@ function TrailersView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code, selectedPlant])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences.selectedRegion?.code])
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current

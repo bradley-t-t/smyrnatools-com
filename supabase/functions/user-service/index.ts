@@ -104,8 +104,6 @@ Deno.serve(async (req) => {
                 }, headers);
             }
             case "display-name": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
                 const {userId} = body;
                 if (!userId) return jsonResponse('System', headers);
                 if (userId === 'anonymous') return jsonResponse('Anonymous', headers);

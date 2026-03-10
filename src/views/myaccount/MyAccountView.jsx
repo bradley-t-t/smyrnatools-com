@@ -276,7 +276,8 @@ function MyAccountView({ userId }) {
         return () => {
             cancelled = true
         }
-    }, [userId, preferences.selectedRegion?.code, updatePreferences])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId])
     const updateProfile = async (e) => {
         e.preventDefault()
         setLoading(true)
