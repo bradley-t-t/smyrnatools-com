@@ -323,26 +323,29 @@ function ReportsView() {
                 </div>
             )}
             {hasLostLoadsPermission && !bannerDismissed && (
-                <div className="flex items-start sm:items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-200 text-amber-800 text-sm">
-                    <i className="fas fa-exclamation-triangle shrink-0 mt-0.5 sm:mt-0 text-amber-500" />
-                    <span className="flex-1">
-                        <strong>Action Required:</strong> Lost loads must now be reported using the{' '}
+                <div className="flex items-center gap-3 mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-3 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
+                    <i className="fas fa-exclamation-triangle text-amber-500 shrink-0" />
+                    <span className="flex-1 flex flex-wrap items-center gap-x-1">
+                        <strong>Lost loads:</strong>
                         <button
                             onClick={() => setShowLostLoadModal(true)}
-                            className="underline font-semibold hover:text-amber-900"
+                            className="underline font-semibold hover:text-amber-900 border-none bg-transparent text-amber-800 cursor-pointer p-0 text-xs"
                             type="button"
                         >
-                            Lost Load Report
-                        </button>{' '}
-                        button.
+                            Submit report
+                        </button>
+                        <span className="text-amber-300 hidden sm:inline">•</span>
+                        <span>Write reason on ticket</span>
+                        <span className="text-amber-300 hidden sm:inline">•</span>
+                        <span>Email GM &amp; DM with details</span>
                     </span>
                     <button
                         onClick={() => setBannerDismissed(true)}
-                        className="shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-amber-200 text-amber-600"
+                        className="shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-amber-200 text-amber-500"
                         type="button"
                         aria-label="Dismiss"
                     >
-                        <i className="fas fa-times text-xs" />
+                        <i className="fas fa-times text-[10px]" />
                     </button>
                 </div>
             )}
