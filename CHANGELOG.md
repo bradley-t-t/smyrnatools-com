@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 - Fixed MixersView to properly await loadDetailsForMixers before running the verification check, preventing a potential race condition
 - Added changelog entry documenting v29.3 changes
 
+## [29.4] - 2026-03-10
+
+- Fixed MixersView to properly await loadDetailsForMixers before running the verification check, preventing a potential race condition
+- Added changelog entry documenting v29.3 changes
+
 ## [29.3] - 2026-03-10
 
 - Redesigned dashboard notification rows in both DashboardPlantSummary and DashboardRegionSummary — replaced bordered rows with tinted background cards, rounded pill styles, and icon circles for better visual grouping
