@@ -17,12 +17,15 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     const [regionName, setRegionName] = useState(region.region_name || region.regionName || '')
     const [regionType, setRegionType] = useState(region.type || region.region_type || '')
     const [plantCodes, setPlantCodes] = useState([])
+    const [plantDistricts, setPlantDistricts] = useState({})
     const [allPlants, setAllPlants] = useState([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const [plantQuery, setPlantQuery] = useState('')
+    const [newDistrictName, setNewDistrictName] = useState('')
+    const [districtNames, setDistrictNames] = useState([])
     const regionCode = region.region_code || region.regionCode
     useEffect(() => {
         setLoading(true)
@@ -54,13 +57,19 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                 regionPlants = []
             }
             setAllPlants(normalizedAll)
+            const validPlants = Array.isArray(regionPlants) ? regionPlants : []
             setPlantCodes(
-                Array.isArray(regionPlants)
-                    ? regionPlants
-                          .map((p) => p.plant_code || p.plantCode)
-                          .filter((code) => !!code && normalizedAll.some((ap) => ap.plant_code === code))
-                    : []
+                validPlants
+                    .map((p) => p.plant_code || p.plantCode)
+                    .filter((code) => !!code && normalizedAll.some((ap) => ap.plant_code === code))
             )
+            const districts = {}
+            validPlants.forEach((p) => {
+                const code = p.plant_code || p.plantCode
+                if (code && Array.isArray(p.districts) && p.districts.length) districts[code] = p.districts
+            })
+            setPlantDistricts(districts)
+            setDistrictNames([...new Set(Object.values(districts).flat())])
             setPlantQuery('')
             setLoading(false)
         }
@@ -70,7 +79,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         setSaving(true)
         setMessage('')
         try {
-            await RegionService.updateRegion(regionCode, regionName, plantCodes, regionType)
+            await RegionService.updateRegion(regionCode, regionName, plantCodes, regionType, plantDistricts)
             setMessage('Changes saved')
             if (onUpdate) onUpdate(regionCode, regionName)
             setTimeout(() => setMessage(''), 2000)
@@ -105,8 +114,45 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         const codes = filteredPlants.map((p) => p.plant_code)
         setPlantCodes((prev) => Array.from(new Set([...prev, ...codes])))
     }
-    const clearAllSelected = () => setPlantCodes([])
-    const removeChip = (code) => setPlantCodes((prev) => prev.filter((c) => c !== code))
+    const clearAllSelected = () => {
+        setPlantCodes([])
+        setPlantDistricts({})
+        setDistrictNames([])
+    }
+    const removeChip = (code) => {
+        setPlantCodes((prev) => prev.filter((c) => c !== code))
+        setPlantDistricts((prev) => {
+            const next = { ...prev }
+            delete next[code]
+            return next
+        })
+    }
+    const allDistrictNames = [...new Set([...districtNames, ...Object.values(plantDistricts).flat()])]
+    const addDistrictToPlant = (plantCode, districtName) => {
+        if (!districtName?.trim()) return
+        setPlantDistricts((prev) => {
+            const current = prev[plantCode] || []
+            if (current.includes(districtName.trim())) return prev
+            return { ...prev, [plantCode]: [...current, districtName.trim()] }
+        })
+    }
+    const removeDistrictFromPlant = (plantCode, districtName) => {
+        setPlantDistricts((prev) => {
+            const current = (prev[plantCode] || []).filter((d) => d !== districtName)
+            if (!current.length) {
+                const next = { ...prev }
+                delete next[plantCode]
+                return next
+            }
+            return { ...prev, [plantCode]: current }
+        })
+    }
+    const addNewDistrict = () => {
+        const name = newDistrictName.trim()
+        if (!name || allDistrictNames.includes(name)) return
+        setDistrictNames((prev) => [...prev, name])
+        setNewDistrictName('')
+    }
     const noPlantsAvailable = !loading && visiblePlants.length === 0
     return (
         <DetailViewSection
@@ -297,6 +343,164 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                     )}
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
+            {plantCodes.length > 0 && (
+                <DetailViewSection.Section id="districts" title="Districts" icon="fas fa-layer-group">
+                    <DetailViewSection.Card title={`Districts (${allDistrictNames.length})`} icon="fas fa-object-group">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="New district name..."
+                                    value={newDistrictName}
+                                    onChange={(e) => setNewDistrictName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            addNewDistrict()
+                                        }
+                                    }}
+                                    style={{ flex: 1 }}
+                                />
+                                <button
+                                    type="button"
+                                    className="global-button-secondary"
+                                    onClick={addNewDistrict}
+                                    disabled={
+                                        !newDistrictName.trim() || allDistrictNames.includes(newDistrictName.trim())
+                                    }
+                                    style={{ whiteSpace: 'nowrap', fontSize: 13, padding: '8px 12px' }}
+                                >
+                                    <i className="fas fa-plus mr-1" />
+                                    Add District
+                                </button>
+                            </div>
+                            {allDistrictNames.length === 0 ? (
+                                <div
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        fontSize: 14,
+                                        padding: '16px 0',
+                                        textAlign: 'center'
+                                    }}
+                                >
+                                    No districts defined. Add a district to group plants.
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                    {allDistrictNames.sort().map((districtName) => {
+                                        const districtPlantCodes = plantCodes.filter((code) =>
+                                            plantDistricts[code]?.includes(districtName)
+                                        )
+                                        const unassignedPlants = plantCodes.filter(
+                                            (code) => !plantDistricts[code]?.includes(districtName)
+                                        )
+                                        return (
+                                            <div
+                                                key={districtName}
+                                                style={{
+                                                    border: '1px solid var(--border-light)',
+                                                    borderRadius: 10,
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                <div
+                                                    className="flex items-center justify-between px-4 py-3"
+                                                    style={{
+                                                        backgroundColor: 'var(--bg-tertiary)',
+                                                        borderBottom: '1px solid var(--border-light)'
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="text-sm font-semibold"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        <i
+                                                            className="fas fa-layer-group mr-2 text-xs"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        />
+                                                        {districtName}
+                                                    </span>
+                                                    <span
+                                                        className="text-xs"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {districtPlantCodes.length} plant
+                                                        {districtPlantCodes.length !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    className="px-4 py-3"
+                                                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                                                >
+                                                    {districtPlantCodes.length > 0 && (
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                            {districtPlantCodes.map((code) => {
+                                                                const p = visiblePlants.find(
+                                                                    (pl) => pl.plant_code === code
+                                                                )
+                                                                return (
+                                                                    <span
+                                                                        key={code}
+                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-xs font-medium text-blue-700"
+                                                                    >
+                                                                        <span className="font-bold">{code}</span>
+                                                                        {p?.plant_name && (
+                                                                            <span className="text-blue-500">
+                                                                                {p.plant_name}
+                                                                            </span>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            className="ml-0.5 text-blue-400 hover:text-blue-600 cursor-pointer bg-transparent border-none text-sm leading-none"
+                                                                            onClick={() =>
+                                                                                removeDistrictFromPlant(
+                                                                                    code,
+                                                                                    districtName
+                                                                                )
+                                                                            }
+                                                                            aria-label={`Remove ${code} from ${districtName}`}
+                                                                        >
+                                                                            &times;
+                                                                        </button>
+                                                                    </span>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                    {unassignedPlants.length > 0 && (
+                                                        <select
+                                                            className="form-control"
+                                                            value=""
+                                                            onChange={(e) => {
+                                                                if (e.target.value)
+                                                                    addDistrictToPlant(e.target.value, districtName)
+                                                            }}
+                                                            style={{ fontSize: 13 }}
+                                                        >
+                                                            <option value="">Add plant to {districtName}...</option>
+                                                            {unassignedPlants.map((code) => {
+                                                                const p = visiblePlants.find(
+                                                                    (pl) => pl.plant_code === code
+                                                                )
+                                                                return (
+                                                                    <option key={code} value={code}>
+                                                                        ({code}) {p?.plant_name || ''}
+                                                                    </option>
+                                                                )
+                                                            })}
+                                                        </select>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+            )}
         </DetailViewSection>
     )
 }

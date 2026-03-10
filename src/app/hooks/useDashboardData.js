@@ -264,13 +264,25 @@ export function useIssueCommentCounts({
     }, [allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats])
     return { assetIssueDetails, countsRef, fetchIssueCommentCounts }
 }
-export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants) {
+export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants, myPlantCodes) {
     const plantSetRef = useRef(new Set())
     const updatePlantSet = useCallback(
         (regionType) => {
             const isOffice = regionType === 'Office'
             const plantSet = new Set()
-            if (isOffice) {
+            if (dashboardPlant === 'MY_PLANTS' && myPlantCodes?.size > 0) {
+                myPlantCodes.forEach((code) => plantSet.add(String(code).trim()))
+            } else if (dashboardPlant?.startsWith('DISTRICT:')) {
+                const districtName = dashboardPlant.slice(9)
+                const plants = regionPlants || []
+                plants.forEach((p) => {
+                    const code = p.plantCode || p.plant_code
+                    const dists = p.districts || []
+                    if (dists.some((d) => (typeof d === 'string' ? d : d?.name) === districtName)) {
+                        plantSet.add(String(code).trim())
+                    }
+                })
+            } else if (isOffice) {
                 allPlants.forEach((p) => {
                     const code = p.plantCode || p.plant_code
                     if (code) plantSet.add(String(code).trim())
@@ -287,7 +299,7 @@ export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants
             plantSetRef.current = plantSet
             return plantSet
         },
-        [dashboardPlant, regionPlants, allPlants]
+        [dashboardPlant, regionPlants, allPlants, myPlantCodes]
     )
     const createFilterFn = useCallback((plantSet) => {
         const filterActive = plantSet.size > 0

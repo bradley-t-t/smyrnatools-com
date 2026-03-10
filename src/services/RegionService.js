@@ -46,9 +46,9 @@ class RegionServiceImpl {
         return true
     }
     /** Updates a region's name, plant assignments, and optionally its type. */
-    async updateRegion(regionCode, regionName, plantCodes = [], type) {
+    async updateRegion(regionCode, regionName, plantCodes = [], type, plantDistricts = {}) {
         if (!regionCode?.trim() || !regionName?.trim()) throw new Error('Region code and name are required')
-        const payload = { plantCodes, regionCode, regionName }
+        const payload = { plantCodes, plantDistricts, regionCode, regionName }
         if (type && ['Concrete', 'Aggregate', 'Office'].includes(type)) payload.type = type
         const { res, json } = await APIUtility.post('/region-service/update', payload)
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update region')
@@ -77,6 +77,7 @@ class RegionServiceImpl {
                 if (res && res.ok) {
                     const data = json?.data ?? []
                     return data.map((row) => ({
+                        districts: Array.isArray(row.districts) ? row.districts : [],
                         plantCode: row.plant_code,
                         plantName: row.plant_name
                     }))

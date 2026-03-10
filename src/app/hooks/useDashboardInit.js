@@ -28,6 +28,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
     const [userRoleWeight, setUserRoleWeight] = useState(0)
     const [userRoleName, setUserRoleName] = useState('')
     const [userPlantCode, setUserPlantCode] = useState('')
+    const [userAdditionalPlants, setUserAdditionalPlants] = useState([])
     const [refreshing, setRefreshing] = useState(false)
     const initialLoadRef = useRef(true)
     useEffect(() => {
@@ -121,11 +122,12 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 const { data: sessionData } = await supabase.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 if (!uid || cancelled) return
-                const [roles, weight, profileData, highestRole] = await Promise.all([
+                const [roles, weight, profileData, highestRole, additionalPlants] = await Promise.all([
                     UserService.getUserRoles(uid),
                     UserService.getUserWeight(uid),
                     supabase.from('users_profiles').select('plant_code').eq('id', uid).maybeSingle(),
-                    UserService.getHighestRole(uid).catch(() => null)
+                    UserService.getHighestRole(uid).catch(() => null),
+                    UserService.getAdditionalAssignedPlants(uid).catch(() => [])
                 ])
                 const isPM = roles?.some(
                     (r) =>
@@ -138,6 +140,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                     setUserRoleWeight(weight || 0)
                     setUserRoleName(highestRole?.name || '')
                     setUserPlantCode(profileData?.data?.plant_code || '')
+                    setUserAdditionalPlants(Array.isArray(additionalPlants) ? additionalPlants : [])
                     if (weight < 50 && profileData?.data?.plant_code) {
                         setDashboardPlant(profileData.data.plant_code)
                         plantSetRef.current = new Set([profileData.data.plant_code])
@@ -184,6 +187,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
         totalAggregateLocations,
         totalPlantsExcludingAggregate,
         totalRegionsExcludingOffice,
+        userAdditionalPlants,
         userPlantCode,
         userRoleName,
         userRoleWeight

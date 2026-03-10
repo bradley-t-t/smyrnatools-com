@@ -388,17 +388,11 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
     const chat = useDashboardChat(chatContext, domainData)
     const isChatExpanded = (chat.isChatFocused || chat.isChatLoading) && !isMobile
     const hasNotifications =
-        plantNotifications.unverifiedMixers.length > 0 ||
         plantNotifications.pendingOperators.length > 0 ||
         plantNotifications.assetsWithMostIssues.length > 0 ||
-        plantNotifications.overdueService.length > 0 ||
         plantNotifications.trainingOperators.length > 0 ||
         plantNotifications.longTermShopAssets.length > 0
-    const alertCount =
-        plantNotifications.unverifiedMixers.length +
-        plantNotifications.overdueService.length +
-        plantNotifications.assetsWithMostIssues.length +
-        plantNotifications.longTermShopAssets.length
+    const alertCount = plantNotifications.assetsWithMostIssues.length + plantNotifications.longTermShopAssets.length
     const { shopIssue } = plantNotifications
     const isDataLoading = !dataReady
     const stats = displayStats || {}
@@ -545,42 +539,6 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                         <ContentSkeleton />
                     ) : hasNotifications ? (
                         <>
-                            {plantNotifications.unverifiedMixers.length > 0 && (
-                                <AlertRow
-                                    icon="fa-clipboard-check"
-                                    iconColor="#dc2626"
-                                    title="Unverified Mixers"
-                                    count={plantNotifications.unverifiedMixers.length}
-                                    items={plantNotifications.unverifiedMixers}
-                                    expandKey="unverifiedMixers"
-                                    expandedSections={expandedSections}
-                                    setExpandedSections={setExpandedSections}
-                                    renderItem={(m, i) => (
-                                        <AssetPill
-                                            key={i}
-                                            label={m.truckNumber || 'N/A'}
-                                            color="#dc2626"
-                                            onClick={() => {
-                                                setEmbeddedView('mixers')
-                                                setEmbeddedViewSearch(m.truckNumber || '')
-                                            }}
-                                        />
-                                    )}
-                                />
-                            )}
-                            {plantNotifications.overdueService.length > 0 && (
-                                <AlertRow
-                                    icon="fa-wrench"
-                                    iconColor="#f59e0b"
-                                    title="Service Overdue"
-                                    count={plantNotifications.overdueService.length}
-                                    items={plantNotifications.overdueService}
-                                    expandKey="overdueService"
-                                    expandedSections={expandedSections}
-                                    setExpandedSections={setExpandedSections}
-                                    renderItem={(a, i) => <span key={i}>{renderAssetPill(a, '#f59e0b')}</span>}
-                                />
-                            )}
                             {plantNotifications.assetsWithMostIssues.length > 0 && (
                                 <AlertRow
                                     icon="fa-exclamation-circle"

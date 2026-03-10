@@ -69,11 +69,21 @@ export default function DashboardView() {
         totalAggregateLocations,
         totalPlantsExcludingAggregate,
         totalRegionsExcludingOffice,
+        userAdditionalPlants,
         userPlantCode,
         userRoleName,
         userRoleWeight
     } = useDashboardInit({ plantSetRef, preferences })
-    const plantFilter = usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants)
+    const myPlantCodesSet = useMemo(() => {
+        if (!userPlantCode && !userAdditionalPlants.length) return null
+        const codes = new Set()
+        if (userPlantCode) codes.add(userPlantCode)
+        userAdditionalPlants.forEach((code) => codes.add(code))
+        return codes
+    }, [userPlantCode, userAdditionalPlants])
+    const hasMyPlants = userAdditionalPlants.length > 0
+    const isMultiPlantFilter = dashboardPlant === 'MY_PLANTS' || dashboardPlant?.startsWith('DISTRICT:')
+    const plantFilter = usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants, myPlantCodesSet)
     const {
         createFilterFn: activeCreateFilterFn,
         plantSetRef: activePlantSetRef,
@@ -195,6 +205,7 @@ export default function DashboardView() {
         displayStats,
         plantNotifications,
         regionDisplayName: dashboardRegionName || 'Region',
+        regionPlants,
         setRegionalAI,
         userRoleName,
         userRoleWeight
@@ -259,6 +270,8 @@ export default function DashboardView() {
             return `${totalRegionsExcludingOffice} Region${totalRegionsExcludingOffice !== 1 ? 's' : ''}, ${totalPlantsExcludingAggregate} Concrete Plant${totalPlantsExcludingAggregate !== 1 ? 's' : ''}, ${totalAggregateLocations} Aggregate Location${totalAggregateLocations !== 1 ? 's' : ''}`
         }
         const plantLabel = isAggregate ? 'Aggregate Location' : 'Concrete Plant'
+        if (dashboardPlant === 'MY_PLANTS') return 'My Plants'
+        if (dashboardPlant?.startsWith('DISTRICT:')) return dashboardPlant.slice(9)
         return dashboardPlant
             ? `${plantLabel} ${dashboardPlant}`
             : dashboardRegionCode
@@ -340,7 +353,7 @@ export default function DashboardView() {
                 isLoading={showSkeleton}
             />
             <div className={`mx-auto max-w-full ${isMobile ? 'p-3' : 'p-6'}`}>
-                {!showSkeleton && dashboardPlant && (
+                {!showSkeleton && dashboardPlant && !isMultiPlantFilter && (
                     <div className={revealClass('left', 0)} style={revealStyle(0)}>
                         <DashboardPlantSummary
                             dashboardPlant={dashboardPlant}
@@ -363,7 +376,7 @@ export default function DashboardView() {
                         />
                     </div>
                 )}
-                {!showSkeleton && !dashboardPlant && (
+                {!showSkeleton && (!dashboardPlant || isMultiPlantFilter) && (
                     <div className={revealClass('left', 0)} style={revealStyle(0)}>
                         <DashboardRegionSummary
                             regionDisplayName={regionDisplayName}
@@ -465,6 +478,8 @@ export default function DashboardView() {
                 plants={regionPlants}
                 onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
                 showAllPlants={true}
+                showMyPlants={hasMyPlants}
+                userPlantCode={userPlantCode}
             />
             {embeddedView && (
                 <EmbeddedViewModal

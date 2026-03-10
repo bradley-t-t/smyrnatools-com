@@ -49,6 +49,7 @@ function ReportsView() {
         plants,
         preferences,
         regionPlantCodes,
+        regionPlantsWithDistricts,
         regionType,
         reporterPlantMap,
         reviewableReports,
@@ -96,6 +97,18 @@ function ReportsView() {
         return codes
     }, [userPlantCode, userAdditionalPlants])
     const hasMyPlants = userAdditionalPlants.length > 0
+    const districtPlantSet = useMemo(() => {
+        if (!filterPlant?.startsWith('DISTRICT:')) return null
+        const districtName = filterPlant.slice(9)
+        const codes = new Set()
+        regionPlantsWithDistricts.forEach((p) => {
+            const dists = p.districts || []
+            if (dists.some((d) => (typeof d === 'string' ? d : d?.name) === districtName)) {
+                codes.add(p.plantCode || p.plant_code)
+            }
+        })
+        return codes
+    }, [filterPlant, regionPlantsWithDistricts])
     const visibleReviewReports = useMemo(
         () =>
             reviewableReports.filter((report) => {
@@ -103,7 +116,11 @@ function ReportsView() {
                 const matchPlant =
                     !filterPlant ||
                     filterPlant === 'All' ||
-                    (filterPlant === 'MY_PLANTS' ? myPlantCodesSet?.has(reporterPlant) : reporterPlant === filterPlant)
+                    (filterPlant === 'MY_PLANTS'
+                        ? myPlantCodesSet?.has(reporterPlant)
+                        : filterPlant.startsWith('DISTRICT:')
+                          ? districtPlantSet?.has(reporterPlant)
+                          : reporterPlant === filterPlant)
                 const matchRegion =
                     !preferences.selectedRegion?.code ||
                     !regionPlantCodes ||
@@ -127,7 +144,8 @@ function ReportsView() {
             reporterPlantMap,
             searchLower,
             getUserName,
-            myPlantCodesSet
+            myPlantCodesSet,
+            districtPlantSet
         ]
     )
     const myPagination = usePagination({
@@ -155,20 +173,27 @@ function ReportsView() {
         items: visibleLostLoads,
         resetDependencies: [searchInput]
     })
-    const regionalPlants = useMemo(
-        () =>
-            plants.filter(
-                (p) => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code)
-            ),
-        [plants, preferences.selectedRegion?.code, regionPlantCodes]
-    )
+    const regionalPlants = useMemo(() => {
+        const filtered = plants.filter(
+            (p) => !preferences.selectedRegion?.code || !regionPlantCodes || regionPlantCodes.has(p.plant_code)
+        )
+        if (!regionPlantsWithDistricts.length) return filtered
+        const districtMap = {}
+        regionPlantsWithDistricts.forEach((rp) => {
+            const code = rp.plantCode || rp.plant_code
+            if (code && rp.districts?.length) districtMap[code] = rp.districts
+        })
+        return filtered.map((p) => (districtMap[p.plant_code] ? { ...p, districts: districtMap[p.plant_code] } : p))
+    }, [plants, preferences.selectedRegion?.code, regionPlantCodes, regionPlantsWithDistricts])
     const selectedPlantObj = regionalPlants.find((p) => p.plant_code === filterPlant)
     const plantDisplayText =
         filterPlant === 'MY_PLANTS'
             ? 'My Plants'
-            : filterPlant
-              ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
-              : 'All Plants'
+            : filterPlant?.startsWith('DISTRICT:')
+              ? filterPlant.slice(9)
+              : filterPlant
+                ? `(${selectedPlantObj?.plant_code}) ${selectedPlantObj?.plant_name}`
+                : 'All Plants'
     const isMyReportsLoading = isLoadingUser || isLoadingMy || isLoadingPermissions
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
     useEffect(() => {
@@ -404,6 +429,7 @@ function ReportsView() {
                     }}
                     showAllPlants={true}
                     showMyPlants={hasMyPlants}
+                    userPlantCode={userPlantCode}
                 />
             )}
             {showLostLoadModal && (

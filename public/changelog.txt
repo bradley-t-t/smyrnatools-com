@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.1] - 2026-03-10
+
+- Added dark mode support to the Maintenance Quality chart tooltip and hover cursor using CSS custom properties
+- Removed blank lines throughout DistrictManagerPlantsSection and DistrictManagerService for cleaner formatting
+- Alphabetically sorted object keys in LostLoadDetailModal date formatting options
+- Updated changelog with v29.0 release notes
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [29.0] - 2026-03-09
 
 - Updated My Account loading skeleton to use CSS custom properties (--bg-primary, --bg-secondary, --bg-tertiary, --border-light) instead of hardcoded Tailwind gray colors, adding dark mode support

@@ -22,6 +22,7 @@ export function useReportsData() {
     const [plants, setPlants] = useState([])
     const [regionType, setRegionType] = useState(null)
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [regionPlantsWithDistricts, setRegionPlantsWithDistricts] = useState([])
     const [userPlantCode, setUserPlantCode] = useState('')
     const [userAdditionalPlants, setUserAdditionalPlants] = useState([])
     const [reporterPlantMap, setReporterPlantMap] = useState({})
@@ -227,6 +228,7 @@ export function useReportsData() {
                 const list = await RegionService.fetchRegionPlants(code)
                 if (cancelled) return
                 setRegionPlantCodes(new Set(list.map((p) => p.plantCode)))
+                setRegionPlantsWithDistricts(list)
             } catch {
                 setRegionPlantCodes(new Set())
                 setRegionType(null)
@@ -434,6 +436,7 @@ export function useReportsData() {
         plants,
         preferences,
         regionPlantCodes,
+        regionPlantsWithDistricts,
         regionType,
         reporterPlantMap,
         reviewableReports,

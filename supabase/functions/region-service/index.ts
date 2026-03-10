@@ -83,9 +83,14 @@ Deno.serve(async (req) => {
                 const {error: deleteError} = await supabase.from(REGIONS_PLANTS_TABLE).delete().eq("region_id", regionId);
                 if (deleteError) return errorResponse("Operation failed", headers, 400);
                 const plantCodes = body?.plantCodes;
+                const plantDistricts = body?.plantDistricts ?? {};
                 if (Array.isArray(plantCodes) && plantCodes.length) {
                     const now = nowISO();
-                    const rows = plantCodes.filter((v: any) => typeof v === "string" && v.trim()).map((v: string) => ({region_id: regionId, plant_code: v.trim(), created_at: now}));
+                    const rows = plantCodes.filter((v: any) => typeof v === "string" && v.trim()).map((v: string) => {
+                        const code = v.trim();
+                        const districts = Array.isArray(plantDistricts[code]) ? plantDistricts[code] : null;
+                        return {region_id: regionId, plant_code: code, created_at: now, districts};
+                    });
                     if (rows.length) {
                         const {error: insertError} = await supabase.from(REGIONS_PLANTS_TABLE).insert(rows);
                         if (insertError) return errorResponse("Operation failed", headers, 400);
@@ -111,13 +116,17 @@ Deno.serve(async (req) => {
                 if (!regionCode) return errorResponse("Region code is required", headers, 400);
                 const result = await fetchRegionId(supabase, regionCode, headers);
                 if (result instanceof Response) return result;
-                const {data: rp, error: rpErr} = await supabase.from(REGIONS_PLANTS_TABLE).select("plant_code").eq("region_id", result.id);
+                const {data: rp, error: rpErr} = await supabase.from(REGIONS_PLANTS_TABLE).select("plant_code, districts").eq("region_id", result.id);
                 if (rpErr) return errorResponse("Operation failed", headers, 400);
                 if (!rp?.length) return jsonResponse({data: []}, headers);
                 const codes = rp.map((r: any) => r.plant_code);
+                const districtMap: Record<string, any[]> = {};
+                for (const r of rp) {
+                    if (Array.isArray(r.districts) && r.districts.length) districtMap[r.plant_code] = r.districts;
+                }
                 const {data: plants, error: plantsErr} = await supabase.from("plants").select("plant_code, plant_name").in("plant_code", codes);
                 if (plantsErr) return errorResponse("Operation failed", headers, 400);
-                return jsonResponse({data: (plants ?? []).map((p: any) => ({plant_code: p.plant_code, plant_name: p.plant_name}))}, headers);
+                return jsonResponse({data: (plants ?? []).map((p: any) => ({plant_code: p.plant_code, plant_name: p.plant_name, districts: districtMap[p.plant_code] ?? []}))}, headers);
             }
             case "fetch-regions-by-plant-code": {
                 const body = await parseBody(req);

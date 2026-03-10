@@ -15,6 +15,7 @@ import { useAccentColor } from '../../hooks/useAccentColor'
  * @param {boolean} [props.showMyPlants=false] - When true in single-select mode, shows a "My Plants" option that selects 'MY_PLANTS'.
  * @param {boolean} [props.allowMultiple=false] - Enables multi-select mode with checkboxes.
  * @param {string[]} [props.selectedPlantCodes] - Pre-selected plant codes for multi-select mode.
+ * @param {string} [props.userPlantCode] - User's primary plant code for "My District" detection.
  */
 function PlantDropdownModal({
     isOpen,
@@ -25,11 +26,29 @@ function PlantDropdownModal({
     showAllPlants = false,
     showMyPlants = false,
     allowMultiple = false,
-    selectedPlantCodes = []
+    selectedPlantCodes = [],
+    userPlantCode = ''
 }) {
     const [search, setSearch] = useState('')
     const [localSelectedCodes, setLocalSelectedCodes] = useState(selectedPlantCodes || [])
     const accentColor = useAccentColor()
+    const districtGroups = (() => {
+        const map = {}
+        plants.forEach((plant) => {
+            const code = plant.plantCode || plant.plant_code || ''
+            const dists = plant.districts || []
+            dists.forEach((d) => {
+                const name = typeof d === 'string' ? d : d?.name
+                if (!name) return
+                if (!map[name]) map[name] = []
+                map[name].push(code)
+            })
+        })
+        return Object.entries(map)
+            .map(([name, codes]) => ({ name, plantCodes: codes }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    })()
+    const userDistrict = userPlantCode ? districtGroups.find((d) => d.plantCodes.includes(userPlantCode)) : null
     const filteredPlants = plants.filter((plant) => {
         const code = plant.plantCode || plant.plant_code || ''
         const name = plant.plantName || plant.plant_name || ''
@@ -106,6 +125,45 @@ function PlantDropdownModal({
                             <i className="fas fa-user-circle" style={{ color: accentColor }} />
                             My Plants
                         </div>
+                    )}
+                    {!allowMultiple && districtGroups.length > 0 && (
+                        <>
+                            <div
+                                className="mx-4 my-1"
+                                style={{ borderTop: '1px solid var(--border-light, #e2e8f0)' }}
+                            />
+                            {userDistrict && (
+                                <div
+                                    className="mb-1 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium text-gray-700 hover:bg-slate-100"
+                                    onClick={() => {
+                                        onSelect(`DISTRICT:${userDistrict.name}`)
+                                        onClose()
+                                    }}
+                                >
+                                    <i className="fas fa-user-circle" style={{ color: accentColor }} />
+                                    <span className="flex-1">My District</span>
+                                    <span className="text-xs text-slate-400">{userDistrict.plantCodes.length}</span>
+                                </div>
+                            )}
+                            {districtGroups.map((district) => (
+                                <div
+                                    key={district.name}
+                                    className="mb-1 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium text-gray-700 hover:bg-slate-100"
+                                    onClick={() => {
+                                        onSelect(`DISTRICT:${district.name}`)
+                                        onClose()
+                                    }}
+                                >
+                                    <i className="fas fa-layer-group" style={{ color: accentColor }} />
+                                    <span className="flex-1">{district.name}</span>
+                                    <span className="text-xs text-slate-400">{district.plantCodes.length}</span>
+                                </div>
+                            ))}
+                            <div
+                                className="mx-4 my-1"
+                                style={{ borderTop: '1px solid var(--border-light, #e2e8f0)' }}
+                            />
+                        </>
                     )}
                     {sortedPlants.map((plant) => {
                         const code = plant.plantCode || plant.plant_code

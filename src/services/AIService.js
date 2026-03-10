@@ -117,6 +117,65 @@ class AIInsightsServiceClass {
         })
         return result?.content ?? null
     }
+    /** Generates a district-aware summary comparing plants within a named district. */
+    async generateDistrictSummary(districtData) {
+        const { roleName, roleWeight } = districtData.userContext ?? {}
+        const roleContext = await getRoleContext(roleName, false, null, roleWeight)
+        const systemPrompt = `${roleContext}\n\n${PROMPTS.districtSummary}`
+        const result = await this.callAPI(systemPrompt, this.formatDistrictSummaryData(districtData), {
+            model: FAST_MODEL,
+            temperature: 0.5
+        })
+        return result?.content ?? null
+    }
+    /** Formats district data with per-plant leaderboard metrics for AI comparison. */
+    formatDistrictSummaryData(data) {
+        const parts = [
+            `District: ${data.districtName}`,
+            `Region: ${data.regionName}`,
+            `Plants in this district: ${data.districtPlantCodes.join(', ')}`
+        ]
+        // Pre-compute verdicts based on efficiency scores
+        const allDistricts = data.allDistricts || []
+        if (allDistricts.length > 1) {
+            const best = allDistricts[0]
+            const worst = allDistricts[allDistricts.length - 1]
+            parts.push(
+                `\n*** VERDICT: ${best.name} is the BEST district (avg ${best.avgEfficiency.toFixed(1)}% efficiency). ${worst.name} is the WORST district (avg ${worst.avgEfficiency.toFixed(1)}% efficiency). ***`
+            )
+        }
+        // Sort plants by efficiency score (highest first) — efficiency is the definitive ranking
+        const sorted = [...(data.plantRankings || [])].sort((a, b) => (b.efficiency || 0) - (a.efficiency || 0))
+        if (sorted.length > 0) {
+            const bestPlant = sorted[0]
+            const worstPlant = sorted[sorted.length - 1]
+            if (sorted.length > 1) {
+                parts.push(
+                    `*** WITHIN THIS DISTRICT: Plant ${bestPlant.plantCode} is the BEST (${bestPlant.efficiency?.toFixed(1)}% efficiency). Plant ${worstPlant.plantCode} is the WORST (${worstPlant.efficiency?.toFixed(1)}% efficiency). ***`
+                )
+            }
+            parts.push(`\n=== PLANTS IN THIS DISTRICT (sorted best to worst by efficiency score) ===`)
+            sorted.forEach((p, idx) => {
+                parts.push(
+                    `\n${idx + 1}. Plant ${p.plantCode}:`,
+                    `  Efficiency Score: ${p.efficiency?.toFixed(1)}% (THIS IS THE DEFINITIVE RANKING — from leaderboard)`,
+                    `  Adjusted YPH: ${p.adjustedYPH?.toFixed(2)} (target: 3.0)`,
+                    `  Help Given: ${Math.round(p.helpGiven || 0)} hours`,
+                    `  Help Received: ${Math.round(p.helpReceived || 0)} hours`,
+                    `  Loads/Operator/Day: ${p.loadsPerOperatorPerDay?.toFixed(2) ?? 'N/A'} (target: 3.0)`
+                )
+            })
+        }
+        if (allDistricts.length > 1) {
+            parts.push('\n=== OTHER DISTRICTS (for comparison only) ===')
+            allDistricts
+                .filter((d) => d.name !== data.districtName)
+                .forEach((d) => {
+                    parts.push(`  ${d.name}: avg efficiency ${d.avgEfficiency.toFixed(1)}%, ${d.plantCount} plants`)
+                })
+        }
+        return parts.join('\n')
+    }
     /** Formats region-wide data for AI analysis. */
     formatRegionSummaryData(data) {
         const parts = [`Region: ${data.regionName}`, `Plants in scope: ${data.plantCount || 'All'}`]

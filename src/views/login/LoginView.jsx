@@ -60,7 +60,7 @@ const TRIM_END_SECONDS = 10
 const SKIP_START_SECONDS = 5
 /** Returns Tailwind classes for floating-label inputs. */
 const getInputClasses = (isFocused) =>
-    `w-full bg-white border-0 rounded-none text-slate-800 text-base outline-none pt-4 pb-3 border-b-2 transition-colors placeholder-transparent ${isFocused ? 'border-[#1e3a5f]' : 'border-slate-200'}`
+    `w-full bg-white border-0 rounded-none text-slate-800 text-base outline-none pt-4 pb-3 border-b-2 transition-colors placeholder-transparent autofill:shadow-[inset_0_0_0px_1000px_white] autofill:[-webkit-text-fill-color:theme(colors.slate.800)] ${isFocused ? 'border-[#1e3a5f]' : 'border-slate-200'}`
 /** Returns Tailwind classes for floating labels above inputs. */
 const getLabelClasses = (isFocused, hasValue) =>
     `absolute left-0 pointer-events-none font-medium transition-all ${isFocused || hasValue ? 'top-0 text-[0.7rem]' : 'top-4 text-[0.9rem]'} ${isFocused ? 'text-[#1e3a5f]' : 'text-slate-400'}`

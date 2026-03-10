@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AIService } from '../../services/AIService'
 import { supabase } from '../../services/DatabaseService'
@@ -202,7 +202,8 @@ export function useLeaderboardMetrics({
                 const plantsInRegion = await RegionService.fetchRegionPlants(dashboardRegionCode)
                 if (cancelled || !plantsInRegion?.length) return
                 const plantCodesInRegion = plantsInRegion.map((p) => p.plantCode)
-                if (!plantCodesInRegion.includes(dashboardPlant)) return
+                const isMultiPlant = dashboardPlant === 'MY_PLANTS' || dashboardPlant?.startsWith('DISTRICT:')
+                if (!isMultiPlant && !plantCodesInRegion.includes(dashboardPlant)) return
                 const extendedStartDate = new Date(selectedYear - 1, 11, 25)
                 const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
                 const { data: profilesData } = await supabase
@@ -321,13 +322,15 @@ export function useLeaderboardMetrics({
                 const sortedByEfficiency = plantMetricsArray
                     .filter((p) => typeof p.avgEfficiency === 'number' && p.avgWeeklyHours > 0)
                     .sort((a, b) => b.avgEfficiency - a.avgEfficiency)
-                const plantMetrics = sortedByEfficiency.find((p) => p.plantCode === dashboardPlant)
-                if (cancelled || !plantMetrics) return
+                if (cancelled || !sortedByEfficiency.length) return
+                const plantMetrics = isMultiPlant
+                    ? sortedByEfficiency[0]
+                    : sortedByEfficiency.find((p) => p.plantCode === dashboardPlant)
+                if (!isMultiPlant && !plantMetrics) return
                 // Compute tied ranks: plants with the same efficiency share the same rank
                 const tiedRanks = sortedByEfficiency.map((p, idx) => {
                     if (idx === 0) return 1
                     const prev = sortedByEfficiency[idx - 1]
-                    const prevRank = idx // will be overwritten below
                     return Math.abs((p.avgEfficiency || 0) - (prev.avgEfficiency || 0)) < 0.05
                         ? -1 // placeholder, filled in next pass
                         : idx + 1
@@ -363,18 +366,20 @@ export function useLeaderboardMetrics({
                 setPlantNotifications((prev) => ({
                     ...prev,
                     allPlantRankings,
-                    leaderboardMetrics: {
-                        adjustedYPH: plantMetrics.avgYPH,
-                        avgCleanliness: plantMetrics.avgFleetCleanliness || 0,
-                        efficiency: plantMetrics.avgEfficiency,
-                        helpGiven: plantMetrics.helpGiven,
-                        helpReceived: plantMetrics.helpReceived,
-                        netHelp: plantMetrics.netHelp,
-                        rank: plantRanking?.rank || 1,
-                        rawYPH: plantMetrics.rawYPH,
-                        safetyIncidents: plantMetrics.safetyReportsCount || 0,
-                        totalPlants: sortedByEfficiency.length
-                    }
+                    leaderboardMetrics: plantMetrics
+                        ? {
+                              adjustedYPH: plantMetrics.avgYPH,
+                              avgCleanliness: plantMetrics.avgFleetCleanliness || 0,
+                              efficiency: plantMetrics.avgEfficiency,
+                              helpGiven: plantMetrics.helpGiven,
+                              helpReceived: plantMetrics.helpReceived,
+                              netHelp: plantMetrics.netHelp,
+                              rank: plantRanking?.rank || 1,
+                              rawYPH: plantMetrics.rawYPH,
+                              safetyIncidents: plantMetrics.safetyReportsCount || 0,
+                              totalPlants: sortedByEfficiency.length
+                          }
+                        : null
                 }))
             } catch {}
         }
@@ -520,9 +525,35 @@ export function useAISummary({
     ])
     return { handleRegenerateAISummary }
 }
+/** Builds a map of district name → plant codes from region plant data. */
+const buildDistrictMap = (regionPlants) => {
+    const map = {}
+    ;(regionPlants || []).forEach((p) => {
+        const code = p.plantCode || p.plant_code
+        ;(p.districts || []).forEach((d) => {
+            const name = typeof d === 'string' ? d : d?.name
+            if (!name) return
+            if (!map[name]) map[name] = []
+            map[name].push(code)
+        })
+    })
+    return map
+}
+/** Computes avg efficiency per district from leaderboard rankings, sorted best-first. */
+const computeDistrictMetrics = (districtMap, allRankings) =>
+    Object.entries(districtMap)
+        .map(([name, codes]) => {
+            const rankings = allRankings.filter((r) => codes.includes(r.plantCode))
+            if (rankings.length === 0) return null
+            const avgEfficiency = rankings.reduce((sum, r) => sum + (r.efficiency || 0), 0) / rankings.length
+            return { avgEfficiency, name, plantCodes: codes, plantCount: codes.length }
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.avgEfficiency - a.avgEfficiency)
 /**
- * Generates an AI-powered region summary when no specific plant is selected.
- * Uses regional fleet stats and notification data to produce insights.
+ * Generates an AI-powered region or district summary when viewing
+ * multiple plants (no specific plant, MY_PLANTS, or DISTRICT: filter).
+ * District mode waits for leaderboard data and compares districts by efficiency.
  */
 export function useRegionalAISummary({
     dashboardPlant,
@@ -530,60 +561,86 @@ export function useRegionalAISummary({
     displayStats,
     plantNotifications,
     regionDisplayName,
+    regionPlants,
     setRegionalAI,
     userRoleName,
     userRoleWeight
 }) {
     const [forceRegenerate, setForceRegenerate] = useState(0)
-    const regionCacheKey = `region_${regionDisplayName}`
+    const isDistrictMode = dashboardPlant?.startsWith('DISTRICT:')
+    const districtName = isDistrictMode ? dashboardPlant.slice(9) : null
+    const cacheKey = isDistrictMode ? `district_${districtName}` : `region_${regionDisplayName}`
+    // Refs prevent the effect from re-firing on every object reference change
+    const plantNotificationsRef = useRef(plantNotifications)
+    plantNotificationsRef.current = plantNotifications
+    const displayStatsRef = useRef(displayStats)
+    displayStatsRef.current = displayStats
+    const hasLeaderboardData = plantNotifications.allPlantRankings?.length > 0
+    const fleetTotal = displayStats?.fleetTotal || 0
     const handleRegenerateRegionalAI = useCallback(() => {
-        DashboardUtility.clearAISummaryCache(regionCacheKey)
+        DashboardUtility.clearAISummaryCache(cacheKey)
         setRegionalAI({ aiSummary: null, aiSummaryFailed: false, aiSummaryLoading: false })
         setForceRegenerate((prev) => prev + 1)
-    }, [regionCacheKey, setRegionalAI])
+    }, [cacheKey, setRegionalAI])
     useEffect(() => {
-        // Only run in regional mode (no specific plant selected)
-        if (dashboardPlant) return
-        if (!dataReady) return
-        // Need at least some stats loaded
-        if (!displayStats || displayStats.fleetTotal === 0) return
+        const isMultiPlant = dashboardPlant === 'MY_PLANTS' || isDistrictMode
+        if (dashboardPlant && !isMultiPlant) return
+        if (!dataReady || !fleetTotal) return
+        if (isDistrictMode && !hasLeaderboardData) return
         if (forceRegenerate === 0) {
-            const cachedSummary = DashboardUtility.getAISummaryFromCache(regionCacheKey)
-            if (cachedSummary) {
-                setRegionalAI({ aiSummary: cachedSummary, aiSummaryFailed: false, aiSummaryLoading: false })
+            const cached = DashboardUtility.getAISummaryFromCache(cacheKey)
+            if (cached) {
+                setRegionalAI({ aiSummary: cached, aiSummaryFailed: false, aiSummaryLoading: false })
                 return
             }
         }
         let cancelled = false
         let failTimer
+        const setFailed = () => {
+            setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
+            failTimer = setTimeout(() => {
+                if (!cancelled) setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false }))
+            }, 3000)
+        }
         async function generate() {
             setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false, aiSummaryLoading: true }))
             try {
-                const summary = await AIService.generateRegionSummary({
-                    notifications: plantNotifications,
-                    plantCount: displayStats.operators?.total > 0 ? undefined : 0,
-                    regionName: regionDisplayName,
-                    stats: displayStats,
-                    userContext: { roleName: userRoleName, roleWeight: userRoleWeight }
-                })
+                const summary = isDistrictMode && districtName ? await generateDistrictAI() : await generateRegionAI()
                 if (cancelled) return
                 if (summary) {
-                    DashboardUtility.setAISummaryToCache(regionCacheKey, summary)
+                    DashboardUtility.setAISummaryToCache(cacheKey, summary)
                     setRegionalAI({ aiSummary: summary, aiSummaryFailed: false, aiSummaryLoading: false })
                 } else {
-                    setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
-                    failTimer = setTimeout(() => {
-                        if (!cancelled) setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false }))
-                    }, 3000)
+                    setFailed()
                 }
             } catch {
-                if (!cancelled) {
-                    setRegionalAI({ aiSummary: null, aiSummaryFailed: true, aiSummaryLoading: false })
-                    failTimer = setTimeout(() => {
-                        if (!cancelled) setRegionalAI((prev) => ({ ...prev, aiSummaryFailed: false }))
-                    }, 3000)
-                }
+                if (!cancelled) setFailed()
             }
+        }
+        async function generateDistrictAI() {
+            const districtMap = buildDistrictMap(regionPlants)
+            const allRankings = plantNotificationsRef.current.allPlantRankings || []
+            const districtPlantCodes = districtMap[districtName] || []
+            const districtRankings = allRankings.filter((r) => districtPlantCodes.includes(r.plantCode))
+            return AIService.generateDistrictSummary({
+                allDistricts: computeDistrictMetrics(districtMap, allRankings),
+                districtName,
+                districtPlantCodes,
+                plantRankings: districtRankings,
+                regionName: regionDisplayName,
+                totalPlantsInRegion: allRankings.length,
+                userContext: { roleName: userRoleName, roleWeight: userRoleWeight }
+            })
+        }
+        async function generateRegionAI() {
+            const stats = displayStatsRef.current
+            return AIService.generateRegionSummary({
+                notifications: plantNotificationsRef.current,
+                plantCount: stats?.operators?.total > 0 ? undefined : 0,
+                regionName: regionDisplayName,
+                stats,
+                userContext: { roleName: userRoleName, roleWeight: userRoleWeight }
+            })
         }
         generate()
         return () => {
@@ -592,13 +649,17 @@ export function useRegionalAISummary({
         }
     }, [
         dashboardPlant,
+        isDistrictMode,
+        districtName,
         dataReady,
-        displayStats,
-        plantNotifications,
+        fleetTotal,
+        hasLeaderboardData,
         regionDisplayName,
+        regionPlants,
         forceRegenerate,
         userRoleName,
         userRoleWeight,
+        cacheKey,
         setRegionalAI
     ])
     return { handleRegenerateRegionalAI }

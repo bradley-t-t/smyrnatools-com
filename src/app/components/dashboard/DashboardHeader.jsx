@@ -72,10 +72,14 @@ export default function DashboardHeader({
                                 disabled={refreshing}
                                 className="bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium px-3 py-2 max-w-36 truncate cursor-pointer"
                             >
-                                {dashboardPlant
-                                    ? regionPlants.find((p) => (p.plantCode || p.plant_code) === dashboardPlant)
-                                          ?.plantName || dashboardPlant
-                                    : 'All Plants'}
+                                {dashboardPlant === 'MY_PLANTS'
+                                    ? 'My Plants'
+                                    : dashboardPlant?.startsWith('DISTRICT:')
+                                      ? dashboardPlant.slice(9)
+                                      : dashboardPlant
+                                        ? regionPlants.find((p) => (p.plantCode || p.plant_code) === dashboardPlant)
+                                              ?.plantName || dashboardPlant
+                                        : 'All Plants'}
                             </button>
                         )}
                     </div>
