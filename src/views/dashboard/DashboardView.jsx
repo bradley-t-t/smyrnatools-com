@@ -478,7 +478,7 @@ export default function DashboardView() {
                 plants={regionPlants}
                 onSelect={(plantCode) => setDashboardPlant(plantCode === 'All' ? '' : plantCode)}
                 showAllPlants={true}
-                showMyPlants={hasMyPlants}
+                showMyPlants={false}
                 userPlantCode={userPlantCode}
             />
             {embeddedView && (

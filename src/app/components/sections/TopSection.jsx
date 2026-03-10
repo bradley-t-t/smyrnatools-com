@@ -268,10 +268,11 @@ function TopSection({
                   )
               )
     const selectedPlantObj = safePlants.find((p) => (p.plantCode || p.plant_code) === selectedPlant)
-    const plantDisplayText =
-        selectedPlant && selectedPlantObj
-            ? `(${selectedPlantObj.plantCode || selectedPlantObj.plant_code}) ${selectedPlantObj.plantName || selectedPlantObj.plant_name}`
-            : 'All Plants'
+    const plantDisplayText = selectedPlant?.startsWith('DISTRICT:')
+        ? selectedPlant.slice(9)
+        : selectedPlant && selectedPlantObj
+          ? `(${selectedPlantObj.plantCode || selectedPlantObj.plant_code}) ${selectedPlantObj.plantName || selectedPlantObj.plant_name}`
+          : 'All Plants'
     useLayoutEffect(() => {
         if (!forwardedRef?.current) return
         const element = forwardedRef.current

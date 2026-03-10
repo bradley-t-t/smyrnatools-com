@@ -36,18 +36,18 @@ const VIEW_MODES = [
     { icon: 'fa-calendar-week', id: 'planner', label: 'Planner' }
 ]
 const STATUS_COLORS = {
-    blocked: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-    completed: { bg: '#dcfce7', border: '#16a34a', text: '#16a34a' },
-    in_progress: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
-    ordered_materials: { bg: '#dbeafe', border: '#3b82f6', text: '#3b82f6' },
-    overdue: { bg: '#fee2e2', border: '#ef4444', text: '#ef4444' },
-    pending: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' },
-    waiting: { bg: '#fef3c7', border: '#f59e0b', text: '#f59e0b' }
+    blocked: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' },
+    completed: { bg: 'rgba(22,163,74,0.1)', border: 'rgba(22,163,74,0.3)', text: '#16a34a' },
+    in_progress: { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', text: '#3b82f6' },
+    ordered_materials: { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', text: '#3b82f6' },
+    overdue: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' },
+    pending: { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', text: '#f59e0b' },
+    waiting: { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)', text: '#f59e0b' }
 }
 const BULK_ACTION_COLORS = {
     cancel: { bg: 'var(--bg-secondary)', hover: 'var(--border-light)', text: 'var(--text-secondary)' },
-    complete: { bg: '#dcfce7', hover: '#bbf7d0', text: '#16a34a' },
-    delete: { bg: '#fee2e2', hover: '#fecaca', text: '#ef4444' }
+    complete: { bg: 'rgba(22,163,74,0.1)', hover: 'rgba(22,163,74,0.2)', text: '#16a34a' },
+    delete: { bg: 'rgba(239,68,68,0.1)', hover: 'rgba(239,68,68,0.2)', text: '#ef4444' }
 }
 const mapStatusValue = (value) => {
     const lower = value?.toLowerCase()
@@ -82,21 +82,43 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [statusFilter, setStatusFilter] = useState('')
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
+    const [regionPlants, setRegionPlants] = useState([])
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [viewMode, setViewMode] = useState('status')
     const [roleFilter, setRoleFilter] = useState('')
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+    const [roleDropdownOpen, setRoleDropdownOpen] = useState(false)
+    const statusDropdownRef = useRef(null)
+    const roleDropdownRef = useRef(null)
     const isMobile = useIsMobile()
+    const districtPlantCodes = useMemo(() => {
+        if (!selectedPlant?.startsWith('DISTRICT:')) return null
+        const districtName = selectedPlant.slice(9)
+        const codes = new Set()
+        regionPlants.forEach((p) => {
+            const code = p.plantCode || p.plant_code
+            ;(p.districts || []).forEach((d) => {
+                const name = typeof d === 'string' ? d : d?.name
+                if (name === districtName) codes.add(code)
+            })
+        })
+        return codes
+    }, [selectedPlant, regionPlants])
+    const effectivePlantCode = selectedPlant?.startsWith('DISTRICT:') ? '' : selectedPlant
     const baseFilteredItems = ListService.getFilteredItems({
         filterType: '',
-        plantCode: selectedPlant,
+        plantCode: effectivePlantCode,
         searchTerm: searchText,
         showCompleted: statusFilter === 'completed',
         statusFilter
     })
     const filteredItems = useMemo(() => {
-        if (!regionPlantCodes?.size) return baseFilteredItems
-        return baseFilteredItems.filter((item) => regionPlantCodes.has(normalizeToUpperCase(item.plant_code)))
-    }, [baseFilteredItems, regionPlantCodes])
+        let items = baseFilteredItems
+        if (regionPlantCodes?.size)
+            items = items.filter((item) => regionPlantCodes.has(normalizeToUpperCase(item.plant_code)))
+        if (districtPlantCodes) items = items.filter((item) => districtPlantCodes.has(item.plant_code))
+        return items
+    }, [baseFilteredItems, regionPlantCodes, districtPlantCodes])
     const roleFilteredItems = useMemo(
         () => (roleFilter ? filteredItems.filter((item) => item.responsible_role === roleFilter) : filteredItems),
         [filteredItems, roleFilter]
@@ -242,23 +264,34 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     }, [])
     useEffect(() => {
         let cancelled = false
-        const fetchRegionCodes = async () => {
+        const fetchRegionData = async () => {
+            const regionCode = preferences?.selectedRegion?.code || ''
             try {
-                const codes = await RegionService.getAllowedPlantCodes(preferences?.selectedRegion?.code || '')
+                const [codes, rPlants] = await Promise.all([
+                    RegionService.getAllowedPlantCodes(regionCode),
+                    regionCode ? RegionService.fetchRegionPlants(regionCode).catch(() => []) : Promise.resolve([])
+                ])
                 if (cancelled) return
                 setRegionPlantCodes(codes)
-                if (selectedPlant && codes && !codes.has(normalizeToUpperCase(selectedPlant))) setSelectedPlant('')
+                setRegionPlants(rPlants)
+                if (
+                    selectedPlant &&
+                    !selectedPlant.startsWith('DISTRICT:') &&
+                    codes &&
+                    !codes.has(normalizeToUpperCase(selectedPlant))
+                )
+                    setSelectedPlant('')
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
             }
         }
-        fetchRegionCodes()
+        fetchRegionData()
         return () => {
             cancelled = true
         }
     }, [preferences?.selectedRegion?.code, selectedPlant])
     useEffect(() => {
-        if (!selectedPlant || !regionPlantCodes?.size) return
+        if (!selectedPlant || selectedPlant.startsWith('DISTRICT:') || !regionPlantCodes?.size) return
         if (!regionPlantCodes.has(normalizeToUpperCase(selectedPlant))) setSelectedPlant('')
     }, [regionPlantCodes, selectedPlant])
     useEffect(() => {
@@ -284,6 +317,14 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         window.addEventListener('resize', updateHeight)
         return () => window.removeEventListener('resize', updateHeight)
     }, [searchInput, selectedPlant, statusFilter])
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) setStatusDropdownOpen(false)
+            if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target)) setRoleDropdownOpen(false)
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
     const visiblePlants = useMemo(() => {
         if (!Array.isArray(plants)) return []
         return regionPlantCodes?.size
@@ -363,6 +404,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const selectBgImage = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
     return (
         <div className="global-dashboard-container dashboard-container global-flush-top flush-top list-view bg-slate-100 min-h-full relative w-full">
+            <style>{`@keyframes filterFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
             <TopSection
                 isLoading={isLoading}
                 title={title}
@@ -378,7 +420,15 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     setSearchText('')
                 }}
                 searchPlaceholder="Search by description or comments..."
-                plants={visiblePlants.map((p) => ({ plantCode: p.plant_code, plantName: p.plant_name }))}
+                plants={
+                    regionPlants.length
+                        ? regionPlants.map((p) => ({
+                              plantCode: p.plantCode || p.plant_code,
+                              plantName: p.plantName || p.plant_name,
+                              districts: p.districts
+                          }))
+                        : visiblePlants.map((p) => ({ plantCode: p.plant_code, plantName: p.plant_name }))
+                }
                 regionPlantCodes={regionPlantCodes}
                 selectedPlant={selectedPlant}
                 onSelectedPlantChange={setSelectedPlant}
@@ -421,7 +471,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 </button>
                             ))}
                         </div>
-                        <div className="bg-gray-200 h-5 w-px" />
+                        <div className="h-5 w-px" style={{ background: 'var(--border-light)' }} />
                         {statusFilter ? (
                             <button
                                 onClick={clearStatusFilter}
@@ -436,26 +486,74 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <i className="fas fa-times text-[10px] opacity-70" />
                             </button>
                         ) : (
-                            <select
-                                value=""
-                                onChange={(e) => handleStatusFilterChange(e.target.value)}
-                                className={`appearance-none bg-white border border-gray-200 rounded-md text-gray-500 cursor-pointer font-medium outline-none bg-no-repeat ${
-                                    isMobile
-                                        ? 'text-[11px] py-[5px] pl-2 pr-[22px] bg-[length:12px]'
-                                        : 'text-xs py-1.5 pl-2.5 pr-7 bg-[length:14px]'
-                                }`}
-                                style={{
-                                    backgroundImage: selectBgImage,
-                                    backgroundPosition: 'right 6px center'
-                                }}
-                            >
-                                <option value="">{isMobile ? '+Status' : '+ Status'}</option>
-                                {STATUS_OPTIONS.map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative" ref={statusDropdownRef}>
+                                <button
+                                    onClick={() => {
+                                        setStatusDropdownOpen((p) => !p)
+                                        setRoleDropdownOpen(false)
+                                    }}
+                                    className={`flex items-center rounded-lg cursor-pointer font-medium transition-all duration-150 ${
+                                        isMobile ? 'text-[11px] gap-1 px-2 py-[5px]' : 'text-xs gap-1.5 px-2.5 py-1.5'
+                                    }`}
+                                    style={{
+                                        background: statusDropdownOpen ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                                        border: statusDropdownOpen
+                                            ? `1px solid ${accentColor}50`
+                                            : '1px solid var(--border-light)',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                >
+                                    <i className="fas fa-filter text-[9px] opacity-60" />
+                                    {isMobile ? '+Status' : '+ Status'}
+                                    <i
+                                        className={`fas fa-chevron-down text-[8px] opacity-50 transition-transform duration-150 ${statusDropdownOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+                                {statusDropdownOpen && (
+                                    <div
+                                        className="absolute top-full left-0 mt-1.5 z-50 rounded-xl shadow-lg overflow-hidden min-w-[180px] animate-[filterFadeIn_0.15s_ease-out]"
+                                        style={{
+                                            background: 'var(--bg-primary)',
+                                            border: '1px solid var(--border-light)'
+                                        }}
+                                    >
+                                        <div className="p-1.5">
+                                            {STATUS_OPTIONS.map((opt) => {
+                                                const key = Object.keys(STATUS_MAP).find((k) => STATUS_MAP[k] === opt)
+                                                const color = STATUS_COLORS[key] || STATUS_COLORS.pending
+                                                return (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => {
+                                                            handleStatusFilterChange(opt)
+                                                            setStatusDropdownOpen(false)
+                                                        }}
+                                                        className="flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-xs font-medium cursor-pointer transition-all duration-100 border-none"
+                                                        style={{
+                                                            background: 'transparent',
+                                                            color: 'var(--text-primary)'
+                                                        }}
+                                                        onMouseEnter={(e) =>
+                                                            (e.currentTarget.style.background = 'var(--bg-secondary)')
+                                                        }
+                                                        onMouseLeave={(e) =>
+                                                            (e.currentTarget.style.background = 'transparent')
+                                                        }
+                                                    >
+                                                        <span
+                                                            className="flex items-center justify-center h-5 w-5 rounded-md text-[9px]"
+                                                            style={{ background: color.bg, color: color.text }}
+                                                        >
+                                                            <i className={`fas ${ListService.getStatusIcon(key)}`} />
+                                                        </span>
+                                                        {opt}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         )}
                         {roleFilter ? (
                             <button
@@ -471,26 +569,70 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <i className="fas fa-times text-[10px] opacity-70" />
                             </button>
                         ) : (
-                            <select
-                                value=""
-                                onChange={(e) => handleRoleFilterChange(e.target.value)}
-                                className={`appearance-none bg-white border border-gray-200 rounded-md text-gray-500 cursor-pointer font-medium outline-none bg-no-repeat ${
-                                    isMobile
-                                        ? 'text-[11px] py-[5px] pl-2 pr-[22px] bg-[length:12px]'
-                                        : 'text-xs py-1.5 pl-2.5 pr-7 bg-[length:14px]'
-                                }`}
-                                style={{
-                                    backgroundImage: selectBgImage,
-                                    backgroundPosition: 'right 6px center'
-                                }}
-                            >
-                                <option value="">{isMobile ? '+Role' : '+ Assigned'}</option>
-                                {ROLE_OPTIONS.map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {opt}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative" ref={roleDropdownRef}>
+                                <button
+                                    onClick={() => {
+                                        setRoleDropdownOpen((p) => !p)
+                                        setStatusDropdownOpen(false)
+                                    }}
+                                    className={`flex items-center rounded-lg cursor-pointer font-medium transition-all duration-150 ${
+                                        isMobile ? 'text-[11px] gap-1 px-2 py-[5px]' : 'text-xs gap-1.5 px-2.5 py-1.5'
+                                    }`}
+                                    style={{
+                                        background: roleDropdownOpen ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                                        border: roleDropdownOpen
+                                            ? `1px solid ${accentColor}50`
+                                            : '1px solid var(--border-light)',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                >
+                                    <i className="fas fa-user text-[9px] opacity-60" />
+                                    {isMobile ? '+Role' : '+ Assigned'}
+                                    <i
+                                        className={`fas fa-chevron-down text-[8px] opacity-50 transition-transform duration-150 ${roleDropdownOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+                                {roleDropdownOpen && (
+                                    <div
+                                        className="absolute top-full left-0 mt-1.5 z-50 rounded-xl shadow-lg overflow-hidden min-w-[170px] animate-[filterFadeIn_0.15s_ease-out]"
+                                        style={{
+                                            background: 'var(--bg-primary)',
+                                            border: '1px solid var(--border-light)'
+                                        }}
+                                    >
+                                        <div className="p-1.5">
+                                            {ROLE_OPTIONS.map((opt) => (
+                                                <button
+                                                    key={opt}
+                                                    onClick={() => {
+                                                        handleRoleFilterChange(opt)
+                                                        setRoleDropdownOpen(false)
+                                                    }}
+                                                    className="flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-xs font-medium cursor-pointer transition-all duration-100 border-none"
+                                                    style={{ background: 'transparent', color: 'var(--text-primary)' }}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.background = 'var(--bg-secondary)')
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.background = 'transparent')
+                                                    }
+                                                >
+                                                    <span
+                                                        className="flex items-center justify-center h-5 w-5 rounded-md text-[9px]"
+                                                        style={{
+                                                            background: 'var(--bg-tertiary)',
+                                                            color: 'var(--text-secondary)'
+                                                        }}
+                                                    >
+                                                        <i className="fas fa-user" />
+                                                    </span>
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         )}
                         {!isMobile && <div className="flex-1" />}
                         <div className={`flex items-center ${isMobile ? 'gap-2 ml-auto' : 'gap-3'}`}>
@@ -623,17 +765,27 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                         }}
                                                     >
                                                         <div
-                                                            className="flex items-center justify-center shrink-0"
+                                                            className="flex items-center justify-center shrink-0 cursor-pointer"
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 toggleSelect(item.id)
                                                             }}
                                                         >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => {}}
-                                                            />
+                                                            <div
+                                                                className="flex items-center justify-center h-5 w-5 rounded transition-all duration-150"
+                                                                style={{
+                                                                    background: isSelected
+                                                                        ? accentColor
+                                                                        : 'transparent',
+                                                                    border: isSelected
+                                                                        ? `2px solid ${accentColor}`
+                                                                        : '2px solid var(--border-medium)'
+                                                                }}
+                                                            >
+                                                                {isSelected && (
+                                                                    <i className="fas fa-check text-white text-[10px]" />
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div
                                                             className={`flex flex-1 flex-col min-w-0 ${

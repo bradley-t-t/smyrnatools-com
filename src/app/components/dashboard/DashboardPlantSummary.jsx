@@ -101,8 +101,8 @@ const MetricPill = ({ label, value, color, icon, accentColor }) => (
     </div>
 )
 
-/** Compact alert row with icon, count, and clickable asset pills. */
-const AlertRow = ({
+/** Tinted notification row — background color creates visual grouping without borders. */
+const NotificationRow = ({
     icon,
     iconColor,
     title,
@@ -114,25 +114,30 @@ const AlertRow = ({
     expandedSections,
     setExpandedSections
 }) => {
-    const isExpanded = expandedSections[expandKey]
+    const isExpanded = expandedSections?.[expandKey]
     const displayItems = isExpanded ? items : items.slice(0, maxItems)
     const hasMore = items.length > maxItems
     return (
         <div
-            className="border-b border-slate-100 last:border-b-0 py-3 first:pt-0 last:pb-0"
-            style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+            className="rounded-lg px-3 py-2 mb-1.5"
+            style={{ animation: 'fadeSlideIn 0.3s ease both', background: `${iconColor}08` }}
         >
-            <div className="flex items-center gap-2 mb-2">
-                <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+            <div className="flex items-center gap-2.5 mb-1.5">
+                <div
+                    className="flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0"
+                    style={{ background: `${iconColor}18` }}
+                >
+                    <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+                </div>
                 <span className="text-slate-800 text-[13px] font-semibold flex-1">{title}</span>
                 <span
-                    className="rounded-full text-white text-[10px] font-bold px-1.5 py-0.5 leading-none"
+                    className="rounded-full text-white text-[10px] font-bold min-w-[20px] text-center px-1.5 py-0.5 leading-none"
                     style={{ background: iconColor }}
                 >
                     {count}
                 </span>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 pl-[38px]">
                 {displayItems.map((item, i) => renderItem(item, i))}
                 {hasMore && (
                     <button
@@ -140,9 +145,10 @@ const AlertRow = ({
                             e.stopPropagation()
                             setExpandedSections((prev) => ({ ...prev, [expandKey]: !isExpanded }))
                         }}
-                        className="text-sky-600 bg-sky-50 border border-sky-200 rounded-md text-[11px] font-semibold px-2 py-1 cursor-pointer hover:bg-sky-100 transition-colors"
+                        className="rounded-full text-[11px] font-semibold px-2.5 py-0.5 cursor-pointer transition-all hover:brightness-95"
+                        style={{ background: `${iconColor}15`, color: iconColor }}
                     >
-                        {isExpanded ? 'Less' : `+${items.length - maxItems}`}
+                        {isExpanded ? 'Show less' : `+${items.length - maxItems} more`}
                     </button>
                 )}
             </div>
@@ -150,18 +156,18 @@ const AlertRow = ({
     )
 }
 
-/** Small clickable asset pill. */
+/** Clickable asset pill with subtle hover effect. */
 const AssetPill = ({ label, onClick, color }) => (
     <button
         onClick={onClick}
-        className="rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-all hover:opacity-80"
-        style={{ background: `${color}10`, border: `1px solid ${color}25`, color }}
+        className="rounded-full text-[11px] font-medium px-2.5 py-1 cursor-pointer transition-all hover:brightness-95 active:scale-[0.97]"
+        style={{ background: `${color}14`, color }}
     >
         {label}
     </button>
 )
 
-/** Operator group in the left pane. */
+/** Operator row with tinted background, matching NotificationRow style. */
 const OperatorGroup = ({
     icon,
     iconColor,
@@ -173,20 +179,25 @@ const OperatorGroup = ({
     setEmbeddedViewSearch
 }) => (
     <div
-        className="border-b border-slate-100 last:border-b-0 py-3 first:pt-0 last:pb-0"
-        style={{ animation: 'fadeSlideIn 0.3s ease both' }}
+        className="rounded-lg px-3 py-2 mb-1.5"
+        style={{ animation: 'fadeSlideIn 0.3s ease both', background: `${iconColor}08` }}
     >
-        <div className="flex items-center gap-2 mb-2">
-            <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+        <div className="flex items-center gap-2.5 mb-1.5">
+            <div
+                className="flex items-center justify-center w-7 h-7 rounded-full flex-shrink-0"
+                style={{ background: `${iconColor}18` }}
+            >
+                <i className={`fas ${icon} text-xs`} style={{ color: iconColor }} />
+            </div>
             <span className="text-slate-800 text-[13px] font-semibold flex-1">{title}</span>
             <span
-                className="rounded-full text-white text-[10px] font-bold px-1.5 py-0.5 leading-none"
+                className="rounded-full text-white text-[10px] font-bold min-w-[20px] text-center px-1.5 py-0.5 leading-none"
                 style={{ background: iconColor }}
             >
                 {count}
             </span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 pl-[38px]">
             {operators.map((o, i) => (
                 <button
                     key={i}
@@ -194,8 +205,8 @@ const OperatorGroup = ({
                         setEmbeddedView('operators')
                         setEmbeddedViewSearch(o[nameField] || '')
                     }}
-                    className="rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-colors"
-                    style={{ background: `${iconColor}10`, border: `1px solid ${iconColor}25`, color: iconColor }}
+                    className="rounded-full text-[11px] font-medium px-2.5 py-1 cursor-pointer transition-all hover:brightness-95 active:scale-[0.97]"
+                    style={{ background: `${iconColor}14`, color: iconColor }}
                 >
                     {o[nameField]}
                 </button>
@@ -381,6 +392,27 @@ const AICopilotPane = ({
     </div>
 )
 
+/** Summary counter strip — compact at-a-glance row of colored badges. */
+const SummaryStrip = ({ items }) => {
+    const visible = items.filter((i) => i.count > 0)
+    if (visible.length === 0) return null
+    return (
+        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            {visible.map(({ label, count, color, icon }, i) => (
+                <div
+                    key={i}
+                    className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    style={{ background: `${color}10`, color }}
+                >
+                    <i className={`fas ${icon} text-[8px]`} />
+                    <span>{count}</span>
+                    <span className="text-slate-400 font-medium">{label}</span>
+                </div>
+            ))}
+        </div>
+    )
+}
+
 /** Shared alerts content used by both desktop and mobile. */
 const AlertsContent = ({
     plantNotifications,
@@ -392,8 +424,66 @@ const AlertsContent = ({
     shopIssue
 }) => (
     <>
+        {/* Fleet Alert — gradient banner at top */}
+        {shopIssue && (
+            <div
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 mb-2"
+                style={{
+                    animation: 'fadeSlideIn 0.3s ease both',
+                    background: 'linear-gradient(135deg, #dc2626, #b91c1c)'
+                }}
+            >
+                <div className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-full flex-shrink-0">
+                    <i className="fas fa-exclamation-triangle text-white text-xs" />
+                </div>
+                <div className="flex-1">
+                    <div className="text-white text-[12px] font-semibold">Fleet Alert</div>
+                    <div className="text-red-100 text-[11px]">
+                        {shopIssue.inShopCount} in shop &middot; {shopIssue.spareCount} spare
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Summary counters */}
+        <SummaryStrip
+            items={[
+                {
+                    label: 'Issues',
+                    count: plantNotifications.assetsWithMostIssues.length,
+                    color: '#ea580c',
+                    icon: 'fa-exclamation-circle'
+                },
+                {
+                    label: 'In Shop',
+                    count: plantNotifications.longTermShopAssets.length,
+                    color: '#be123c',
+                    icon: 'fa-tools'
+                },
+                {
+                    label: 'Unassigned',
+                    count: plantNotifications.unassignedOperators.length,
+                    color: '#0ea5e9',
+                    icon: 'fa-user-slash'
+                },
+                {
+                    label: 'Pending',
+                    count: plantNotifications.pendingOperators.length,
+                    color: '#10b981',
+                    icon: 'fa-user-plus'
+                },
+                {
+                    label: 'Training',
+                    count: plantNotifications.trainingOperators.length,
+                    color: '#8b5cf6',
+                    icon: 'fa-graduation-cap'
+                }
+            ]}
+        />
+
+        {/* Asset notifications */}
         {plantNotifications.assetsWithMostIssues.length > 0 && (
-            <AlertRow
+            <NotificationRow
                 icon="fa-exclamation-circle"
                 iconColor="#ea580c"
                 title="Open Issues"
@@ -416,7 +506,7 @@ const AlertsContent = ({
             />
         )}
         {plantNotifications.longTermShopAssets.length > 0 && (
-            <AlertRow
+            <NotificationRow
                 icon="fa-tools"
                 iconColor="#be123c"
                 title="Long-Term Shop"
@@ -432,35 +522,19 @@ const AlertsContent = ({
                             setEmbeddedView(getAssetViewType(a.type))
                             setEmbeddedViewSearch(a.identifier || '')
                         }}
-                        className="flex items-center gap-1.5 rounded-md text-[12px] font-medium px-2 py-1 cursor-pointer transition-colors"
-                        style={{ background: '#be123c10', border: '1px solid #be123c25', color: '#be123c' }}
+                        className="flex items-center gap-1.5 rounded-full text-[11px] font-medium px-2.5 py-1 cursor-pointer transition-all hover:brightness-95 active:scale-[0.97]"
+                        style={{ background: '#be123c14', color: '#be123c' }}
                     >
                         <span>{a.identifier}</span>
-                        <span className="text-slate-400 text-[10px]">({a.daysInShop}d)</span>
+                        <span className="opacity-50 text-[10px]">({a.daysInShop}d)</span>
                         {a.downInYard && (
-                            <span className="bg-red-100 text-red-600 rounded text-[9px] font-semibold px-1 py-0.5">
+                            <span className="bg-red-100 text-red-600 rounded-full text-[9px] font-semibold px-1.5 py-0.5">
                                 Yard
                             </span>
                         )}
                     </button>
                 )}
             />
-        )}
-        {shopIssue && (
-            <div
-                className="flex items-center gap-2.5 bg-red-50 border border-red-200 rounded-lg p-3 mt-3"
-                style={{ animation: 'fadeSlideIn 0.3s ease both' }}
-            >
-                <div className="flex items-center justify-center w-8 h-8 bg-red-600 rounded-lg flex-shrink-0">
-                    <i className="fas fa-exclamation text-white text-sm" />
-                </div>
-                <div>
-                    <div className="text-red-800 text-[13px] font-semibold">Fleet Alert</div>
-                    <div className="text-red-600 text-[12px]">
-                        <strong>{shopIssue.inShopCount}</strong> in shop, <strong>{shopIssue.spareCount}</strong> spare
-                    </div>
-                </div>
-            </div>
         )}
     </>
 )
@@ -471,7 +545,7 @@ const OperatorsContent = ({ plantNotifications, setEmbeddedView, setEmbeddedView
     const hasAny = unassignedOperators.length > 0 || pendingOperators.length > 0 || trainingOperators.length > 0
     if (!hasAny) return null
     return (
-        <div className="border-t border-slate-200 mt-3 pt-3">
+        <>
             {unassignedOperators.length > 0 && (
                 <OperatorGroup
                     icon="fa-user-slash"
@@ -507,7 +581,7 @@ const OperatorsContent = ({ plantNotifications, setEmbeddedView, setEmbeddedView
                     setEmbeddedViewSearch={setEmbeddedViewSearch}
                 />
             )}
-        </div>
+        </>
     )
 }
 
@@ -744,12 +818,16 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 </>
                             ) : (
                                 <div
-                                    className="flex flex-col items-center justify-center gap-2 py-10 text-center"
+                                    className="flex flex-col items-center justify-center gap-2 py-8 text-center"
                                     style={{ animation: 'fadeSlideIn 0.3s ease both' }}
                                 >
-                                    <i className="fas fa-check-circle text-emerald-500 text-2xl" />
-                                    <div className="text-slate-800 text-sm font-semibold">All clear</div>
-                                    <div className="text-slate-500 text-xs">No alerts or operator issues</div>
+                                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-emerald-50">
+                                        <i className="fas fa-check text-emerald-500 text-base" />
+                                    </div>
+                                    <div className="text-slate-700 text-[13px] font-semibold">All clear</div>
+                                    <div className="text-slate-400 text-[11px]">
+                                        No alerts or operator issues detected
+                                    </div>
                                 </div>
                             )}
                         </div>

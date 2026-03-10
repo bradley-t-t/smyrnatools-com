@@ -119,7 +119,7 @@ export function usePlantNotifications({
         const spareMixers = filteredMixers.filter((m) => m.status === 'Spare').length
         const inShopMixers = filteredMixers.filter((m) => m.status === 'In Shop').length
         const shopIssue =
-            (spareMixers < 1 && inShopMixers >= 1) || inShopMixers > 2
+            spareMixers < inShopMixers
                 ? {
                       inShopCount: inShopMixers,
                       inShopMixers: filteredMixers

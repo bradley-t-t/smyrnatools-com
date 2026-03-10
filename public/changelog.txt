@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.2] - 2026-03-10
+
+- Added district grouping support to PlantDropdownModal with "My District" shortcut and district-based plant selection
+- Built full district management UI in RegionsDetailView — create districts, assign plants to districts, and remove district associations
+- Updated DashboardHeader to display district names when a district filter is selected
+- Removed "Unverified Mixers" and "Service Overdue" alert sections from both DashboardPlantSummary and DashboardRegionSummary
+- Simplified alert count calculations to only include assets with most issues and long-term shop assets
+- Added district summary AI prompt to context.json for analyzing district-level performance within regions
+- Updated RegionService.updateRegion to pass plant district assignments through to the backend
+- Extended region-service edge function to handle district data in region updates
+- Updated usePlantNotifications to remove unverified mixers and overdue service notification logic
+- Updated useDashboardData and useDashboardInit to support district-based plant filtering
+- Added district-aware filtering in useReportsData and ReportsView
+- Added AIService with new district summary capabilities
+- Removed TestThreeView (3D batch plant scene)
+- Removed obsolete migration files for list planned items, report operator exclusion reasons, documents, additional assigned plants, and district manager tables
+- Fixed typo in CLAUDE.md ("youY" to "you") and added Live Directives section
+- Minor login view update
+
 ## [29.1] - 2026-03-10
 
 - Added dark mode support to the Maintenance Quality chart tooltip and hover cursor using CSS custom properties

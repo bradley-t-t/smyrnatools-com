@@ -917,15 +917,28 @@ function MyAccountView({ userId }) {
                                         )}
                                     </div>
                                 </div>
-                                <div className="overflow-hidden rounded-2xl border border-red-100 bg-red-50">
+                                <div
+                                    className="overflow-hidden rounded-2xl"
+                                    style={{
+                                        background: 'rgba(239,68,68,0.06)',
+                                        border: '1px solid rgba(239,68,68,0.15)'
+                                    }}
+                                >
                                     <div className="flex items-center justify-between p-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100">
+                                            <div
+                                                className="flex h-12 w-12 items-center justify-center rounded-xl"
+                                                style={{ background: 'rgba(239,68,68,0.1)' }}
+                                            >
                                                 <i className="fas fa-sign-out-alt text-lg text-red-600"></i>
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-gray-900">Sign Out</h3>
-                                                <p className="text-sm text-gray-600">End your current session</p>
+                                                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                                    Sign Out
+                                                </h3>
+                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                                    End your current session
+                                                </p>
                                             </div>
                                         </div>
                                         <button

@@ -14,48 +14,54 @@ const DAYS = [
 ]
 /** Color, icon, and border styling per task status. */
 const STATUS_COLORS = {
-    blocked: { bar: '#dc2626', bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', icon: 'fa-ban', text: 'text-[#dc2626]' },
+    blocked: {
+        bar: '#dc2626',
+        bg: 'rgba(220,38,38,0.1)',
+        border: 'rgba(220,38,38,0.3)',
+        icon: 'fa-ban',
+        text: '#dc2626'
+    },
     completed: {
         bar: '#16a34a',
-        bg: 'bg-[#f0fdf4]',
-        border: 'border-[#bbf7d0]',
+        bg: 'rgba(22,163,74,0.1)',
+        border: 'rgba(22,163,74,0.3)',
         icon: 'fa-check',
-        text: 'text-[#16a34a]'
+        text: '#16a34a'
     },
     in_progress: {
         bar: '#2563eb',
-        bg: 'bg-[#eff6ff]',
-        border: 'border-[#bfdbfe]',
+        bg: 'rgba(37,99,235,0.1)',
+        border: 'rgba(37,99,235,0.3)',
         icon: 'fa-spinner',
-        text: 'text-[#2563eb]'
+        text: '#2563eb'
     },
     ordered_materials: {
         bar: '#2563eb',
-        bg: 'bg-[#eff6ff]',
-        border: 'border-[#bfdbfe]',
+        bg: 'rgba(37,99,235,0.1)',
+        border: 'rgba(37,99,235,0.3)',
         icon: 'fa-truck',
-        text: 'text-[#2563eb]'
+        text: '#2563eb'
     },
     overdue: {
         bar: '#dc2626',
-        bg: 'bg-[#fef2f2]',
-        border: 'border-[#fecaca]',
+        bg: 'rgba(220,38,38,0.1)',
+        border: 'rgba(220,38,38,0.3)',
         icon: 'fa-exclamation',
-        text: 'text-[#dc2626]'
+        text: '#dc2626'
     },
     pending: {
         bar: '#d97706',
-        bg: 'bg-[#fffbeb]',
-        border: 'border-[#fde68a]',
+        bg: 'rgba(217,119,6,0.1)',
+        border: 'rgba(217,119,6,0.3)',
         icon: 'fa-clock',
-        text: 'text-[#d97706]'
+        text: '#d97706'
     },
     waiting: {
         bar: '#ca8a04',
-        bg: 'bg-[#fefce8]',
-        border: 'border-[#fef08a]',
+        bg: 'rgba(202,138,4,0.1)',
+        border: 'rgba(202,138,4,0.3)',
         icon: 'fa-hourglass-half',
-        text: 'text-[#ca8a04]'
+        text: '#ca8a04'
     }
 }
 /**
@@ -116,7 +122,10 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
             <div className="h-[3px] w-full" style={{ background: statusColor.bar }} />
             <div className="px-3 py-[10px]">
                 <div className="flex items-start gap-2 justify-between">
-                    <div className="text-[#1e293b] flex-1 text-[13px] font-medium leading-[1.4]">
+                    <div
+                        className="flex-1 text-[13px] font-medium leading-[1.4]"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
                         {item.description?.length > 45 ? `${item.description.slice(0, 45)}...` : item.description}
                     </div>
                     {onRemove && (
@@ -125,7 +134,8 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                                 e.stopPropagation()
                                 onRemove(item.id)
                             }}
-                            className="flex items-center justify-center bg-[#f1f5f9] border-none rounded text-[#94a3b8] cursor-pointer text-[10px] h-5 w-5 transition-all duration-150"
+                            className="flex items-center justify-center border-none rounded cursor-pointer text-[10px] h-5 w-5 transition-all duration-150"
+                            style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.background = '#fee2e2'
                                 e.currentTarget.style.color = '#ef4444'
@@ -148,7 +158,12 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
                         {item.plant_code}
                     </span>
                     <span
-                        className={`flex items-center rounded text-[9px] font-semibold gap-[3px] px-[5px] py-[2px] uppercase border ${statusColor.bg} ${statusColor.border} ${statusColor.text}`}
+                        className="flex items-center rounded text-[9px] font-semibold gap-[3px] px-[5px] py-[2px] uppercase"
+                        style={{
+                            background: statusColor.bg,
+                            border: `1px solid ${statusColor.border}`,
+                            color: statusColor.text
+                        }}
                     >
                         <i className={`fas ${statusColor.icon} text-[8px]`} />
                         {item.status?.replace('_', ' ')}
@@ -176,7 +191,10 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
     return ReactDOM.createPortal(
         <>
             <div onClick={onClose} className="fixed inset-0 z-[9999] backdrop-blur-[4px] bg-[rgba(15,23,42,0.6)]" />
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] bg-white rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] flex flex-col max-h-[75vh] max-w-[520px] w-[92vw] animate-[modalSlideIn_0.2s_ease-out]">
+            <div
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.35)] flex flex-col max-h-[75vh] max-w-[520px] w-[92vw] animate-[modalSlideIn_0.2s_ease-out]"
+                style={{ background: 'var(--bg-primary)' }}
+            >
                 <style>{`@keyframes modalSlideIn { from { opacity: 0; transform: translate(-50%, -48%); } to { opacity: 1; transform: translate(-50%, -50%); } }`}</style>
                 <div
                     className="rounded-t-2xl px-6 py-5"
@@ -214,7 +232,10 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                 </div>
                 <div className="flex-1 overflow-y-auto p-3">
                     {filteredItems.length === 0 ? (
-                        <div className="flex flex-col items-center text-[#94a3b8] gap-2 px-5 py-10 text-center">
+                        <div
+                            className="flex flex-col items-center gap-2 px-5 py-10 text-center"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
                             <i className="fas fa-search text-[32px] opacity-50" />
                             <span className="text-sm">
                                 {search ? 'No tasks match your search' : 'No available tasks'}
@@ -230,7 +251,11 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         onSelect(item.id)
                                         onClose()
                                     }}
-                                    className="bg-white border border-[#e5e7eb] rounded-xl cursor-pointer mb-2.5 overflow-hidden transition-all duration-150"
+                                    className="rounded-xl cursor-pointer mb-2.5 overflow-hidden transition-all duration-150"
+                                    style={{
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border-light)'
+                                    }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.borderColor = accentColor
                                         e.currentTarget.style.boxShadow = `0 0 0 1px ${accentColor}`
@@ -240,9 +265,12 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                         e.currentTarget.style.boxShadow = 'none'
                                     }}
                                 >
-                                    <div className={`h-1 w-full ${statusColor.bg}`} />
+                                    <div className="h-1 w-full" style={{ background: statusColor.bg }} />
                                     <div className="px-4 py-3.5">
-                                        <div className="text-[#1e293b] text-sm font-medium leading-normal mb-2.5">
+                                        <div
+                                            className="text-sm font-medium leading-normal mb-2.5"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
                                             {item.description}
                                         </div>
                                         <div className="flex items-center flex-wrap gap-2">
@@ -254,12 +282,20 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                                                 {item.plant_code}
                                             </span>
                                             <span
-                                                className={`flex items-center rounded-md text-[10px] font-semibold gap-1 px-2 py-1 uppercase border ${statusColor.bg} ${statusColor.border} ${statusColor.text}`}
+                                                className="flex items-center rounded-md text-[10px] font-semibold gap-1 px-2 py-1 uppercase"
+                                                style={{
+                                                    background: statusColor.bg,
+                                                    border: `1px solid ${statusColor.border}`,
+                                                    color: statusColor.text
+                                                }}
                                             >
                                                 <i className={`fas ${statusColor.icon} text-[9px]`} />
                                                 {item.status?.replace('_', ' ')}
                                             </span>
-                                            <span className="flex items-center text-[#64748b] text-xs gap-[5px]">
+                                            <span
+                                                className="flex items-center text-xs gap-[5px]"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
                                                 <i className="fas fa-calendar-alt text-[10px] opacity-70" />
                                                 Due {new Date(item.deadline).toLocaleDateString()}
                                             </span>
@@ -358,7 +394,10 @@ function DayColumn({
                     )
                 })}
                 {taskCount === 0 && (
-                    <div className="flex flex-col items-center text-[#cbd5e1] gap-1.5 justify-center min-h-[80px] text-center">
+                    <div
+                        className="flex flex-col items-center gap-1.5 justify-center min-h-[80px] text-center"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                    >
                         <i className="fas fa-calendar-plus text-xl" />
                         <span className="text-[11px]">No tasks</span>
                     </div>
@@ -371,19 +410,19 @@ function DayColumn({
                     className={`flex items-center rounded-lg text-xs font-medium gap-1.5 justify-center px-3 py-2 transition-all duration-150 w-full ${loading ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     style={{
                         background: day.isToday ? accentColor : 'transparent',
-                        border: day.isToday ? 'none' : '1px dashed #cbd5e1',
+                        border: day.isToday ? 'none' : '1px dashed var(--border-light)',
                         color: day.isToday ? '#fff' : 'var(--text-secondary)'
                     }}
                     onMouseEnter={(e) => {
                         if (!day.isToday && !loading) {
                             e.currentTarget.style.background = 'var(--bg-tertiary)'
-                            e.currentTarget.style.borderColor = '#94a3b8'
+                            e.currentTarget.style.borderColor = 'var(--border-medium)'
                         }
                     }}
                     onMouseLeave={(e) => {
                         if (!day.isToday) {
                             e.currentTarget.style.background = 'transparent'
-                            e.currentTarget.style.borderColor = '#cbd5e1'
+                            e.currentTarget.style.borderColor = 'var(--border-light)'
                         }
                     }}
                 >
@@ -475,9 +514,10 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     return (
         <div className={`flex flex-col ${isMobile ? 'gap-3 p-2.5' : 'gap-5 p-5'}`}>
             <div
-                className={`border border-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex justify-between ${isMobile ? 'flex-col gap-3 rounded-[10px] p-3' : 'flex-row gap-4 rounded-[14px] px-5 py-4'}`}
+                className={`shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex justify-between ${isMobile ? 'flex-col gap-3 rounded-[10px] p-3' : 'flex-row gap-4 rounded-[14px] px-5 py-4'}`}
                 style={{
-                    background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)'
+                    background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)',
+                    border: '1px solid var(--border-light)'
                 }}
             >
                 <div
@@ -486,23 +526,28 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => setWeekOffset((w) => w - 1)}
-                            className={`flex items-center justify-center bg-[#f1f5f9] border-none rounded-lg text-[#475569] cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
+                            className={`flex items-center justify-center border-none rounded-lg cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
+                            style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
                         >
                             <i className="fas fa-chevron-left" />
                         </button>
                         <button
                             onClick={() => setWeekOffset((w) => w + 1)}
-                            className={`flex items-center justify-center bg-[#f1f5f9] border-none rounded-lg text-[#475569] cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
+                            className={`flex items-center justify-center border-none rounded-lg cursor-pointer transition-all duration-150 ${isMobile ? 'text-xs h-8 w-8' : 'text-sm h-9 w-9'}`}
+                            style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
                         >
                             <i className="fas fa-chevron-right" />
                         </button>
                     </div>
                     <div className={`flex flex-col ${isMobile ? 'flex-1 text-center' : 'flex-none text-left'}`}>
-                        <span className={`text-[#1e293b] font-bold ${isMobile ? 'text-sm' : 'text-[17px]'}`}>
+                        <span
+                            className={`font-bold ${isMobile ? 'text-sm' : 'text-[17px]'}`}
+                            style={{ color: 'var(--text-primary)' }}
+                        >
                             {weekLabel}
                         </span>
                         {!isMobile && (
-                            <span className="text-[#64748b] text-xs">
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                                 Week{' '}
                                 {Math.ceil(
                                     (weekDates[0].date.getDate() +
@@ -562,7 +607,12 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                         <button
                             onClick={handleClearAll}
                             disabled={loading}
-                            className={`flex items-center bg-[#fef2f2] border border-[#fecaca] rounded-lg text-[#dc2626] font-medium gap-[5px] transition-all duration-150 ${loading ? 'cursor-not-allowed' : 'cursor-pointer'} ${isMobile ? 'text-[11px] px-2.5 py-1.5' : 'text-xs px-3 py-2'}`}
+                            className={`flex items-center rounded-lg font-medium gap-[5px] transition-all duration-150 ${loading ? 'cursor-not-allowed' : 'cursor-pointer'} ${isMobile ? 'text-[11px] px-2.5 py-1.5' : 'text-xs px-3 py-2'}`}
+                            style={{
+                                background: 'rgba(220,38,38,0.1)',
+                                border: '1px solid rgba(220,38,38,0.3)',
+                                color: '#dc2626'
+                            }}
                         >
                             <i className="fas fa-trash-alt text-[10px]" />
                             {!isMobile && 'Clear'}
@@ -590,17 +640,23 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             </div>
             {!isMobile && (
                 <div
-                    className="flex items-center border border-[#bfdbfe] rounded-[10px] gap-2.5 px-4 py-3"
+                    className="flex items-center rounded-[10px] gap-2.5 px-4 py-3"
                     style={{
-                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)'
+                        background: `linear-gradient(135deg, ${accentColor}25 0%, ${accentColor}40 100%)`,
+                        border: `1px solid ${accentColor}50`
                     }}
                 >
-                    <div className="flex items-center justify-center bg-[#3b82f6] rounded-lg text-white text-sm h-8 w-8">
+                    <div
+                        className="flex items-center justify-center rounded-lg text-white text-sm h-8 w-8"
+                        style={{ background: accentColor }}
+                    >
                         <i className="fas fa-users" />
                     </div>
                     <div>
-                        <div className="text-[#1e40af] text-[13px] font-semibold">Shared Team Schedule</div>
-                        <div className="text-[#3b82f6] text-xs">
+                        <div className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            Shared Team Schedule
+                        </div>
+                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                             All team members can view and edit this weekly plan
                         </div>
                     </div>
