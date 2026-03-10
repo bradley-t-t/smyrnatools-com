@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import ConfirmDialog from '../../app/components/common/ConfirmDialog'
 import WeeklyPlanner from '../../app/components/list/WeeklyPlanner'
 import TopSection from '../../app/components/sections/TopSection'
 import { TaskListSkeleton } from '../../app/components/ui/AssetListSkeleton'
@@ -352,8 +353,13 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }
         setSelectedIds(new Set())
     }
-    const bulkDelete = async () => {
-        if (!selectedIds.size || !window.confirm('Delete selected items?')) return
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const bulkDelete = () => {
+        if (!selectedIds.size) return
+        setShowDeleteConfirm(true)
+    }
+    const confirmBulkDelete = async () => {
+        setShowDeleteConfirm(false)
         for (const id of selectedIds) {
             try {
                 await ListService.deleteListItem(id)
@@ -691,6 +697,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             items={roleFilteredItems}
                             onSelectItem={onSelectItem}
                             accentColor={accentColor}
+                            onItemsChanged={async () => {
+                                await ListService.fetchListItems()
+                                setPlants(ListService.plants)
+                            }}
                         />
                     ) : (
                         <div className={`flex flex-col gap-5 w-full ${isMobile ? 'pb-6' : 'pb-8'}`}>
@@ -969,6 +979,15 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                     }}
                 />
             )}
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                onConfirm={confirmBulkDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+                title={`Delete ${selectedIds.size} item${selectedIds.size !== 1 ? 's' : ''}?`}
+                message="This action cannot be undone. The selected tasks will be permanently removed."
+                confirmLabel="Delete"
+                variant="danger"
+            />
         </div>
     )
 }

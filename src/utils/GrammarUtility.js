@@ -100,7 +100,7 @@ function sentenceCase(sentence) {
     s = s.replace(/[!?]+$/g, '.')
     s = s.replace(/[,;:]$/g, '.')
     if (!/[.?!]$/.test(s)) s += '.'
-    s = s.replace(/(?:\s*\.){2,}/g, '.')
+    s = s.replace(/\.[\s.]+\./g, '.').replace(/\.{2,}/g, '.')
     return s
 }
 function cleanText(text) {

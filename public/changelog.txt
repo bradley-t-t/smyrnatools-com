@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.6] - 2026-03-10
+
+- Fixed excess re-renders across Mixers, Tractors, Trailers, Equipment, and My Account views by trimming unnecessary dependencies from useEffect hooks
+- Converted handleSelectMixer to a memoized useCallback to prevent unnecessary re-renders in MixersView
+- Moved sortMappings inside the filteredMixers useMemo so it's scoped to where it's actually used
+- Alphabetized the status color map keys in MixersView for consistency
+- Removed authentication requirement from the display-name endpoint in user-service, allowing unauthenticated lookups
+- Reduced MyAccountView effect dependencies to only userId, preventing redundant region-change reloads
+
 ## [29.5] - 2026-03-10
 
 - Added changelog entry documenting v29.4 changes

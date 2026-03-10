@@ -1,8 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { ListService } from '../../../services/ListService'
+import { PlantService } from '../../../services/PlantService'
+import { RegionService } from '../../../services/RegionService'
+import { UserService } from '../../../services/UserService'
+import GrammarUtility from '../../../utils/GrammarUtility'
+import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import ConfirmDialog from '../common/ConfirmDialog'
 /** Monday-through-Saturday day configuration for the planner grid. */
 const DAYS = [
     { fullLabel: 'Monday', key: 'monday', label: 'Mon' },
@@ -87,14 +93,25 @@ const getWeekDates = (weekOffset = 0) => {
     })
 }
 /** Draggable task card showing description, plant code, status, and completed/overdue overlays. */
-function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
+function PlannerItem({ item, onRemove, onSelect, accentColor, isPast, dateStr }) {
     const statusColor = STATUS_COLORS[item.status] || STATUS_COLORS.pending
     const isCompleted = item.status === 'completed' || item.completed
     const needsFollowUp = isPast && !isCompleted
+    const handleDragStart = (e) => {
+        e.dataTransfer.setData('application/json', JSON.stringify({ fromDate: dateStr, itemId: item.id }))
+        e.dataTransfer.effectAllowed = 'move'
+        e.currentTarget.style.opacity = '0.5'
+    }
+    const handleDragEnd = (e) => {
+        e.currentTarget.style.opacity = '1'
+    }
     return (
         <div
-            onClick={() => onSelect?.(item)}
-            className="planner-task-card rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] cursor-pointer mb-2 overflow-hidden relative transition-all duration-200 ease-in-out"
+            draggable
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={() => onSelect?.(item.id)}
+            className="planner-task-card rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] cursor-grab mb-2 overflow-hidden relative transition-all duration-200 ease-in-out active:cursor-grabbing"
             style={{
                 background: 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)'
             }}
@@ -173,9 +190,114 @@ function PlannerItem({ item, onRemove, onSelect, accentColor, isPast }) {
         </div>
     )
 }
+/** Inline form for quickly creating a new list item from the task selector modal. */
+function QuickAddForm({ accentColor, onCreated }) {
+    const { preferences } = usePreferences()
+    const [description, setDescription] = useState('')
+    const [plantCode, setPlantCode] = useState('')
+    const [plants, setPlants] = useState([])
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+    const inputRef = useRef(null)
+    useEffect(() => {
+        async function loadPlants() {
+            const regionCode = preferences?.selectedRegion?.code || ''
+            const allowedCodes = await RegionService.getAllowedPlantCodes(regionCode)
+            if (!allowedCodes) return
+            const allPlants = await PlantService.fetchAllPlants()
+            setPlants(
+                allPlants
+                    .filter((p) => allowedCodes.has(p.plantCode.toUpperCase()))
+                    .sort((a, b) => a.plantCode.localeCompare(b.plantCode))
+            )
+        }
+        loadPlants()
+    }, [preferences?.selectedRegion?.code])
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!description.trim()) return setError('Description required')
+        if (!plantCode) return setError('Select a plant')
+        setSaving(true)
+        setError('')
+        try {
+            const user = await UserService.getCurrentUser()
+            if (!user) throw new Error('Not authenticated')
+            const deadline = new Date()
+            deadline.setDate(deadline.getDate() + 14)
+            deadline.setHours(17, 0, 0, 0)
+            const cleanDesc = GrammarUtility.cleanDescription(description)
+            await ListService.createListItem(plantCode, cleanDesc, deadline, '', 'pending', null)
+            setDescription('')
+            setPlantCode('')
+            onCreated?.()
+        } catch (err) {
+            setError(err.message || 'Failed to create item')
+        } finally {
+            setSaving(false)
+        }
+    }
+    return (
+        <form
+            onSubmit={handleSubmit}
+            className="rounded-xl p-3 mb-3"
+            style={{ background: `${accentColor}10`, border: `1px dashed ${accentColor}40` }}
+        >
+            <div className="text-xs font-semibold mb-2 flex items-center gap-1.5" style={{ color: accentColor }}>
+                <i className="fas fa-plus-circle" />
+                Quick Add New Item
+            </div>
+            <input
+                ref={inputRef}
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Task description..."
+                className="w-full rounded-lg border text-sm py-2 px-3 outline-none mb-2"
+                style={{
+                    background: 'var(--bg-primary)',
+                    borderColor: 'var(--border-light)',
+                    color: 'var(--text-primary)'
+                }}
+            />
+            <select
+                value={plantCode}
+                onChange={(e) => setPlantCode(e.target.value)}
+                className="w-full rounded-lg border text-sm py-2 px-3 outline-none mb-2 appearance-none"
+                style={{
+                    background: 'var(--bg-primary)',
+                    borderColor: 'var(--border-light)',
+                    color: plantCode ? 'var(--text-primary)' : 'var(--text-secondary)'
+                }}
+            >
+                <option value="">Select plant...</option>
+                {plants.map((p) => (
+                    <option key={p.plantCode} value={p.plantCode}>
+                        ({p.plantCode}) {p.plantName}
+                    </option>
+                ))}
+            </select>
+            {error && <div className="text-xs text-red-500 mb-2">{error}</div>}
+            <button
+                type="submit"
+                disabled={saving}
+                className="w-full rounded-lg border-none text-white text-xs font-semibold py-2 cursor-pointer transition-opacity duration-150"
+                style={{ background: accentColor, opacity: saving ? 0.6 : 1 }}
+            >
+                {saving ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                        <i className="fas fa-circle-notch fa-spin" /> Creating...
+                    </span>
+                ) : (
+                    'Create & Add to List'
+                )}
+            </button>
+        </form>
+    )
+}
 /** Portal-rendered modal for selecting an available list item to add to a day's plan. */
-function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
+function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor, onItemCreated }) {
     const [search, setSearch] = useState('')
+    const [showQuickAdd, setShowQuickAdd] = useState(false)
     const filteredItems = useMemo(() => {
         const available = items.filter((item) => !item.completed && item.status !== 'completed')
         if (!search.trim()) return available
@@ -185,7 +307,10 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
         )
     }, [items, search])
     useEffect(() => {
-        if (!isOpen) setSearch('')
+        if (!isOpen) {
+            setSearch('')
+            setShowQuickAdd(false)
+        }
     }, [isOpen])
     if (!isOpen) return null
     return ReactDOM.createPortal(
@@ -218,19 +343,36 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                             <i className="fas fa-times" />
                         </button>
                     </div>
-                    <div className="relative">
-                        <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.6)] text-sm" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search by description or plant..."
-                            autoFocus
-                            className="bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)] rounded-[10px] box-border text-white text-sm outline-none py-3 pr-3.5 pl-[42px] w-full placeholder:text-[rgba(255,255,255,0.5)]"
-                        />
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgba(255,255,255,0.6)] text-sm" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search by description or plant..."
+                                autoFocus
+                                className="bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)] rounded-[10px] box-border text-white text-sm outline-none py-3 pr-3.5 pl-[42px] w-full placeholder:text-[rgba(255,255,255,0.5)]"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setShowQuickAdd((v) => !v)}
+                            className="flex items-center justify-center bg-[rgba(255,255,255,0.2)] border-none rounded-[10px] text-white cursor-pointer text-sm px-3.5 transition-[background] duration-150 gap-1.5 font-medium whitespace-nowrap"
+                            style={{ background: showQuickAdd ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.3)')}
+                            onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = showQuickAdd
+                                    ? 'rgba(255,255,255,0.35)'
+                                    : 'rgba(255,255,255,0.2)')
+                            }
+                        >
+                            <i className={`fas ${showQuickAdd ? 'fa-list' : 'fa-plus'}`} />
+                            {showQuickAdd ? 'Back' : 'New'}
+                        </button>
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3">
+                    {showQuickAdd && <QuickAddForm accentColor={accentColor} onCreated={onItemCreated} />}
                     {filteredItems.length === 0 ? (
                         <div
                             className="flex flex-col items-center gap-2 px-5 py-10 text-center"
@@ -240,6 +382,16 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
                             <span className="text-sm">
                                 {search ? 'No tasks match your search' : 'No available tasks'}
                             </span>
+                            {!showQuickAdd && (
+                                <button
+                                    onClick={() => setShowQuickAdd(true)}
+                                    className="mt-2 flex items-center gap-1.5 border-none rounded-lg text-white text-xs font-semibold px-4 py-2 cursor-pointer"
+                                    style={{ background: accentColor }}
+                                >
+                                    <i className="fas fa-plus" />
+                                    Create New Item
+                                </button>
+                            )}
                         </div>
                     ) : (
                         filteredItems.map((item) => {
@@ -311,31 +463,62 @@ function TaskSelectorModal({ isOpen, onClose, items, onSelect, accentColor }) {
         document.body
     )
 }
-/** Single day column in the planner grid with task list, add button, and task selector modal. */
+/** Single day column in the planner grid with drag/drop support, task list, and add button. */
 function DayColumn({
     day,
     items,
     plannedItems,
     onAddItem,
     onRemoveItem,
+    onMoveItem,
     onSelectItem,
     accentColor,
     isMobile,
-    loading
+    loading,
+    onItemCreated
 }) {
     const [showModal, setShowModal] = useState(false)
+    const [dragOver, setDragOver] = useState(false)
     const dayPlannedItems = plannedItems.filter((pi) => pi.planned_date === day.dateStr)
     const taskCount = dayPlannedItems.length
+    const handleDragOver = (e) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        if (!dragOver) setDragOver(true)
+    }
+    const handleDragLeave = (e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            setDragOver(false)
+        }
+    }
+    const handleDrop = (e) => {
+        e.preventDefault()
+        setDragOver(false)
+        try {
+            const data = JSON.parse(e.dataTransfer.getData('application/json'))
+            if (data.fromDate === day.dateStr) return
+            onMoveItem(data.fromDate, day.dateStr, data.itemId)
+        } catch {}
+    }
     return (
         <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             className={`flex flex-1 flex-col rounded-xl relative transition-all duration-200 ease-in-out ${isMobile ? 'min-h-[180px] min-w-[150px]' : 'min-h-[240px] min-w-[170px]'}`}
             style={{
-                background: day.isToday
-                    ? `linear-gradient(180deg, ${accentColor}08 0%, ${accentColor}03 100%)`
-                    : day.isPast
-                      ? 'var(--bg-secondary)'
-                      : 'var(--bg-primary)',
-                border: day.isToday ? `2px solid ${accentColor}` : '1px solid var(--border-light)',
+                background: dragOver
+                    ? `${accentColor}12`
+                    : day.isToday
+                      ? `linear-gradient(180deg, ${accentColor}08 0%, ${accentColor}03 100%)`
+                      : day.isPast
+                        ? 'var(--bg-secondary)'
+                        : 'var(--bg-primary)',
+                border: dragOver
+                    ? `2px dashed ${accentColor}`
+                    : day.isToday
+                      ? `2px solid ${accentColor}`
+                      : '1px solid var(--border-light)',
                 opacity: loading ? 0.6 : 1
             }}
         >
@@ -390,16 +573,26 @@ function DayColumn({
                             onSelect={onSelectItem}
                             accentColor={accentColor}
                             isPast={day.isPast}
+                            dateStr={day.dateStr}
                         />
                     )
                 })}
-                {taskCount === 0 && (
+                {taskCount === 0 && !dragOver && (
                     <div
                         className="flex flex-col items-center gap-1.5 justify-center min-h-[80px] text-center"
                         style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
                     >
                         <i className="fas fa-calendar-plus text-xl" />
                         <span className="text-[11px]">No tasks</span>
+                    </div>
+                )}
+                {dragOver && taskCount === 0 && (
+                    <div
+                        className="flex flex-col items-center gap-1.5 justify-center min-h-[80px] text-center"
+                        style={{ color: accentColor, opacity: 0.7 }}
+                    >
+                        <i className="fas fa-arrow-down text-xl" />
+                        <span className="text-[11px] font-medium">Drop here</span>
                     </div>
                 )}
             </div>
@@ -436,19 +629,21 @@ function DayColumn({
                 items={items}
                 onSelect={(itemId) => onAddItem(day.dateStr, itemId)}
                 accentColor={accentColor}
+                onItemCreated={onItemCreated}
             />
         </div>
     )
 }
 /**
  * Shared team weekly planner grid (Mon-Sat) for scheduling list items.
- * Supports week navigation, task add/remove, and bulk clear.
+ * Supports week navigation, drag-and-drop reordering, task add/remove, and bulk clear.
  * @param {Object} props
  * @param {Array} props.items - All available list items.
  * @param {Function} props.onSelectItem - Callback when a task card is clicked.
  * @param {string} [props.accentColor='#1e3a5f'] - Theme accent color.
+ * @param {Function} [props.onItemsChanged] - Callback when items list needs refreshing (after quick-add).
  */
-export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3a5f' }) {
+export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3a5f', onItemsChanged }) {
     const [weekOffset, setWeekOffset] = useState(0)
     const [plannedItems, setPlannedItems] = useState([])
     const [loading, setLoading] = useState(true)
@@ -501,8 +696,31 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
         },
         [loadPlannedItems]
     )
-    const handleClearAll = useCallback(async () => {
-        if (!window.confirm('Clear all planned tasks for this week?')) return
+    /** Moves a task from one day to another by removing from the source and adding to the target. */
+    const handleMoveItem = useCallback(
+        async (fromDate, toDate, itemId) => {
+            // Optimistic update for snappy feel
+            setPlannedItems((prev) => {
+                const without = prev.filter((pi) => !(pi.list_item_id === itemId && pi.planned_date === fromDate))
+                return [...without, { list_item_id: itemId, planned_date: toDate }]
+            })
+            try {
+                await ListService.removePlannedItem(itemId, fromDate)
+                await ListService.addPlannedItem(itemId, toDate)
+                await loadPlannedItems()
+            } catch (err) {
+                console.error('Failed to move planned item:', err)
+                await loadPlannedItems()
+            }
+        },
+        [loadPlannedItems]
+    )
+    const [showClearConfirm, setShowClearConfirm] = useState(false)
+    const handleClearAll = useCallback(() => {
+        setShowClearConfirm(true)
+    }, [])
+    const confirmClearAll = useCallback(async () => {
+        setShowClearConfirm(false)
         try {
             await ListService.clearPlannedItems(startDate, endDate)
             await loadPlannedItems()
@@ -510,6 +728,9 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
             console.error('Failed to clear planned items:', err)
         }
     }, [startDate, endDate, loadPlannedItems])
+    const handleItemCreated = useCallback(() => {
+        onItemsChanged?.()
+    }, [onItemsChanged])
     const totalPlanned = plannedItems.length
     return (
         <div className={`flex flex-col ${isMobile ? 'gap-3 p-2.5' : 'gap-5 p-5'}`}>
@@ -631,10 +852,12 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                         plannedItems={plannedItems}
                         onAddItem={handleAddItem}
                         onRemoveItem={handleRemoveItem}
+                        onMoveItem={handleMoveItem}
                         onSelectItem={onSelectItem}
                         accentColor={accentColor}
                         isMobile={isMobile}
                         loading={loading}
+                        onItemCreated={handleItemCreated}
                     />
                 ))}
             </div>
@@ -657,11 +880,21 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                             Shared Team Schedule
                         </div>
                         <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            All team members can view and edit this weekly plan
+                            All team members can view and edit this weekly plan &bull; Drag tasks between days to
+                            reschedule
                         </div>
                     </div>
                 </div>
             )}
+            <ConfirmDialog
+                isOpen={showClearConfirm}
+                onConfirm={confirmClearAll}
+                onCancel={() => setShowClearConfirm(false)}
+                title="Clear all planned tasks?"
+                message={`This will remove all ${totalPlanned} planned task${totalPlanned !== 1 ? 's' : ''} for this week.`}
+                confirmLabel="Clear All"
+                variant="warning"
+            />
         </div>
     )
 }

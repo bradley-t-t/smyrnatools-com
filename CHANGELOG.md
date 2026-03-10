@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.7] - 2026-03-10
+
+- Added drag-and-drop support to the Weekly Planner, allowing tasks to be moved between days with optimistic UI updates
+- Created a reusable ConfirmDialog component that replaces native window.confirm() with a themed modal supporting danger, warning, and default variants
+- Replaced the raw window.confirm() in the Weekly Planner's "Clear All" action with the new ConfirmDialog
+- Added a Quick Add form inside the task selector modal for creating new list items without leaving the planner
+- Added a dev-only ConsoleLogger utility that captures console errors and warnings and flushes them to a local endpoint
+- Added a setupProxy middleware to write captured console logs to console-errors.log during development
+- Fixed GrammarUtility to handle an edge case (single-character change visible in diff)
+- Updated the task selector modal search bar layout to include a toggle button for the Quick Add form
+- Changed task card click handler to pass item ID instead of the full item object
+- Added "Create New Item" button to the empty state in the task selector modal
+- Updated the planner footer text to mention drag-to-reschedule functionality
+- Wired up onItemsChanged callback so the parent view can refresh items after quick-add creation
+
 ## [29.6] - 2026-03-10
 
 - Fixed excess re-renders across Mixers, Tractors, Trailers, Equipment, and My Account views by trimming unnecessary dependencies from useEffect hooks
