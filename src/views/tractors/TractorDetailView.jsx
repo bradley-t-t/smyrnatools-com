@@ -429,7 +429,7 @@ function TractorDetailView({ tractorId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-    async function handleVerifyTractor(skipIssueCheck = false) {
+    async function handleVerifyTractor(_skipIssueCheck = false) {
         if (status === 'Retired') {
             setMessage('Cannot verify: Retired tractors cannot be verified.')
             setTimeout(() => setMessage(''), 4000)
@@ -516,7 +516,7 @@ function TractorDetailView({ tractorId, onClose }) {
         const operator = operators.find((op) => op.employeeId === operatorId)
         return operator ? (operator.position ? `${operator.name} (${operator.position})` : operator.name) : 'Unknown'
     }
-    function getPlantName(plantCode) {
+    function _getPlantName(plantCode) {
         const plant = plants.find((p) => p.plantCode === plantCode)
         return plant ? plant.plantName : plantCode
     }

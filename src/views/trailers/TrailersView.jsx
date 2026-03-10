@@ -23,6 +23,16 @@ import TrailerCard from './TrailerCard'
 import TrailerCommentModal from './TrailerCommentModal'
 import TrailerDetailView from './TrailerDetailView'
 import TrailerIssueModal from './TrailerIssueModal'
+const TRAILER_SORT_MAPPINGS = {
+    Cleanliness: 'cleanlinessRating',
+    More: null,
+    Plant: 'assignedPlant',
+    Status: 'status',
+    Tractor: null,
+    'Trailer #': 'trailerNumber',
+    Type: 'trailerType',
+    VIN: 'vinNumber'
+}
 /**
  * Main list/grid view for the trailer fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant
@@ -43,6 +53,12 @@ function TrailersView({
     exactMatch = false
 }) {
     const { preferences, saveLastViewedFilters, updateTrailerFilter, updatePreferences } = usePreferences()
+    const updateTrailerFilterRef = useRef(updateTrailerFilter)
+    updateTrailerFilterRef.current = updateTrailerFilter
+    const updatePreferencesRef = useRef(updatePreferences)
+    updatePreferencesRef.current = updatePreferences
+    const trailerFiltersRef = useRef(preferences.trailerFilters)
+    trailerFiltersRef.current = preferences.trailerFilters
     const [trailers, setTrailers] = useState([])
     const [tractors, setTractors] = useState([])
     const [plants, setPlants] = useState([])
@@ -78,16 +94,6 @@ function TrailersView({
     const [selectedTrailerForHistory, setSelectedTrailerForHistory] = useState(null)
     const [isExportingIssues, setIsExportingIssues] = useState(false)
     const filterOptions = ['All Types', 'Cement', 'End Dump', 'Past Due Service', 'Open Issues']
-    const sortMappings = {
-        Cleanliness: 'cleanlinessRating',
-        More: null,
-        Plant: 'assignedPlant',
-        Status: 'status',
-        Tractor: null,
-        'Trailer #': 'trailerNumber',
-        Type: 'trailerType',
-        VIN: 'vinNumber'
-    }
     const headerRef = useRef(null)
     useEffect(() => {
         if (initialSearch) {
@@ -207,7 +213,7 @@ function TrailersView({
             const lastUsed = localStorage.getItem('trailers_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
-    }, [preferences, reloadTrailers])
+    }, [preferences, reloadTrailers, fetchTrailers])
     useEffect(() => {
         if (preferences.trailerFilters?.viewMode !== undefined && preferences.trailerFilters?.viewMode !== null) {
             setViewMode(preferences.trailerFilters.viewMode)
@@ -232,7 +238,7 @@ function TrailersView({
                 setRegionPlantCodes(codes)
                 if (selectedPlant && codes && !codes.has(selectedPlant)) {
                     setSelectedPlant('')
-                    updatePreferences('trailerFilters', { ...preferences.trailerFilters, selectedPlant: '' })
+                    updatePreferencesRef.current('trailerFilters', { ...trailerFiltersRef.current, selectedPlant: '' })
                 }
             } catch {
                 setRegionPlantCodes(null)
@@ -242,7 +248,7 @@ function TrailersView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
+    }, [preferences.selectedRegion?.code, selectedPlant])
     useEffect(() => {
         function updateStickyCoverHeight() {
             const el = headerRef.current
@@ -289,13 +295,36 @@ function TrailersView({
             setSortDirection('asc')
         }
     }
-    async function fetchTrailers(codes) {
+    const loadDetailsForTrailers = useCallback(async (trailersList) => {
+        if (!trailersList || trailersList.length === 0) return
+        const trailerIds = trailersList.map((t) => t.id).filter(Boolean)
+        if (trailerIds.length === 0) return
         try {
-            const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
-            setTrailers(processedBase)
-            loadDetailsForTrailers(processedBase)
-        } catch {}
-    }
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                TrailerService.fetchAllCommentsCounts(trailerIds),
+                TrailerService.fetchAllIssuesCounts(trailerIds)
+            ])
+            setTrailers((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading trailer details:', e)
+        }
+    }, [])
+    const fetchTrailers = useCallback(
+        async (codes) => {
+            try {
+                const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
+                setTrailers(processedBase)
+                loadDetailsForTrailers(processedBase)
+            } catch {}
+        },
+        [loadDetailsForTrailers]
+    )
     async function fetchTractors() {
         try {
             const data = await TractorService.fetchTractors()
@@ -310,21 +339,25 @@ function TrailersView({
             setPlants(data)
         } catch {}
     }
-    function handleSelectTrailer(trailerId) {
-        saveLastViewedFilters()
-        const trailerObj = trailers.find((t) => t.id === trailerId)
-        setSelectedTrailer(trailerObj)
-        if (onSelectTrailer) onSelectTrailer(trailerId)
-    }
+    const handleSelectTrailer = useCallback(
+        (trailerId) => {
+            saveLastViewedFilters()
+            const trailerObj = trailers.find((t) => t.id === trailerId)
+            setSelectedTrailer(trailerObj)
+            if (onSelectTrailer) onSelectTrailer(trailerId)
+        },
+        [trailers, saveLastViewedFilters, onSelectTrailer]
+    )
     function handleBackFromDetail() {
         setSelectedTrailer(null)
         setReloadTrailers((r) => !r)
     }
-    const debouncedSetSearchText = useCallback(
-        AsyncUtility.debounce((value) => {
-            setSearchText(value)
-            updateTrailerFilter('searchText', value)
-        }, 300),
+    const debouncedSetSearchText = useMemo(
+        () =>
+            AsyncUtility.debounce((value) => {
+                setSearchText(value)
+                updateTrailerFilterRef.current('searchText', value)
+            }, 300),
         []
     )
     useEffect(() => {
@@ -387,7 +420,7 @@ function TrailersView({
                 if (!sortKey) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
                 }
-                const prop = sortMappings[sortKey]
+                const prop = TRAILER_SORT_MAPPINGS[sortKey]
                 let aVal, bVal
                 if (sortKey === 'Trailer #') {
                     aVal = parseFloat(a.trailerNumber) || 0
@@ -815,7 +848,18 @@ function TrailersView({
                 tableClassName="list-table"
             />
         )
-    }, [isLoading, filteredTrailers, viewMode, searchText, selectedPlant, typeFilter, tractors, plants, trailers])
+    }, [
+        isLoading,
+        filteredTrailers,
+        viewMode,
+        searchText,
+        selectedPlant,
+        typeFilter,
+        tractors,
+        plants,
+        trailers,
+        handleSelectTrailer
+    ])
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
@@ -845,26 +889,7 @@ function TrailersView({
             setTrailers(trailers)
         }
     }, [searchText, trailers, regionPlantCodes])
-    const loadDetailsForTrailers = async (trailersList) => {
-        if (!trailersList || trailersList.length === 0) return
-        const trailerIds = trailersList.map((t) => t.id).filter(Boolean)
-        if (trailerIds.length === 0) return
-        try {
-            const [commentsCounts, issuesCounts] = await Promise.all([
-                TrailerService.fetchAllCommentsCounts(trailerIds),
-                TrailerService.fetchAllIssuesCounts(trailerIds)
-            ])
-            setTrailers((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-        } catch (e) {
-            console.error('Error loading trailer details:', e)
-        }
-    }
+    // loadDetailsForTrailers moved above fetchTrailers
     const showReset = searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types')
     return (
         <>

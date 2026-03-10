@@ -100,7 +100,7 @@ function ReportsToolbar({
                     {hasLostLoadsPermission && (
                         <button
                             className="flex items-center gap-1.5 px-3 py-2.5 sm:px-4 rounded-lg text-xs sm:text-sm font-semibold transition-all border"
-                            style={{ borderColor: accentColor, color: accentColor, background: `${accentColor}10` }}
+                            style={{ background: `${accentColor}10`, borderColor: accentColor, color: accentColor }}
                             onClick={onLostLoadClick}
                             type="button"
                         >

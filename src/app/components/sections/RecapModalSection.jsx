@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { supabase } from '../../../services/DatabaseService'
@@ -188,7 +188,7 @@ function RecapModalSection({
             return new Date(bLatest) - new Date(aLatest)
         })
     }, [mixerHistory, operatorHistory, mixerLookup, operatorLookup])
-    const fetchHistory = async () => {
+    const fetchHistory = useCallback(async () => {
         if (mixerIds.length === 0 && operatorIds.length === 0) return
         setIsLoading(true)
         try {
@@ -313,12 +313,12 @@ function RecapModalSection({
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [mixerIds, operatorIds, dateFilter, operatorNames, userNames])
     useEffect(() => {
         if (isOpen && (mixerIds.length > 0 || operatorIds.length > 0)) {
             fetchHistory()
         }
-    }, [isOpen, mixerIds, operatorIds, dateFilter])
+    }, [isOpen, mixerIds, operatorIds, dateFilter, fetchHistory])
     useEffect(() => {
         if (!mixersLoaded || externalLoading) {
             setIsTabVisible(false)

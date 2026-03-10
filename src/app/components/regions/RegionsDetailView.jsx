@@ -74,7 +74,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             setLoading(false)
         }
         fetchPlants()
-    }, [region])
+    }, [region, regionCode])
     const handleSave = async () => {
         setSaving(true)
         setMessage('')
@@ -271,7 +271,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     </button>
                                 </div>
                             )}
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
                                 <input
                                     type="text"
                                     className="form-control"
@@ -289,7 +289,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     className="global-button-secondary"
                                     onClick={selectAllFiltered}
                                     disabled={!filteredPlants.length}
-                                    style={{ whiteSpace: 'nowrap', fontSize: 13, padding: '8px 12px' }}
+                                    style={{ fontSize: 13, padding: '8px 12px', whiteSpace: 'nowrap' }}
                                 >
                                     Select All
                                 </button>
@@ -347,7 +347,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                 <DetailViewSection.Section id="districts" title="Districts" icon="fas fa-layer-group">
                     <DetailViewSection.Card title={`Districts (${allDistrictNames.length})`} icon="fas fa-object-group">
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
                                 <input
                                     type="text"
                                     className="form-control"
@@ -369,7 +369,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     disabled={
                                         !newDistrictName.trim() || allDistrictNames.includes(newDistrictName.trim())
                                     }
-                                    style={{ whiteSpace: 'nowrap', fontSize: 13, padding: '8px 12px' }}
+                                    style={{ fontSize: 13, padding: '8px 12px', whiteSpace: 'nowrap' }}
                                 >
                                     <i className="fas fa-plus mr-1" />
                                     Add District

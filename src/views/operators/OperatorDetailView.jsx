@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
@@ -25,7 +25,7 @@ import OperatorHistoryView from './OperatorHistoryView'
  * @param {Set<string>} [allowedPlantCodes] - Region-scoped plant codes for the plant picker.
  */
 function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
-    const { preferences } = usePreferences()
+    const { preferences: _preferences } = usePreferences()
     const [operator, setOperator] = useState(null)
     const [plants, setPlants] = useState([])
     const [trainers, setTrainers] = useState([])
@@ -58,80 +58,14 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                 setAssignedPlant('')
             }
         }
-    }, [allowedPlantCodes])
+    }, [allowedPlantCodes, assignedPlant])
     useEffect(() => {
         document.body.classList.add('in-detail-view')
         return () => {
             document.body.classList.remove('in-detail-view')
         }
     }, [])
-    useEffect(() => {
-        fetchData()
-        fetchPlants()
-        fetchTrainers()
-    }, [operatorId])
-    useEffect(() => {
-        const checkDeletePermission = async () => {
-            try {
-                const currentUser = await UserService.getCurrentUser()
-                const userId = currentUser?.id || currentUser
-                if (userId) {
-                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete')
-                    setCanDeleteOperator(hasPermission)
-                } else {
-                    setCanDeleteOperator(false)
-                }
-            } catch (error) {
-                setCanDeleteOperator(false)
-            }
-        }
-        checkDeletePermission()
-    }, [])
-    const fetchPlants = async () => {
-        const { data } = await supabase.from('plants').select('*')
-        setPlants(data || [])
-    }
-    const fetchTrainers = async () => {
-        const { data } = await supabase
-            .from('operators')
-            .select('employee_id, name, is_trainer, plant_code')
-            .eq('is_trainer', true)
-        setTrainers(
-            (data || [])
-                .filter((trainer) =>
-                    allowedPlantCodes && allowedPlantCodes.size > 0
-                        ? allowedPlantCodes.has(
-                              String(trainer.plant_code || '')
-                                  .trim()
-                                  .toUpperCase()
-                          )
-                        : false
-                )
-                .map((trainer) => ({
-                    employeeId: trainer.employee_id,
-                    name: trainer.name
-                }))
-        )
-    }
-    const filteredPlants = useMemo(() => {
-        return plants
-            .filter((p) => {
-                const code = String(p.plant_code || '')
-                    .trim()
-                    .toUpperCase()
-                return allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(code) : false
-            })
-            .sort((a, b) => {
-                const aCode = parseInt(a.plant_code?.replace(/\D/g, '') || '0')
-                const bCode = parseInt(b.plant_code?.replace(/\D/g, '') || '0')
-                return aCode - bCode
-            })
-    }, [plants, allowedPlantCodes])
-    const selectedPlantObj = plants.find((p) => p.plant_code === assignedPlant)
-    const plantDisplayText = assignedPlant
-        ? `(${selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plant_name || ''}`
-        : 'Select Plant'
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoading(true)
         try {
             const { data } = await supabase.from('operators').select('*').eq('employee_id', operatorId).single()
@@ -157,7 +91,73 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             setAutomaticRestriction(data.automatic_restriction === true)
         } catch (error) {}
         setIsLoading(false)
-    }
+    }, [operatorId])
+    const fetchPlants = useCallback(async () => {
+        const { data } = await supabase.from('plants').select('*')
+        setPlants(data || [])
+    }, [])
+    const fetchTrainers = useCallback(async () => {
+        const { data } = await supabase
+            .from('operators')
+            .select('employee_id, name, is_trainer, plant_code')
+            .eq('is_trainer', true)
+        setTrainers(
+            (data || [])
+                .filter((trainer) =>
+                    allowedPlantCodes && allowedPlantCodes.size > 0
+                        ? allowedPlantCodes.has(
+                              String(trainer.plant_code || '')
+                                  .trim()
+                                  .toUpperCase()
+                          )
+                        : false
+                )
+                .map((trainer) => ({
+                    employeeId: trainer.employee_id,
+                    name: trainer.name
+                }))
+        )
+    }, [allowedPlantCodes])
+    useEffect(() => {
+        fetchData()
+        fetchPlants()
+        fetchTrainers()
+    }, [operatorId, fetchData, fetchPlants, fetchTrainers])
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser()
+                const userId = currentUser?.id || currentUser
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete')
+                    setCanDeleteOperator(hasPermission)
+                } else {
+                    setCanDeleteOperator(false)
+                }
+            } catch (error) {
+                setCanDeleteOperator(false)
+            }
+        }
+        checkDeletePermission()
+    }, [])
+    const filteredPlants = useMemo(() => {
+        return plants
+            .filter((p) => {
+                const code = String(p.plant_code || '')
+                    .trim()
+                    .toUpperCase()
+                return allowedPlantCodes && allowedPlantCodes.size > 0 ? allowedPlantCodes.has(code) : false
+            })
+            .sort((a, b) => {
+                const aCode = parseInt(a.plant_code?.replace(/\D/g, '') || '0')
+                const bCode = parseInt(b.plant_code?.replace(/\D/g, '') || '0')
+                return aCode - bCode
+            })
+    }, [plants, allowedPlantCodes])
+    const selectedPlantObj = plants.find((p) => p.plant_code === assignedPlant)
+    const plantDisplayText = assignedPlant
+        ? `(${selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plant_name || ''}`
+        : 'Select Plant'
     const handleBackClick = async () => {
         if (_hasUnsavedChanges) {
             await handleSave()

@@ -20,6 +20,16 @@ import PickupTruckIssueModal from './PickupTruckIssueModal'
 import PickupTrucksAddView from './PickupTrucksAddView'
 import PickupTrucksCard from './PickupTrucksCard'
 import PickupTrucksDetailView from './PickupTrucksDetailView'
+const PICKUP_SORT_MAPPINGS = {
+    Assigned: 'assigned',
+    'Make & Model': null,
+    Mileage: 'mileage',
+    More: null,
+    Plant: 'assignedPlant',
+    Status: 'status',
+    VIN: 'vin',
+    Year: 'year'
+}
 /**
  * Main list/grid view for the pickup truck fleet. Handles data fetching
  * with comment/issue count aggregation, Supabase realtime subscriptions
@@ -63,16 +73,6 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         'Sold',
         'Over 300k Miles'
     ]
-    const sortMappings = {
-        Assigned: 'assigned',
-        'Make & Model': null,
-        Mileage: 'mileage',
-        More: null,
-        Plant: 'assignedPlant',
-        Status: 'status',
-        VIN: 'vin',
-        Year: 'year'
-    }
     /** Processes Supabase realtime INSERT/UPDATE/DELETE events to keep the pickup list in sync without refetching. */
     const handleRealtimeUpdate = useCallback(
         (eventType, data) => {
@@ -254,10 +254,11 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
         window.addEventListener('resize', updateStickyCoverHeight)
         return () => window.removeEventListener('resize', updateStickyCoverHeight)
     }, [viewMode, searchText, selectedPlant, statusFilter])
-    const debouncedSetSearchText = useCallback(
-        AsyncUtility.debounce((value) => {
-            setSearchText(value)
-        }, 300),
+    const debouncedSetSearchText = useMemo(
+        () =>
+            AsyncUtility.debounce((value) => {
+                setSearchText(value)
+            }, 300),
         []
     )
     const filtered = useMemo(() => {
@@ -302,7 +303,7 @@ function PickupTrucksView({ title = 'Pickup Trucks' }) {
                 if (!sortKey) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'assigned')
                 }
-                const prop = sortMappings[sortKey]
+                const prop = PICKUP_SORT_MAPPINGS[sortKey]
                 let aVal, bVal
                 if (sortKey === 'Assigned') {
                     aVal = parseFloat(a.assigned) || 0

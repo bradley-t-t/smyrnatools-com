@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
@@ -20,11 +20,6 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [canDelete, setCanDelete] = useState(false)
     const [activeTab, setActiveTab] = useState('open')
     useEffect(() => {
-        if (itemId) {
-            fetchIssues()
-        }
-    }, [itemId])
-    useEffect(() => {
         async function checkDeletePermission() {
             try {
                 const currentUser = await UserService.getCurrentUser()
@@ -42,7 +37,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const sortedIssues = [...issues].sort((a, b) => new Date(b.time_created) - new Date(a.time_created))
     const openIssues = sortedIssues.filter((issue) => !issue.time_completed)
     const resolvedIssues = sortedIssues.filter((issue) => issue.time_completed)
-    const fetchIssues = async () => {
+    const fetchIssues = useCallback(async () => {
         setIsLoading(true)
         setError(null)
         try {
@@ -68,7 +63,12 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
         } finally {
             setIsLoading(false)
         }
-    }
+    }, [itemId, service])
+    useEffect(() => {
+        if (itemId) {
+            fetchIssues()
+        }
+    }, [itemId, fetchIssues])
     const handleDeleteIssue = async (issueId) => {
         if (!window.confirm('Are you sure you want to delete this issue?')) return
         try {

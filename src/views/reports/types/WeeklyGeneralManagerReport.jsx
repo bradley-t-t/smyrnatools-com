@@ -253,13 +253,6 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
             const qStart = prevSunday.toISOString()
             const qEnd = windowEnd.toISOString()
-            const toMondayIso = (d) => {
-                if (!d) return ''
-                const dt = new Date(d)
-                if (isNaN(dt)) return ''
-                return ReportUtility.getMondayISO(dt)
-            }
-            const sameIsoDay = (a, b) => a && b && a.slice(0, 10) === b.slice(0, 10)
             let { data: gm } = await supabase
                 .from('reports')
                 .select('id,data,week,report_date_range_start,completed,submitted_at')
@@ -340,6 +333,40 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         }
         fetchRMIReport()
     }, [weekIso, plants])
+    const getLastWeekValue = React.useCallback(
+        function getLastWeekValue(field) {
+            const data = lastWeekGM?.data
+            if (!data) return ''
+            const key = String(field || '')
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
+                const v = data[key]
+                return v === undefined || v === null ? '' : v
+            }
+            const idx = key.lastIndexOf('_')
+            if (idx <= 0 || idx === key.length - 1) return ''
+            const base = key.slice(0, idx)
+            const code = key.slice(idx + 1)
+            const normalize = (s) => {
+                const t = String(s || '').trim()
+                const upp = t.toUpperCase()
+                const digits = t.replace(/\D/g, '')
+                const strip = digits.replace(/^0+/, '')
+                return { digits: strip || digits, upp }
+            }
+            const want = normalize(code)
+            for (const k of Object.keys(data)) {
+                if (!k.startsWith(base + '_')) continue
+                const suf = k.slice(base.length + 1)
+                const cand = normalize(suf)
+                if (cand.upp === want.upp || (cand.digits && want.digits && cand.digits === want.digits)) {
+                    const v = data[k]
+                    return v === undefined || v === null ? '' : v
+                }
+            }
+            return ''
+        },
+        [lastWeekGM]
+    )
     React.useEffect(() => {
         let cancelled = false
         async function generateAnalysis() {
@@ -408,7 +435,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         return () => {
             cancelled = true
         }
-    }, [plants, weekIso, form, effReports, aggReport, rmiReport, rmiLoading, aiAnalysis])
+    }, [plants, weekIso, form, effReports, aggReport, rmiReport, rmiLoading, aiAnalysis, getLastWeekValue])
     const handleRegenerateAI = React.useCallback(async () => {
         setAiAnalysis(null)
         setAiLoading(true)
@@ -464,38 +491,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
         } finally {
             setAiLoading(false)
         }
-    }, [plants, weekIso, form, effReports, aggReport, rmiReport])
-    function getLastWeekValue(field) {
-        const data = lastWeekGM?.data
-        if (!data) return ''
-        const key = String(field || '')
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-            const v = data[key]
-            return v === undefined || v === null ? '' : v
-        }
-        const idx = key.lastIndexOf('_')
-        if (idx <= 0 || idx === key.length - 1) return ''
-        const base = key.slice(0, idx)
-        const code = key.slice(idx + 1)
-        const normalize = (s) => {
-            const t = String(s || '').trim()
-            const upp = t.toUpperCase()
-            const digits = t.replace(/\D/g, '')
-            const strip = digits.replace(/^0+/, '')
-            return { digits: strip || digits, upp }
-        }
-        const want = normalize(code)
-        for (const k of Object.keys(data)) {
-            if (!k.startsWith(base + '_')) continue
-            const suf = k.slice(base.length + 1)
-            const cand = normalize(suf)
-            if (cand.upp === want.upp || (cand.digits && want.digits && cand.digits === want.digits)) {
-                const v = data[k]
-                return v === undefined || v === null ? '' : v
-            }
-        }
-        return ''
-    }
+    }, [plants, weekIso, form, effReports, aggReport, rmiReport, getLastWeekValue])
     function formatVariancePercent(field) {
         const lastRaw = getLastWeekValue(field)
         const currRaw = form[field]

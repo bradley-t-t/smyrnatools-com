@@ -343,6 +343,25 @@ const LeaderboardsUtility = {
                 return []
         }
     },
+    getCategoryScore(plant, category) {
+        const scoreKeys = {
+            'daily-hours': 'avgHoursDaily',
+            'daily-yardage': 'avgYardageDaily',
+            efficiency: 'avgEfficiency',
+            'help-given': 'helpGiven',
+            'help-received': 'helpReceived',
+            'monthly-hours': 'avgMonthlyHours',
+            'monthly-yardage': 'avgMonthlyYards',
+            production: 'totalYardage',
+            'weekly-hours': 'avgWeeklyHours',
+            'weekly-yardage': 'avgYardageWeekly',
+            yph: 'avgYPH'
+        }
+        const key = scoreKeys[category]
+        if (!key) return 0
+        const val = plant[key]
+        return typeof val === 'number' ? Math.round(val * 100) / 100 : 0
+    },
     getCategoryTitle(category) {
         switch (category) {
             case 'efficiency':
@@ -370,25 +389,6 @@ const LeaderboardsUtility = {
             default:
                 return 'Leaderboard'
         }
-    },
-    getCategoryScore(plant, category) {
-        const scoreKeys = {
-            'daily-hours': 'avgHoursDaily',
-            'daily-yardage': 'avgYardageDaily',
-            efficiency: 'avgEfficiency',
-            'help-given': 'helpGiven',
-            'help-received': 'helpReceived',
-            'monthly-hours': 'avgMonthlyHours',
-            'monthly-yardage': 'avgMonthlyYards',
-            production: 'totalYardage',
-            'weekly-hours': 'avgWeeklyHours',
-            'weekly-yardage': 'avgYardageWeekly',
-            yph: 'avgYPH'
-        }
-        const key = scoreKeys[category]
-        if (!key) return 0
-        const val = plant[key]
-        return typeof val === 'number' ? Math.round(val * 100) / 100 : 0
     },
     getEfficiencyColor(efficiency) {
         if (efficiency >= 90) return 'var(--success)'

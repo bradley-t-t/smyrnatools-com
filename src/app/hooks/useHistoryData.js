@@ -156,16 +156,19 @@ export default function useHistoryData(item, type) {
             }),
         [history]
     )
-    const buildRatingData = (fieldKey) =>
-        filterAndSortByFieldKey(history, (key) => key === fieldKey)
-            .map((entry) => ({
-                date: new Date(getEntryTimestamp(entry)),
-                rating: parseInt(getEntryNewValue(entry), 10),
-                timestamp: getEntryTimestamp(entry)
-            }))
-            .filter((d) => !isNaN(d.rating) && d.rating > 0)
-    const cleanlinessData = useMemo(() => buildRatingData('cleanliness_rating'), [history])
-    const conditionData = useMemo(() => buildRatingData('condition_rating'), [history])
+    const buildRatingData = useCallback(
+        (fieldKey) =>
+            filterAndSortByFieldKey(history, (key) => key === fieldKey)
+                .map((entry) => ({
+                    date: new Date(getEntryTimestamp(entry)),
+                    rating: parseInt(getEntryNewValue(entry), 10),
+                    timestamp: getEntryTimestamp(entry)
+                }))
+                .filter((d) => !isNaN(d.rating) && d.rating > 0),
+        [history]
+    )
+    const cleanlinessData = useMemo(() => buildRatingData('cleanliness_rating'), [buildRatingData])
+    const conditionData = useMemo(() => buildRatingData('condition_rating'), [buildRatingData])
     const operatorData = useMemo(
         () =>
             filterAndSortByFieldKey(history, (key) => key === 'assigned_operator')
@@ -183,7 +186,7 @@ export default function useHistoryData(item, type) {
                     }
                 })
                 .filter((entry) => entry.operator !== 'Unknown'),
-        [history, operators, getOperatorName]
+        [history, getOperatorName]
     )
     const serviceData = useMemo(
         () =>
@@ -201,21 +204,24 @@ export default function useHistoryData(item, type) {
                 .filter((entry) => entry.serviceDate),
         [history]
     )
-    const buildSimpleFieldData = (fieldKey, valueKey) =>
-        filterAndSortByFieldKey(history, (key) => key === fieldKey)
-            .map((entry) => ({
-                changedBy: getEntryChangedBy(entry),
-                date: new Date(getEntryTimestamp(entry)),
-                timestamp: getEntryTimestamp(entry),
-                [valueKey]: getEntryNewValue(entry)
-            }))
-            .filter((entry) => {
-                const val = entry[valueKey]
-                return val && val !== 'null' && val !== ''
-            })
-    const plantData = useMemo(() => buildSimpleFieldData('assigned_plant', 'plant'), [history])
-    const statusData = useMemo(() => buildSimpleFieldData('status', 'status'), [history])
-    const positionData = useMemo(() => buildSimpleFieldData('position', 'position'), [history])
+    const buildSimpleFieldData = useCallback(
+        (fieldKey, valueKey) =>
+            filterAndSortByFieldKey(history, (key) => key === fieldKey)
+                .map((entry) => ({
+                    changedBy: getEntryChangedBy(entry),
+                    date: new Date(getEntryTimestamp(entry)),
+                    timestamp: getEntryTimestamp(entry),
+                    [valueKey]: getEntryNewValue(entry)
+                }))
+                .filter((entry) => {
+                    const val = entry[valueKey]
+                    return val && val !== 'null' && val !== ''
+                }),
+        [history]
+    )
+    const plantData = useMemo(() => buildSimpleFieldData('assigned_plant', 'plant'), [buildSimpleFieldData])
+    const statusData = useMemo(() => buildSimpleFieldData('status', 'status'), [buildSimpleFieldData])
+    const positionData = useMemo(() => buildSimpleFieldData('position', 'position'), [buildSimpleFieldData])
     const ratingsData = useMemo(
         () =>
             filterAndSortByFieldKey(history, (key) => key === 'rating')

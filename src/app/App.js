@@ -71,7 +71,7 @@ function AppContent() {
     const [selectedView, setSelectedView] = useState({ initialStatusFilter: null, view: 'Dashboard' })
     const [title, setTitle] = useState('Dashboard')
     const [selectedMixer, setSelectedMixer] = useState(null)
-    const [selectedTractor, setSelectedTractor] = useState(null)
+    const [_selectedTractor, setSelectedTractor] = useState(null)
     const [selectedItem, setSelectedItem] = useState(null)
     const [webViewURL, setWebViewURL] = useState(null)
     const [userDisplayName, setUserDisplayName] = useState('')

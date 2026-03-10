@@ -29,7 +29,7 @@ const YardagePerHourCalculator = () => {
         if (!values.completionTime) {
             setValues((prev) => ({ ...prev, completionTime: getCurrentTimeString() }))
         }
-    }, [])
+    }, [values.completionTime])
     // In live mode, refresh the current time every 60s to keep the rate calculation current.
     useEffect(() => {
         if (isOngoing) {

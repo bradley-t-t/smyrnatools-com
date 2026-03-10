@@ -25,6 +25,16 @@ import TractorCard from './TractorCard'
 import TractorCommentModal from './TractorCommentModal'
 import TractorDetailView from './TractorDetailView'
 import TractorIssueModal from './TractorIssueModal'
+const TRACTOR_SORT_MAPPINGS = {
+    Cleanliness: 'cleanlinessRating',
+    More: null,
+    Operator: 'assignedOperator',
+    Plant: 'assignedPlant',
+    Status: 'status',
+    'Truck #': 'truckNumber',
+    VIN: 'vinNumber',
+    Verified: null
+}
 /**
  * Main list/grid view for the tractor fleet. Handles data fetching,
  * Supabase realtime subscriptions for live updates, region-scoped plant
@@ -49,6 +59,8 @@ function TractorsView({
     const { preferences, updateTractorFilter, resetTractorFilters, saveLastViewedFilters, updateOperatorFilter } =
         usePreferences()
     const headerRef = useRef(null)
+    const updateTractorFilterRef = useRef(updateTractorFilter)
+    updateTractorFilterRef.current = updateTractorFilter
     const [tractors, setTractors] = useState([])
     const [allTractors, setAllTractors] = useState([])
     const [operators, setOperators] = useState([])
@@ -105,16 +117,6 @@ function TractorsView({
         'Not Verified',
         'Open Issues'
     ]
-    const sortMappings = {
-        Cleanliness: 'cleanlinessRating',
-        More: null,
-        Operator: 'assignedOperator',
-        Plant: 'assignedPlant',
-        Status: 'status',
-        'Truck #': 'truckNumber',
-        VIN: 'vinNumber',
-        Verified: null
-    }
     useEffect(() => {
         if (initialSearch) {
             const timer = setTimeout(() => {
@@ -285,7 +287,7 @@ function TractorsView({
             const lastUsed = localStorage.getItem('tractors_last_view_mode')
             if (lastUsed) setViewMode(lastUsed)
         }
-    }, [preferences])
+    }, [preferences, fetchTractors])
     useEffect(() => {
         if (preferences.tractorFilters?.viewMode !== undefined && preferences.tractorFilters?.viewMode !== null)
             setViewMode(preferences.tractorFilters.viewMode)
@@ -309,7 +311,7 @@ function TractorsView({
                     .toUpperCase()
                 if (sel && codes && !codes.has(sel)) {
                     setSelectedPlant('')
-                    updateTractorFilter('selectedPlant', '')
+                    updateTractorFilterRef.current('selectedPlant', '')
                 }
             } catch {
                 if (!cancelled) setRegionPlantCodes(null)
@@ -321,7 +323,7 @@ function TractorsView({
         return () => {
             cancelled = true
         }
-    }, [preferences.selectedRegion?.code])
+    }, [preferences.selectedRegion?.code, selectedPlant])
     function handleViewModeChange(mode) {
         if (viewMode === mode) {
             setViewMode(null)
@@ -357,49 +359,86 @@ function TractorsView({
             setSortDirection('asc')
         }
     }
-    async function fetchTractors(codes) {
+    const loadDetailsForTractors = useCallback(async (tractorsList) => {
+        if (!tractorsList || tractorsList.length === 0) return
+        const tractorIds = tractorsList.map((t) => t.id).filter(Boolean)
+        if (tractorIds.length === 0) return
         try {
-            const processedBase = await TractorService.fetchTractorsWithDetails(codes)
-            const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
-            setTractors(processedBase)
-            setAllTractors(processedBase)
-            setTractorsLoaded(true)
-            loadDetailsForTractors(processedBase)
-            if (cleanupResult.fixed > 0) {
-                setTimeout(async () => {
-                    const refreshed = await TractorService.fetchTractorsWithDetails(codes)
-                    setTractors(refreshed)
-                    setAllTractors(refreshed)
-                    loadDetailsForTractors(refreshed)
-                    setTimeout(() => {
-                        runVerificationCheck(refreshed)
-                    }, 1000)
-                }, 500)
-            } else {
-                setTimeout(() => {
-                    runVerificationCheck(processedBase)
-                }, 1000)
-            }
-        } catch (error) {}
-    }
-    async function runVerificationCheck(tractorsToCheck) {
-        if (!tractorsToCheck || tractorsToCheck.length === 0) return
-        try {
-            const verificationResult = await CleanupUtility.verificationCheck(
-                tractorsToCheck,
-                TractorService.updateTractor,
-                'tractor',
-                operators
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                TractorService.fetchAllCommentsCounts(tractorIds),
+                TractorService.fetchAllIssuesCounts(tractorIds)
+            ])
+            setTractors((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
             )
-            if (verificationResult.fixed > 0) {
-                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
-                const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
-                setTractors(refreshedTractors)
-                setAllTractors(refreshedTractors)
-                loadDetailsForTractors(refreshedTractors)
-            }
-        } catch (error) {}
-    }
+            setAllTractors((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading tractor details:', e)
+        }
+    }, [])
+    const operatorsRef = useRef(operators)
+    operatorsRef.current = operators
+    const regionCodeRef = useRef(preferences.selectedRegion?.code)
+    regionCodeRef.current = preferences.selectedRegion?.code
+    const runVerificationCheck = useCallback(
+        async (tractorsToCheck) => {
+            if (!tractorsToCheck || tractorsToCheck.length === 0) return
+            try {
+                const verificationResult = await CleanupUtility.verificationCheck(
+                    tractorsToCheck,
+                    TractorService.updateTractor,
+                    'tractor',
+                    operatorsRef.current
+                )
+                if (verificationResult.fixed > 0) {
+                    const codes = await RegionService.getAllowedPlantCodes(regionCodeRef.current)
+                    const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
+                    setTractors(refreshedTractors)
+                    setAllTractors(refreshedTractors)
+                    loadDetailsForTractors(refreshedTractors)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForTractors]
+    )
+    const fetchTractors = useCallback(
+        async (codes) => {
+            try {
+                const processedBase = await TractorService.fetchTractorsWithDetails(codes)
+                const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
+                setTractors(processedBase)
+                setAllTractors(processedBase)
+                setTractorsLoaded(true)
+                loadDetailsForTractors(processedBase)
+                if (cleanupResult.fixed > 0) {
+                    setTimeout(async () => {
+                        const refreshed = await TractorService.fetchTractorsWithDetails(codes)
+                        setTractors(refreshed)
+                        setAllTractors(refreshed)
+                        loadDetailsForTractors(refreshed)
+                        setTimeout(() => {
+                            runVerificationCheck(refreshed)
+                        }, 1000)
+                    }, 500)
+                } else {
+                    setTimeout(() => {
+                        runVerificationCheck(processedBase)
+                    }, 1000)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForTractors, runVerificationCheck]
+    )
     async function fetchOperators() {
         try {
             const data = await OperatorService.fetchOperators()
@@ -415,14 +454,17 @@ function TractorsView({
             setPlants(data)
         } catch (error) {}
     }
-    function handleSelectTractor(tractorId) {
-        const tractor = tractors.find((m) => m.id === tractorId)
-        if (tractor) {
-            saveLastViewedFilters()
-            setSelectedTractor(tractorId)
-            onSelectTractor?.(tractorId)
-        }
-    }
+    const handleSelectTractor = useCallback(
+        (tractorId) => {
+            const tractor = tractors.find((m) => m.id === tractorId)
+            if (tractor) {
+                saveLastViewedFilters()
+                setSelectedTractor(tractorId)
+                onSelectTractor?.(tractorId)
+            }
+        },
+        [tractors, saveLastViewedFilters, onSelectTractor]
+    )
     const handleVerifyTractor = useCallback(
         async (tractorId) => {
             const tractor = tractors.find((t) => t.id === tractorId)
@@ -528,7 +570,7 @@ function TractorsView({
                 if (!sortKey) {
                     return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
                 }
-                const prop = sortMappings[sortKey]
+                const prop = TRACTOR_SORT_MAPPINGS[sortKey]
                 let aVal, bVal
                 if (sortKey === 'Verified') {
                     aVal = a.status === 'Retired' ? 0 : a.isVerified() ? 2 : 1
@@ -576,12 +618,13 @@ function TractorsView({
         plants,
         exactMatch
     ])
-    const debouncedSetSearchText = useCallback(
-        AsyncUtility.debounce((value) => {
-            setSearchText(value)
-            updateTractorFilter('searchText', value)
-        }, 300),
-        [updateTractorFilter]
+    const debouncedSetSearchText = useMemo(
+        () =>
+            AsyncUtility.debounce((value) => {
+                setSearchText(value)
+                updateTractorFilterRef.current('searchText', value)
+            }, 300),
+        []
     )
     const canShowUnassignedOverlay =
         tractorsLoaded && operatorsLoaded && !isLoading && unassignedActiveOperatorsCount > 0
@@ -1049,35 +1092,9 @@ function TractorsView({
         freightFilter,
         operators,
         plants,
-        tractors
+        handleSelectTractor,
+        handleVerifyTractor
     ])
-    const loadDetailsForTractors = async (tractorsList) => {
-        if (!tractorsList || tractorsList.length === 0) return
-        const tractorIds = tractorsList.map((t) => t.id).filter(Boolean)
-        if (tractorIds.length === 0) return
-        try {
-            const [commentsCounts, issuesCounts] = await Promise.all([
-                TractorService.fetchAllCommentsCounts(tractorIds),
-                TractorService.fetchAllIssuesCounts(tractorIds)
-            ])
-            setTractors((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-            setAllTractors((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-        } catch (e) {
-            console.error('Error loading tractor details:', e)
-        }
-    }
     return (
         <>
             <div

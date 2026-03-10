@@ -55,7 +55,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
-    const [updatedByEmail, setUpdatedByEmail] = useState('')
+    const [_updatedByEmail, setUpdatedByEmail] = useState('')
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
     useEffect(() => {
@@ -408,7 +408,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         }
         checkDeletePermission()
     }, [])
-    async function handleVerifyEquipment() {
+    async function _handleVerifyEquipment() {
         try {
             const missing = []
             if (!make || !make.trim()) missing.push('Make')

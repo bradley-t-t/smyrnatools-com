@@ -74,7 +74,9 @@ function pickBestReport(reports) {
 export function usePreviousWeekReport(weekIso, reportName, extraFilters = {}) {
     const [previousReport, setPreviousReport] = useState(null)
     const [loading, setLoading] = useState(false)
+    const extraFiltersKey = JSON.stringify(extraFilters)
     useEffect(() => {
+        const parsedFilters = JSON.parse(extraFiltersKey)
         let cancelled = false
         async function load() {
             if (!weekIso) {
@@ -89,7 +91,7 @@ export function usePreviousWeekReport(weekIso, reportName, extraFilters = {}) {
             setLoading(true)
             const { qStart, qEnd, mondayIso } = buildDateWindow(targetMondayIso, -1)
             try {
-                const reports = await fetchReportsByDateRange(reportName, qStart, qEnd, extraFilters)
+                const reports = await fetchReportsByDateRange(reportName, qStart, qEnd, parsedFilters)
                 const filtered = filterByMondayIso(reports, mondayIso)
                 const pick = pickBestReport(filtered)
                 if (!cancelled) setPreviousReport(pick)
@@ -104,17 +106,19 @@ export function usePreviousWeekReport(weekIso, reportName, extraFilters = {}) {
         return () => {
             cancelled = true
         }
-    }, [weekIso, reportName, JSON.stringify(extraFilters)])
+    }, [weekIso, reportName, extraFiltersKey])
     return { loading, previousReport }
 }
 /** Fetches all reports for the given week and report type, optionally filtered by an array of plant codes. */
 export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_ARRAY) {
     const [reports, setReports] = useState(EMPTY_ARRAY)
     const [loading, setLoading] = useState(false)
+    const plantCodesKey = JSON.stringify(plantCodes)
     useEffect(() => {
+        const parsedPlantCodes = JSON.parse(plantCodesKey)
         let cancelled = false
         async function load() {
-            if (!weekIso || plantCodes.length === 0) {
+            if (!weekIso || parsedPlantCodes.length === 0) {
                 setReports(EMPTY_ARRAY)
                 return
             }
@@ -134,8 +138,8 @@ export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_AR
                 const d = t.replace(/^0+/, '')
                 return d.length ? d : t.toUpperCase()
             }
-            const setU = new Set(plantCodes.map(normU))
-            const setN = new Set(plantCodes.map(normN))
+            const setU = new Set(parsedPlantCodes.map(normU))
+            const setN = new Set(parsedPlantCodes.map(normN))
             try {
                 const data = await fetchReportsByDateRange(reportName, qStart, qEnd)
                 const filtered = filterByMondayIso(data, mondayIso).filter((r) => {
@@ -187,14 +191,16 @@ export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_AR
         return () => {
             cancelled = true
         }
-    }, [weekIso, reportName, JSON.stringify(plantCodes)])
+    }, [weekIso, reportName, plantCodesKey])
     return { loading, reports }
 }
 /** Fetches a single report matching the given week and report type, with optional extra Supabase filters. */
 export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
     const [report, setReport] = useState(null)
     const [loading, setLoading] = useState(false)
+    const extraFiltersKey = JSON.stringify(extraFilters)
     useEffect(() => {
+        const parsedFilters = JSON.parse(extraFiltersKey)
         let cancelled = false
         async function load() {
             if (!weekIso) {
@@ -209,7 +215,7 @@ export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
             setLoading(true)
             const { qStart, qEnd, mondayIso } = buildDateWindow(targetMondayIso, 0)
             try {
-                const reports = await fetchReportsByDateRange(reportName, qStart, qEnd, extraFilters)
+                const reports = await fetchReportsByDateRange(reportName, qStart, qEnd, parsedFilters)
                 const filtered = filterByMondayIso(reports, mondayIso)
                 const pick = pickBestReport(filtered)
                 if (!cancelled) setReport(pick)
@@ -224,7 +230,7 @@ export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
         return () => {
             cancelled = true
         }
-    }, [weekIso, reportName, JSON.stringify(extraFilters)])
+    }, [weekIso, reportName, extraFiltersKey])
     return { loading, report }
 }
 /** Resolves the set of plant codes the current user's region is allowed to access. */

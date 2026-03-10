@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
@@ -43,16 +43,101 @@ function ManagerDetailView({ managerId, onClose }) {
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [showAdditionalPlantsModal, setShowAdditionalPlantsModal] = useState(false)
     const [canEditManager, setCanEditManager] = useState(false)
-    const [canDeleteManager, setCanDeleteManager] = useState(false)
+    const [canDeleteManager, _setCanDeleteManager] = useState(false)
     useEffect(() => {
         document.body.classList.add('in-detail-view')
         return () => document.body.classList.remove('in-detail-view')
     }, [])
+    const fetchCurrentUserRole = useCallback(
+        async function fetchCurrentUserRole() {
+            try {
+                if (!user?.id) return
+                const highestRole = await UserService.getHighestRole(user.id)
+                setCurrentUserRoleWeight(highestRole?.weight || 0)
+            } catch {
+                setCurrentUserRoleWeight(0)
+            }
+        },
+        [user?.id]
+    )
+    const fetchManagerDetails = useCallback(
+        async function fetchManagerDetails() {
+            setIsLoading(true)
+            try {
+                const [
+                    { data: userData, error: userError },
+                    { data: profileData, error: profileError },
+                    { data: permissionData, error: permissionError }
+                ] = await Promise.all([
+                    supabase.from('users').select('*').eq('id', managerId).single(),
+                    supabase.from('users_profiles').select('*').eq('id', managerId).single(),
+                    supabase.from('users_permissions').select('role_id').eq('user_id', managerId).single()
+                ])
+                if (userError) throw userError
+                if (profileError) throw profileError
+                if (permissionError && permissionError.code !== 'PGRST116') throw permissionError
+                let rName = 'User',
+                    roleId = null,
+                    roleWeight = 0
+                if (permissionData?.role_id) {
+                    const { data: roleData, error: roleError } = await supabase
+                        .from('users_roles')
+                        .select('name, id, weight')
+                        .eq('id', permissionData.role_id)
+                        .single()
+                    if (!roleError && roleData) {
+                        rName = roleData.name
+                        roleId = roleData.id
+                        roleWeight = roleData.weight || 0
+                    }
+                }
+                const additionalAssignedPlants = Array.isArray(profileData.additional_assigned_plants)
+                    ? profileData.additional_assigned_plants
+                    : []
+                const managerData = {
+                    additionalAssignedPlants: additionalAssignedPlants,
+                    createdAt: profileData.created_at,
+                    email: userData.email,
+                    firstName: profileData.first_name,
+                    id: managerId,
+                    lastName: profileData.last_name,
+                    plantCode: profileData.plant_code,
+                    roleId,
+                    roleName: rName,
+                    roleWeight,
+                    updatedAt: profileData.updated_at
+                }
+                setManager(managerData)
+                setFirstName(managerData.firstName)
+                setLastName(managerData.lastName)
+                setEmail(managerData.email)
+                setPlantCode(managerData.plantCode)
+                setAdditionalPlants(additionalAssignedPlants)
+                setRoleName(managerData.roleName)
+                setOriginalValues({
+                    additionalPlants: additionalAssignedPlants,
+                    email: managerData.email,
+                    firstName: managerData.firstName,
+                    lastName: managerData.lastName,
+                    plantCode: managerData.plantCode,
+                    roleName: managerData.roleName
+                })
+                setHasUnsavedChanges(false)
+            } catch (error) {
+                console.error('Error fetching manager details:', error)
+                setMessage('Error fetching manager details')
+                setTimeout(() => setMessage(''), 3000)
+            } finally {
+                setIsLoading(false)
+            }
+        },
+        [managerId]
+    )
     useEffect(() => {
         if (managerId) {
             Promise.all([fetchManagerDetails(), fetchPlants(), fetchRoles(), fetchCurrentUserRole()]).catch(() => {})
         }
-    }, [managerId])
+    }, [managerId, fetchCurrentUserRole, fetchManagerDetails])
     useEffect(() => {
         if (!manager || isLoading) return
         const additionalPlantsChanged =
@@ -77,7 +162,8 @@ function ManagerDetailView({ managerId, onClose }) {
         password,
         showPasswordField,
         originalValues,
-        isLoading
+        isLoading,
+        manager
     ])
     // Enforce read-only mode unless the current user outranks this manager (or has weight > 75).
     useEffect(() => {
@@ -158,91 +244,12 @@ function ManagerDetailView({ managerId, onClose }) {
                     parseInt(b.plant_code?.replace(/\D/g, '') || '0')
             )
     }, [plants, regionPlantCodes, preferences.selectedRegion?.type])
-    async function fetchCurrentUserRole() {
-        try {
-            if (!user?.id) return
-            const highestRole = await UserService.getHighestRole(user.id)
-            setCurrentUserRoleWeight(highestRole?.weight || 0)
-        } catch {
-            setCurrentUserRoleWeight(0)
-        }
-    }
     async function fetchRoles() {
         try {
             const rolesData = await UserService.getAllRoles()
             setAvailableRoles(rolesData)
         } catch {
             setAvailableRoles([])
-        }
-    }
-    async function fetchManagerDetails() {
-        setIsLoading(true)
-        try {
-            const [
-                { data: userData, error: userError },
-                { data: profileData, error: profileError },
-                { data: permissionData, error: permissionError }
-            ] = await Promise.all([
-                supabase.from('users').select('*').eq('id', managerId).single(),
-                supabase.from('users_profiles').select('*').eq('id', managerId).single(),
-                supabase.from('users_permissions').select('role_id').eq('user_id', managerId).single()
-            ])
-            if (userError) throw userError
-            if (profileError) throw profileError
-            if (permissionError && permissionError.code !== 'PGRST116') throw permissionError
-            let rName = 'User',
-                roleId = null,
-                roleWeight = 0
-            if (permissionData?.role_id) {
-                const { data: roleData, error: roleError } = await supabase
-                    .from('users_roles')
-                    .select('name, id, weight')
-                    .eq('id', permissionData.role_id)
-                    .single()
-                if (!roleError && roleData) {
-                    rName = roleData.name
-                    roleId = roleData.id
-                    roleWeight = roleData.weight || 0
-                }
-            }
-            const additionalAssignedPlants = Array.isArray(profileData.additional_assigned_plants)
-                ? profileData.additional_assigned_plants
-                : []
-            const managerData = {
-                additionalAssignedPlants: additionalAssignedPlants,
-                createdAt: profileData.created_at,
-                email: userData.email,
-                firstName: profileData.first_name,
-                id: managerId,
-                lastName: profileData.last_name,
-                plantCode: profileData.plant_code,
-                roleId,
-                roleName: rName,
-                roleWeight,
-                updatedAt: profileData.updated_at
-            }
-            setManager(managerData)
-            setFirstName(managerData.firstName)
-            setLastName(managerData.lastName)
-            setEmail(managerData.email)
-            setPlantCode(managerData.plantCode)
-            setAdditionalPlants(additionalAssignedPlants)
-            setRoleName(managerData.roleName)
-            setOriginalValues({
-                additionalPlants: additionalAssignedPlants,
-                email: managerData.email,
-                firstName: managerData.firstName,
-                lastName: managerData.lastName,
-                plantCode: managerData.plantCode,
-                roleName: managerData.roleName
-            })
-            setHasUnsavedChanges(false)
-        } catch (error) {
-            console.error('Error fetching manager details:', error)
-            setMessage('Error fetching manager details')
-            setTimeout(() => setMessage(''), 3000)
-        } finally {
-            setIsLoading(false)
         }
     }
     async function fetchPlants() {
@@ -352,9 +359,9 @@ function ManagerDetailView({ managerId, onClose }) {
         }
         onClose()
     }
-    const getPlantName = (plantCode) => {
-        const plant = plants.find((p) => p.plant_code === plantCode)
-        return plant ? plant.plant_name : plantCode || 'No Plant'
+    const _getPlantName = (code) => {
+        const plant = plants.find((p) => p.plant_code === code)
+        return plant ? plant.plant_name : code || 'No Plant'
     }
     const selectedPlantObj = plants.find((p) => p.plant_code === plantCode)
     const plantDisplayText = plantCode

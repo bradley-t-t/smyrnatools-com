@@ -241,10 +241,13 @@ function CollapsibleAlertGroup({ group, accentColor }) {
             {expanded && (
                 <div className="p-2 flex flex-col gap-1">
                     {group.items.map((n) => {
-                        const s = getSeverityStyle(n.severity)
+                        const severity = getSeverityStyle(n.severity)
                         return (
-                            <div key={n.id} className={`px-2.5 py-2 rounded-lg border ${s.bg} ${s.border}`}>
-                                <div className={`text-xs font-medium ${s.text} truncate`}>{n.title}</div>
+                            <div
+                                key={n.id}
+                                className={`px-2.5 py-2 rounded-lg border ${severity.bg} ${severity.border}`}
+                            >
+                                <div className={`text-xs font-medium ${severity.text} truncate`}>{n.title}</div>
                                 {n.subtitle && (
                                     <div className="text-xs text-slate-500 truncate mt-0.5">{n.subtitle}</div>
                                 )}
@@ -258,7 +261,7 @@ function CollapsibleAlertGroup({ group, accentColor }) {
 }
 
 function DbNotificationRow({ notification: n, onMarkRead, onDelete, accentColor }) {
-    const s = getSeverityStyle(n.severity)
+    const _s = getSeverityStyle(n.severity)
     return (
         <div className={`flex gap-3 px-4 py-3 ${n.isRead ? '' : 'bg-blue-50/40'} hover:bg-slate-50 transition-colors`}>
             {/* Unread dot */}

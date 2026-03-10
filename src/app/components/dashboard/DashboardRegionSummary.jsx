@@ -17,8 +17,8 @@ const MetricsSkeleton = () => (
             >
                 <Skeleton className="w-8 h-8 rounded-lg" />
                 <div className="flex flex-col gap-1.5">
-                    <Skeleton style={{ width: 50, height: 8 }} />
-                    <Skeleton style={{ width: 40, height: 16 }} />
+                    <Skeleton style={{ height: 8, width: 50 }} />
+                    <Skeleton style={{ height: 16, width: 40 }} />
                 </div>
             </div>
         ))}
@@ -31,12 +31,12 @@ const ContentSkeleton = () => (
             <div key={i} className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                     <Skeleton className="w-4 h-4 rounded" />
-                    <Skeleton style={{ width: 100 + i * 20, height: 12 }} />
+                    <Skeleton style={{ height: 12, width: 100 + i * 20 }} />
                     <Skeleton className="w-5 h-5 rounded-full ml-auto" />
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                     {[1, 2, 3].map((j) => (
-                        <Skeleton key={j} style={{ width: 60 + j * 10, height: 24 }} className="rounded-md" />
+                        <Skeleton key={j} style={{ height: 24, width: 60 + j * 10 }} className="rounded-md" />
                     ))}
                 </div>
             </div>
@@ -52,16 +52,16 @@ const AISkeleton = ({ accentColor }) => (
         >
             <Skeleton className="w-7 h-7 rounded-lg" />
             <div className="flex flex-col gap-1">
-                <Skeleton style={{ width: 60, height: 10 }} />
-                <Skeleton style={{ width: 100, height: 8 }} />
+                <Skeleton style={{ height: 10, width: 60 }} />
+                <Skeleton style={{ height: 8, width: 100 }} />
             </div>
         </div>
         <div className="px-4 py-3 flex flex-col gap-3">
-            <Skeleton style={{ width: 140, height: 8 }} className="mx-auto" />
+            <Skeleton style={{ height: 8, width: 140 }} className="mx-auto" />
             <div className="bg-slate-100 rounded-xl rounded-tl-sm px-3.5 py-2.5">
-                <Skeleton style={{ width: '100%', height: 10 }} className="mb-2" />
-                <Skeleton style={{ width: '90%', height: 10 }} className="mb-2" />
-                <Skeleton style={{ width: '70%', height: 10 }} />
+                <Skeleton style={{ height: 10, width: '100%' }} className="mb-2" />
+                <Skeleton style={{ height: 10, width: '90%' }} className="mb-2" />
+                <Skeleton style={{ height: 10, width: '70%' }} />
             </div>
         </div>
     </div>
@@ -429,16 +429,6 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
     const stats = displayStats || {}
     const opStats = stats.operators || {}
     const hasAI = aiSummary || aiSummaryLoading || aiSummaryFailed
-    const renderAssetPill = (asset, color) => (
-        <AssetPill
-            label={`${asset.type} ${asset.identifier || ''}`}
-            color={color}
-            onClick={() => {
-                setEmbeddedView(getAssetViewType(asset.type))
-                setEmbeddedViewSearch(asset.identifier || '')
-            }}
-        />
-    )
     return (
         <div className="bg-white border border-slate-200 rounded-2xl mb-6 overflow-hidden transition-all duration-300">
             {/* Header */}
@@ -557,9 +547,9 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                         !isMobile
                             ? {
                                   flex: isChatExpanded ? '0 0 0%' : hasAI || isDataLoading ? '0 0 60%' : '1 1 100%',
+                                  maxHeight: isChatExpanded ? 0 : 1000,
                                   opacity: isChatExpanded ? 0 : 1,
                                   overflow: 'hidden',
-                                  maxHeight: isChatExpanded ? 0 : 1000,
                                   padding: isChatExpanded ? 0 : undefined,
                                   transition: 'all 0.5s ease'
                               }
@@ -595,34 +585,34 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                             <SummaryStrip
                                 items={[
                                     {
-                                        label: 'Issues',
-                                        count: plantNotifications.assetsWithMostIssues.length,
                                         color: '#ea580c',
-                                        icon: 'fa-exclamation-circle'
+                                        count: plantNotifications.assetsWithMostIssues.length,
+                                        icon: 'fa-exclamation-circle',
+                                        label: 'Issues'
                                     },
                                     {
-                                        label: 'In Shop',
-                                        count: plantNotifications.longTermShopAssets.length,
                                         color: '#be123c',
-                                        icon: 'fa-tools'
+                                        count: plantNotifications.longTermShopAssets.length,
+                                        icon: 'fa-tools',
+                                        label: 'In Shop'
                                     },
                                     {
-                                        label: 'Unassigned',
-                                        count: plantNotifications.unassignedOperators.length,
                                         color: '#0ea5e9',
-                                        icon: 'fa-user-slash'
+                                        count: plantNotifications.unassignedOperators.length,
+                                        icon: 'fa-user-slash',
+                                        label: 'Unassigned'
                                     },
                                     {
-                                        label: 'Pending',
-                                        count: plantNotifications.pendingOperators.length,
                                         color: '#10b981',
-                                        icon: 'fa-user-plus'
+                                        count: plantNotifications.pendingOperators.length,
+                                        icon: 'fa-user-plus',
+                                        label: 'Pending'
                                     },
                                     {
-                                        label: 'Training',
-                                        count: plantNotifications.trainingOperators.length,
                                         color: '#8b5cf6',
-                                        icon: 'fa-graduation-cap'
+                                        count: plantNotifications.trainingOperators.length,
+                                        icon: 'fa-graduation-cap',
+                                        label: 'Training'
                                     }
                                 ]}
                             />

@@ -58,7 +58,7 @@ function MyAccountView({ userId }) {
     const [userRole, setUserRole] = useState('')
     const [plantCode, setPlantCode] = useState('')
     const [additionalPlants, setAdditionalPlants] = useState([])
-    const [regionName, setRegionName] = useState('')
+    const [_regionName, setRegionName] = useState('')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [currentPassword, setCurrentPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
@@ -276,7 +276,7 @@ function MyAccountView({ userId }) {
         return () => {
             cancelled = true
         }
-    }, [userId])
+    }, [userId, preferences.selectedRegion?.code, updatePreferences])
     const updateProfile = async (e) => {
         e.preventDefault()
         setLoading(true)

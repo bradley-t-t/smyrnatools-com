@@ -401,13 +401,13 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         startDate: '',
         trainer: ''
     })
-    const snapshotData = form?.snapshot_data || {}
-    const mixerTrainers = snapshotData.mixer_trainers || []
-    const tractorTrainers = snapshotData.tractor_trainers || []
-    const mixerPending = snapshotData.mixer_pending || []
-    const tractorPending = snapshotData.tractor_pending || []
-    const mixerTraining = snapshotData.mixer_training || []
-    const tractorTraining = snapshotData.tractor_training || []
+    const snapshotData = React.useMemo(() => form?.snapshot_data || {}, [form])
+    const mixerTrainers = React.useMemo(() => snapshotData.mixer_trainers || [], [snapshotData])
+    const tractorTrainers = React.useMemo(() => snapshotData.tractor_trainers || [], [snapshotData])
+    const mixerPending = React.useMemo(() => snapshotData.mixer_pending || [], [snapshotData])
+    const tractorPending = React.useMemo(() => snapshotData.tractor_pending || [], [snapshotData])
+    const mixerTraining = React.useMemo(() => snapshotData.mixer_training || [], [snapshotData])
+    const tractorTraining = React.useMemo(() => snapshotData.tractor_training || [], [snapshotData])
     const hiringGoals = form?.hiring_goals || {}
     const isMixerTrainersAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerTrainers.length === 0) return false
@@ -469,19 +469,22 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
         const tractorTrainingIds = new Set(tractorTraining.map((t) => t.id))
         return liveTraining.every((op) => tractorTrainingIds.has(op.employeeId))
     }, [liveOperators, tractorTraining])
-    async function loadLiveData() {
-        setIsLoading(true)
-        try {
-            const plantCodes = plants ? new Set(plants.map((p) => p.plant_code || p.code).filter(Boolean)) : null
-            const ops = await OperatorService.fetchOperators(plantCodes)
-            setLiveOperators(ops || [])
-        } catch (error) {
-            console.error('Failed to load operators:', error)
-            alert('Failed to load live data')
-        } finally {
-            setIsLoading(false)
-        }
-    }
+    const loadLiveData = React.useCallback(
+        async function loadLiveData() {
+            setIsLoading(true)
+            try {
+                const plantCodes = plants ? new Set(plants.map((p) => p.plant_code || p.code).filter(Boolean)) : null
+                const ops = await OperatorService.fetchOperators(plantCodes)
+                setLiveOperators(ops || [])
+            } catch (error) {
+                console.error('Failed to load operators:', error)
+                alert('Failed to load live data')
+            } finally {
+                setIsLoading(false)
+            }
+        },
+        [plants]
+    )
     function updateSnapshotData(key, value) {
         setForm((prev) => ({ ...prev, snapshot_data: { ...prev.snapshot_data, [key]: value } }))
     }
@@ -662,7 +665,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     }
     useEffect(() => {
         loadLiveData()
-    }, [plants])
+    }, [plants, loadLiveData])
     const createActionButtons = (pullFn, addFn, clearFn, isAccurate, dataLength) => (
         <>
             <button

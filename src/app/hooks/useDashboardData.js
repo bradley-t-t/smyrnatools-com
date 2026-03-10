@@ -151,7 +151,16 @@ export function useDashboardAssets({
             cancelled = true
             clearTimeout(readyTimerId)
         }
-    }, [refreshKey, computeStats])
+    }, [
+        refreshKey,
+        computeStats,
+        allEquipmentRef,
+        allMixersRef,
+        allOperatorsRef,
+        allPickupsRef,
+        allTractorsRef,
+        allTrailersRef
+    ])
     return {
         allOperatorsFullRef,
         dataReady,
@@ -261,7 +270,7 @@ export function useIssueCommentCounts({
             setAssetIssueDetails(issueDetails)
             computeStats()
         } catch {}
-    }, [allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats])
+    }, [allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats, countsRef])
     return { assetIssueDetails, countsRef, fetchIssueCommentCounts }
 }
 export function usePlantFilter(dashboardRegionCode, dashboardPlant, regionPlants, allPlants, myPlantCodes) {

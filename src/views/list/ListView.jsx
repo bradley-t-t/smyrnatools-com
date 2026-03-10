@@ -383,7 +383,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         const mapped = mapRoleValue(value)
         if (mapped) setRoleFilter(mapped)
     }
-    const getItemStatusStyle = (statusType, mobile) => {
+    const getItemStatusStyle = (statusType, _mobile) => {
         const color = STATUS_COLORS[statusType] || STATUS_COLORS.pending
         return {
             background: color.bg,
@@ -401,7 +401,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const showReset = !!(searchText || selectedPlant || statusFilter || roleFilter)
     const statusDisplayValue = STATUS_MAP[statusFilter] || 'All Statuses'
     const roleDisplayValue = ROLE_MAP[roleFilter] || 'All Roles'
-    const selectBgImage = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
+    const _selectBgImage = `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`
     return (
         <div className="global-dashboard-container dashboard-container global-flush-top flush-top list-view bg-slate-100 min-h-full relative w-full">
             <style>{`@keyframes filterFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
@@ -423,9 +423,9 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                 plants={
                     regionPlants.length
                         ? regionPlants.map((p) => ({
+                              districts: p.districts,
                               plantCode: p.plantCode || p.plant_code,
-                              plantName: p.plantName || p.plant_name,
-                              districts: p.districts
+                              plantName: p.plantName || p.plant_name
                           }))
                         : visiblePlants.map((p) => ({ plantCode: p.plant_code, plantName: p.plant_name }))
                 }

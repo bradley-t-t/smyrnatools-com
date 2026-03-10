@@ -22,7 +22,7 @@ class DistrictManagerServiceImpl {
         if (!roleId) throw new Error('Role ID is required')
         const { error } = await supabase
             .from(ELIGIBLE_ROLES_TABLE)
-            .insert({ role_id: roleId, created_at: new Date().toISOString() })
+            .insert({ created_at: new Date().toISOString(), role_id: roleId })
         if (error) throw new Error(error.code === '23505' ? 'Role is already eligible' : 'Failed to add eligible role')
         this.eligibleRolesCache = null
         return true
@@ -75,9 +75,9 @@ class DistrictManagerServiceImpl {
         if (validCodes.length) {
             const now = new Date().toISOString()
             const rows = validCodes.map((code) => ({
-                user_id: userId,
+                created_at: now,
                 plant_code: code.trim(),
-                created_at: now
+                user_id: userId
             }))
             const { error: insertError } = await supabase.from(PLANTS_TABLE).insert(rows)
             if (insertError) throw new Error('Failed to assign plants')

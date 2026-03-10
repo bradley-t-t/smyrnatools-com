@@ -5,6 +5,16 @@ import { UserService } from './UserService'
  * per-user state stored in the notification_reads junction table.
  */
 const UserNotificationsService = {
+    async deleteNotification(userId, dbId) {
+        if (!userId || !dbId) return
+        const now = new Date().toISOString()
+        await supabase
+            .from('notification_reads')
+            .upsert(
+                { deleted_at: now, notification_id: dbId, read_at: now, user_id: userId },
+                { onConflict: 'notification_id,user_id' }
+            )
+    },
     async getDbNotifications(userId, selectedRegion) {
         if (!userId) return []
         const [roles, plantCode] = await Promise.all([
@@ -49,16 +59,6 @@ const UserNotificationsService = {
                 }
             })
     },
-    async markAsRead(userId, dbId) {
-        if (!userId || !dbId) return
-        const { error } = await supabase
-            .from('notification_reads')
-            .upsert(
-                { notification_id: dbId, read_at: new Date().toISOString(), user_id: userId },
-                { onConflict: 'notification_id,user_id' }
-            )
-        return !error
-    },
     async markAllRead(userId, dbIds) {
         if (!userId || !dbIds?.length) return
         await supabase.from('notification_reads').upsert(
@@ -70,15 +70,15 @@ const UserNotificationsService = {
             { onConflict: 'notification_id,user_id' }
         )
     },
-    async deleteNotification(userId, dbId) {
+    async markAsRead(userId, dbId) {
         if (!userId || !dbId) return
-        const now = new Date().toISOString()
-        await supabase
+        const { error } = await supabase
             .from('notification_reads')
             .upsert(
-                { deleted_at: now, notification_id: dbId, read_at: now, user_id: userId },
+                { notification_id: dbId, read_at: new Date().toISOString(), user_id: userId },
                 { onConflict: 'notification_id,user_id' }
             )
+        return !error
     }
 }
 export default UserNotificationsService

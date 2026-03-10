@@ -256,20 +256,6 @@ const SetTimeCalculator = () => {
         setManualWeather({ cloudCover: '', humidity: '', temperature: '' })
         setResult(null)
     }
-    const getRiskColor = (level) => {
-        switch (level) {
-            case 'cold':
-                return 'info'
-            case 'cool':
-                return 'info'
-            case 'warm':
-                return 'warning'
-            case 'hot':
-                return 'error'
-            default:
-                return 'success'
-        }
-    }
     const styles = {
         container: {
             background: 'var(--card-background)',

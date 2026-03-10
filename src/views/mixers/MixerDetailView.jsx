@@ -429,7 +429,7 @@ function MixerDetailView({ mixerId, onClose }) {
             setShowDeleteConfirmation(false)
         }
     }
-    async function handleVerifyMixer(skipIssueCheck = false) {
+    async function handleVerifyMixer(_skipIssueCheck = false) {
         if (status === 'Retired') {
             setMessage('Cannot verify: Retired mixers cannot be verified.')
             setTimeout(() => setMessage(''), 4000)

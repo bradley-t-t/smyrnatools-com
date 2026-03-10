@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
@@ -55,12 +55,54 @@ function ListDetailView({ itemId, onClose }) {
         const contentArea = document.querySelector('.content-area')
         if (contentArea) contentArea.scrollTop = 0
     }, [])
+    const fetchItem = useCallback(
+        async function fetchItem() {
+            setLoading(true)
+            try {
+                const items = await ListService.fetchListItems()
+                const found = items.find((i) => i.id === itemId)
+                setItem(found)
+                setFormData({
+                    comments: found?.comments || '',
+                    deadline: ListService.formatDateForInput(found?.deadline) || '',
+                    description: found?.description || '',
+                    plantCode: found?.plant_code || ''
+                })
+                setCreator(ListService.creatorProfiles[found?.user_id])
+                setCompleter(ListService.creatorProfiles[found?.completed_by])
+                const loadedStatus = found?.status || (found?.completed ? 'completed' : 'pending')
+                setStatus(loadedStatus)
+                setResponsibleRole(found?.responsible_role || '')
+                setOriginalValues({
+                    comments: found?.comments || '',
+                    deadline: ListService.formatDateForInput(found?.deadline) || '',
+                    description: found?.description || '',
+                    plantCode: found?.plant_code || '',
+                    responsibleRole: found?.responsible_role || '',
+                    status: loadedStatus
+                })
+            } catch {
+                showMessage('Failed to load item details', 'error')
+            } finally {
+                setLoading(false)
+            }
+        },
+        [itemId]
+    )
+    const fetchPlants = useCallback(async function fetchPlants() {
+        try {
+            const plantsData = await ListService.fetchPlants()
+            setPlants(plantsData)
+        } catch {
+            showMessage('Failed to load plants', 'error')
+        }
+    }, [])
     useEffect(() => {
         if (itemId) {
             Promise.all([fetchItem(), fetchPlants()]).catch(() => {})
         }
         return () => {}
-    }, [itemId])
+    }, [itemId, fetchItem, fetchPlants])
     useEffect(() => {
         const checkDeletePermission = async () => {
             try {
@@ -78,45 +120,6 @@ function ListDetailView({ itemId, onClose }) {
         }
         checkDeletePermission()
     }, [])
-    async function fetchItem() {
-        setLoading(true)
-        try {
-            const items = await ListService.fetchListItems()
-            const found = items.find((i) => i.id === itemId)
-            setItem(found)
-            setFormData({
-                comments: found?.comments || '',
-                deadline: ListService.formatDateForInput(found?.deadline) || '',
-                description: found?.description || '',
-                plantCode: found?.plant_code || ''
-            })
-            setCreator(ListService.creatorProfiles[found?.user_id])
-            setCompleter(ListService.creatorProfiles[found?.completed_by])
-            const loadedStatus = found?.status || (found?.completed ? 'completed' : 'pending')
-            setStatus(loadedStatus)
-            setResponsibleRole(found?.responsible_role || '')
-            setOriginalValues({
-                comments: found?.comments || '',
-                deadline: ListService.formatDateForInput(found?.deadline) || '',
-                description: found?.description || '',
-                plantCode: found?.plant_code || '',
-                responsibleRole: found?.responsible_role || '',
-                status: loadedStatus
-            })
-        } catch {
-            showMessage('Failed to load item details', 'error')
-        } finally {
-            setLoading(false)
-        }
-    }
-    async function fetchPlants() {
-        try {
-            const plantsData = await ListService.fetchPlants()
-            setPlants(plantsData)
-        } catch {
-            showMessage('Failed to load plants', 'error')
-        }
-    }
     // Resolve which plants the user can assign to, scoped by their region permissions.
     useEffect(() => {
         let cancelled = false
