@@ -369,7 +369,7 @@ function MixersView({
                 setMixers(refreshedMixers)
                 setAllMixers(refreshedMixers)
                 setMixersLoaded(true)
-                loadDetailsForMixers(refreshedMixers)
+                await loadDetailsForMixers(refreshedMixers)
                 setTimeout(() => {
                     runVerificationCheck(refreshedMixers)
                 }, 1000)
