@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
-
 import { DistrictManagerService } from '../../../services/DistrictManagerService'
 import { RegionService } from '../../../services/RegionService'
 import DetailViewSection from '../sections/DetailViewSection'
-
 /**
  * Plant-responsibility picker for eligible roles (District Manager, etc.).
  * Shows only plants within the user's region and lets admins assign/unassign them.
@@ -22,11 +20,9 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
     const [plantQuery, setPlantQuery] = useState('')
     const [hasChanges, setHasChanges] = useState(false)
     const [originalCodes, setOriginalCodes] = useState([])
-
     useEffect(() => {
         if (!userId) return
         let cancelled = false
-
         async function loadData() {
             setLoading(true)
             try {
@@ -35,7 +31,6 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
                     resolveRegionPlants(userPlantCode)
                 ])
                 if (cancelled) return
-
                 const codes = userPlants.map((p) => p.plant_code)
                 setAssignedCodes(codes)
                 setOriginalCodes(codes)
@@ -46,18 +41,15 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
                 if (!cancelled) setLoading(false)
             }
         }
-
         loadData()
         return () => {
             cancelled = true
         }
     }, [userId, userPlantCode])
-
     useEffect(() => {
         const sorted = (arr) => [...arr].sort().join(',')
         setHasChanges(sorted(assignedCodes) !== sorted(originalCodes))
     }, [assignedCodes, originalCodes])
-
     async function resolveRegionPlants(plantCode) {
         if (!plantCode) return []
         try {
@@ -70,7 +62,6 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
             return []
         }
     }
-
     const handleSave = async () => {
         setSaving(true)
         try {
@@ -84,11 +75,9 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
             setSaving(false)
         }
     }
-
     const togglePlant = (code) => {
         setAssignedCodes((prev) => (prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]))
     }
-
     const filteredPlants = regionPlants.filter((p) => {
         const q = plantQuery.trim().toLowerCase()
         if (!q) return true
@@ -96,16 +85,12 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
         const name = (p.plantName || p.plant_name || '').toLowerCase()
         return code.includes(q) || name.includes(q)
     })
-
     const selectAllFiltered = () => {
         const codes = filteredPlants.map((p) => p.plantCode || p.plant_code)
         setAssignedCodes((prev) => Array.from(new Set([...prev, ...codes])))
     }
-
     const clearAll = () => setAssignedCodes([])
-
     const removeChip = (code) => setAssignedCodes((prev) => prev.filter((c) => c !== code))
-
     if (loading) {
         return (
             <DetailViewSection.Section id="responsible-plants" title="Responsible Plants" icon="fas fa-clipboard-list">
@@ -115,9 +100,7 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
             </DetailViewSection.Section>
         )
     }
-
     const noRegionPlants = regionPlants.length === 0
-
     return (
         <DetailViewSection.Section id="responsible-plants" title="Responsible Plants" icon="fas fa-clipboard-list">
             <DetailViewSection.Card
@@ -167,7 +150,6 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
                                 )}
                             </div>
                         )}
-
                         {/* Search + select all */}
                         {!readOnly && (
                             <div className="flex gap-2 items-center">
@@ -192,7 +174,6 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
                                 </button>
                             </div>
                         )}
-
                         {/* Plant checklist */}
                         <div
                             className="border border-slate-200 rounded-[10px] max-h-[280px] overflow-y-auto"
@@ -227,7 +208,6 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
                                 <div className="text-sm text-slate-400 py-4 text-center">No matches</div>
                             )}
                         </div>
-
                         {/* Save button */}
                         {!readOnly && hasChanges && (
                             <button
@@ -246,5 +226,4 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
         </DetailViewSection.Section>
     )
 }
-
 export default DistrictManagerPlantsSection

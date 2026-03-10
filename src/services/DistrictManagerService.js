@@ -1,8 +1,6 @@
 import { supabase } from './DatabaseService'
-
 const ELIGIBLE_ROLES_TABLE = 'district_manager_eligible_roles'
 const PLANTS_TABLE = 'district_manager_plants'
-
 /**
  * Manages District Manager plant-responsibility assignments via direct Supabase queries.
  * Controls which roles are eligible and which plants each user is responsible for.
@@ -10,9 +8,7 @@ const PLANTS_TABLE = 'district_manager_plants'
 class DistrictManagerServiceImpl {
     eligibleRolesCache = null
     userPlantsCache = new Map()
-
     // --- Eligible Roles ---
-
     async fetchEligibleRoles() {
         const { data, error } = await supabase
             .from(ELIGIBLE_ROLES_TABLE)
@@ -22,7 +18,6 @@ class DistrictManagerServiceImpl {
         this.eligibleRolesCache = data ?? []
         return this.eligibleRolesCache
     }
-
     async addEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
         const { error } = await supabase
@@ -32,7 +27,6 @@ class DistrictManagerServiceImpl {
         this.eligibleRolesCache = null
         return true
     }
-
     async removeEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
         const { error } = await supabase.from(ELIGIBLE_ROLES_TABLE).delete().eq('role_id', roleId)
@@ -40,7 +34,6 @@ class DistrictManagerServiceImpl {
         this.eligibleRolesCache = null
         return true
     }
-
     async isRoleEligible(roleId) {
         if (!roleId) return false
         if (this.eligibleRolesCache) {
@@ -58,9 +51,7 @@ class DistrictManagerServiceImpl {
             return false
         }
     }
-
     // --- User Plant Assignments ---
-
     async fetchUserPlants(userId) {
         if (!userId) throw new Error('User ID is required')
         if (this.userPlantsCache.has(userId)) return this.userPlantsCache.get(userId)
@@ -74,7 +65,6 @@ class DistrictManagerServiceImpl {
         this.userPlantsCache.set(userId, plants)
         return plants
     }
-
     async updateUserPlants(userId, plantCodes = []) {
         if (!userId) throw new Error('User ID is required')
         // Delete existing assignments
@@ -95,17 +85,14 @@ class DistrictManagerServiceImpl {
         this.userPlantsCache.delete(userId)
         return true
     }
-
     getUserPlantCodes(userId) {
         const cached = this.userPlantsCache.get(userId)
         if (!cached) return []
         return cached.map((r) => r.plant_code)
     }
-
     clearCache() {
         this.eligibleRolesCache = null
         this.userPlantsCache.clear()
     }
 }
-
 export const DistrictManagerService = new DistrictManagerServiceImpl()

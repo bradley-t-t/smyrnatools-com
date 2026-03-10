@@ -4,18 +4,18 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 const formatDate = (dateStr) => {
     if (!dateStr) return '—'
     const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+    return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'short', year: 'numeric' })
 }
 const formatTimestamp = (dateStr) => {
     if (!dateStr) return '—'
     const d = new Date(dateStr)
     return d.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
         day: 'numeric',
         hour: 'numeric',
+        hour12: true,
         minute: '2-digit',
-        hour12: true
+        month: 'short',
+        year: 'numeric'
     })
 }
 const DetailRow = ({ icon, label, value }) => {
@@ -58,7 +58,7 @@ function LostLoadDetailModal({ report, getUserName, onClose }) {
         >
             <div
                 className="rounded-2xl shadow-2xl w-full max-w-md flex flex-col"
-                style={{ maxHeight: '90vh', backgroundColor: 'var(--bg-primary)' }}
+                style={{ backgroundColor: 'var(--bg-primary)', maxHeight: '90vh' }}
             >
                 <div
                     className="flex items-center justify-between px-6 py-4 flex-shrink-0"

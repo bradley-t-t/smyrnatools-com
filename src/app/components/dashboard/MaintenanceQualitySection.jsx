@@ -46,8 +46,13 @@ const ASSET_CONFIG = [
 function HistoryTooltip({ active, payload, label }) {
     if (!active || !payload?.length) return null
     return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
-            <p className="text-sm font-semibold text-slate-900 m-0 mb-1.5">{label}</p>
+        <div
+            className="rounded-lg shadow-lg px-3.5 py-2.5"
+            style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-light)' }}
+        >
+            <p className="text-sm font-semibold m-0 mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                {label}
+            </p>
             {payload
                 .filter((p) => p.value > 0)
                 .map((entry, index) => (
@@ -181,7 +186,7 @@ export default function MaintenanceQualitySection({
                                     tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 10 : 12 }}
                                     width={isMobile ? 55 : 80}
                                 />
-                                <Tooltip content={<HistoryTooltip />} />
+                                <Tooltip content={<HistoryTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                                 <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                                 <Bar dataKey="active" stackId="a" fill={STATUS_COLORS.Active} name="Active" />
                                 <Bar dataKey="spare" stackId="a" fill={STATUS_COLORS.Spare} name="Spare" />
