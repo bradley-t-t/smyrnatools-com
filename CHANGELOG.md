@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.9] - 2026-03-10
+
+- Added client-side error reporting to Supabase via new ErrorReporterService, with batched writes, deduplication, and a 30-second dedupe window
+- Extended ConsoleLogger from dev-only to all environments, capturing errors and warnings from all users in production via ErrorReporterService
+- Added client_errors table migration with RLS policies for insert (authenticated and anon) and select (service_role and authenticated)
+- Added client_errors to the DatabaseService allowed tables allowlist
+- Fixed WeeklyPlanner item lookup to prefer ListService.listItems over the local items prop, falling back if not found
+- Added CLAUDE.md live directive to never use Supabase default auth system
+
 ## [29.8] - 2026-03-10
 
 - Redesigned the lost loads banner in ReportsView to be more compact with a rounded card style, clearer step-by-step instructions (submit report, write reason on ticket, email GM & DM), and smaller text

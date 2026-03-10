@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [29.8] - 2026-03-10
+
+- Redesigned the lost loads banner in ReportsView to be more compact with a rounded card style, clearer step-by-step instructions (submit report, write reason on ticket, email GM & DM), and smaller text
+- Added v29.7 changelog entry documenting Weekly Planner drag-and-drop, ConfirmDialog, Quick Add, ConsoleLogger, and related improvements
+
 ## [29.7] - 2026-03-10
 
 - Added drag-and-drop support to the Weekly Planner, allowing tasks to be moved between days with optimistic UI updates

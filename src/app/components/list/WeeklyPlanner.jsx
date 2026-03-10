@@ -563,7 +563,9 @@ function DayColumn({
             </div>
             <div className="flex-1 overflow-y-auto p-2.5">
                 {dayPlannedItems.map((pi) => {
-                    const item = items.find((i) => i.id === pi.list_item_id)
+                    const item =
+                        ListService.listItems.find((i) => i.id === pi.list_item_id) ||
+                        items.find((i) => i.id === pi.list_item_id)
                     if (!item) return null
                     return (
                         <PlannerItem

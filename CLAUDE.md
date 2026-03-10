@@ -65,4 +65,4 @@ Be direct, concise, and informative. No filler, no fluff. State what you did and
 ## Live Directives
 When the user says "never" or "always" do something (e.g., "never auto-commit", "always use bun"), **immediately add it as a rule** to this section. Do not wait for multiple interactions. These are standing orders.
 
-- *(No directives yet — they will be added here as the user gives them.)*
+- **NEVER use Supabase's default auth system (auth.users, supabase.auth, RLS referencing auth.uid(), etc.).** This project uses a custom authentication system. Never reference `auth.users`, never create foreign keys to `auth.users(id)`, never use `auth.uid()` in policies.
