@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import ConfirmDialog from '../../app/components/common/ConfirmDialog'
 import WeeklyPlanner from '../../app/components/list/WeeklyPlanner'
 import TopSection from '../../app/components/sections/TopSection'

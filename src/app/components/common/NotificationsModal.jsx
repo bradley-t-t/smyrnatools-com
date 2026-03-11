@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { useAccentColor } from '../../hooks/useAccentColor'
-
 const COMPUTED_TYPE_META = {
     'equipment.verifications': { icon: 'fas fa-snowplow', label: 'Equipment Verifications' },
     'list.overdue': { icon: 'fas fa-list', label: 'Overdue Tasks' },
@@ -10,7 +9,6 @@ const COMPUTED_TYPE_META = {
     reports: { icon: 'fas fa-file-alt', label: 'Overdue Reports' },
     'tractors.verifications': { icon: 'fas fa-tractor', label: 'Tractor Verifications' }
 }
-
 function getComputedMeta(type) {
     return (
         COMPUTED_TYPE_META[type] ||
@@ -20,7 +18,6 @@ function getComputedMeta(type) {
         }
     )
 }
-
 function getSeverityStyle(severity) {
     switch (severity) {
         case 'error':
@@ -32,7 +29,6 @@ function getSeverityStyle(severity) {
             return { bg: 'bg-sky-50', border: 'border-sky-200', dot: '#0ea5e9', text: 'text-sky-700' }
     }
 }
-
 function formatTimeAgo(dateString) {
     if (!dateString) return ''
     const diffMs = Date.now() - new Date(dateString).getTime()
@@ -54,7 +50,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
     const accentColor = useAccentColor()
     const panelRef = useRef(null)
     const { notifications: items = [], loading, markAsRead, markAllRead, deleteNotification } = notificationsHook
-
     const computedItems = useMemo(() => items.filter((n) => n.source === 'computed'), [items])
     const dbItems = useMemo(() => items.filter((n) => n.source === 'db'), [items])
     const hasUnreadDb = dbItems.some((n) => !n.isRead)
@@ -63,7 +58,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         [items]
     )
     const recentDbItems = useMemo(() => dbItems.slice(0, 6), [dbItems])
-
     const computedGroups = useMemo(() => {
         const grouped = {}
         computedItems.forEach((n) => {
@@ -73,7 +67,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         })
         return Object.values(grouped)
     }, [computedItems])
-
     useEffect(() => {
         if (!isOpen) return
         const handleClickOutside = (e) => {
@@ -82,16 +75,13 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
-
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
-
     const modalStyle = {
         position: 'fixed',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
         top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
-
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[999]" onClick={onClose}>
             <div
@@ -131,7 +121,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
                         </button>
                     </div>
                 </div>
-
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
@@ -170,7 +159,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
                                     </div>
                                 </div>
                             )}
-
                             {/* Recent DB notifications */}
                             {recentDbItems.length > 0 && (
                                 <div>
@@ -199,7 +187,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
                         </div>
                     )}
                 </div>
-
                 {/* Footer */}
                 <div className="border-t border-slate-200 flex-shrink-0">
                     <button
@@ -216,7 +203,6 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         document.body
     )
 }
-
 function CollapsibleAlertGroup({ group, accentColor }) {
     const shouldCollapse = group.key?.includes('verifications') || group.key?.includes('overdue')
     const [expanded, setExpanded] = useState(!shouldCollapse)
@@ -259,7 +245,6 @@ function CollapsibleAlertGroup({ group, accentColor }) {
         </div>
     )
 }
-
 function DbNotificationRow({ notification: n, onMarkRead, onDelete, accentColor }) {
     const _s = getSeverityStyle(n.severity)
     return (
@@ -302,5 +287,4 @@ function DbNotificationRow({ notification: n, onMarkRead, onDelete, accentColor 
         </div>
     )
 }
-
 export default NotificationsModal

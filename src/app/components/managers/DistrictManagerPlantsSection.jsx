@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-
 import { DistrictManagerService } from '../../../services/DistrictManagerService'
 import { RegionService } from '../../../services/RegionService'
 import DetailViewSection from '../sections/DetailViewSection'

@@ -7,11 +7,9 @@ import { supabase } from './DatabaseService'
 const FLUSH_INTERVAL = 5000
 const MAX_BUFFER = 50
 const DEDUPE_WINDOW = 30000
-
 let buffer = []
 let flushTimer = null
 let recentHashes = new Map()
-
 function hashMessage(msg) {
     let h = 0
     for (let i = 0; i < msg.length; i++) {
@@ -19,7 +17,6 @@ function hashMessage(msg) {
     }
     return h
 }
-
 function isDuplicate(message) {
     const hash = hashMessage(message)
     const now = Date.now()
@@ -33,7 +30,6 @@ function isDuplicate(message) {
     }
     return false
 }
-
 async function flush() {
     if (buffer.length === 0) return
     const entries = buffer.splice(0, MAX_BUFFER)
@@ -43,7 +39,6 @@ async function flush() {
         // Silently fail — error reporting should never break the app
     }
 }
-
 function scheduleFlush() {
     if (!flushTimer) {
         flushTimer = setTimeout(() => {
@@ -52,11 +47,9 @@ function scheduleFlush() {
         }, FLUSH_INTERVAL)
     }
 }
-
 function getUserId() {
     return sessionStorage.getItem('userId') || null
 }
-
 function report(level, message, meta = {}) {
     if (!message || isDuplicate(message)) return
     buffer.push({
@@ -76,6 +69,5 @@ function report(level, message, meta = {}) {
         scheduleFlush()
     }
 }
-
 const ErrorReporterService = { flush, report }
 export default ErrorReporterService

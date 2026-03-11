@@ -187,6 +187,36 @@ function TrailersView({
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
+    const loadDetailsForTrailers = useCallback(async (trailersList) => {
+        if (!trailersList || trailersList.length === 0) return
+        const trailerIds = trailersList.map((t) => t.id).filter(Boolean)
+        if (trailerIds.length === 0) return
+        try {
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                TrailerService.fetchAllCommentsCounts(trailerIds),
+                TrailerService.fetchAllIssuesCounts(trailerIds)
+            ])
+            setTrailers((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading trailer details:', e)
+        }
+    }, [])
+    const fetchTrailers = useCallback(
+        async (codes) => {
+            try {
+                const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
+                setTrailers(processedBase)
+                loadDetailsForTrailers(processedBase)
+            } catch {}
+        },
+        [loadDetailsForTrailers]
+    )
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -297,36 +327,6 @@ function TrailersView({
             setSortDirection('asc')
         }
     }
-    const loadDetailsForTrailers = useCallback(async (trailersList) => {
-        if (!trailersList || trailersList.length === 0) return
-        const trailerIds = trailersList.map((t) => t.id).filter(Boolean)
-        if (trailerIds.length === 0) return
-        try {
-            const [commentsCounts, issuesCounts] = await Promise.all([
-                TrailerService.fetchAllCommentsCounts(trailerIds),
-                TrailerService.fetchAllIssuesCounts(trailerIds)
-            ])
-            setTrailers((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-        } catch (e) {
-            console.error('Error loading trailer details:', e)
-        }
-    }, [])
-    const fetchTrailers = useCallback(
-        async (codes) => {
-            try {
-                const processedBase = await TrailerService.fetchTrailersWithDetails(codes)
-                setTrailers(processedBase)
-                loadDetailsForTrailers(processedBase)
-            } catch {}
-        },
-        [loadDetailsForTrailers]
-    )
     async function fetchTractors() {
         try {
             const data = await TractorService.fetchTractors()

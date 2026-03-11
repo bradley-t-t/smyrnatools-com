@@ -230,7 +230,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                                     width: '8px'
                                 }}
                             />
-                            <span style={{ color: '#334155', flex: 1, fontSize: '11px', fontWeight: 500 }}>
+                            <span style={{ color: 'var(--text-primary)', flex: 1, fontSize: '11px', fontWeight: 500 }}>
                                 {item.status}
                             </span>
                             <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{item.percentage}%</span>

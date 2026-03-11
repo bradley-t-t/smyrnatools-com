@@ -1,8 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-
 const LOG_FILE = path.resolve(__dirname, '..', 'console-errors.log')
-
 module.exports = function (app) {
     app.post('/__console_log', (req, res) => {
         let body = ''

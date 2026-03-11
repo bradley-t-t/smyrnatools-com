@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import { MaintenanceService } from '../../services/MaintenanceService'

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { supabase } from '../../../services/DatabaseService'
@@ -54,20 +53,7 @@ function YphMetricCard({ yph, grade, label }) {
         </div>
     )
 }
-function LostMetricCard({ lost, grade, label }) {
-    return (
-        <div className="rounded-[10px] border border-gray-200 bg-slate-50 p-5">
-            <div className="flex items-center gap-2 mb-3">
-                <i className="fas fa-exclamation-triangle text-accent"></i>
-                <span className="text-sm font-semibold text-gray-700">Yardage Lost</span>
-            </div>
-            <div className="text-3xl font-bold text-accent mb-1">{lost !== null ? lost : '--'}</div>
-            <div className="text-sm font-semibold text-emerald-600 mb-2">{label}</div>
-            <GradeScale grade={grade} />
-        </div>
-    )
-}
-function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel }) {
+function MetricsSection({ yph, yphGrade, yphLabel }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
             <div className="mb-5">
@@ -76,10 +62,7 @@ function MetricsSection({ yph, yphGrade, yphLabel, lost, lostGrade, lostLabel })
                 </h3>
                 <p className="text-sm text-slate-500 mt-2 mb-0">Key performance indicators for this reporting period</p>
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
-                <YphMetricCard yph={yph} grade={yphGrade} label={yphLabel} />
-                <LostMetricCard lost={lost} grade={lostGrade} label={lostLabel} />
-            </div>
+            <YphMetricCard yph={yph} grade={yphGrade} label={yphLabel} />
         </div>
     )
 }
@@ -1284,9 +1267,6 @@ export function PlantManagerSubmitPlugin({
     yph: propYph,
     yphGrade: propYphGrade,
     yphLabel: propYphLabel,
-    lost,
-    lostGrade,
-    lostLabel,
     form,
     setForm,
     weekIso,
@@ -1316,9 +1296,6 @@ export function PlantManagerSubmitPlugin({
                 yph={propYph ?? yph}
                 yphGrade={propYphGrade ?? yphGrade}
                 yphLabel={propYphLabel ?? yphLabel}
-                lost={lost}
-                lostGrade={lostGrade}
-                lostLabel={lostLabel}
             />
             <WeeklyTrendsSection
                 currentWeekIso={weekIso}
@@ -1333,9 +1310,6 @@ export function PlantManagerReviewPlugin({
     yph: _propYph,
     yphGrade: _propYphGrade,
     yphLabel: _propYphLabel,
-    lost,
-    lostGrade,
-    lostLabel,
     form,
     weekIso,
     user,
@@ -1358,14 +1332,7 @@ export function PlantManagerReviewPlugin({
                 plantCode={plantCode}
                 regionalPlants={propPlants}
             />
-            <MetricsSection
-                yph={yph}
-                yphGrade={yphGrade}
-                yphLabel={yphLabel}
-                lost={lost}
-                lostGrade={lostGrade}
-                lostLabel={lostLabel}
-            />
+            <MetricsSection yph={yph} yphGrade={yphGrade} yphLabel={yphLabel} />
             <WeeklyTrendsSection
                 currentWeekIso={weekIso}
                 plantCode={timelinePlantCode || user?.plant_code || ''}

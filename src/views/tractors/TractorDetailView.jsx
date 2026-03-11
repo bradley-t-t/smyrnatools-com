@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react'
-
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'

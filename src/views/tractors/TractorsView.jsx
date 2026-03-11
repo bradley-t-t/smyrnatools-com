@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
@@ -260,6 +259,86 @@ function TractorsView({
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
+    const loadDetailsForTractors = useCallback(async (tractorsList) => {
+        if (!tractorsList || tractorsList.length === 0) return
+        const tractorIds = tractorsList.map((t) => t.id).filter(Boolean)
+        if (tractorIds.length === 0) return
+        try {
+            const [commentsCounts, issuesCounts] = await Promise.all([
+                TractorService.fetchAllCommentsCounts(tractorIds),
+                TractorService.fetchAllIssuesCounts(tractorIds)
+            ])
+            setTractors((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
+            )
+            setAllTractors((prev) =>
+                prev.map((t) => ({
+                    ...t,
+                    commentsCount: commentsCounts[t.id] || 0,
+                    openIssuesCount: issuesCounts[t.id] || 0
+                }))
+            )
+        } catch (e) {
+            console.error('Error loading tractor details:', e)
+        }
+    }, [])
+    const operatorsRef = useRef(operators)
+    operatorsRef.current = operators
+    const regionCodeRef = useRef(preferences.selectedRegion?.code)
+    regionCodeRef.current = preferences.selectedRegion?.code
+    const runVerificationCheck = useCallback(
+        async (tractorsToCheck) => {
+            if (!tractorsToCheck || tractorsToCheck.length === 0) return
+            try {
+                const verificationResult = await CleanupUtility.verificationCheck(
+                    tractorsToCheck,
+                    TractorService.updateTractor,
+                    'tractor',
+                    operatorsRef.current
+                )
+                if (verificationResult.fixed > 0) {
+                    const codes = await RegionService.getAllowedPlantCodes(regionCodeRef.current)
+                    const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
+                    setTractors(refreshedTractors)
+                    setAllTractors(refreshedTractors)
+                    loadDetailsForTractors(refreshedTractors)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForTractors]
+    )
+    const fetchTractors = useCallback(
+        async (codes) => {
+            try {
+                const processedBase = await TractorService.fetchTractorsWithDetails(codes)
+                const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
+                setTractors(processedBase)
+                setAllTractors(processedBase)
+                setTractorsLoaded(true)
+                loadDetailsForTractors(processedBase)
+                if (cleanupResult.fixed > 0) {
+                    setTimeout(async () => {
+                        const refreshed = await TractorService.fetchTractorsWithDetails(codes)
+                        setTractors(refreshed)
+                        setAllTractors(refreshed)
+                        loadDetailsForTractors(refreshed)
+                        setTimeout(() => {
+                            runVerificationCheck(refreshed)
+                        }, 1000)
+                    }, 500)
+                } else {
+                    setTimeout(() => {
+                        runVerificationCheck(processedBase)
+                    }, 1000)
+                }
+            } catch (error) {}
+        },
+        [loadDetailsForTractors, runVerificationCheck]
+    )
     useEffect(() => {
         async function fetchAllData() {
             setIsLoading(true)
@@ -361,86 +440,6 @@ function TractorsView({
             setSortDirection('asc')
         }
     }
-    const loadDetailsForTractors = useCallback(async (tractorsList) => {
-        if (!tractorsList || tractorsList.length === 0) return
-        const tractorIds = tractorsList.map((t) => t.id).filter(Boolean)
-        if (tractorIds.length === 0) return
-        try {
-            const [commentsCounts, issuesCounts] = await Promise.all([
-                TractorService.fetchAllCommentsCounts(tractorIds),
-                TractorService.fetchAllIssuesCounts(tractorIds)
-            ])
-            setTractors((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-            setAllTractors((prev) =>
-                prev.map((t) => ({
-                    ...t,
-                    commentsCount: commentsCounts[t.id] || 0,
-                    openIssuesCount: issuesCounts[t.id] || 0
-                }))
-            )
-        } catch (e) {
-            console.error('Error loading tractor details:', e)
-        }
-    }, [])
-    const operatorsRef = useRef(operators)
-    operatorsRef.current = operators
-    const regionCodeRef = useRef(preferences.selectedRegion?.code)
-    regionCodeRef.current = preferences.selectedRegion?.code
-    const runVerificationCheck = useCallback(
-        async (tractorsToCheck) => {
-            if (!tractorsToCheck || tractorsToCheck.length === 0) return
-            try {
-                const verificationResult = await CleanupUtility.verificationCheck(
-                    tractorsToCheck,
-                    TractorService.updateTractor,
-                    'tractor',
-                    operatorsRef.current
-                )
-                if (verificationResult.fixed > 0) {
-                    const codes = await RegionService.getAllowedPlantCodes(regionCodeRef.current)
-                    const refreshedTractors = await TractorService.fetchTractorsWithDetails(codes)
-                    setTractors(refreshedTractors)
-                    setAllTractors(refreshedTractors)
-                    loadDetailsForTractors(refreshedTractors)
-                }
-            } catch (error) {}
-        },
-        [loadDetailsForTractors]
-    )
-    const fetchTractors = useCallback(
-        async (codes) => {
-            try {
-                const processedBase = await TractorService.fetchTractorsWithDetails(codes)
-                const cleanupResult = await TractorService.cleanupNullOperators(processedBase)
-                setTractors(processedBase)
-                setAllTractors(processedBase)
-                setTractorsLoaded(true)
-                loadDetailsForTractors(processedBase)
-                if (cleanupResult.fixed > 0) {
-                    setTimeout(async () => {
-                        const refreshed = await TractorService.fetchTractorsWithDetails(codes)
-                        setTractors(refreshed)
-                        setAllTractors(refreshed)
-                        loadDetailsForTractors(refreshed)
-                        setTimeout(() => {
-                            runVerificationCheck(refreshed)
-                        }, 1000)
-                    }, 500)
-                } else {
-                    setTimeout(() => {
-                        runVerificationCheck(processedBase)
-                    }, 1000)
-                }
-            } catch (error) {}
-        },
-        [loadDetailsForTractors, runVerificationCheck]
-    )
     async function fetchOperators() {
         try {
             const data = await OperatorService.fetchOperators()

@@ -664,7 +664,6 @@ export function useRegionalAISummary({
     ])
     return { handleRegenerateRegionalAI }
 }
-
 const updateAISummaryState = (setPlantNotifications, aiSummary, failed) =>
     setPlantNotifications((prev) => ({
         ...prev,

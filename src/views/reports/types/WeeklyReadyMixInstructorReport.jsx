@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { OperatorService } from '../../../services/OperatorService'
 const POSITIONS = {

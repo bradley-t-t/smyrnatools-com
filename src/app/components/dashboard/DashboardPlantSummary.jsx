@@ -3,19 +3,15 @@ import React, { memo, useEffect, useMemo, useState } from 'react'
 import FlagSmyrnaLogo from '../../../assets/images/FlagSmyrnaLogo.webp'
 import { usePreferences } from '../../context/PreferencesContext'
 import { buildPlantChatContext, useDashboardChat } from '../../hooks/useDashboardChat'
-
 const STORAGE_KEY = 'dashboard-plant-summary-minimized'
-
 const getAssetViewType = (assetType) => {
     const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
     return viewMap[assetType] || 'equipment'
 }
-
 /** Skeleton pulse block. */
 const Skeleton = ({ className = '', style }) => (
     <div className={`bg-slate-200 rounded-lg animate-pulse ${className}`} style={style} />
 )
-
 /** Skeleton for the metrics row. */
 const MetricsSkeleton = () => (
     <div className="flex flex-wrap gap-2.5 bg-slate-50 border-b border-slate-200 px-6 py-4">
@@ -33,7 +29,6 @@ const MetricsSkeleton = () => (
         ))}
     </div>
 )
-
 /** Skeleton for the left pane alerts area. */
 const AlertsSkeleton = () => (
     <div className="flex flex-col gap-4 py-2">
@@ -53,7 +48,6 @@ const AlertsSkeleton = () => (
         ))}
     </div>
 )
-
 /** Skeleton for the right pane AI area. */
 const AISkeleton = ({ accentColor }) => (
     <div className="flex flex-col">
@@ -77,7 +71,6 @@ const AISkeleton = ({ accentColor }) => (
         </div>
     </div>
 )
-
 /** Compact metric pill with label, value, and optional color. */
 const MetricPill = ({ label, value, color, icon, accentColor }) => (
     <div
@@ -100,7 +93,6 @@ const MetricPill = ({ label, value, color, icon, accentColor }) => (
         </div>
     </div>
 )
-
 /** Tinted notification row — background color creates visual grouping without borders. */
 const NotificationRow = ({
     icon,
@@ -155,7 +147,6 @@ const NotificationRow = ({
         </div>
     )
 }
-
 /** Clickable asset pill with subtle hover effect. */
 const AssetPill = ({ label, onClick, color }) => (
     <button
@@ -166,7 +157,6 @@ const AssetPill = ({ label, onClick, color }) => (
         {label}
     </button>
 )
-
 /** Operator row with tinted background, matching NotificationRow style. */
 const OperatorGroup = ({
     icon,
@@ -214,7 +204,6 @@ const OperatorGroup = ({
         </div>
     </div>
 )
-
 /** AI chat bubble message. */
 const AIChatBubble = ({ children, isAI, accentColor }) => (
     <div
@@ -231,7 +220,6 @@ const AIChatBubble = ({ children, isAI, accentColor }) => (
         </div>
     </div>
 )
-
 /** The right-pane AI section styled as a chat interface. */
 const AICopilotPane = ({
     aiSummaryLoading,
@@ -277,7 +265,6 @@ const AICopilotPane = ({
                 </button>
             )}
         </div>
-
         {/* Chat messages area */}
         <div className="px-4 py-3 flex flex-col gap-3">
             {userRoleName && !aiSummaryLoading && (
@@ -287,7 +274,6 @@ const AICopilotPane = ({
                     {userPlantCode && isPlantManager && userPlantCode === dashboardPlant ? ' (your plant)' : ''}
                 </div>
             )}
-
             {aiSummaryLoading && (
                 <AIChatBubble isAI accentColor={accentColor}>
                     <div className="flex items-center gap-2 text-slate-500">
@@ -296,7 +282,6 @@ const AICopilotPane = ({
                     </div>
                 </AIChatBubble>
             )}
-
             {aiSummaryFailed && (
                 <AIChatBubble isAI accentColor={accentColor}>
                     <div className="flex items-center gap-2 text-red-600">
@@ -305,13 +290,11 @@ const AICopilotPane = ({
                     </div>
                 </AIChatBubble>
             )}
-
             {!aiSummaryLoading && !aiSummaryFailed && aiDisplayText && (
                 <AIChatBubble isAI accentColor={accentColor}>
                     {aiDisplayText}
                 </AIChatBubble>
             )}
-
             {showActionPlan && visibleActionItems > 0 && aiActionPlan.length > 0 && (
                 <AIChatBubble isAI accentColor={accentColor}>
                     <div className="flex items-center gap-1.5 text-slate-600 text-[11px] font-semibold uppercase mb-2">
@@ -338,7 +321,6 @@ const AICopilotPane = ({
                 </AIChatBubble>
             )}
         </div>
-
         {/* Chat */}
         {!aiSummaryLoading && chat && (
             <div className="border-t border-slate-200">
@@ -391,7 +373,6 @@ const AICopilotPane = ({
         )}
     </div>
 )
-
 /** Summary counter strip — compact at-a-glance row of colored badges. */
 const SummaryStrip = ({ items }) => {
     const visible = items.filter((i) => i.count > 0)
@@ -412,7 +393,6 @@ const SummaryStrip = ({ items }) => {
         </div>
     )
 }
-
 /** Shared alerts content used by both desktop and mobile. */
 const AlertsContent = ({
     plantNotifications,
@@ -443,7 +423,6 @@ const AlertsContent = ({
                 </div>
             </div>
         )}
-
         {/* Summary counters */}
         <SummaryStrip
             items={[
@@ -479,7 +458,6 @@ const AlertsContent = ({
                 }
             ]}
         />
-
         {/* Asset notifications */}
         {plantNotifications.assetsWithMostIssues.length > 0 && (
             <NotificationRow
@@ -537,7 +515,6 @@ const AlertsContent = ({
         )}
     </>
 )
-
 /** Shared operators content. */
 const OperatorsContent = ({ plantNotifications, setEmbeddedView, setEmbeddedViewSearch }) => {
     const { unassignedOperators, pendingOperators, trainingOperators } = plantNotifications
@@ -583,7 +560,6 @@ const OperatorsContent = ({ plantNotifications, setEmbeddedView, setEmbeddedView
         </>
     )
 }
-
 const DashboardPlantSummary = memo(function DashboardPlantSummary({
     dashboardPlant,
     plantNotifications,
@@ -613,15 +589,12 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, String(isMinimized))
     }, [isMinimized])
-
     const hasNotifications =
         plantNotifications.pendingOperators.length > 0 ||
         plantNotifications.assetsWithMostIssues.length > 0 ||
         plantNotifications.trainingOperators.length > 0 ||
         plantNotifications.longTermShopAssets.length > 0
-
     const alertCount = plantNotifications.assetsWithMostIssues.length + plantNotifications.longTermShopAssets.length
-
     const { leaderboardMetrics, aiSummary, aiSummaryLoading, aiSummaryFailed, shopIssue } = plantNotifications
     const chatContext = useMemo(
         () =>
@@ -638,12 +611,9 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
     const chat = useDashboardChat(chatContext, domainData)
     const isChatExpanded = (chat.isChatFocused || chat.isChatLoading) && !isMobile
     const toggleMinimized = () => setIsMinimized(!isMinimized)
-
     // Determine loading state: no metrics loaded yet and no notifications computed
     const isDataLoading = !leaderboardMetrics && !hasNotifications
-
     const hasAI = aiSummary || aiSummaryLoading || aiSummaryFailed
-
     // Desktop: Split pane layout
     return (
         <div className="bg-white border border-slate-200 rounded-2xl mb-6 overflow-hidden transition-all duration-300">
@@ -705,7 +675,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                     <i className={`fas fa-chevron-${isMinimized ? 'down' : 'up'} text-sm`} />
                 </button>
             </div>
-
             {!isMinimized && (
                 <>
                     {/* Metrics row */}
@@ -762,7 +731,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                             />
                         </div>
                     ) : null}
-
                     {/* Split pane: Data left, Analysis right */}
                     <div className={isMobile ? 'flex flex-col' : 'flex'}>
                         {/* Left pane — Alerts & Operators */}
@@ -818,7 +786,6 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                 </div>
                             )}
                         </div>
-
                         {/* Right pane — Analysis */}
                         {isDataLoading ? (
                             <div
@@ -864,5 +831,4 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
         </div>
     )
 })
-
 export default DashboardPlantSummary

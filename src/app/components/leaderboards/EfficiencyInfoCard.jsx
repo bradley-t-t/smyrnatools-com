@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 
 import { usePreferences } from '../../context/PreferencesContext'
 import { useIsMobile } from '../../hooks/useIsMobile'
-
 const FORMULA_COMPONENTS = [
     { description: 'Average yards produced per hour worked', label: 'YPH Score', weight: '90%' },
     { isOperator: true, symbol: '+' },

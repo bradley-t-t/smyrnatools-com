@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'

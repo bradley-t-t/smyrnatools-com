@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.4] - 2026-03-11
+
+- Fixed dark mode support for chart tooltips by replacing hardcoded white backgrounds with CSS variable-based theming
+- Added hover cursor styling to all chart tooltips using var(--bg-hover)
+- Fixed StatusHistoryBar status text color to use var(--text-primary) instead of hardcoded slate
+- Fixed infinite re-render loop in RecapModalSection by stabilizing fetchHistory with refs for userNames and operatorNames, and using functional state updates
+- Refactored EquipmentsView to consolidate filter/sort logic into a single useMemo pipeline and simplify status filtering
+- Refactored TractorsView with cleaner filter/sort pipeline using useMemo and simplified status handling
+- Refactored TrailersView filter and sort logic into a streamlined useMemo chain
+- Simplified WeeklyPlantManagerReport by removing manual sorting in favor of a declarative approach
+- Removed unused role-editing modal and related state from RolesView
+- Removed blank lines between function/component declarations across multiple files for consistent formatting
+- Cleaned up unused imports and console logging utilities in ErrorReporterService and ConsoleLogger
+- Removed unused proxy endpoint from setupProxy.js
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [30.1] - 2026-03-11
 
 - Fixed hoisting bug in VerificationRequirementsModal by moving fetchOperatorData, fetchIssues, and fetchComments declarations above the useEffect that references them

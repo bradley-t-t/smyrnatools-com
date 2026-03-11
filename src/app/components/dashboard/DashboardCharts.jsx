@@ -46,7 +46,10 @@ const getColorByAllocation = (percent) => {
 const ChartTooltip = ({ active, label, payload }) => {
     if (!active || !payload?.length) return null
     return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+        <div
+            className="rounded-lg shadow-lg px-3.5 py-2.5 border"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
+        >
             <p className="text-accent text-sm font-semibold m-0 mb-1.5">{label}</p>
             {payload.map((entry, index) => (
                 <p key={index} className="text-xs m-0.5" style={{ color: entry.color }}>
@@ -63,7 +66,10 @@ const PieChartTooltip = ({ active, payload }) => {
     const total = data.payload.total || 0
     const percent = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0
     return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+        <div
+            className="rounded-lg shadow-lg px-3.5 py-2.5 border"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
+        >
             <p className="text-accent text-sm font-semibold m-0 mb-1">{data.name}</p>
             <p className="text-xs m-0" style={{ color: data.payload.color || data.fill }}>
                 {data.value} ({percent}%)
@@ -127,7 +133,7 @@ const PieChartCard = ({ icon, iconColor, title, data, footerText, innerRadius = 
                         <Cell key={index} fill={entry.color} />
                     ))}
                 </Pie>
-                <Tooltip content={<PieChartTooltip />} />
+                <Tooltip content={<PieChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
             </PieChart>
         </ResponsiveContainer>
     </ChartCard>
@@ -377,7 +383,7 @@ export default function DashboardCharts({
                                 tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                                 tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
                             />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Area
                                 type="monotone"
                                 dataKey="yardage"
@@ -418,7 +424,7 @@ export default function DashboardCharts({
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                             <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} domain={[0, 'auto']} />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Line
                                 type="monotone"
                                 dataKey="yph"
@@ -465,7 +471,7 @@ export default function DashboardCharts({
                                 orientation="right"
                                 tick={{ fill: 'var(--text-secondary)', fontSize: 11 }}
                             />
-                            <Tooltip content={<ProductionTooltip />} />
+                            <Tooltip content={<ProductionTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar yAxisId="left" dataKey="yardage" fill="#0891b2" name="Yards" radius={[4, 4, 0, 0]} />
                             <Bar yAxisId="right" dataKey="hours" fill="#f97316" name="Hours" radius={[4, 4, 0, 0]} />
@@ -497,7 +503,7 @@ export default function DashboardCharts({
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                             <XAxis dataKey="label" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Bar dataKey="hours" fill={COLORS.secondary} name="Hours" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -573,7 +579,7 @@ export default function DashboardCharts({
                                 tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 10 : 11 }}
                                 width={isMobile ? 50 : 70}
                             />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar dataKey="activePercent" stackId="a" fill={COLORS.active} name="Active %" />
                             <Bar dataKey="sparePercent" stackId="a" fill={COLORS.spare} name="Spare %" />
@@ -602,7 +608,7 @@ export default function DashboardCharts({
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                             <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} domain={[0, 100]} unit="%" />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Bar dataKey="allocation" fill="#8b5cf6" name="Allocation %" radius={[4, 4, 0, 0]}>
                                 {buildAssetData().map((a, index) => (
                                     <Cell key={index} fill={getColorByAllocation(a.allocationPercent)} />
@@ -637,7 +643,7 @@ export default function DashboardCharts({
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
                             <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
                             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} />
-                            <Tooltip content={<ChartTooltip />} />
+                            <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                             <Legend wrapperStyle={{ color: 'var(--text-secondary)', fontSize: 11 }} />
                             <Bar dataKey="issues" fill="#f59e0b" name="Open Issues" radius={[4, 4, 0, 0]} />
                             <Bar dataKey="overdue" fill="#dc2626" name="Overdue Service" radius={[4, 4, 0, 0]} />
@@ -698,7 +704,7 @@ export default function DashboardCharts({
                                     <Cell key={index} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip content={<PieChartTooltip />} />
+                            <Tooltip content={<PieChartTooltip />} cursor={{ fill: 'var(--bg-hover)' }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </ChartCard>
@@ -713,7 +719,10 @@ const ProductionTooltip = ({ active, label, payload }) => {
     const hours = payload.find((p) => p.dataKey === 'hours')?.value || 0
     const weekYph = hours > 0 ? (yards / hours).toFixed(2) : 0
     return (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3.5 py-2.5">
+        <div
+            className="rounded-lg shadow-lg px-3.5 py-2.5 border"
+            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
+        >
             <p className="text-accent text-sm font-semibold m-0 mb-1.5">{label}</p>
             <p className="text-[#0891b2] text-xs m-0.5">Yards: {yards.toLocaleString()}</p>
             <p className="text-[#f97316] text-xs m-0.5">Hours: {hours.toLocaleString()}</p>

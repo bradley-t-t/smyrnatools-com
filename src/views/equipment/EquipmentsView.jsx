@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
@@ -241,55 +240,6 @@ function EquipmentsView({
             supabase.removeChannel(channel)
         }
     }, [handleRealtimeUpdate])
-    useEffect(() => {
-        async function fetchAllData() {
-            setIsLoading(true)
-            try {
-                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
-                setRegionPlantCodes(codes)
-                await Promise.all([fetchEquipments(codes), fetchPlants(codes)])
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        fetchAllData()
-        if (preferences?.equipmentFilters) {
-            setSearchText(preferences.equipmentFilters.searchText || '')
-            setSearchInput(preferences.equipmentFilters.searchText || '')
-            setSelectedPlant(preferences.equipmentFilters.selectedPlant || '')
-            setStatusFilter(preferences.equipmentFilters.statusFilter || '')
-            setEquipmentTypeFilter(preferences.equipmentFilters.equipmentTypeFilter || '')
-            setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid')
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [preferences])
-    // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
-    useEffect(() => {
-        const code = preferences.selectedRegion?.code || ''
-        let cancelled = false
-        async function loadRegionPlants() {
-            if (!code) {
-                setRegionPlantCodes(null)
-                return
-            }
-            try {
-                const codes = await RegionService.getAllowedPlantCodes(code)
-                if (cancelled) return
-                setRegionPlantCodes(codes)
-                if (selectedPlant && codes && !codes.has(selectedPlant)) {
-                    setSelectedPlant('')
-                    safeUpdateEquipmentFilterRef.current('selectedPlant', '')
-                }
-            } catch {
-                setRegionPlantCodes(new Set())
-            }
-        }
-        loadRegionPlants()
-        return () => {
-            cancelled = true
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [preferences.selectedRegion?.code])
     /** Batch-loads comment and open-issue counts for all equipment and merges them into local state. */
     const loadDetailsForEquipments = useCallback(async (equipmentsList) => {
         if (!equipmentsList || equipmentsList.length === 0) return
@@ -345,6 +295,55 @@ function EquipmentsView({
             setEquipments([])
         }
     }, [loadDetailsForEquipments, runVerificationCheck])
+    useEffect(() => {
+        async function fetchAllData() {
+            setIsLoading(true)
+            try {
+                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                setRegionPlantCodes(codes)
+                await Promise.all([fetchEquipments(codes), fetchPlants(codes)])
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchAllData()
+        if (preferences?.equipmentFilters) {
+            setSearchText(preferences.equipmentFilters.searchText || '')
+            setSearchInput(preferences.equipmentFilters.searchText || '')
+            setSelectedPlant(preferences.equipmentFilters.selectedPlant || '')
+            setStatusFilter(preferences.equipmentFilters.statusFilter || '')
+            setEquipmentTypeFilter(preferences.equipmentFilters.equipmentTypeFilter || '')
+            setViewMode(preferences.equipmentFilters.viewMode || preferences.defaultViewMode || 'grid')
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences])
+    // When the selected region changes, reload allowed plant codes and clear the plant filter if it's no longer valid.
+    useEffect(() => {
+        const code = preferences.selectedRegion?.code || ''
+        let cancelled = false
+        async function loadRegionPlants() {
+            if (!code) {
+                setRegionPlantCodes(null)
+                return
+            }
+            try {
+                const codes = await RegionService.getAllowedPlantCodes(code)
+                if (cancelled) return
+                setRegionPlantCodes(codes)
+                if (selectedPlant && codes && !codes.has(selectedPlant)) {
+                    setSelectedPlant('')
+                    safeUpdateEquipmentFilterRef.current('selectedPlant', '')
+                }
+            } catch {
+                setRegionPlantCodes(new Set())
+            }
+        }
+        loadRegionPlants()
+        return () => {
+            cancelled = true
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preferences.selectedRegion?.code])
     async function fetchPlants(codes) {
         try {
             const data = await PlantService.fetchPlants(codes)

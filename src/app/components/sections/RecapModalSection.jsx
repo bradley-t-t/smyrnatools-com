@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { supabase } from '../../../services/DatabaseService'
@@ -188,6 +188,10 @@ function RecapModalSection({
             return new Date(bLatest) - new Date(aLatest)
         })
     }, [mixerHistory, operatorHistory, mixerLookup, operatorLookup])
+    const userNamesRef = useRef(userNames)
+    userNamesRef.current = userNames
+    const operatorNamesRef = useRef(operatorNames)
+    operatorNamesRef.current = operatorNames
     const fetchHistory = useCallback(async () => {
         if (mixerIds.length === 0 && operatorIds.length === 0) return
         setIsLoading(true)
@@ -263,8 +267,10 @@ function RecapModalSection({
                     }
                 }
             })
-            const userIdsToFetch = [...userIds].filter((id) => !userNames[id])
-            const opIdsToFetch = [...opIdsForNames].filter((id) => !operatorNames[id])
+            const cachedUserNames = userNamesRef.current
+            const cachedOpNames = operatorNamesRef.current
+            const userIdsToFetch = [...userIds].filter((id) => !cachedUserNames[id])
+            const opIdsToFetch = [...opIdsForNames].filter((id) => !cachedOpNames[id])
             const [userNamesResults, opNamesResults] = await Promise.all([
                 Promise.all(
                     userIdsToFetch.map(async (userId) => {
@@ -299,21 +305,29 @@ function RecapModalSection({
                     })
                 )
             ])
-            const names = { ...userNames }
-            userNamesResults.forEach((result) => {
-                names[result.id] = result.name
-            })
-            setUserNames(names)
-            const opNames = { ...operatorNames }
-            opNamesResults.forEach((result) => {
-                opNames[result.id] = result.data
-            })
-            setOperatorNames(opNames)
+            if (userNamesResults.length > 0) {
+                setUserNames((prev) => {
+                    const next = { ...prev }
+                    userNamesResults.forEach((r) => {
+                        next[r.id] = r.name
+                    })
+                    return next
+                })
+            }
+            if (opNamesResults.length > 0) {
+                setOperatorNames((prev) => {
+                    const next = { ...prev }
+                    opNamesResults.forEach((r) => {
+                        next[r.id] = r.data
+                    })
+                    return next
+                })
+            }
         } catch (err) {
         } finally {
             setIsLoading(false)
         }
-    }, [mixerIds, operatorIds, dateFilter, operatorNames, userNames])
+    }, [mixerIds, operatorIds, dateFilter])
     useEffect(() => {
         if (isOpen && (mixerIds.length > 0 || operatorIds.length > 0)) {
             fetchHistory()
@@ -466,13 +480,11 @@ function RecapModalSection({
     const [searchQuery, setSearchQuery] = useState('')
     const [typeFilter, setTypeFilter] = useState('all')
     const [fieldFilter, setFieldFilter] = useState('all')
-
     const availableFields = useMemo(() => {
         const fields = new Set()
         groupedHistory.forEach((g) => g.changes.forEach((c) => fields.add(c.field_name)))
         return [...fields].sort()
     }, [groupedHistory])
-
     const isTerminatedGroup = (group) => {
         if (group.type !== 'operator') return false
         const status = (group.status || '').toLowerCase()
@@ -483,7 +495,6 @@ function RecapModalSection({
             return val === 'terminated' || val === 'do not hire'
         })
     }
-
     const filteredHistory = useMemo(() => {
         return groupedHistory.filter((group) => {
             if (typeFilter === 'mixers' && group.type !== 'mixer') return false
@@ -500,7 +511,6 @@ function RecapModalSection({
             return true
         })
     }, [groupedHistory, typeFilter, searchQuery, fieldFilter])
-
     const filteredChangesForGroup = (group) => {
         if (fieldFilter === 'all') return group.changes
         return group.changes.filter((c) => c.field_name === fieldFilter)
@@ -518,23 +528,19 @@ function RecapModalSection({
             <span className="text-sm font-medium">Recap</span>
         </div>
     )
-
     const filteredTotal = filteredHistory.reduce((sum, g) => sum + filteredChangesForGroup(g).length, 0)
-
     const DATE_OPTIONS = [
         { id: 'day', label: '24h' },
         { id: 'week', label: '7d' },
         { id: 'month', label: '30d' },
         { id: 'all', label: 'All' }
     ]
-
     const TYPE_OPTIONS = [
         { id: 'all', label: 'All' },
         { id: 'mixers', label: 'Mixers' },
         { id: 'operators', label: 'Operators' },
         { id: 'terminated', label: 'Terminated' }
     ]
-
     const MetricBadge = ({ value, label, icon, iconBg, iconColor, positive }) => {
         const color =
             value > 0
@@ -560,7 +566,6 @@ function RecapModalSection({
             </div>
         )
     }
-
     const FilterPill = ({ active, label, onClick }) => (
         <button
             className="px-2.5 py-1 text-xs font-medium rounded-md transition-colors"
@@ -574,7 +579,6 @@ function RecapModalSection({
             {label}
         </button>
     )
-
     const modal = isOpen ? (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
@@ -614,7 +618,6 @@ function RecapModalSection({
                         <i className="fa-solid fa-xmark text-sm"></i>
                     </button>
                 </div>
-
                 {/* Filters toolbar */}
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0 space-y-2.5">
                     {/* Search */}
@@ -713,7 +716,6 @@ function RecapModalSection({
                         />
                     </div>
                 </div>
-
                 {/* Results count */}
                 <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
                     <span className="text-xs text-slate-500">
@@ -734,7 +736,6 @@ function RecapModalSection({
                         </button>
                     )}
                 </div>
-
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-3">

@@ -335,7 +335,7 @@ function ReportsView() {
                             Submit report
                         </button>
                         <span className="text-amber-300 hidden sm:inline">•</span>
-                        <span>Write reason on ticket</span>
+                        <span>Write reason on ticket & scan in to O: Drive</span>
                         <span className="text-amber-300 hidden sm:inline">•</span>
                         <span>Email GM &amp; DM with details</span>
                     </span>

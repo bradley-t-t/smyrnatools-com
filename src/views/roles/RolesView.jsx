@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import LoadingScreen from '../../app/components/common/LoadingScreen'
 import RoleModal, {
     RoleFormField,
@@ -10,13 +9,11 @@ import RoleModal, {
 import { usePreferences } from '../../app/context/PreferencesContext'
 import { useIsMobile } from '../../app/hooks/useIsMobile'
 import { useRolesData } from '../../app/hooks/useRolesData'
-
 /** Extracts the namespace prefix from a permission string (e.g. "dashboard" from "dashboard.view"). */
 const getNamespace = (perm) => {
     const dot = perm.indexOf('.')
     return dot > 0 ? perm.substring(0, dot) : perm
 }
-
 /** Groups an array of permission strings by their namespace prefix, sorted alphabetically. */
 const groupByNamespace = (permissions) => {
     const groups = {}
@@ -27,7 +24,6 @@ const groupByNamespace = (permissions) => {
     }
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
 }
-
 /** Namespace icon mapping for visual variety. */
 const NAMESPACE_ICONS = {
     dashboard: 'fa-tachometer-alt',
@@ -44,9 +40,7 @@ const NAMESPACE_ICONS = {
     trailers: 'fa-trailer',
     users: 'fa-users'
 }
-
 const getNamespaceIcon = (ns) => NAMESPACE_ICONS[ns] || 'fa-key'
-
 /**
  * Admin view for managing roles and their permission nodes via an interactive
  * permission matrix. Rows are permission nodes grouped by namespace, columns
@@ -81,11 +75,9 @@ function RolesView() {
     const [savingCells, setSavingCells] = useState(new Set())
     const [showMobileRole, setShowMobileRole] = useState(null)
     const matrixScrollRef = useRef(null)
-
     useEffect(() => {
         loadData()
     }, [loadData])
-
     // Convert vertical mouse wheel to horizontal scroll on the matrix
     useEffect(() => {
         const el = matrixScrollRef.current
@@ -100,7 +92,6 @@ function RolesView() {
         el.addEventListener('wheel', handleWheel, { passive: false })
         return () => el.removeEventListener('wheel', handleWheel)
     })
-
     // Build the full permission set from all roles
     const allPermissions = useMemo(() => {
         const permSet = new Set()
@@ -111,23 +102,19 @@ function RolesView() {
         }
         return [...permSet].sort((a, b) => a.localeCompare(b))
     }, [roles])
-
     // Filter permissions by search
     const filteredPermissions = useMemo(() => {
         if (!searchQuery.trim()) return allPermissions
         const q = searchQuery.trim().toLowerCase()
         return allPermissions.filter((p) => p.toLowerCase().includes(q))
     }, [allPermissions, searchQuery])
-
     const groupedPermissions = useMemo(() => groupByNamespace(filteredPermissions), [filteredPermissions])
-
     // Collapse all namespaces by default once permissions are loaded
     useEffect(() => {
         if (collapsedNamespaces === null && allPermissions.length > 0) {
             setCollapsedNamespaces(new Set(allPermissions.map(getNamespace)))
         }
     }, [allPermissions, collapsedNamespaces])
-
     const toggleNamespace = useCallback((ns) => {
         setCollapsedNamespaces((prev) => {
             const next = new Set(prev || [])
@@ -135,7 +122,6 @@ function RolesView() {
             return next
         })
     }, [])
-
     // Toggle a single cell in the matrix
     const handleTogglePermission = useCallback(
         async (roleId, permission, currentlyHas) => {
@@ -162,7 +148,6 @@ function RolesView() {
         },
         [hasITAccess, roles, updateRolePermissions, setError]
     )
-
     // Grant a permission to ALL roles at once
     const handleGrantToAll = useCallback(
         async (permission) => {
@@ -184,7 +169,6 @@ function RolesView() {
         },
         [hasITAccess, roles, bulkAddPermissions, setError]
     )
-
     // Revoke a permission from ALL roles
     const handleRevokeFromAll = useCallback(
         async (permission) => {
@@ -202,7 +186,6 @@ function RolesView() {
         },
         [hasITAccess, roles, removePermissionFromAllRoles, setError]
     )
-
     // Save weight edit
     const handleSaveWeight = useCallback(async () => {
         if (editingWeight === null) return
@@ -213,7 +196,6 @@ function RolesView() {
         }
         setEditingWeight(null)
     }, [editingWeight, pendingWeightValue, updateRoleWeight, setError])
-
     const handleCreateRole = useCallback(
         async (name, weight) => {
             try {
@@ -224,12 +206,10 @@ function RolesView() {
         },
         [createRole, setError]
     )
-
     // Stats
     const totalPermissions = allPermissions.length
     const totalRoles = roles.length
     const namespacesCount = new Set(allPermissions.map(getNamespace)).size
-
     if (isLoading && roles.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 p-6">
@@ -237,7 +217,6 @@ function RolesView() {
             </div>
         )
     }
-
     // Mobile: show a role-centric card list instead of the matrix
     if (isMobile) {
         return (
@@ -270,7 +249,6 @@ function RolesView() {
             </div>
         )
     }
-
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Header */}
@@ -360,13 +338,11 @@ function RolesView() {
                     </div>
                 </div>
             </div>
-
             {/* Messages */}
             <div className="px-6 pt-4">
                 <AlertMessage message={message} type="success" />
                 <AlertMessage message={error} type="error" />
             </div>
-
             {/* Matrix */}
             {roles.length === 0 || allPermissions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-slate-400">
@@ -596,7 +572,6 @@ function RolesView() {
                     </div>
                 </div>
             )}
-
             <CreateRoleModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
@@ -615,7 +590,6 @@ function RolesView() {
         </div>
     )
 }
-
 /** Single cell in the permission matrix — a compact styled checkbox. */
 function MatrixCell({ has, isSaving, canEdit, accentColor: _accentColor, onClick }) {
     if (isSaving) {
@@ -641,7 +615,6 @@ function MatrixCell({ has, isSaving, canEdit, accentColor: _accentColor, onClick
         </button>
     )
 }
-
 /** Row-level actions: select specific roles, grant to all, revoke from all. */
 function RowActions({ perm, roles, onGrantAll, onRevokeAll, onSelectRoles }) {
     const allHave = roles.every((r) => Array.isArray(r.permissions) && r.permissions.includes(perm))
@@ -679,7 +652,6 @@ function RowActions({ perm, roles, onGrantAll, onRevokeAll, onSelectRoles }) {
         </div>
     )
 }
-
 /**
  * Modal for adding a new permission node and granting it to one or more roles at once.
  * When initialPerm is provided (triggered from a matrix row), the permission field is pre-filled
@@ -690,24 +662,20 @@ function AddPermissionModal({ isOpen, onClose, onGrant, roles, initialPerm }) {
     const [selectedRoleIds, setSelectedRoleIds] = useState(new Set())
     const [submitting, setSubmitting] = useState(false)
     const isPreFilled = !!initialPerm
-
     useEffect(() => {
         if (isOpen) {
             setPerm(initialPerm || '')
             setSelectedRoleIds(new Set())
         }
     }, [isOpen, initialPerm])
-
     const toggleRole = (id) =>
         setSelectedRoleIds((prev) => {
             const next = new Set(prev)
             next.has(id) ? next.delete(id) : next.add(id)
             return next
         })
-
     const toggleAll = () =>
         setSelectedRoleIds((prev) => (prev.size === roles.length ? new Set() : new Set(roles.map((r) => r.id))))
-
     const handleSubmit = async () => {
         if (!perm.trim() || !selectedRoleIds.size) return
         setSubmitting(true)
@@ -717,10 +685,8 @@ function AddPermissionModal({ isOpen, onClose, onGrant, roles, initialPerm }) {
             setSubmitting(false)
         }
     }
-
     const trimmedPerm = perm.trim()
     const canSubmit = trimmedPerm.length > 0 && selectedRoleIds.size > 0
-
     return (
         <RoleModal
             isOpen={isOpen}
@@ -812,7 +778,6 @@ function AddPermissionModal({ isOpen, onClose, onGrant, roles, initialPerm }) {
         </RoleModal>
     )
 }
-
 function AlertMessage({ message, type = 'success' }) {
     if (!message) return null
     const isSuccess = type === 'success'
@@ -825,7 +790,6 @@ function AlertMessage({ message, type = 'success' }) {
         </div>
     )
 }
-
 function CreateRoleModal({ isOpen, onClose, onCreate }) {
     const [name, setName] = useState('')
     const [weight, setWeight] = useState(0)
@@ -874,7 +838,6 @@ function CreateRoleModal({ isOpen, onClose, onCreate }) {
         </RoleModal>
     )
 }
-
 /** Mobile header with compact stats. */
 function MobileHeader({ accentColor, hasITAccess, totalRoles, totalPermissions, onCreateRole }) {
     return (
@@ -913,7 +876,6 @@ function MobileHeader({ accentColor, hasITAccess, totalRoles, totalPermissions, 
         </div>
     )
 }
-
 /** Mobile role list — each role is an expandable card showing its permissions. */
 function MobileRoleList({
     roles,
@@ -1001,5 +963,4 @@ function MobileRoleList({
         </div>
     )
 }
-
 export default RolesView

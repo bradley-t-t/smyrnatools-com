@@ -334,7 +334,6 @@ const AnalysisPane = ({
                 </AIChatBubble>
             )}
         </div>
-
         {/* Chat */}
         {!aiSummaryLoading && chat && (
             <div className="border-t border-slate-200">
@@ -580,7 +579,6 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                                     </div>
                                 </div>
                             )}
-
                             {/* Summary counters */}
                             <SummaryStrip
                                 items={[
@@ -616,7 +614,6 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                                     }
                                 ]}
                             />
-
                             {/* Asset notifications */}
                             {plantNotifications.assetsWithMostIssues.length > 0 && (
                                 <NotificationRow
@@ -672,7 +669,6 @@ const DashboardRegionSummary = memo(function DashboardRegionSummary({
                                     )}
                                 />
                             )}
-
                             {/* People */}
                             {plantNotifications.unassignedOperators.length > 0 && (
                                 <OperatorGroup
