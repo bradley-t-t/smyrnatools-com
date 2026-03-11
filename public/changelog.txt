@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.0] - 2026-03-10
+
+- Reordered function declarations in OperatorsView to define fetch helpers before they are referenced, fixing hoisting issues
+- Added v29.9 changelog entry documenting client-side error reporting, ConsoleLogger production extension, and WeeklyPlanner fix
+
 ## [29.9] - 2026-03-10
 
 - Added client-side error reporting to Supabase via new ErrorReporterService, with batched writes, deduplication, and a 30-second dedupe window

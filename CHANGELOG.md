@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.1] - 2026-03-11
+
+- Fixed hoisting bug in VerificationRequirementsModal by moving fetchOperatorData, fetchIssues, and fetchComments declarations above the useEffect that references them
+- Added v30.0 changelog entry documenting OperatorsView hoisting fix and v29.9 changelog addition
+- Captured console error logs from realtime subscription errors and the VerificationRequirementsModal initialization crash
+
 ## [30.0] - 2026-03-10
 
 - Reordered function declarations in OperatorsView to define fetch helpers before they are referenced, fixing hoisting issues

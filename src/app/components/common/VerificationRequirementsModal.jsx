@@ -105,6 +105,85 @@ export default function VerificationRequirementsModal({
         }
         checkDeletePermission()
     }, [])
+    const fetchOperatorData = useCallback(async () => {
+        setIsLoadingOperator(true)
+        try {
+            const { data, error } = await supabase
+                .from('operators')
+                .select('*')
+                .eq('employee_id', assignedOperator)
+                .single()
+            if (error) {
+                console.error('Failed to fetch operator:', error)
+                setOperatorData(null)
+            } else if (data) {
+                setOperatorData(data)
+                setOperatorPhone(data.phone || '')
+                setOperatorRating(typeof data.rating === 'number' ? data.rating : Number(data.rating) || 0)
+            }
+        } catch (error) {
+            console.error('Failed to fetch operator:', error)
+            setOperatorData(null)
+        } finally {
+            setIsLoadingOperator(false)
+        }
+    }, [assignedOperator])
+    const fetchIssues = useCallback(async () => {
+        setIsLoadingIssues(true)
+        try {
+            const fetchedIssues = await service.fetchIssues(itemId)
+            setIssues(Array.isArray(fetchedIssues) ? fetchedIssues : [])
+            const userIds = new Set()
+            fetchedIssues.forEach((issue) => {
+                if (issue.created_by) {
+                    userIds.add(issue.created_by)
+                }
+            })
+            const names = {}
+            for (const userId of userIds) {
+                try {
+                    const displayName = await UserService.getUserDisplayName(userId)
+                    names[userId] = displayName || 'Unknown'
+                } catch {
+                    names[userId] = 'Unknown'
+                }
+            }
+            setUserNames((prevNames) => ({ ...prevNames, ...names }))
+        } catch (error) {
+            console.error('Failed to fetch issues:', error)
+            setIssues([])
+        } finally {
+            setIsLoadingIssues(false)
+        }
+    }, [service, itemId])
+    const fetchComments = useCallback(async () => {
+        setIsLoadingComments(true)
+        try {
+            const fetchedComments = await service.fetchComments(itemId)
+            setComments(Array.isArray(fetchedComments) ? fetchedComments : [])
+            const userIds = new Set()
+            fetchedComments.forEach((comment) => {
+                if (comment.author) {
+                    userIds.add(comment.author)
+                }
+            })
+            const names = {}
+            for (const userId of userIds) {
+                try {
+                    const displayName = await UserService.getUserDisplayName(userId)
+                    names[userId] = displayName || 'Unknown'
+                } catch {
+                    names[userId] = 'Unknown'
+                }
+            }
+            setUserNames((prevNames) => ({ ...prevNames, ...names }))
+        } catch (error) {
+            console.error('Failed to fetch comments:', error)
+            setComments([])
+        } finally {
+            setIsLoadingComments(false)
+        }
+    }, [service, itemId])
     useEffect(() => {
         if (!open) {
             setSectionsReady({
@@ -192,85 +271,6 @@ export default function VerificationRequirementsModal({
         serviceOverdue,
         comments.length
     ])
-    const fetchOperatorData = useCallback(async () => {
-        setIsLoadingOperator(true)
-        try {
-            const { data, error } = await supabase
-                .from('operators')
-                .select('*')
-                .eq('employee_id', assignedOperator)
-                .single()
-            if (error) {
-                console.error('Failed to fetch operator:', error)
-                setOperatorData(null)
-            } else if (data) {
-                setOperatorData(data)
-                setOperatorPhone(data.phone || '')
-                setOperatorRating(typeof data.rating === 'number' ? data.rating : Number(data.rating) || 0)
-            }
-        } catch (error) {
-            console.error('Failed to fetch operator:', error)
-            setOperatorData(null)
-        } finally {
-            setIsLoadingOperator(false)
-        }
-    }, [assignedOperator])
-    const fetchIssues = useCallback(async () => {
-        setIsLoadingIssues(true)
-        try {
-            const fetchedIssues = await service.fetchIssues(itemId)
-            setIssues(Array.isArray(fetchedIssues) ? fetchedIssues : [])
-            const userIds = new Set()
-            fetchedIssues.forEach((issue) => {
-                if (issue.created_by) {
-                    userIds.add(issue.created_by)
-                }
-            })
-            const names = {}
-            for (const userId of userIds) {
-                try {
-                    const displayName = await UserService.getUserDisplayName(userId)
-                    names[userId] = displayName || 'Unknown'
-                } catch {
-                    names[userId] = 'Unknown'
-                }
-            }
-            setUserNames((prevNames) => ({ ...prevNames, ...names }))
-        } catch (error) {
-            console.error('Failed to fetch issues:', error)
-            setIssues([])
-        } finally {
-            setIsLoadingIssues(false)
-        }
-    }, [service, itemId])
-    const fetchComments = useCallback(async () => {
-        setIsLoadingComments(true)
-        try {
-            const fetchedComments = await service.fetchComments(itemId)
-            setComments(Array.isArray(fetchedComments) ? fetchedComments : [])
-            const userIds = new Set()
-            fetchedComments.forEach((comment) => {
-                if (comment.author) {
-                    userIds.add(comment.author)
-                }
-            })
-            const names = {}
-            for (const userId of userIds) {
-                try {
-                    const displayName = await UserService.getUserDisplayName(userId)
-                    names[userId] = displayName || 'Unknown'
-                } catch {
-                    names[userId] = 'Unknown'
-                }
-            }
-            setUserNames((prevNames) => ({ ...prevNames, ...names }))
-        } catch (error) {
-            console.error('Failed to fetch comments:', error)
-            setComments([])
-        } finally {
-            setIsLoadingComments(false)
-        }
-    }, [service, itemId])
     const handleSaveOperatorPhone = async () => {
         if (!operatorPhone || !assignedOperator) return
         setIsSavingPhone(true)
