@@ -1,34 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
-const COMPUTED_TYPE_META = {
-    'equipment.verifications': { icon: 'fas fa-snowplow', label: 'Equipment Verifications' },
-    'list.overdue': { icon: 'fas fa-list', label: 'Overdue Tasks' },
-    'mixers.verifications': { icon: 'fas fa-truck', label: 'Mixer Verifications' },
-    reports: { icon: 'fas fa-file-alt', label: 'Overdue Reports' },
-    'tractors.verifications': { icon: 'fas fa-tractor', label: 'Tractor Verifications' }
-}
-function getComputedMeta(type) {
-    return (
-        COMPUTED_TYPE_META[type] ||
-        COMPUTED_TYPE_META[Object.keys(COMPUTED_TYPE_META).find((k) => type?.includes(k))] || {
-            icon: 'fas fa-exclamation-circle',
-            label: 'Alerts'
-        }
-    )
-}
-function getSeverityStyle(severity) {
-    switch (severity) {
-        case 'error':
-        case 'critical':
-            return { bg: 'bg-red-50', border: 'border-red-200', dot: '#ef4444', text: 'text-red-700' }
-        case 'warning':
-            return { bg: 'bg-amber-50', border: 'border-amber-200', dot: '#f59e0b', text: 'text-amber-700' }
-        default:
-            return { bg: 'bg-sky-50', border: 'border-sky-200', dot: '#0ea5e9', text: 'text-sky-700' }
-    }
-}
+
 function formatTimeAgo(dateString) {
     if (!dateString) return ''
     const diffMs = Date.now() - new Date(dateString).getTime()
@@ -41,32 +16,49 @@ function formatTimeAgo(dateString) {
     if (days < 30) return `${days}d ago`
     return new Date(dateString).toLocaleDateString()
 }
+
+function getInitials(name) {
+    if (!name || name === 'Unknown' || name === 'Loading...') return '?'
+    const parts = name.trim().split(' ')
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+    return name.slice(0, 2).toUpperCase()
+}
+
 /**
- * Anchored dropdown notification center. Shows active system alerts (computed)
- * and recent DB-backed notifications with per-item read/delete actions.
- * Footer links to the full NotificationsView.
+ * Anchored dropdown showing recent conversations grouped by user.
+ * Footer links to the full NotificationsView (messages center).
  */
-function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificationsHook }) {
+function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, anchorRect, messagesHook }) {
     const accentColor = useAccentColor()
     const panelRef = useRef(null)
-    const { notifications: items = [], loading, markAsRead, markAllRead, deleteNotification } = notificationsHook
-    const computedItems = useMemo(() => items.filter((n) => n.source === 'computed'), [items])
-    const dbItems = useMemo(() => items.filter((n) => n.source === 'db'), [items])
-    const hasUnreadDb = dbItems.some((n) => !n.isRead)
-    const unreadCount = useMemo(
-        () => items.filter((n) => n.source === 'computed' || (n.source === 'db' && !n.isRead)).length,
-        [items]
-    )
-    const recentDbItems = useMemo(() => dbItems.slice(0, 6), [dbItems])
-    const computedGroups = useMemo(() => {
-        const grouped = {}
-        computedItems.forEach((n) => {
-            const key = n.type || 'other'
-            if (!grouped[key]) grouped[key] = { items: [], key, ...getComputedMeta(n.type) }
-            grouped[key].items.push(n)
-        })
-        return Object.values(grouped)
-    }, [computedItems])
+    const { conversations = [], loading, markAllRead, unreadCount } = messagesHook
+    const recentConversations = useMemo(() => conversations.slice(0, 6), [conversations])
+    const [userNames, setUserNames] = useState({})
+
+    // Resolve display names for conversation participants
+    useEffect(() => {
+        const ids = recentConversations.map((c) => c.otherId).filter((id) => id && !userNames[id])
+        if (!ids.length) return
+        let cancelled = false
+        const resolve = async () => {
+            const names = {}
+            await Promise.all(
+                ids.map(async (id) => {
+                    try {
+                        names[id] = await UserService.getUserDisplayName(id)
+                    } catch {
+                        names[id] = 'Unknown'
+                    }
+                })
+            )
+            if (!cancelled) setUserNames((prev) => ({ ...prev, ...names }))
+        }
+        resolve()
+        return () => {
+            cancelled = true
+        }
+    }, [recentConversations, userNames])
+
     useEffect(() => {
         if (!isOpen) return
         const handleClickOutside = (e) => {
@@ -75,26 +67,34 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [isOpen, onClose])
+
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
+
     const modalStyle = {
         position: 'fixed',
         right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
         top: anchorRect ? anchorRect.bottom + 8 : '80px',
         zIndex: 1000
     }
+
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[999]" onClick={onClose}>
             <div
                 ref={panelRef}
-                style={modalStyle}
-                className="w-96 max-h-[76vh] bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
+                style={{ ...modalStyle, backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
+                className="w-96 max-h-[76vh] rounded-xl shadow-2xl border overflow-hidden flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 flex-shrink-0">
+                <div
+                    className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
+                    style={{ borderColor: 'var(--border-light)' }}
+                >
                     <div className="flex items-center gap-2.5">
-                        <i className="fas fa-bell text-slate-500 text-sm"></i>
-                        <span className="font-semibold text-slate-800 text-sm">Notifications</span>
+                        <i className="fas fa-bell text-sm" style={{ color: 'var(--text-secondary)' }}></i>
+                        <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                            Notifications
+                        </span>
                         {unreadCount > 0 && (
                             <span
                                 className="px-2 py-0.5 text-white text-xs font-bold rounded-full min-w-[22px] text-center"
@@ -105,96 +105,191 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
                         )}
                     </div>
                     <div className="flex items-center gap-1">
-                        {hasUnreadDb && (
+                        {unreadCount > 0 && (
                             <button
                                 onClick={markAllRead}
-                                className="px-2.5 py-1 text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors"
+                                style={{ color: 'var(--text-secondary)' }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent'
+                                }}
                             >
                                 Mark all read
                             </button>
                         )}
                         <button
                             onClick={onClose}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-colors"
+                            className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
+                            style={{ color: 'var(--text-secondary)' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent'
+                            }}
                         >
                             <i className="fas fa-times text-sm"></i>
                         </button>
                     </div>
                 </div>
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto">
+                {/* Body — conversation list */}
+                <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)' }}>
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-slate-400">
-                            <i className="fas fa-spinner fa-spin text-xl mb-2"></i>
-                            <span className="text-sm">Loading...</span>
+                        <div className="divide-y" style={{ borderColor: 'var(--bg-hover)' }}>
+                            {Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+                                    <div
+                                        className="w-9 h-9 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: 'var(--bg-hover)' }}
+                                    ></div>
+                                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div
+                                                className="h-3.5 rounded"
+                                                style={{ backgroundColor: 'var(--bg-hover)', width: `${60 + i * 10}%` }}
+                                            ></div>
+                                            <div
+                                                className="h-3 w-10 rounded flex-shrink-0"
+                                                style={{ backgroundColor: 'var(--bg-hover)' }}
+                                            ></div>
+                                        </div>
+                                        <div
+                                            className="h-3 rounded"
+                                            style={{ backgroundColor: 'var(--bg-hover)', width: `${80 - i * 8}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ) : items.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-14 text-slate-400">
-                            <i className="fas fa-bell-slash text-3xl mb-3"></i>
-                            <span className="text-sm font-medium">All caught up</span>
-                            <span className="text-xs mt-1">No notifications right now</span>
+                    ) : recentConversations.length === 0 ? (
+                        <div
+                            className="flex flex-col items-center justify-center py-14"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <i
+                                className="fas fa-envelope-open text-3xl mb-3"
+                                style={{ color: 'var(--border-medium)' }}
+                            ></i>
+                            <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                                No conversations
+                            </span>
+                            <span className="text-xs mt-1">Your inbox is empty</span>
                         </div>
                     ) : (
-                        <div className="flex flex-col">
-                            {/* Active Alerts (computed) */}
-                            {computedGroups.length > 0 && (
-                                <div className={dbItems.length > 0 ? 'border-b border-slate-100' : ''}>
-                                    <div className="px-4 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
-                                        <i className="fas fa-exclamation-triangle text-amber-500 text-xs"></i>
-                                        <span className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
-                                            Active Alerts
-                                        </span>
-                                        <span className="ml-auto text-xs text-amber-600 font-medium">
-                                            {computedItems.length}
-                                        </span>
+                        <div className="divide-y" style={{ borderColor: 'var(--bg-hover)' }}>
+                            {recentConversations.map((conv) => {
+                                const name = userNames[conv.otherId] || 'Loading...'
+                                const initials = getInitials(name)
+                                const latest = conv.lastMessage
+                                const hasUnread = conv.unread > 0
+                                return (
+                                    <div
+                                        key={conv.otherId}
+                                        className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors"
+                                        style={{ backgroundColor: hasUnread ? `${accentColor}06` : 'transparent' }}
+                                        onClick={() => {
+                                            if (onSelectConversation) {
+                                                onSelectConversation(conv.otherId)
+                                            } else {
+                                                onViewAll()
+                                            }
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = hasUnread
+                                                ? `${accentColor}06`
+                                                : 'transparent'
+                                        }}
+                                    >
+                                        {/* Avatar with unread badge */}
+                                        <div className="relative flex-shrink-0">
+                                            <div
+                                                className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                                                style={{
+                                                    background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`
+                                                }}
+                                            >
+                                                {initials}
+                                            </div>
+                                            {hasUnread && (
+                                                <div
+                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2"
+                                                    style={{
+                                                        backgroundColor: accentColor,
+                                                        borderColor: 'var(--bg-primary)'
+                                                    }}
+                                                >
+                                                    {conv.unread}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span
+                                                    className={`text-sm truncate ${hasUnread ? 'font-bold' : 'font-medium'}`}
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {name}
+                                                </span>
+                                                <span
+                                                    className="text-[11px] flex-shrink-0"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {formatTimeAgo(latest?.createdAt)}
+                                                </span>
+                                            </div>
+                                            {latest?.subject && (
+                                                <p
+                                                    className="text-xs m-0 truncate"
+                                                    style={{
+                                                        color: 'var(--text-primary)',
+                                                        opacity: hasUnread ? 1 : 0.7
+                                                    }}
+                                                >
+                                                    {latest.subject}
+                                                </p>
+                                            )}
+                                            <p
+                                                className="text-xs m-0 mt-0.5 truncate"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {latest?.body}
+                                            </p>
+                                        </div>
+                                        {/* Message count */}
+                                        <div
+                                            className="flex items-center gap-1 flex-shrink-0"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            <span className="text-[11px]">{conv.messages.length}</span>
+                                            <i className="fas fa-chevron-right text-[9px]"></i>
+                                        </div>
                                     </div>
-                                    <div className="p-3 flex flex-col gap-2">
-                                        {computedGroups.map((group) => (
-                                            <CollapsibleAlertGroup
-                                                key={group.key}
-                                                group={group}
-                                                accentColor={accentColor}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {/* Recent DB notifications */}
-                            {recentDbItems.length > 0 && (
-                                <div>
-                                    <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
-                                        <i className="fas fa-inbox text-slate-400 text-xs"></i>
-                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                                            Recent
-                                        </span>
-                                        <span className="ml-auto text-xs text-slate-400 font-medium">
-                                            {dbItems.length}
-                                        </span>
-                                    </div>
-                                    <div className="divide-y divide-slate-50">
-                                        {recentDbItems.map((n) => (
-                                            <DbNotificationRow
-                                                key={n.id}
-                                                notification={n}
-                                                onMarkRead={markAsRead}
-                                                onDelete={deleteNotification}
-                                                accentColor={accentColor}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                                )
+                            })}
                         </div>
                     )}
                 </div>
                 {/* Footer */}
-                <div className="border-t border-slate-200 flex-shrink-0">
+                <div className="border-t flex-shrink-0" style={{ borderColor: 'var(--border-light)' }}>
                     <button
                         onClick={onViewAll}
-                        className="w-full px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                        className="w-full px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
                         style={{ color: accentColor }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
                     >
-                        View All Notifications
+                        View All Messages
                         <i className="fas fa-arrow-right text-xs"></i>
                     </button>
                 </div>
@@ -203,88 +298,5 @@ function NotificationsModal({ isOpen, onClose, onViewAll, anchorRect, notificati
         document.body
     )
 }
-function CollapsibleAlertGroup({ group, accentColor }) {
-    const shouldCollapse = group.key?.includes('verifications') || group.key?.includes('overdue')
-    const [expanded, setExpanded] = useState(!shouldCollapse)
-    return (
-        <div className="rounded-lg border border-slate-200 overflow-hidden">
-            <div
-                className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100 cursor-pointer select-none hover:bg-slate-100 transition-colors"
-                onClick={() => setExpanded((v) => !v)}
-            >
-                <i className={`${group.icon} text-xs w-4 text-center`} style={{ color: accentColor }}></i>
-                <span className="flex-1 text-xs font-semibold text-slate-700">{group.label}</span>
-                <span
-                    className="text-white text-xs font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ backgroundColor: accentColor }}
-                >
-                    {group.items.length}
-                </span>
-                <i
-                    className={`fas fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-                ></i>
-            </div>
-            {expanded && (
-                <div className="p-2 flex flex-col gap-1">
-                    {group.items.map((n) => {
-                        const severity = getSeverityStyle(n.severity)
-                        return (
-                            <div
-                                key={n.id}
-                                className={`px-2.5 py-2 rounded-lg border ${severity.bg} ${severity.border}`}
-                            >
-                                <div className={`text-xs font-medium ${severity.text} truncate`}>{n.title}</div>
-                                {n.subtitle && (
-                                    <div className="text-xs text-slate-500 truncate mt-0.5">{n.subtitle}</div>
-                                )}
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
-        </div>
-    )
-}
-function DbNotificationRow({ notification: n, onMarkRead, onDelete, accentColor }) {
-    const _s = getSeverityStyle(n.severity)
-    return (
-        <div className={`flex gap-3 px-4 py-3 ${n.isRead ? '' : 'bg-blue-50/40'} hover:bg-slate-50 transition-colors`}>
-            {/* Unread dot */}
-            <div className="flex-shrink-0 pt-1.5">
-                {n.isRead ? (
-                    <div className="w-2 h-2 rounded-full bg-transparent"></div>
-                ) : (
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }}></div>
-                )}
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                    <p className={`text-sm font-medium truncate ${n.isRead ? 'text-slate-600' : 'text-slate-800'}`}>
-                        {n.title}
-                    </p>
-                    <span className="text-xs text-slate-400 flex-shrink-0 mt-0.5">{formatTimeAgo(n.createdAt)}</span>
-                </div>
-                {n.body && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>}
-                <div className="flex items-center gap-2 mt-1.5">
-                    {!n.isRead && (
-                        <button
-                            onClick={() => onMarkRead(n.dbId)}
-                            className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
-                        >
-                            <i className="fas fa-check text-xs"></i>
-                            Mark read
-                        </button>
-                    )}
-                    <button
-                        onClick={() => onDelete(n.dbId)}
-                        className="text-xs text-slate-300 hover:text-red-400 transition-colors ml-auto"
-                        title="Dismiss"
-                    >
-                        <i className="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
+
 export default NotificationsModal

@@ -3,7 +3,7 @@ import './index.css'
 
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
@@ -16,6 +16,7 @@ import TerminatedOverlay from './components/common/TerminatedOverlay'
 import TutorialManager from './components/common/TutorialPopup'
 import VersionUpdateBanner from './components/common/VersionUpdateBanner'
 import WebOverlay from './components/common/WebOverlay'
+import { usePreferences } from './context/PreferencesContext'
 import { useTutorial } from './context/TutorialContext'
 import { useAuthSession } from './hooks/useAuth'
 import { useOfflineDetection } from './hooks/useOfflineDetection'
@@ -82,12 +83,23 @@ function AppContent() {
     const [regionKey, setRegionKey] = useState(0)
     const [sessionChecked, setSessionChecked] = useState(false)
     const { onlineStreakRef, offlineStreakRef, offlineSinceRef } = useOfflineDetection(setOfflineMode)
+    const { preferences, loading: preferencesLoading } = usePreferences()
+    const startPageAppliedRef = useRef(false)
     useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSelectedView, setSessionChecked)
     useThemeMode()
     const { triggerTutorial } = useTutorial()
     useEffect(() => {
         sessionStorage.removeItem(CHUNK_RELOAD_KEY)
     }, [])
+    // Navigate to user's preferred start page once preferences load
+    useEffect(() => {
+        if (startPageAppliedRef.current || preferencesLoading || !userId || !rolesLoaded || isGuestOnly) return
+        const page = preferences.startPage
+        if (page && page !== 'Dashboard') {
+            setSelectedView({ initialStatusFilter: null, view: page })
+        }
+        startPageAppliedRef.current = true
+    }, [preferencesLoading, userId, rolesLoaded, isGuestOnly, preferences.startPage])
     useEffect(() => {
         if (userId && rolesLoaded) {
             triggerTutorial('account-nav-hint', 2000)
@@ -165,9 +177,13 @@ function AppContent() {
         document.querySelectorAll('[data-content-scroll]').forEach((el) => el.scrollTo(0, 0))
     }, [selectedView.view])
     const handleViewSelection = useCallback(
-        (viewId) => {
+        (viewId, options = {}) => {
             if (isGuestOnly && viewId !== 'Guest') return
-            setSelectedView({ initialStatusFilter: null, view: viewId })
+            setSelectedView({
+                initialConversationId: options.initialConversationId || null,
+                initialStatusFilter: null,
+                view: viewId
+            })
             setTitle(viewId === 'Guest' ? 'Access Pending' : viewId)
             setSelectedMixer((prev) => (prev && viewId !== 'Mixers' ? null : prev))
             setSelectedTractor((prev) => (prev && viewId !== 'Tractors' ? null : prev))
@@ -292,7 +308,12 @@ function AppContent() {
             case 'Documents':
                 return <DocumentsView />
             case 'Notifications':
-                return <NotificationsView userId={userId} />
+                return (
+                    <NotificationsView
+                        userId={userId}
+                        initialConversationId={selectedView.initialConversationId || null}
+                    />
+                )
             case 'Plan':
                 return <PlanView title="My Plan" />
             default:

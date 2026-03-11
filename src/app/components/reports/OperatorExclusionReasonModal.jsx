@@ -60,7 +60,7 @@ function OperatorExclusionReasonModal({ onConfirm, onCancel }) {
                         disabled={!selectedReason}
                         onClick={() => onConfirm(selectedReason)}
                     >
-                        Confirm & Submit
+                        Confirm
                     </button>
                 </div>
             </div>

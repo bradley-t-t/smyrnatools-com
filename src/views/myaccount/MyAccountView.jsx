@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react'
 
 import VersionPopup from '../../app/components/common/VersionPopup'
 const ChangelogView = lazy(() => import('../login/ChangelogView'))
@@ -33,6 +33,95 @@ const clampColorToMaxBrightness = (hex) => {
     const clampedG = Math.round(g * scale)
     const clampedB = Math.round(b * scale)
     return `#${clampedR.toString(16).padStart(2, '0')}${clampedG.toString(16).padStart(2, '0')}${clampedB.toString(16).padStart(2, '0')}`
+}
+const START_PAGE_OPTIONS = [
+    { icon: 'fa-chart-pie', id: 'Dashboard' },
+    { icon: 'fa-truck-moving', id: 'Mixers' },
+    { icon: 'fa-truck', id: 'Tractors' },
+    { icon: 'fa-trailer', id: 'Trailers' },
+    { icon: 'fa-hard-hat', id: 'Operators' },
+    { icon: 'fa-list-check', id: 'List' },
+    { icon: 'fa-file-lines', id: 'Reports' },
+    { icon: 'fa-calendar-days', id: 'Plan' },
+    { icon: 'fa-trophy', id: 'Leaderboards' },
+    { icon: 'fa-cogs', id: 'Heavy Equipment' },
+    { icon: 'fa-truck-pickup', id: 'Pickup Trucks' },
+    { icon: 'fa-calculator', id: 'Calculators' }
+]
+/** Custom styled dropdown for selecting the default start page. */
+function StartPageDropdown({ value, accentColor, onChange }) {
+    const [open, setOpen] = useState(false)
+    const ref = useRef(null)
+    const selected = START_PAGE_OPTIONS.find((o) => o.id === value) || START_PAGE_OPTIONS[0]
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition-all hover:border-gray-300 focus:outline-none"
+                style={open ? { borderColor: accentColor, boxShadow: `0 0 0 3px ${accentColor}20` } : undefined}
+            >
+                <span className="flex items-center gap-3">
+                    <span
+                        className="flex h-8 w-8 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: `${accentColor}15` }}
+                    >
+                        <i className={`fas ${selected.icon} text-xs`} style={{ color: accentColor }}></i>
+                    </span>
+                    <span className="text-sm font-medium text-gray-800">{selected.id}</span>
+                </span>
+                <i
+                    className={`fas fa-chevron-down text-xs text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+                ></i>
+            </button>
+            {open && (
+                <div className="absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                    {START_PAGE_OPTIONS.map(({ icon, id }) => {
+                        const isActive = id === value
+                        return (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => {
+                                    onChange(id)
+                                    setOpen(false)
+                                }}
+                                className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                                    isActive ? 'font-semibold text-white' : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                                style={isActive ? { backgroundColor: accentColor } : undefined}
+                            >
+                                <span
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg"
+                                    style={
+                                        isActive
+                                            ? { backgroundColor: 'rgba(255,255,255,0.2)' }
+                                            : { backgroundColor: `${accentColor}10` }
+                                    }
+                                >
+                                    <i
+                                        className={`fas ${icon} text-xs`}
+                                        style={{ color: isActive ? 'white' : accentColor }}
+                                    ></i>
+                                </span>
+                                {id}
+                                {isActive && <i className="fas fa-check ml-auto text-xs text-white"></i>}
+                            </button>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
 }
 /**
  * Tabbed account settings view with Profile, Security, and Preferences sections.
@@ -954,6 +1043,30 @@ function MyAccountView({ userId }) {
                         )}
                         {activeTab === 'preferences' && (
                             <>
+                                <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                                    <div className="mb-6 flex items-center gap-3">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                        >
+                                            <i
+                                                className="fas fa-rocket"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            ></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">Start Page</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Choose which page loads when you open the app
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <StartPageDropdown
+                                        value={preferences.startPage || 'Dashboard'}
+                                        accentColor={preferences.accentColor || '#1e3a5f'}
+                                        onChange={(id) => updatePreferences('startPage', id)}
+                                    />
+                                </div>
                                 <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
                                     <div className="mb-6 flex items-center gap-3">
                                         <div

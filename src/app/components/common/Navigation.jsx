@@ -7,6 +7,7 @@ import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import { useMagneticHover } from '../../hooks/useMagneticHover'
+import { useMessages } from '../../hooks/useMessages'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
@@ -100,7 +101,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
     const notificationsHook = useNotifications(userId, preferences?.selectedRegion)
-    const notificationsCount = notificationsHook.count
+    const messagesHook = useMessages(userId)
+    const notificationsCount = messagesHook.unreadCount
     const {
         handleMouseLeave: magneticLeave,
         handleMouseMove: magneticMove,
@@ -581,7 +583,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             </div>
                         </div>
                     )}
-                    <div data-content-scroll style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
+                    <div
+                        data-content-scroll
+                        style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', position: 'relative' }}
+                    >
                         {children}
                     </div>
                 </div>
@@ -624,11 +629,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             gap: isTablet ? '10px' : '28px',
                             minWidth: 0
                         }}
-                        onMouseMove={magneticMove}
-                        onMouseLeave={magneticLeave}
                     >
                         <div
-                            ref={registerMagnetic}
+                            className="group"
                             style={{
                                 alignItems: 'center',
                                 borderRight: '1px solid rgba(255,255,255,0.1)',
@@ -641,6 +644,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             <img
                                 src={SrmLogo}
                                 alt="Smyrna Ready Mix"
+                                className="transition-all duration-300 ease-out group-hover:brightness-125 group-hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.3)] group-hover:scale-105"
                                 style={{ height: isTablet ? '28px' : '40px' }}
                                 draggable={false}
                             />
@@ -806,20 +810,27 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         )}
                     </div>
                 </header>
-                <main data-content-scroll style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
+                <main
+                    data-content-scroll
+                    style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', position: 'relative' }}
+                >
                     {children}
                 </main>
                 {showNotifications && (
                     <NotificationsModal
                         isOpen={showNotifications}
-                        notificationsHook={notificationsHook}
+                        messagesHook={messagesHook}
                         onClose={() => {
                             setShowNotifications(false)
-                            window.dispatchEvent(new CustomEvent('notifications-refresh'))
+                            window.dispatchEvent(new CustomEvent('messages-refresh'))
                         }}
                         onViewAll={() => {
                             setShowNotifications(false)
                             handleMenuClick('Notifications')
+                        }}
+                        onSelectConversation={(otherId) => {
+                            setShowNotifications(false)
+                            onSelectView('Notifications', { initialConversationId: otherId })
                         }}
                         anchorRect={notificationsAnchor}
                     />

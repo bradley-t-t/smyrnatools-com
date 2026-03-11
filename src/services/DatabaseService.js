@@ -43,7 +43,9 @@ const ALLOWED_TABLES = new Set([
     'notifications',
     'notification_reads',
     'documents',
-    'client_errors'
+    'client_errors',
+    'messages',
+    'messages_decrypted'
 ])
 /** Allowlisted SQL migrations that can be executed via the migration endpoint. */
 const ALLOWED_MIGRATIONS = new Set(['alter table public.operators add column if not exists phone text'])

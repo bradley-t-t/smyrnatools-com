@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
@@ -549,7 +550,11 @@ function MixersView({
             VIN: 'vinNumber',
             Verified: null
         }
-        const filtered = mixers.filter((mixer) => {
+        const filtered = []
+        const potentialMatches = []
+        const hasActiveFilters =
+            (selectedPlant && selectedPlant !== 'All') || (statusFilter && statusFilter !== 'All Statuses')
+        mixers.forEach((mixer) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
             let matchesSearch = true
             if (normalizedSearch) {
@@ -603,80 +608,84 @@ function MixersView({
                                         ? Number(mixer.openIssuesCount || 0) > 0
                                         : false
             }
-            return matchesSearch && matchesPlant && matchesRegion && matchesStatus
+            if (matchesSearch && matchesPlant && matchesRegion && matchesStatus) {
+                filtered.push(mixer)
+            } else if (matchesSearch && hasActiveFilters && searchText.trim()) {
+                potentialMatches.push(mixer)
+            }
         })
-        return FleetUtility.sortWithRetiredLast(
-            filtered,
-            (a, b) => {
-                if (!sortKey) {
-                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
-                }
-                const prop = sortMappings[sortKey]
-                let aVal, bVal
-                if (sortKey === 'Status') {
-                    const getStatusOrder = (item) => {
-                        if (item.status === 'Active') return 1
-                        if (item.status === 'Spare') return 2
-                        if (item.status === 'In Shop') {
-                            if (item.shopStatus === 'in_shop' || !item.shopStatus) return 3
-                            if (item.shopStatus === 'waiting_for_shop') return 4
-                            if (item.shopStatus === 'down_in_yard') return 5
-                            if (item.shopStatus === 'third_party') return 6
-                        }
-                        if (item.status === 'Retired') return 7
-                        return 8
+        const sortFn = (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'truckNumber')
+            }
+            const prop = sortMappings[sortKey]
+            let aVal, bVal
+            if (sortKey === 'Status') {
+                const getStatusOrder = (item) => {
+                    if (item.status === 'Active') return 1
+                    if (item.status === 'Spare') return 2
+                    if (item.status === 'In Shop') {
+                        if (item.shopStatus === 'in_shop' || !item.shopStatus) return 3
+                        if (item.shopStatus === 'waiting_for_shop') return 4
+                        if (item.shopStatus === 'down_in_yard') return 5
+                        if (item.shopStatus === 'third_party') return 6
                     }
-                    const aOrder = getStatusOrder(a)
-                    const bOrder = getStatusOrder(b)
-                    if (aOrder !== bOrder) {
-                        return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder
-                    }
-                    if (
-                        (a.status === 'Active' || a.status === 'In Shop' || a.status === 'Spare') &&
-                        (b.status === 'Active' || b.status === 'In Shop' || b.status === 'Spare')
-                    ) {
-                        const aDate = a.statusChangedAt || a.createdAt
-                        const bDate = b.statusChangedAt || b.createdAt
-                        const aDays = aDate ? Math.floor((Date.now() - new Date(aDate).getTime()) / 86400000) : 0
-                        const bDays = bDate ? Math.floor((Date.now() - new Date(bDate).getTime()) / 86400000) : 0
-                        if (aDays !== bDays) {
-                            return sortDirection === 'asc' ? aDays - bDays : bDays - aDays
-                        }
-                    }
-                    return 0
-                } else if (sortKey === 'Verified') {
-                    aVal = a.status === 'Retired' ? 0 : a.isVerified() ? 2 : 1
-                    bVal = b.status === 'Retired' ? 0 : b.isVerified() ? 2 : 1
-                } else if (sortKey === 'Operator') {
-                    aVal = operators.find((op) => op.employeeId === a.assignedOperator)?.name || ''
-                    bVal = operators.find((op) => op.employeeId === b.assignedOperator)?.name || ''
-                } else if (sortKey === 'Plant') {
-                    aVal = plants.find((p) => p.code === a.assignedPlant)?.name || a.assignedPlant
-                    bVal = plants.find((p) => p.code === b.assignedPlant)?.name || b.assignedPlant
-                } else if (sortKey === 'Truck #') {
-                    aVal = parseFloat(a.truckNumber) || 0
-                    bVal = parseFloat(b.truckNumber) || 0
-                } else if (sortKey === 'VIN') {
-                    const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
-                    return sortDirection === 'asc' ? comparison : -comparison
-                } else if (prop) {
-                    aVal = a[prop]
-                    bVal = b[prop]
-                } else {
-                    return 0
+                    if (item.status === 'Retired') return 7
+                    return 8
                 }
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-                } else {
-                    aVal = String(aVal || '').toLowerCase()
-                    bVal = String(bVal || '').toLowerCase()
-                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-                    return 0
+                const aOrder = getStatusOrder(a)
+                const bOrder = getStatusOrder(b)
+                if (aOrder !== bOrder) {
+                    return sortDirection === 'asc' ? aOrder - bOrder : bOrder - aOrder
                 }
-            },
-            'status'
-        )
+                if (
+                    (a.status === 'Active' || a.status === 'In Shop' || a.status === 'Spare') &&
+                    (b.status === 'Active' || b.status === 'In Shop' || b.status === 'Spare')
+                ) {
+                    const aDate = a.statusChangedAt || a.createdAt
+                    const bDate = b.statusChangedAt || b.createdAt
+                    const aDays = aDate ? Math.floor((Date.now() - new Date(aDate).getTime()) / 86400000) : 0
+                    const bDays = bDate ? Math.floor((Date.now() - new Date(bDate).getTime()) / 86400000) : 0
+                    if (aDays !== bDays) {
+                        return sortDirection === 'asc' ? aDays - bDays : bDays - aDays
+                    }
+                }
+                return 0
+            } else if (sortKey === 'Verified') {
+                aVal = a.status === 'Retired' ? 0 : a.isVerified() ? 2 : 1
+                bVal = b.status === 'Retired' ? 0 : b.isVerified() ? 2 : 1
+            } else if (sortKey === 'Operator') {
+                aVal = operators.find((op) => op.employeeId === a.assignedOperator)?.name || ''
+                bVal = operators.find((op) => op.employeeId === b.assignedOperator)?.name || ''
+            } else if (sortKey === 'Plant') {
+                aVal = plants.find((p) => p.code === a.assignedPlant)?.name || a.assignedPlant
+                bVal = plants.find((p) => p.code === b.assignedPlant)?.name || b.assignedPlant
+            } else if (sortKey === 'Truck #') {
+                aVal = parseFloat(a.truckNumber) || 0
+                bVal = parseFloat(b.truckNumber) || 0
+            } else if (sortKey === 'VIN') {
+                const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                return sortDirection === 'asc' ? comparison : -comparison
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }
+        return {
+            filtered: FleetUtility.sortWithRetiredLast(filtered, sortFn, 'status'),
+            potentialMatches: FleetUtility.sortWithRetiredLast(potentialMatches, sortFn, 'status')
+        }
     }, [
         mixers,
         operators,
@@ -702,465 +711,494 @@ function MixersView({
         if (isLoading || isRegionLoading) {
             return <AssetListSkeleton viewMode={viewMode} />
         }
-        if (filteredMixers.length === 0) {
+        const renderRow = (item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
+            const operator = operators.find((op) => op.employeeId === item.assignedOperator)
+            const plant = plants.find((p) => p.code === item.assignedPlant)
+            const cellStyle = {
+                backgroundColor: alternatingBg,
+                borderBottom: '1px solid var(--border-light)',
+                color: 'var(--text-primary)',
+                fontSize: '14px',
+                padding: '20px 16px',
+                verticalAlign: 'middle'
+            }
+            const cellBoldStyle = {
+                ...cellStyle,
+                color: 'var(--text-secondary)',
+                fontSize: '15px',
+                fontWeight: 700
+            }
+            const statusBadge = (status) => {
+                const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                const statusMap = {
+                    Active: 'bg-[#dcfce7] text-[#166534]',
+                    'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
+                    'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+                    Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
+                    'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
+                    'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
+                }
+                const colors = statusMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
+                return `${base} ${colors}`
+            }
+            const verifyBtnStyle = (verified) => {
+                const base =
+                    'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
+                const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
+                const cursor = verified ? 'cursor-default' : 'cursor-pointer'
+                return `${base} ${colors} ${cursor}`
+            }
+            const actionBtnStyle = {
+                alignItems: 'center',
+                backgroundColor: 'var(--bg-primary)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                fontSize: '14px',
+                height: '36px',
+                justifyContent: 'center',
+                marginRight: '8px',
+                width: '36px'
+            }
             return (
-                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                        <i className="fas fa-truck text-3xl text-slate-400"></i>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">No Mixers Found</h3>
-                    <p className="text-slate-500 mb-6 max-w-md">
-                        {searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses')
-                            ? 'No mixers match your search criteria.'
-                            : 'There are no mixers in the system yet.'}
-                    </p>
-                    <button
-                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
-                        onClick={() => setShowAddSheet(true)}
-                    >
-                        Add Mixer
-                    </button>
-                </div>
-            )
-        }
-        if (viewMode === 'grid') {
-            return (
-                <GridViewModeSection
-                    filteredItems={filteredMixers}
-                    operators={operators}
-                    plants={plants}
-                    handleSelectItem={handleSelectMixer}
-                    cardComponent={MixerCard}
-                    itemPropName="mixer"
-                    onShowCommentModal={(id, number) => {
-                        setModalMixerId(id)
-                        setModalMixerNumber(number)
-                        setShowCommentModal(true)
+                <tr
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
                     }}
-                    onShowIssueModal={(id, number) => {
-                        setModalMixerId(id)
-                        setModalMixerNumber(number)
-                        setShowIssueModal(true)
+                    onMouseLeave={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = alternatingBg))
                     }}
-                    gridClassName="grid"
-                />
-            )
-        }
-        return (
-            <ListViewModeSection
-                filteredItems={filteredMixers}
-                handleSelectItem={handleSelectMixer}
-                headerLabels={['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More']}
-                colWidths={['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%']}
-                renderRow={(item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
-                    const operator = operators.find((op) => op.employeeId === item.assignedOperator)
-                    const plant = plants.find((p) => p.code === item.assignedPlant)
-                    const cellStyle = {
-                        backgroundColor: alternatingBg,
-                        borderBottom: '1px solid var(--border-light)',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px',
-                        padding: '20px 16px',
-                        verticalAlign: 'middle'
-                    }
-                    const cellBoldStyle = {
-                        ...cellStyle,
-                        color: 'var(--text-secondary)',
-                        fontSize: '15px',
-                        fontWeight: 700
-                    }
-                    const statusBadge = (status) => {
-                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
-                        const statusMap = {
-                            Active: 'bg-[#dcfce7] text-[#166534]',
-                            'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
-                            'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
-                            Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
-                            'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
-                            'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
-                        }
-                        const colors = statusMap[status] || 'bg-[#f1f5f9] text-[#64748b]'
-                        return `${base} ${colors}`
-                    }
-                    const verifyBtnStyle = (verified) => {
-                        const base =
-                            'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
-                        const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
-                        const cursor = verified ? 'cursor-default' : 'cursor-pointer'
-                        return `${base} ${colors} ${cursor}`
-                    }
-                    const actionBtnStyle = {
-                        alignItems: 'center',
-                        backgroundColor: 'var(--bg-primary)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: '8px',
-                        color: 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        fontSize: '14px',
-                        height: '36px',
-                        justifyContent: 'center',
-                        marginRight: '8px',
-                        width: '36px'
-                    }
-                    return (
-                        <tr
-                            key={item.id}
-                            onClick={() => handleSelect(item.id)}
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = alternatingBg))
-                            }}
-                        >
-                            <td style={{ ...cellStyle, width: '10%' }}>{plant?.name || item.assignedPlant}</td>
-                            <td style={{ ...cellBoldStyle, width: '12%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                    {item.truckNumber}
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            navigator.clipboard.writeText(item.truckNumber)
-                                            const icon = e.currentTarget.querySelector('i')
+                >
+                    <td style={{ ...cellStyle, width: '10%' }}>{plant?.name || item.assignedPlant}</td>
+                    <td style={{ ...cellBoldStyle, width: '12%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                            {item.truckNumber}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigator.clipboard.writeText(item.truckNumber)
+                                    const icon = e.currentTarget.querySelector('i')
+                                    icon.className = 'fas fa-check'
+                                    icon.style.color = '#22c55e'
+                                    setTimeout(() => {
+                                        icon.className = 'fas fa-copy'
+                                        icon.style.color = ''
+                                    }, 1500)
+                                }}
+                                title="Copy truck number"
+                                style={{
+                                    alignItems: 'center',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    fontSize: '12px',
+                                    padding: '2px'
+                                }}
+                            >
+                                <i className="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '12%' }}>
+                        <div>
+                            <span
+                                className={statusBadge(
+                                    (() => {
+                                        if (item.status !== 'In Shop') return item.status
+                                        switch (item.shopStatus) {
+                                            case 'down_in_yard':
+                                                return 'Down In Yard'
+                                            case 'waiting_for_shop':
+                                                return 'Waiting For Shop'
+                                            case 'third_party':
+                                                return 'Third Party Work'
+                                            case 'in_shop':
+                                            default:
+                                                return 'In Shop'
+                                        }
+                                    })()
+                                )}
+                            >
+                                {(() => {
+                                    if (item.status !== 'In Shop') return item.status
+                                    switch (item.shopStatus) {
+                                        case 'down_in_yard':
+                                            return 'Down In Yard'
+                                        case 'waiting_for_shop':
+                                            return 'Waiting For Shop'
+                                        case 'third_party':
+                                            return 'Third Party Work'
+                                        case 'in_shop':
+                                        default:
+                                            return 'In Shop'
+                                    }
+                                })()}
+                                {item.status !== 'Retired' &&
+                                    (() => {
+                                        const dateToUse = item.statusChangedAt || item.createdAt
+                                        const days = dateToUse
+                                            ? Math.max(
+                                                  1,
+                                                  Math.floor((Date.now() - new Date(dateToUse).getTime()) / 86400000)
+                                              )
+                                            : 1
+                                        return ` (${days} day${days !== 1 ? 's' : ''})`
+                                    })()}
+                            </span>
+                            <StatusHistoryBar
+                                itemId={item.id}
+                                itemType="mixer"
+                                currentStatus={item.status}
+                                createdAt={item.createdAt}
+                            />
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '18%' }}>
+                        {operator?.name ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {operator.name}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(operator.name)
+                                        const btn = e.currentTarget
+                                        const icon = btn.querySelector('i')
+                                        if (icon) {
                                             icon.className = 'fas fa-check'
                                             icon.style.color = '#22c55e'
                                             setTimeout(() => {
                                                 icon.className = 'fas fa-copy'
                                                 icon.style.color = ''
                                             }, 1500)
-                                        }}
-                                        title="Copy truck number"
+                                        }
+                                    }}
+                                    title="Copy operator name"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Not Assigned</span>
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '12%' }}>
+                        {item.status === 'Retired' ? (
+                            <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
+                        ) : (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                    <i
+                                        key={i}
+                                        className="fas fa-star"
                                         style={{
-                                            alignItems: 'center',
-                                            background: 'transparent',
-                                            border: 'none',
-                                            color: 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            fontSize: '12px',
-                                            padding: '2px'
+                                            color:
+                                                i < Math.round(item.cleanlinessRating || 0)
+                                                    ? '#f59e0b'
+                                                    : 'var(--border-light)',
+                                            fontSize: '14px'
                                         }}
-                                    >
-                                        <i className="fas fa-copy"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '12%' }}>
-                                <div>
-                                    <span
-                                        className={statusBadge(
-                                            (() => {
-                                                if (item.status !== 'In Shop') return item.status
-                                                switch (item.shopStatus) {
-                                                    case 'down_in_yard':
-                                                        return 'Down In Yard'
-                                                    case 'waiting_for_shop':
-                                                        return 'Waiting For Shop'
-                                                    case 'third_party':
-                                                        return 'Third Party Work'
-                                                    case 'in_shop':
-                                                    default:
-                                                        return 'In Shop'
-                                                }
-                                            })()
-                                        )}
-                                    >
-                                        {(() => {
-                                            if (item.status !== 'In Shop') return item.status
-                                            switch (item.shopStatus) {
-                                                case 'down_in_yard':
-                                                    return 'Down In Yard'
-                                                case 'waiting_for_shop':
-                                                    return 'Waiting For Shop'
-                                                case 'third_party':
-                                                    return 'Third Party Work'
-                                                case 'in_shop':
-                                                default:
-                                                    return 'In Shop'
-                                            }
-                                        })()}
-                                        {item.status !== 'Retired' &&
-                                            (() => {
-                                                const dateToUse = item.statusChangedAt || item.createdAt
-                                                const days = dateToUse
-                                                    ? Math.max(
-                                                          1,
-                                                          Math.floor(
-                                                              (Date.now() - new Date(dateToUse).getTime()) / 86400000
-                                                          )
-                                                      )
-                                                    : 1
-                                                return ` (${days} day${days !== 1 ? 's' : ''})`
-                                            })()}
-                                    </span>
-                                    <StatusHistoryBar
-                                        itemId={item.id}
-                                        itemType="mixer"
-                                        currentStatus={item.status}
-                                        createdAt={item.createdAt}
-                                    />
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '18%' }}>
-                                {operator?.name ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {operator.name}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(operator.name)
-                                                const btn = e.currentTarget
-                                                const icon = btn.querySelector('i')
-                                                if (icon) {
-                                                    icon.className = 'fas fa-check'
-                                                    icon.style.color = '#22c55e'
-                                                    setTimeout(() => {
-                                                        icon.className = 'fas fa-copy'
-                                                        icon.style.color = ''
-                                                    }, 1500)
-                                                }
-                                            }}
-                                            title="Copy operator name"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                                        Not Assigned
+                                    ></i>
+                                ))}
+                                {item.cleanlinessRating && item.cleanlinessRating < 3 && (
+                                    <span className="bg-[#fee2e2] text-[#dc2626] rounded text-[10px] font-bold ml-2 px-2 py-0.5">
+                                        DIRTY
                                     </span>
                                 )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '12%' }}>
-                                {item.status === 'Retired' ? (
-                                    <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
-                                ) : (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
-                                        {Array.from({ length: 5 }).map((_, i) => (
-                                            <i
-                                                key={i}
-                                                className="fas fa-star"
-                                                style={{
-                                                    color:
-                                                        i < Math.round(item.cleanlinessRating || 0)
-                                                            ? '#f59e0b'
-                                                            : 'var(--border-light)',
-                                                    fontSize: '14px'
-                                                }}
-                                            ></i>
-                                        ))}
-                                        {item.cleanlinessRating && item.cleanlinessRating < 3 && (
-                                            <span
-                                                style={{
-                                                    backgroundColor: '#dc2626',
-                                                    borderRadius: '4px',
-                                                    color: 'white',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    marginLeft: '8px',
-                                                    padding: '3px 8px'
-                                                }}
-                                            >
-                                                DOWNED
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-                            </td>
-                            <td
+                            </div>
+                        )}
+                    </td>
+                    <td
+                        style={{
+                            ...cellStyle,
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'ui-monospace, monospace',
+                            fontSize: '12px',
+                            width: '16%'
+                        }}
+                    >
+                        {item.vinNumber || item.vin ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {item.vinNumber || item.vin}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(item.vinNumber || item.vin)
+                                        const icon = e.currentTarget.querySelector('i')
+                                        icon.className = 'fas fa-check'
+                                        icon.style.color = '#22c55e'
+                                        setTimeout(() => {
+                                            icon.className = 'fas fa-copy'
+                                            icon.style.color = ''
+                                        }, 1500)
+                                    }}
+                                    title="Copy VIN"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            '-'
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        {item.status === 'Retired' ? (
+                            <span
                                 style={{
-                                    ...cellStyle,
+                                    backgroundColor: 'var(--bg-secondary)',
+                                    borderRadius: '8px',
                                     color: 'var(--text-secondary)',
-                                    fontFamily: 'ui-monospace, monospace',
                                     fontSize: '12px',
-                                    width: '16%'
+                                    fontWeight: 600,
+                                    padding: '8px 14px'
                                 }}
                             >
-                                {item.vinNumber || item.vin ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {item.vinNumber || item.vin}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(item.vinNumber || item.vin)
-                                                const icon = e.currentTarget.querySelector('i')
-                                                icon.className = 'fas fa-check'
-                                                icon.style.color = '#22c55e'
-                                                setTimeout(() => {
-                                                    icon.className = 'fas fa-copy'
-                                                    icon.style.color = ''
-                                                }, 1500)
-                                            }}
-                                            title="Copy VIN"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    '-'
-                                )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                {item.status === 'Retired' ? (
+                                N/A
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (onVerify) onVerify(item.id, item.truckNumber)
+                                }}
+                                title={item.isVerified() ? 'Verified' : 'Click to verify'}
+                                className={verifyBtnStyle(item.isVerified())}
+                            >
+                                <i
+                                    className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
+                                ></i>
+                                <span>{item.isVerified() ? 'Verified' : 'Verify'}</span>
+                            </button>
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex' }}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onComment(item.id, item.truckNumber)
+                                }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View comments"
+                            >
+                                <i className="fas fa-comments"></i>
+                                {item.commentsCount > 0 && (
                                     <span
                                         style={{
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            borderRadius: '8px',
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '12px',
-                                            fontWeight: 600,
-                                            padding: '8px 14px'
+                                            alignItems: 'center',
+                                            backgroundColor: '#3b82f6',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
                                         }}
                                     >
-                                        N/A
+                                        {item.commentsCount > 9 ? '9+' : item.commentsCount}
                                     </span>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            if (onVerify) onVerify(item.id, item.truckNumber)
-                                        }}
-                                        title={item.isVerified() ? 'Verified' : 'Click to verify'}
-                                        className={verifyBtnStyle(item.isVerified())}
-                                    >
-                                        <i
-                                            className={`fas ${item.isVerified() ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
-                                        ></i>
-                                        <span>{item.isVerified() ? 'Verified' : 'Verify'}</span>
-                                    </button>
                                 )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex' }}>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onComment(item.id, item.truckNumber)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onIssue(item.id, item.truckNumber)
+                                }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View issues"
+                            >
+                                <i className="fas fa-tools"></i>
+                                {item.openIssuesCount > 0 && (
+                                    <span
+                                        style={{
+                                            alignItems: 'center',
+                                            backgroundColor: '#ef4444',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
                                         }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View comments"
                                     >
-                                        <i className="fas fa-comments"></i>
-                                        {item.commentsCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#3b82f6',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.commentsCount > 9 ? '9+' : item.commentsCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onIssue(item.id, item.truckNumber)
-                                        }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View issues"
-                                    >
-                                        <i className="fas fa-tools"></i>
-                                        {item.openIssuesCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#ef4444',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setSelectedMixerForHistory(item)
-                                            setShowHistoryModal(true)
-                                        }}
-                                        style={actionBtnStyle}
-                                        title="View history"
-                                    >
-                                        <i className="fas fa-history"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    )
-                }}
-                onShowCommentModal={(id, number) => {
-                    setModalMixerId(id)
-                    setModalMixerNumber(number)
-                    setShowCommentModal(true)
-                }}
-                onShowIssueModal={(id, number) => {
-                    setModalMixerId(id)
-                    setModalMixerNumber(number)
-                    setShowIssueModal(true)
-                }}
-                onVerify={handleVerifyMixer}
-                containerClassName="list-table-container"
-                tableClassName="list-table"
-            />
+                                        {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedMixerForHistory(item)
+                                    setShowHistoryModal(true)
+                                }}
+                                style={actionBtnStyle}
+                                title="View history"
+                            >
+                                <i className="fas fa-history"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            )
+        }
+        const onShowCommentModal = (id, number) => {
+            setModalMixerId(id)
+            setModalMixerNumber(number)
+            setShowCommentModal(true)
+        }
+        const onShowIssueModal = (id, number) => {
+            setModalMixerId(id)
+            setModalMixerNumber(number)
+            setShowIssueModal(true)
+        }
+        const hasPotential = filteredMixers.potentialMatches.length > 0
+        const hasFiltered = filteredMixers.filtered.length > 0
+
+        const gridProps = {
+            cardComponent: MixerCard,
+            gridClassName: 'grid',
+            handleSelectItem: handleSelectMixer,
+            itemPropName: 'mixer',
+            onShowCommentModal,
+            onShowIssueModal,
+            operators,
+            plants
+        }
+        const listProps = {
+            colWidths: ['10%', '12%', '12%', '18%', '12%', '16%', '10%', '10%'],
+            containerClassName: 'list-table-container',
+            handleSelectItem: handleSelectMixer,
+            headerLabels: ['Plant', 'Truck #', 'Status', 'Operator', 'Cleanliness', 'VIN', 'Verified', 'More'],
+            onShowCommentModal,
+            onShowIssueModal,
+            onVerify: handleVerifyMixer,
+            renderRow,
+            tableClassName: 'list-table'
+        }
+
+        // No results at all
+        if (!hasFiltered && !hasPotential) {
+            return (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                        style={{ backgroundColor: 'var(--bg-hover)' }}
+                    >
+                        <i className="fas fa-truck text-3xl" style={{ color: 'var(--text-secondary)' }}></i>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        {searchText ? 'No Mixers Found' : 'No Mixers Yet'}
+                    </h3>
+                    <p className="text-sm mb-6 max-w-md" style={{ color: 'var(--text-secondary)' }}>
+                        {searchText ? `No mixers match "${searchText}".` : 'There are no mixers in the system yet.'}
+                    </p>
+                    {!searchText && (
+                        <button
+                            className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
+                            onClick={() => setShowAddSheet(true)}
+                        >
+                            Add Mixer
+                        </button>
+                    )}
+                </div>
+            )
+        }
+
+        const renderViewSection = (items) =>
+            viewMode === 'grid' ? (
+                <GridViewModeSection filteredItems={items} {...gridProps} />
+            ) : (
+                <ListViewModeSection filteredItems={items} {...listProps} />
+            )
+
+        // Main results
+        const mainContent = hasFiltered ? renderViewSection(filteredMixers.filtered) : null
+
+        // Potential matches — shown when search finds items hidden by filters
+        const potentialContent = hasPotential ? (
+            <>
+                <div
+                    className="flex items-center gap-3 px-4 py-3 mt-4 rounded-lg"
+                    style={{ backgroundColor: 'var(--bg-hover)' }}
+                >
+                    <i className="fas fa-filter text-xs" style={{ color: 'var(--text-secondary)' }}></i>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {hasFiltered ? 'Potential Matches' : 'Results Outside Current Filters'}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {hasFiltered
+                            ? '(hidden by active filters)'
+                            : 'No exact filter matches — showing results that match your search'}
+                    </span>
+                    <span
+                        className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                    >
+                        {filteredMixers.potentialMatches.length}
+                    </span>
+                </div>
+                <div className={hasFiltered ? 'opacity-60' : ''}>
+                    {renderViewSection(filteredMixers.potentialMatches)}
+                </div>
+            </>
+        ) : null
+
+        return (
+            <>
+                {mainContent}
+                {potentialContent}
+            </>
         )
     }, [
         isLoading,
@@ -1168,8 +1206,6 @@ function MixersView({
         filteredMixers,
         viewMode,
         searchText,
-        selectedPlant,
-        statusFilter,
         operators,
         plants,
         handleSelectMixer,
@@ -1351,7 +1387,7 @@ function MixersView({
                             <RecapModalSection
                                 plantCode={selectedPlant}
                                 plantName={plants.find((p) => String(p.plantCode) === String(selectedPlant))?.plantName}
-                                mixers={filteredMixers}
+                                mixers={filteredMixers.filtered}
                                 operators={filteredOperatorsForRecap}
                                 mixersLoaded={mixersLoaded}
                                 isLoading={isLoading}
@@ -1361,7 +1397,7 @@ function MixersView({
                             <RecapModalSection
                                 plantCode=""
                                 plantName=""
-                                mixers={filteredMixers}
+                                mixers={filteredMixers.filtered}
                                 operators={filteredOperatorsForRecap}
                                 isAllPlants={true}
                                 mixersLoaded={mixersLoaded}

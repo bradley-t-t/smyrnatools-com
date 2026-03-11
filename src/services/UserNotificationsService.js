@@ -25,14 +25,14 @@ const UserNotificationsService = {
         const regionCode = selectedRegion?.code || null
         const { data, error } = await supabase
             .from('notifications')
-            .select('*, notification_reads(read_at, deleted_at)')
+            .select('*, notification_reads(read_at, deleted_at, user_id)')
             .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
             .order('created_at', { ascending: false })
             .limit(100)
         if (error || !data) return []
         return data
             .filter((n) => {
-                const read = n.notification_reads?.[0]
+                const read = n.notification_reads?.find((r) => r.user_id === userId)
                 if (read?.deleted_at) return false
                 if (n.target_type === 'all') return true
                 if (n.target_type === 'user') return n.target_value === userId
@@ -42,7 +42,7 @@ const UserNotificationsService = {
                 return false
             })
             .map((n) => {
-                const read = n.notification_reads?.[0]
+                const read = n.notification_reads?.find((r) => r.user_id === userId)
                 return {
                     body: n.body || '',
                     createdAt: n.created_at,

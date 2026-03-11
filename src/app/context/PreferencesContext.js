@@ -52,6 +52,7 @@ const defaultPreferences = {
     },
     regionOverlayMinimized: true,
     selectedRegion: { code: '', name: '', type: '' },
+    startPage: 'Dashboard',
     themeMode: 'light',
     tractorFilters: {
         searchText: '',
@@ -110,6 +111,7 @@ export const PreferencesProvider = ({ children }) => {
                     mixer_filters: updatedPreferences.mixerFilters,
                     operator_filters: updatedPreferences.operatorFilters,
                     selected_region: updatedPreferences.selectedRegion,
+                    start_page: updatedPreferences.startPage,
                     theme_mode: updatedPreferences.themeMode,
                     tractor_filters: updatedPreferences.tractorFilters,
                     trailer_filters: updatedPreferences.trailerFilters,
@@ -193,6 +195,7 @@ export const PreferencesProvider = ({ children }) => {
                             selectedRegion: data.selected_region
                                 ? { ...defaultPreferences.selectedRegion, ...data.selected_region }
                                 : defaultPreferences.selectedRegion,
+                            startPage: data.start_page || defaultPreferences.startPage,
                             themeMode: data.theme_mode || defaultPreferences.themeMode,
                             tractorFilters: data.tractor_filters
                                 ? {
@@ -252,7 +255,7 @@ export const PreferencesProvider = ({ children }) => {
         return () => {
             cancelled = true
         }
-    }, [userId])
+    }, [userId, _authTrigger])
     const updateManagerFilter = (key, value) => {
         const newFilters = { ...preferences.managerFilters, [key]: value }
         updatePreferences('managerFilters', newFilters)

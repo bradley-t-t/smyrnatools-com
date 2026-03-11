@@ -158,6 +158,7 @@ function ReportsSubmitView({
     const [exportError, setExportError] = useState('')
     const [showExclusionReasonModal, setShowExclusionReasonModal] = useState(false)
     const rowsInitializedRef = useRef(false)
+    const hasInitializedExclusionCheckRef = useRef(false)
     const showError = (msg) => {
         setError(msg)
         setShowErrorModal(true)
@@ -167,6 +168,25 @@ function ReportsSubmitView({
         setShowErrorModal(false)
         setSuccess(false)
     }
+    // Show exclusion reason modal immediately when the last operator is excluded
+    useEffect(() => {
+        if (report.name !== 'plant_production') return
+        if (!hasInitializedExclusionCheckRef.current) {
+            if (operatorOptions.length > 0) hasInitializedExclusionCheckRef.current = true
+            return
+        }
+        const allExcluded = excludedOperators.length === operatorOptions.length && operatorOptions.length > 0
+        if (allExcluded && !form.operator_exclusion_reason) {
+            setShowExclusionReasonModal(true)
+        }
+        // Clear the stored reason when operators are re-included
+        if (!allExcluded && form.operator_exclusion_reason) {
+            setForm((f) => {
+                const { operator_exclusion_reason: _, ...rest } = f
+                return rest
+            })
+        }
+    }, [excludedOperators, operatorOptions, report.name, form.operator_exclusion_reason, setForm])
     const editingUserName = getEditingUserName(managerEditUser, userProfiles)
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -194,14 +214,16 @@ function ReportsSubmitView({
         }
         if (report.name === 'plant_production') {
             const allExcluded = excludedOperators.length === operatorOptions.length && operatorOptions.length > 0
-            if (allExcluded) {
+            if (allExcluded && !form.operator_exclusion_reason) {
                 setShowExclusionReasonModal(true)
                 return
             }
-            setAiValidating(true)
-            const v = await ReportUtility.validatePlantProduction(form, operatorOptions)
-            setAiValidating(false)
-            if (v) return showError(v)
+            if (!allExcluded) {
+                setAiValidating(true)
+                const v = await ReportUtility.validatePlantProduction(form, operatorOptions)
+                setAiValidating(false)
+                if (v) return showError(v)
+            }
         }
         setSubmitting(true)
         try {
@@ -227,17 +249,9 @@ function ReportsSubmitView({
         }
         setSubmitting(false)
     }
-    const handleExclusionReasonConfirm = async (reason) => {
+    const handleExclusionReasonConfirm = (reason) => {
         setShowExclusionReasonModal(false)
-        setSubmitting(true)
-        clearMessages()
-        try {
-            await onSubmit({ ...form, operator_exclusion_reason: reason }, 'submit')
-            setSuccess(true)
-        } catch (err) {
-            showError(err?.message || 'Error submitting report')
-        }
-        setSubmitting(false)
+        setForm((f) => ({ ...f, operator_exclusion_reason: reason }))
     }
     const handleSaveDraft = async (e) => {
         e.preventDefault()
@@ -733,7 +747,13 @@ function ReportsSubmitView({
             {showExclusionReasonModal && (
                 <OperatorExclusionReasonModal
                     onConfirm={handleExclusionReasonConfirm}
-                    onCancel={() => setShowExclusionReasonModal(false)}
+                    onCancel={() => {
+                        setShowExclusionReasonModal(false)
+                        // Re-include the last excluded operator since they declined to give a reason
+                        if (excludedOperators.length > 0) {
+                            addOperatorRow(excludedOperators[excludedOperators.length - 1], mixers)
+                        }
+                    }}
                 />
             )}
             {aiValidating && (

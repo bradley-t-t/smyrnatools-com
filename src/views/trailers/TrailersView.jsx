@@ -372,7 +372,12 @@ function TrailersView({
         }
     }, [initialSearch])
     const filteredTrailers = useMemo(() => {
-        const filtered = trailers.filter((trailer) => {
+        const filtered = []
+        const potentialMatches = []
+        const hasActiveFilters =
+            (selectedPlant && selectedPlant !== 'All') || (typeFilter && typeFilter !== 'All Types')
+
+        trailers.forEach((trailer) => {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')
             let matchesSearch = true
             if (normalizedSearch) {
@@ -414,45 +419,52 @@ function TrailersView({
                         ? Number(trailer.openIssuesCount || 0) > 0
                         : false
             }
-            return matchesSearch && matchesPlant && matchesRegion && matchesType
+
+            if (matchesSearch && matchesPlant && matchesRegion && matchesType) {
+                filtered.push(trailer)
+            } else if (matchesSearch && hasActiveFilters && searchText.trim()) {
+                potentialMatches.push(trailer)
+            }
         })
-        return FleetUtility.sortWithRetiredLast(
-            filtered,
-            (a, b) => {
-                if (!sortKey) {
-                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
-                }
-                const prop = TRAILER_SORT_MAPPINGS[sortKey]
-                let aVal, bVal
-                if (sortKey === 'Trailer #') {
-                    aVal = parseFloat(a.trailerNumber) || 0
-                    bVal = parseFloat(b.trailerNumber) || 0
-                } else if (sortKey === 'Tractor') {
-                    const tractorA = tractors.find((t) => t.id === a.assignedTractor)
-                    const tractorB = tractors.find((t) => t.id === b.assignedTractor)
-                    aVal = tractorA?.truckNumber || ''
-                    bVal = tractorB?.truckNumber || ''
-                } else if (sortKey === 'VIN') {
-                    const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
-                    return sortDirection === 'asc' ? comparison : -comparison
-                } else if (prop) {
-                    aVal = a[prop]
-                    bVal = b[prop]
-                } else {
-                    return 0
-                }
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-                } else {
-                    aVal = String(aVal || '').toLowerCase()
-                    bVal = String(bVal || '').toLowerCase()
-                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-                    return 0
-                }
-            },
-            'status'
-        )
+
+        const sortFn = (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'trailerNumber')
+            }
+            const prop = TRAILER_SORT_MAPPINGS[sortKey]
+            let aVal, bVal
+            if (sortKey === 'Trailer #') {
+                aVal = parseFloat(a.trailerNumber) || 0
+                bVal = parseFloat(b.trailerNumber) || 0
+            } else if (sortKey === 'Tractor') {
+                const tractorA = tractors.find((t) => t.id === a.assignedTractor)
+                const tractorB = tractors.find((t) => t.id === b.assignedTractor)
+                aVal = tractorA?.truckNumber || ''
+                bVal = tractorB?.truckNumber || ''
+            } else if (sortKey === 'VIN') {
+                const comparison = FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+                return sortDirection === 'asc' ? comparison : -comparison
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            } else {
+                aVal = String(aVal || '').toLowerCase()
+                bVal = String(bVal || '').toLowerCase()
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+                return 0
+            }
+        }
+
+        return {
+            filtered: FleetUtility.sortWithRetiredLast(filtered, sortFn, 'status'),
+            potentialMatches: FleetUtility.sortWithRetiredLast(potentialMatches, sortFn, 'status')
+        }
     }, [
         trailers,
         tractors,
@@ -467,401 +479,432 @@ function TrailersView({
     ])
     const content = useMemo(() => {
         if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
-        if (filteredTrailers.length === 0)
+        const hasPotential = filteredTrailers.potentialMatches.length > 0
+        const hasFiltered = filteredTrailers.filtered.length > 0
+
+        if (!hasFiltered && !hasPotential) {
             return (
                 <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                        <i className="fas fa-trailer text-3xl text-slate-400"></i>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">No Trailers Found</h3>
-                    <p className="text-slate-500 mb-6 max-w-md">
-                        {searchText || selectedPlant || (typeFilter && typeFilter !== 'All Types')
-                            ? 'No trailers match your search criteria.'
-                            : 'There are no trailers in the system yet.'}
-                    </p>
-                    <button
-                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
-                        onClick={() => setShowAddSheet(true)}
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                        style={{ backgroundColor: 'var(--bg-hover)' }}
                     >
-                        Add Trailer
-                    </button>
+                        <i className="fas fa-trailer text-3xl" style={{ color: 'var(--text-secondary)' }}></i>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        {searchText ? 'No Trailers Found' : 'No Trailers Yet'}
+                    </h3>
+                    <p className="text-sm mb-6 max-w-md" style={{ color: 'var(--text-secondary)' }}>
+                        {searchText ? `No trailers match "${searchText}".` : 'There are no trailers in the system yet.'}
+                    </p>
+                    {!searchText && (
+                        <button
+                            className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
+                            onClick={() => setShowAddSheet(true)}
+                        >
+                            Add Trailer
+                        </button>
+                    )}
                 </div>
             )
-        if (viewMode === 'grid')
+        }
+
+        const commentModalHandler = (id, number) => {
+            setModalTrailerId(id)
+            setModalTrailerNumber(number)
+            setShowCommentModal(true)
+        }
+        const issueModalHandler = (id, number) => {
+            setModalTrailerId(id)
+            setModalTrailerNumber(number)
+            setShowIssueModal(true)
+        }
+        const renderListRow = (item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
+            const cellStyle = {
+                backgroundColor: alternatingBg,
+                borderBottom: '1px solid var(--border-light)',
+                color: 'var(--text-primary)',
+                fontSize: '14px',
+                padding: '20px 16px',
+                verticalAlign: 'middle'
+            }
+            const cellBoldStyle = {
+                ...cellStyle,
+                color: 'var(--text-secondary)',
+                fontSize: '15px',
+                fontWeight: 700
+            }
+            const statusBadge = (status) => {
+                const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
+                if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
+                if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
+                return `${base} bg-[#f1f5f9] text-[#64748b]`
+            }
+            const actionBtnStyle = {
+                alignItems: 'center',
+                backgroundColor: 'var(--bg-primary)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                fontSize: '14px',
+                height: '36px',
+                justifyContent: 'center',
+                marginRight: '8px',
+                width: '36px'
+            }
             return (
-                <GridViewModeSection
-                    filteredItems={filteredTrailers}
-                    tractors={tractors}
-                    plants={plants}
-                    handleSelectItem={handleSelectTrailer}
-                    cardComponent={TrailerCard}
-                    itemPropName="trailer"
-                    onShowCommentModal={(id, number) => {
-                        setModalTrailerId(id)
-                        setModalTrailerNumber(number)
-                        setShowCommentModal(true)
+                <tr
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
                     }}
-                    onShowIssueModal={(id, number) => {
-                        setModalTrailerId(id)
-                        setModalTrailerNumber(number)
-                        setShowIssueModal(true)
+                    onMouseLeave={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = alternatingBg))
                     }}
-                    gridClassName="grid"
-                />
-            )
-        return (
-            <ListViewModeSection
-                filteredItems={filteredTrailers}
-                handleSelectItem={handleSelectTrailer}
-                headerLabels={['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More']}
-                colWidths={['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%']}
-                renderRow={(item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
-                    const cellStyle = {
-                        backgroundColor: alternatingBg,
-                        borderBottom: '1px solid var(--border-light)',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px',
-                        padding: '20px 16px',
-                        verticalAlign: 'middle'
-                    }
-                    const cellBoldStyle = {
-                        ...cellStyle,
-                        color: 'var(--text-secondary)',
-                        fontSize: '15px',
-                        fontWeight: 700
-                    }
-                    const statusBadge = (status) => {
-                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
-                        if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
-                        if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
-                        if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
-                        return `${base} bg-[#f1f5f9] text-[#64748b]`
-                    }
-                    const actionBtnStyle = {
-                        alignItems: 'center',
-                        backgroundColor: 'var(--bg-primary)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: '8px',
-                        color: 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        fontSize: '14px',
-                        height: '36px',
-                        justifyContent: 'center',
-                        marginRight: '8px',
-                        width: '36px'
-                    }
-                    return (
-                        <tr
-                            key={item.id}
-                            onClick={() => handleSelect(item.id)}
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = alternatingBg))
-                            }}
-                        >
-                            <td style={{ ...cellStyle, width: '12%' }}>{item.assignedPlant || '---'}</td>
-                            <td style={{ ...cellBoldStyle, width: '14%' }}>
-                                {item.trailerNumber ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {item.trailerNumber}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(item.trailerNumber)
-                                                const icon = e.currentTarget.querySelector('i')
-                                                icon.className = 'fas fa-check'
-                                                icon.style.color = '#22c55e'
-                                                setTimeout(() => {
-                                                    icon.className = 'fas fa-copy'
-                                                    icon.style.color = ''
-                                                }, 1500)
-                                            }}
-                                            title="Copy trailer number"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    '---'
-                                )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '12%' }}>
-                                <div>
-                                    <span className={statusBadge(item.status)}>
-                                        {item.status || '---'}
-                                        {item.status &&
-                                            item.status !== 'Retired' &&
-                                            (() => {
-                                                const dateToUse = item.statusChangedAt || item.createdAt
-                                                const days = dateToUse
-                                                    ? Math.max(
-                                                          1,
-                                                          Math.floor(
-                                                              (Date.now() - new Date(dateToUse).getTime()) / 86400000
-                                                          )
-                                                      )
-                                                    : 1
-                                                return ` (${days} day${days !== 1 ? 's' : ''})`
-                                            })()}
+                >
+                    <td style={{ ...cellStyle, width: '12%' }}>{item.assignedPlant || '---'}</td>
+                    <td style={{ ...cellBoldStyle, width: '14%' }}>
+                        {item.trailerNumber ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {item.trailerNumber}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(item.trailerNumber)
+                                        const icon = e.currentTarget.querySelector('i')
+                                        icon.className = 'fas fa-check'
+                                        icon.style.color = '#22c55e'
+                                        setTimeout(() => {
+                                            icon.className = 'fas fa-copy'
+                                            icon.style.color = ''
+                                        }, 1500)
+                                    }}
+                                    title="Copy trailer number"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            '---'
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '12%' }}>
+                        <div>
+                            <span className={statusBadge(item.status)}>
+                                {item.status || '---'}
+                                {item.status &&
+                                    item.status !== 'Retired' &&
+                                    (() => {
+                                        const dateToUse = item.statusChangedAt || item.createdAt
+                                        const days = dateToUse
+                                            ? Math.max(
+                                                  1,
+                                                  Math.floor((Date.now() - new Date(dateToUse).getTime()) / 86400000)
+                                              )
+                                            : 1
+                                        return ` (${days} day${days !== 1 ? 's' : ''})`
+                                    })()}
+                            </span>
+                            <StatusHistoryBar
+                                itemId={item.id}
+                                itemType="trailer"
+                                currentStatus={item.status}
+                                createdAt={item.createdAt}
+                            />
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>{item.trailerType || '---'}</td>
+                    <td style={{ ...cellStyle, width: '14%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <i
+                                    key={i}
+                                    className="fas fa-star"
+                                    style={{
+                                        color:
+                                            i < Math.round(item.cleanlinessRating || 0)
+                                                ? '#f59e0b'
+                                                : 'var(--border-light)',
+                                        fontSize: '14px'
+                                    }}
+                                ></i>
+                            ))}
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '16%' }}>
+                        {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(
+                                            LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)
+                                        )
+                                        const icon = e.currentTarget.querySelector('i')
+                                        icon.className = 'fas fa-check'
+                                        icon.style.color = '#22c55e'
+                                        setTimeout(() => {
+                                            icon.className = 'fas fa-copy'
+                                            icon.style.color = ''
+                                        }, 1500)
+                                    }}
+                                    title="Copy tractor number"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                                {LookupUtility.isIdAssignedToMultiple(
+                                    trailers,
+                                    'assignedTractor',
+                                    item.assignedTractor
+                                ) && (
+                                    <span
+                                        style={{
+                                            backgroundColor: '#fef3c7',
+                                            borderRadius: '6px',
+                                            color: '#92400e',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            padding: '4px 8px'
+                                        }}
+                                    >
+                                        <i className="fas fa-exclamation-triangle"></i>
                                     </span>
-                                    <StatusHistoryBar
-                                        itemId={item.id}
-                                        itemType="trailer"
-                                        currentStatus={item.status}
-                                        createdAt={item.createdAt}
-                                    />
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>{item.trailerType || '---'}</td>
-                            <td style={{ ...cellStyle, width: '14%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <i
-                                            key={i}
-                                            className="fas fa-star"
-                                            style={{
-                                                color:
-                                                    i < Math.round(item.cleanlinessRating || 0)
-                                                        ? '#f59e0b'
-                                                        : 'var(--border-light)',
-                                                fontSize: '14px'
-                                            }}
-                                        ></i>
-                                    ))}
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '16%' }}>
-                                {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor) ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(
-                                                    LookupUtility.getTractorTruckNumber(tractors, item.assignedTractor)
-                                                )
-                                                const icon = e.currentTarget.querySelector('i')
-                                                icon.className = 'fas fa-check'
-                                                icon.style.color = '#22c55e'
-                                                setTimeout(() => {
-                                                    icon.className = 'fas fa-copy'
-                                                    icon.style.color = ''
-                                                }, 1500)
-                                            }}
-                                            title="Copy tractor number"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                        {LookupUtility.isIdAssignedToMultiple(
-                                            trailers,
-                                            'assignedTractor',
-                                            item.assignedTractor
-                                        ) && (
-                                            <span
-                                                style={{
-                                                    backgroundColor: '#fef3c7',
-                                                    borderRadius: '6px',
-                                                    color: '#92400e',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    padding: '4px 8px'
-                                                }}
-                                            >
-                                                <i className="fas fa-exclamation-triangle"></i>
-                                            </span>
-                                        )}
-                                    </div>
-                                ) : (
-                                    '---'
                                 )}
-                            </td>
-                            <td
-                                style={{
-                                    ...cellStyle,
-                                    color: 'var(--text-secondary)',
-                                    fontFamily: 'ui-monospace, monospace',
-                                    fontSize: '12px',
-                                    width: '12%'
+                            </div>
+                        ) : (
+                            '---'
+                        )}
+                    </td>
+                    <td
+                        style={{
+                            ...cellStyle,
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'ui-monospace, monospace',
+                            fontSize: '12px',
+                            width: '12%'
+                        }}
+                    >
+                        {item.vinNumber || item.vin ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {item.vinNumber || item.vin}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(item.vinNumber || item.vin)
+                                        const icon = e.currentTarget.querySelector('i')
+                                        icon.className = 'fas fa-check'
+                                        icon.style.color = '#22c55e'
+                                        setTimeout(() => {
+                                            icon.className = 'fas fa-copy'
+                                            icon.style.color = ''
+                                        }, 1500)
+                                    }}
+                                    title="Copy VIN"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            '---'
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex' }}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onComment(item.id, item.trailerNumber)
                                 }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View comments"
                             >
-                                {item.vinNumber || item.vin ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {item.vinNumber || item.vin}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(item.vinNumber || item.vin)
-                                                const icon = e.currentTarget.querySelector('i')
-                                                icon.className = 'fas fa-check'
-                                                icon.style.color = '#22c55e'
-                                                setTimeout(() => {
-                                                    icon.className = 'fas fa-copy'
-                                                    icon.style.color = ''
-                                                }, 1500)
-                                            }}
-                                            title="Copy VIN"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    '---'
+                                <i className="fas fa-comments"></i>
+                                {item.commentsCount > 0 && (
+                                    <span
+                                        style={{
+                                            alignItems: 'center',
+                                            backgroundColor: '#3b82f6',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
+                                        }}
+                                    >
+                                        {item.commentsCount > 9 ? '9+' : item.commentsCount}
+                                    </span>
                                 )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex' }}>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onComment(item.id, item.trailerNumber)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onIssue(item.id, item.trailerNumber)
+                                }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View issues"
+                            >
+                                <i className="fas fa-tools"></i>
+                                {item.openIssuesCount > 0 && (
+                                    <span
+                                        style={{
+                                            alignItems: 'center',
+                                            backgroundColor: '#ef4444',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
                                         }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View comments"
                                     >
-                                        <i className="fas fa-comments"></i>
-                                        {item.commentsCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#3b82f6',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.commentsCount > 9 ? '9+' : item.commentsCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onIssue(item.id, item.trailerNumber)
-                                        }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View issues"
-                                    >
-                                        <i className="fas fa-tools"></i>
-                                        {item.openIssuesCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#ef4444',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setSelectedTrailerForHistory(item)
-                                            setShowHistoryModal(true)
-                                        }}
-                                        style={actionBtnStyle}
-                                        title="View history"
-                                    >
-                                        <i className="fas fa-history"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    )
-                }}
-                onShowCommentModal={(id, number) => {
-                    setModalTrailerId(id)
-                    setModalTrailerNumber(number)
-                    setShowCommentModal(true)
-                }}
-                onShowIssueModal={(id, number) => {
-                    setModalTrailerId(id)
-                    setModalTrailerNumber(number)
-                    setShowIssueModal(true)
-                }}
-                containerClassName="list-table-container"
-                tableClassName="list-table"
-            />
+                                        {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedTrailerForHistory(item)
+                                    setShowHistoryModal(true)
+                                }}
+                                style={actionBtnStyle}
+                                title="View history"
+                            >
+                                <i className="fas fa-history"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            )
+        }
+
+        const gridProps = {
+            cardComponent: TrailerCard,
+            gridClassName: 'grid',
+            handleSelectItem: handleSelectTrailer,
+            itemPropName: 'trailer',
+            onShowCommentModal: commentModalHandler,
+            onShowIssueModal: issueModalHandler,
+            plants,
+            tractors
+        }
+
+        const listProps = {
+            colWidths: ['12%', '14%', '12%', '10%', '14%', '16%', '12%', '10%'],
+            containerClassName: 'list-table-container',
+            handleSelectItem: handleSelectTrailer,
+            headerLabels: ['Plant', 'Trailer #', 'Status', 'Type', 'Cleanliness', 'Tractor', 'VIN', 'More'],
+            onShowCommentModal: commentModalHandler,
+            onShowIssueModal: issueModalHandler,
+            renderRow: renderListRow,
+            tableClassName: 'list-table'
+        }
+
+        const renderViewSection = (items) =>
+            viewMode === 'grid' ? (
+                <GridViewModeSection filteredItems={items} {...gridProps} />
+            ) : (
+                <ListViewModeSection filteredItems={items} {...listProps} />
+            )
+
+        const mainContent = hasFiltered ? renderViewSection(filteredTrailers.filtered) : null
+
+        const potentialContent = hasPotential ? (
+            <>
+                <div
+                    className="flex items-center gap-3 px-4 py-3 mt-4 rounded-lg"
+                    style={{ backgroundColor: 'var(--bg-hover)' }}
+                >
+                    <i className="fas fa-filter text-xs" style={{ color: 'var(--text-secondary)' }}></i>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {hasFiltered ? 'Potential Matches' : 'Results Outside Current Filters'}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {hasFiltered
+                            ? '(hidden by active filters)'
+                            : 'No exact filter matches \u2014 showing results that match your search'}
+                    </span>
+                    <span
+                        className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                    >
+                        {filteredTrailers.potentialMatches.length}
+                    </span>
+                </div>
+                <div className={hasFiltered ? 'opacity-60' : ''}>
+                    {renderViewSection(filteredTrailers.potentialMatches)}
+                </div>
+            </>
+        ) : null
+
+        return (
+            <>
+                {mainContent}
+                {potentialContent}
+            </>
         )
-    }, [
-        isLoading,
-        filteredTrailers,
-        viewMode,
-        searchText,
-        selectedPlant,
-        typeFilter,
-        tractors,
-        plants,
-        trailers,
-        handleSelectTrailer
-    ])
+    }, [isLoading, filteredTrailers, viewMode, searchText, tractors, plants, trailers, handleSelectTrailer])
     useEffect(() => {
         async function searchByVin() {
             const normalizedSearch = searchText.trim().toLowerCase().replace(/\s+/g, '')

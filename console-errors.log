@@ -112,3 +112,33 @@
 %s
  An error occurred in the <VerificationRequirementsModal> component. Consider adding an error boundary to your tree to customize error handling behavior.
 Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-11T14:14:26.589Z] [uncaught] Uncaught ReferenceError: StartPageDropdown is not defined at http://localhost:3000/src_views_myaccount_MyAccountView_jsx.d07ea1de39d291126329.hot-update.js:1853:101
+[2026-03-11T14:14:26.589Z] [warn] %s
+
+%s
+ An error occurred in the <MyAccountView> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-11T17:39:57.299Z] [uncaught] Uncaught TypeError: Cannot read properties of undefined (reading 'forEach') at http://localhost:3000/src_views_notifications_NotificationsView_jsx.fbb1408c0b09e38906fc.hot-update.js:184:10
+[2026-03-11T17:39:57.299Z] [warn] %s
+
+%s
+ An error occurred in the <NotificationsView> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-11T17:40:43.018Z] [uncaught] Uncaught TypeError: Cannot read properties of undefined (reading 'forEach') at http://localhost:3000/static/js/src_views_notifications_NotificationsView_jsx.chunk.js:184:10
+[2026-03-11T17:40:43.018Z] [warn] %s
+
+%s
+ An error occurred in the <NotificationsView> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-11T17:40:43.018Z] [uncaught] Uncaught TypeError: Cannot read properties of undefined (reading 'forEach') at http://localhost:3000/static/js/src_views_notifications_NotificationsView_jsx.chunk.js:184:10
+[2026-03-11T17:40:43.018Z] [warn] %s
+
+%s
+ An error occurred in the <NotificationsView> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-11T20:30:22.265Z] [uncaught] Uncaught ReferenceError: Cannot access 'markConversationRead' before initialization at http://localhost:3000/src_views_notifications_NotificationsView_jsx.108eb376280ccf29694d.hot-update.js:204:30
+[2026-03-11T20:30:22.265Z] [warn] %s
+
+%s
+ An error occurred in the <NotificationsView> component. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.

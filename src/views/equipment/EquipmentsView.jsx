@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import StatusHistoryBar from '../../app/components/common/StatusHistoryBar'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
@@ -447,7 +448,14 @@ function EquipmentsView({
     )
     /** Applies search, plant, region, status, and type filters, then sorts with retired items pushed to the end. */
     const filteredEquipments = useMemo(() => {
-        const filtered = equipments.filter((equipment) => {
+        const filtered = []
+        const potentialMatches = []
+        const hasActiveFilters =
+            (selectedPlant && selectedPlant !== 'All') ||
+            (statusFilter && statusFilter !== 'All Statuses') ||
+            !!equipmentTypeFilter
+
+        equipments.forEach((equipment) => {
             let matchesSearch = true
             if (searchText.trim()) {
                 if (exactMatch) {
@@ -480,50 +488,56 @@ function EquipmentsView({
                             : false
             }
             const matchesType = !equipmentTypeFilter || equipment.equipmentType === equipmentTypeFilter
-            return matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType
+
+            if (matchesSearch && matchesPlant && matchesRegion && matchesStatus && matchesType) {
+                filtered.push(equipment)
+            } else if (matchesSearch && hasActiveFilters && searchText.trim()) {
+                potentialMatches.push(equipment)
+            }
         })
-        return FleetUtility.sortWithRetiredLast(
-            filtered,
-            (a, b) => {
-                if (!sortKey) {
-                    return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
-                }
-                const prop = EQUIPMENT_SORT_MAPPINGS[sortKey]
-                let aVal, bVal
-                if (sortKey === 'Verified') {
-                    aVal =
-                        a.status === 'Retired'
-                            ? 0
-                            : EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy)
-                              ? 2
-                              : 1
-                    bVal =
-                        b.status === 'Retired'
-                            ? 0
-                            : EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy)
-                              ? 2
-                              : 1
-                } else if (sortKey === 'Equipment #') {
-                    aVal = parseFloat(a.identifyingNumber) || 0
-                    bVal = parseFloat(b.identifyingNumber) || 0
-                } else if (prop) {
-                    aVal = a[prop]
-                    bVal = b[prop]
-                } else {
-                    return 0
-                }
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
-                } else {
-                    aVal = String(aVal || '').toLowerCase()
-                    bVal = String(bVal || '').toLowerCase()
-                    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
-                    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
-                    return 0
-                }
-            },
-            'status'
-        )
+
+        const sortFn = (a, b) => {
+            if (!sortKey) {
+                return FleetUtility.compareByStatusThenNumber(a, b, 'status', 'identifyingNumber')
+            }
+            const prop = EQUIPMENT_SORT_MAPPINGS[sortKey]
+            let aVal, bVal
+            if (sortKey === 'Verified') {
+                aVal =
+                    a.status === 'Retired'
+                        ? 0
+                        : EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy)
+                          ? 2
+                          : 1
+                bVal =
+                    b.status === 'Retired'
+                        ? 0
+                        : EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy)
+                          ? 2
+                          : 1
+            } else if (sortKey === 'Equipment #') {
+                aVal = parseFloat(a.identifyingNumber) || 0
+                bVal = parseFloat(b.identifyingNumber) || 0
+            } else if (prop) {
+                aVal = a[prop]
+                bVal = b[prop]
+            } else {
+                return 0
+            }
+            if (typeof aVal === 'number' && typeof bVal === 'number') {
+                return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+            }
+            aVal = String(aVal || '').toLowerCase()
+            bVal = String(bVal || '').toLowerCase()
+            if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+            if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+            return 0
+        }
+
+        return {
+            filtered: FleetUtility.sortWithRetiredLast(filtered, sortFn, 'status'),
+            potentialMatches: FleetUtility.sortWithRetiredLast(potentialMatches, sortFn, 'status')
+        }
     }, [
         equipments,
         selectedPlant,
@@ -594,393 +608,436 @@ function EquipmentsView({
     }, [viewMode, searchInput, selectedPlant, statusFilter, equipmentTypeFilter])
     const content = useMemo(() => {
         if (isLoading) return <AssetListSkeleton viewMode={viewMode} />
-        if (filteredEquipments.length === 0)
+
+        const gridProps = {
+            cardComponent: EquipmentCard,
+            getCardProps: (equipment) => ({
+                operatorName: undefined,
+                plantName: lookupGetPlantName(plants, equipment.assignedPlant)
+            }),
+            gridClassName: 'grid',
+            handleSelectItem: handleSelectEquipment,
+            itemPropName: 'equipment',
+            onShowCommentModal: (id, number) => {
+                setModalEquipmentId(id)
+                setModalEquipmentNumber(number)
+                setShowCommentModal(true)
+            },
+            onShowIssueModal: (id, number) => {
+                setModalEquipmentId(id)
+                setModalEquipmentNumber(number)
+                setShowIssueModal(true)
+            }
+        }
+        const renderEquipmentRow = (
+            item,
+            handleSelect,
+            onComment,
+            onIssue,
+            onVerify,
+            onHistory,
+            index,
+            alternatingBg
+        ) => {
+            const isVerified =
+                typeof item.isVerified === 'function'
+                    ? item.isVerified(item.latestHistoryDate)
+                    : EquipmentUtility.isVerified(
+                          item.updatedLast,
+                          item.updatedAt,
+                          item.updatedBy,
+                          item.latestHistoryDate
+                      )
+            const cellStyle = {
+                backgroundColor: alternatingBg,
+                borderBottom: '1px solid var(--border-light)',
+                color: 'var(--text-primary)',
+                fontSize: '14px',
+                padding: '20px 16px',
+                verticalAlign: 'middle'
+            }
+            const cellBoldStyle = {
+                ...cellStyle,
+                color: 'var(--text-secondary)',
+                fontSize: '15px',
+                fontWeight: 700
+            }
+            const statusBadge = (status) => {
+                const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
+                if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
+                if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
+                if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
+                return `${base} bg-[#f1f5f9] text-[#64748b]`
+            }
+            const verifyBtnStyle = (verified) => {
+                const base =
+                    'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
+                const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
+                const cursor = verified ? 'cursor-default' : 'cursor-pointer'
+                return `${base} ${colors} ${cursor}`
+            }
+            const actionBtnStyle = {
+                alignItems: 'center',
+                backgroundColor: 'var(--bg-primary)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '8px',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                fontSize: '14px',
+                height: '36px',
+                justifyContent: 'center',
+                marginRight: '8px',
+                width: '36px'
+            }
             return (
-                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                        <i className="fas fa-snowplow text-3xl text-slate-400"></i>
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">No Equipment Found</h3>
-                    <p className="text-slate-500 mb-6 max-w-md">
-                        {searchText ||
-                        selectedPlant ||
-                        (statusFilter && statusFilter !== 'All Statuses') ||
-                        equipmentTypeFilter
-                            ? 'No equipment matches your search criteria.'
-                            : 'There is no equipment in the system yet.'}
-                    </p>
-                    <button
-                        className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
-                        onClick={() => setShowAddSheet(true)}
+                <tr
+                    key={item.id}
+                    onClick={() => handleSelect(item.id)}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget
+                            .querySelectorAll('td')
+                            .forEach((td) => (td.style.backgroundColor = alternatingBg))
+                    }}
+                >
+                    <td style={{ ...cellStyle, width: '10%' }}>{item.assignedPlant || '---'}</td>
+                    <td style={{ ...cellStyle, width: '15%' }}>{item.equipmentType || '---'}</td>
+                    <td style={{ ...cellBoldStyle, width: '10%' }}>
+                        {item.identifyingNumber ? (
+                            <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                {item.identifyingNumber}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(item.identifyingNumber)
+                                        const icon = e.currentTarget.querySelector('i')
+                                        icon.className = 'fas fa-check'
+                                        icon.style.color = '#22c55e'
+                                        setTimeout(() => {
+                                            icon.className = 'fas fa-copy'
+                                            icon.style.color = ''
+                                        }, 1500)
+                                    }}
+                                    title="Copy equipment number"
+                                    style={{
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        fontSize: '12px',
+                                        padding: '2px'
+                                    }}
+                                >
+                                    <i className="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        ) : (
+                            '---'
+                        )}
+                    </td>
+                    <td
+                        style={{
+                            ...cellStyle,
+                            width: '15%'
+                        }}
                     >
-                        Add Equipment
-                    </button>
-                </div>
-            )
-        if (viewMode === 'grid')
-            return (
-                <GridViewModeSection
-                    filteredItems={filteredEquipments}
-                    getCardProps={(equipment) => ({
-                        operatorName: undefined,
-                        plantName: lookupGetPlantName(plants, equipment.assignedPlant)
-                    })}
-                    handleSelectItem={handleSelectEquipment}
-                    cardComponent={EquipmentCard}
-                    itemPropName="equipment"
-                    onShowCommentModal={(id, number) => {
-                        setModalEquipmentId(id)
-                        setModalEquipmentNumber(number)
-                        setShowCommentModal(true)
-                    }}
-                    onShowIssueModal={(id, number) => {
-                        setModalEquipmentId(id)
-                        setModalEquipmentNumber(number)
-                        setShowIssueModal(true)
-                    }}
-                    gridClassName="grid"
-                />
-            )
-        return (
-            <ListViewModeSection
-                filteredItems={filteredEquipments}
-                operators={[]}
-                plants={plants}
-                handleSelectItem={handleSelectEquipment}
-                headerLabels={[
-                    'Plant',
-                    'Type',
-                    'Equipment #',
-                    'Make & Model',
-                    'Status',
-                    'Cleanliness',
-                    'Condition',
-                    'Verified',
-                    'More'
-                ]}
-                colWidths={['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%']}
-                renderRow={(item, handleSelect, onComment, onIssue, onVerify, onHistory, index, alternatingBg) => {
-                    const isVerified =
-                        typeof item.isVerified === 'function'
-                            ? item.isVerified(item.latestHistoryDate)
-                            : EquipmentUtility.isVerified(
-                                  item.updatedLast,
-                                  item.updatedAt,
-                                  item.updatedBy,
-                                  item.latestHistoryDate
-                              )
-                    const cellStyle = {
-                        backgroundColor: alternatingBg,
-                        borderBottom: '1px solid var(--border-light)',
-                        color: 'var(--text-primary)',
-                        fontSize: '14px',
-                        padding: '20px 16px',
-                        verticalAlign: 'middle'
-                    }
-                    const cellBoldStyle = {
-                        ...cellStyle,
-                        color: 'var(--text-secondary)',
-                        fontSize: '15px',
-                        fontWeight: 700
-                    }
-                    const statusBadge = (status) => {
-                        const base = 'inline-block rounded-2xl text-xs font-semibold px-3.5 py-1.5'
-                        if (status === 'Active') return `${base} bg-[#dcfce7] text-[#166534]`
-                        if (status === 'Spare') return `${base} bg-[#f3e8ff] text-[#7c3aed]`
-                        if (status === 'In Shop') return `${base} bg-[#dbeafe] text-[#1e40af]`
-                        return `${base} bg-[#f1f5f9] text-[#64748b]`
-                    }
-                    const verifyBtnStyle = (verified) => {
-                        const base =
-                            'inline-flex items-center border-none rounded-lg font-semibold whitespace-nowrap text-xs gap-1.5 px-3.5 py-2'
-                        const colors = verified ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef3c7] text-[#92400e]'
-                        const cursor = verified ? 'cursor-default' : 'cursor-pointer'
-                        return `${base} ${colors} ${cursor}`
-                    }
-                    const actionBtnStyle = {
-                        alignItems: 'center',
-                        backgroundColor: 'var(--bg-primary)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: '8px',
-                        color: 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        fontSize: '14px',
-                        height: '36px',
-                        justifyContent: 'center',
-                        marginRight: '8px',
-                        width: '36px'
-                    }
-                    return (
-                        <tr
-                            key={item.id}
-                            onClick={() => handleSelect(item.id)}
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = 'var(--bg-tertiary)'))
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget
-                                    .querySelectorAll('td')
-                                    .forEach((td) => (td.style.backgroundColor = alternatingBg))
-                            }}
-                        >
-                            <td style={{ ...cellStyle, width: '10%' }}>{item.assignedPlant || '---'}</td>
-                            <td style={{ ...cellStyle, width: '15%' }}>{item.equipmentType || '---'}</td>
-                            <td style={{ ...cellBoldStyle, width: '10%' }}>
-                                {item.identifyingNumber ? (
-                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
-                                        {item.identifyingNumber}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                navigator.clipboard.writeText(item.identifyingNumber)
-                                                const icon = e.currentTarget.querySelector('i')
-                                                icon.className = 'fas fa-check'
-                                                icon.style.color = '#22c55e'
-                                                setTimeout(() => {
-                                                    icon.className = 'fas fa-copy'
-                                                    icon.style.color = ''
-                                                }, 1500)
-                                            }}
-                                            title="Copy equipment number"
-                                            style={{
-                                                alignItems: 'center',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-secondary)',
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                fontSize: '12px',
-                                                padding: '2px'
-                                            }}
-                                        >
-                                            <i className="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    '---'
-                                )}
-                            </td>
-                            <td
+                        {item.yearMade || item.equipmentMake || item.equipmentModel
+                            ? `${item.yearMade ? item.yearMade + ' ' : ''}${item.equipmentMake || ''} ${item.equipmentModel || ''}`.trim()
+                            : '---'}
+                    </td>
+                    <td style={{ ...cellStyle, width: '8%' }}>
+                        <div>
+                            <span className={statusBadge(item.status)}>
+                                {item.status || '---'}
+                                {item.status &&
+                                    item.status !== 'Retired' &&
+                                    (() => {
+                                        const dateToUse = item.statusChangedAt || item.createdAt
+                                        const days = dateToUse
+                                            ? Math.max(
+                                                  1,
+                                                  Math.floor((Date.now() - new Date(dateToUse).getTime()) / 86400000)
+                                              )
+                                            : 1
+                                        return ` (${days} day${days !== 1 ? 's' : ''})`
+                                    })()}
+                            </span>
+                            <StatusHistoryBar
+                                itemId={item.id}
+                                itemType="equipment"
+                                currentStatus={item.status}
+                                createdAt={item.createdAt}
+                            />
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <i
+                                    key={i}
+                                    className="fas fa-star"
+                                    style={{
+                                        color:
+                                            i < Math.round(item.cleanlinessRating || 0)
+                                                ? '#f59e0b'
+                                                : 'var(--border-light)',
+                                        fontSize: '14px'
+                                    }}
+                                ></i>
+                            ))}
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <i
+                                    key={i}
+                                    className="fas fa-star"
+                                    style={{
+                                        color:
+                                            i < Math.round(item.conditionRating || 0)
+                                                ? '#f59e0b'
+                                                : 'var(--border-light)',
+                                        fontSize: '14px'
+                                    }}
+                                ></i>
+                            ))}
+                        </div>
+                    </td>
+                    <td style={{ ...cellStyle, width: '10%' }}>
+                        {item.status === 'Retired' ? (
+                            <span
                                 style={{
-                                    ...cellStyle,
-                                    width: '15%'
+                                    backgroundColor: 'var(--bg-secondary)',
+                                    borderRadius: '8px',
+                                    color: 'var(--text-secondary)',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    padding: '8px 14px'
                                 }}
                             >
-                                {item.yearMade || item.equipmentMake || item.equipmentModel
-                                    ? `${item.yearMade ? item.yearMade + ' ' : ''}${item.equipmentMake || ''} ${item.equipmentModel || ''}`.trim()
-                                    : '---'}
-                            </td>
-                            <td style={{ ...cellStyle, width: '8%' }}>
-                                <div>
-                                    <span className={statusBadge(item.status)}>
-                                        {item.status || '---'}
-                                        {item.status &&
-                                            item.status !== 'Retired' &&
-                                            (() => {
-                                                const dateToUse = item.statusChangedAt || item.createdAt
-                                                const days = dateToUse
-                                                    ? Math.max(
-                                                          1,
-                                                          Math.floor(
-                                                              (Date.now() - new Date(dateToUse).getTime()) / 86400000
-                                                          )
-                                                      )
-                                                    : 1
-                                                return ` (${days} day${days !== 1 ? 's' : ''})`
-                                            })()}
-                                    </span>
-                                    <StatusHistoryBar
-                                        itemId={item.id}
-                                        itemType="equipment"
-                                        currentStatus={item.status}
-                                        createdAt={item.createdAt}
-                                    />
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <i
-                                            key={i}
-                                            className="fas fa-star"
-                                            style={{
-                                                color:
-                                                    i < Math.round(item.cleanlinessRating || 0)
-                                                        ? '#f59e0b'
-                                                        : 'var(--border-light)',
-                                                fontSize: '14px'
-                                            }}
-                                        ></i>
-                                    ))}
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex', gap: '4px' }}>
-                                    {Array.from({ length: 5 }).map((_, i) => (
-                                        <i
-                                            key={i}
-                                            className="fas fa-star"
-                                            style={{
-                                                color:
-                                                    i < Math.round(item.conditionRating || 0)
-                                                        ? '#f59e0b'
-                                                        : 'var(--border-light)',
-                                                fontSize: '14px'
-                                            }}
-                                        ></i>
-                                    ))}
-                                </div>
-                            </td>
-                            <td style={{ ...cellStyle, width: '10%' }}>
-                                {item.status === 'Retired' ? (
+                                N/A
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (onVerify) onVerify(item.id, item.identifyingNumber)
+                                }}
+                                title={isVerified ? 'Verified' : 'Click to verify'}
+                                className={verifyBtnStyle(isVerified)}
+                            >
+                                <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                                <span>{isVerified ? 'Verified' : 'Verify'}</span>
+                            </button>
+                        )}
+                    </td>
+                    <td style={{ ...cellStyle, width: '12%' }}>
+                        <div style={{ alignItems: 'center', display: 'flex' }}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onComment(item.id, item.identifyingNumber)
+                                }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View comments"
+                            >
+                                <i className="fas fa-comments"></i>
+                                {item.commentsCount > 0 && (
                                     <span
                                         style={{
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            borderRadius: '8px',
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '12px',
-                                            fontWeight: 600,
-                                            padding: '8px 14px'
+                                            alignItems: 'center',
+                                            backgroundColor: '#3b82f6',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
                                         }}
                                     >
-                                        N/A
+                                        {item.commentsCount > 9 ? '9+' : item.commentsCount}
                                     </span>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            if (onVerify) onVerify(item.id, item.identifyingNumber)
-                                        }}
-                                        title={isVerified ? 'Verified' : 'Click to verify'}
-                                        className={verifyBtnStyle(isVerified)}
-                                    >
-                                        <i
-                                            className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-circle'}`}
-                                        ></i>
-                                        <span>{isVerified ? 'Verified' : 'Verify'}</span>
-                                    </button>
                                 )}
-                            </td>
-                            <td style={{ ...cellStyle, width: '12%' }}>
-                                <div style={{ alignItems: 'center', display: 'flex' }}>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onComment(item.id, item.identifyingNumber)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onIssue(item.id, item.identifyingNumber)
+                                }}
+                                style={{ ...actionBtnStyle, position: 'relative' }}
+                                title="View issues"
+                            >
+                                <i className="fas fa-tools"></i>
+                                {item.openIssuesCount > 0 && (
+                                    <span
+                                        style={{
+                                            alignItems: 'center',
+                                            backgroundColor: '#ef4444',
+                                            borderRadius: '10px',
+                                            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            height: '16px',
+                                            justifyContent: 'center',
+                                            minWidth: '16px',
+                                            padding: '0 4px',
+                                            position: 'absolute',
+                                            right: '-4px',
+                                            top: '-4px'
                                         }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View comments"
                                     >
-                                        <i className="fas fa-comments"></i>
-                                        {item.commentsCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#3b82f6',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.commentsCount > 9 ? '9+' : item.commentsCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            onIssue(item.id, item.identifyingNumber)
-                                        }}
-                                        style={{ ...actionBtnStyle, position: 'relative' }}
-                                        title="View issues"
-                                    >
-                                        <i className="fas fa-tools"></i>
-                                        {item.openIssuesCount > 0 && (
-                                            <span
-                                                style={{
-                                                    alignItems: 'center',
-                                                    backgroundColor: '#ef4444',
-                                                    borderRadius: '10px',
-                                                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
-                                                    color: 'white',
-                                                    display: 'flex',
-                                                    fontSize: '10px',
-                                                    fontWeight: 700,
-                                                    height: '16px',
-                                                    justifyContent: 'center',
-                                                    minWidth: '16px',
-                                                    padding: '0 4px',
-                                                    position: 'absolute',
-                                                    right: '-4px',
-                                                    top: '-4px'
-                                                }}
-                                            >
-                                                {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            setSelectedEquipmentForHistory(item)
-                                            setShowHistoryModal(true)
-                                        }}
-                                        style={actionBtnStyle}
-                                        title="View history"
-                                    >
-                                        <i className="fas fa-history"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    )
-                }}
-                onShowCommentModal={(id, number) => {
-                    setModalEquipmentId(id)
-                    setModalEquipmentNumber(number)
-                    setShowCommentModal(true)
-                }}
-                onShowIssueModal={(id, number) => {
-                    setModalEquipmentId(id)
-                    setModalEquipmentNumber(number)
-                    setShowIssueModal(true)
-                }}
-                onVerify={handleVerifyEquipment}
-                containerClassName="list-table-container"
-                tableClassName="list-table"
-            />
+                                        {item.openIssuesCount > 9 ? '9+' : item.openIssuesCount}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedEquipmentForHistory(item)
+                                    setShowHistoryModal(true)
+                                }}
+                                style={actionBtnStyle}
+                                title="View history"
+                            >
+                                <i className="fas fa-history"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            )
+        }
+        const listProps = {
+            colWidths: ['10%', '15%', '10%', '15%', '8%', '10%', '10%', '10%', '12%'],
+            containerClassName: 'list-table-container',
+            handleSelectItem: handleSelectEquipment,
+            headerLabels: [
+                'Plant',
+                'Type',
+                'Equipment #',
+                'Make & Model',
+                'Status',
+                'Cleanliness',
+                'Condition',
+                'Verified',
+                'More'
+            ],
+            onShowCommentModal: (id, number) => {
+                setModalEquipmentId(id)
+                setModalEquipmentNumber(number)
+                setShowCommentModal(true)
+            },
+            onShowIssueModal: (id, number) => {
+                setModalEquipmentId(id)
+                setModalEquipmentNumber(number)
+                setShowIssueModal(true)
+            },
+            onVerify: handleVerifyEquipment,
+            operators: [],
+            plants,
+            renderRow: renderEquipmentRow,
+            tableClassName: 'list-table'
+        }
+
+        const hasPotential = filteredEquipments.potentialMatches.length > 0
+        const hasFiltered = filteredEquipments.filtered.length > 0
+
+        // No results at all — show dark-mode-friendly empty state
+        if (!hasFiltered && !hasPotential) {
+            return (
+                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
+                        style={{ backgroundColor: 'var(--bg-hover)' }}
+                    >
+                        <i className="fas fa-snowplow text-3xl" style={{ color: 'var(--text-secondary)' }}></i>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        {searchText ? 'No Equipment Found' : 'No Equipment Yet'}
+                    </h3>
+                    <p className="text-sm mb-6 max-w-md" style={{ color: 'var(--text-secondary)' }}>
+                        {searchText
+                            ? `No equipment matches "${searchText}".`
+                            : 'There is no equipment in the system yet.'}
+                    </p>
+                    {!searchText && (
+                        <button
+                            className="px-5 py-2.5 bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg transition-colors"
+                            onClick={() => setShowAddSheet(true)}
+                        >
+                            Add Equipment
+                        </button>
+                    )}
+                </div>
+            )
+        }
+
+        const renderViewSection = (items) =>
+            viewMode === 'grid' ? (
+                <GridViewModeSection filteredItems={items} {...gridProps} />
+            ) : (
+                <ListViewModeSection filteredItems={items} {...listProps} />
+            )
+
+        const mainContent = hasFiltered ? renderViewSection(filteredEquipments.filtered) : null
+
+        const potentialContent = hasPotential ? (
+            <>
+                <div
+                    className="flex items-center gap-3 px-4 py-3 mt-4 rounded-lg"
+                    style={{ backgroundColor: 'var(--bg-hover)' }}
+                >
+                    <i className="fas fa-filter text-xs" style={{ color: 'var(--text-secondary)' }}></i>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {hasFiltered ? 'Potential Matches' : 'Results Outside Current Filters'}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {hasFiltered
+                            ? '(hidden by active filters)'
+                            : 'No exact filter matches — showing results that match your search'}
+                    </span>
+                    <span
+                        className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                    >
+                        {filteredEquipments.potentialMatches.length}
+                    </span>
+                </div>
+                <div className={hasFiltered ? 'opacity-60' : ''}>
+                    {renderViewSection(filteredEquipments.potentialMatches)}
+                </div>
+            </>
+        ) : null
+
+        return (
+            <>
+                {mainContent}
+                {potentialContent}
+            </>
         )
-    }, [
-        isLoading,
-        filteredEquipments,
-        viewMode,
-        searchText,
-        selectedPlant,
-        statusFilter,
-        equipmentTypeFilter,
-        plants,
-        handleSelectEquipment,
-        handleVerifyEquipment
-    ])
+    }, [isLoading, filteredEquipments, viewMode, searchText, plants, handleSelectEquipment, handleVerifyEquipment])
     const showReset =
         searchText || selectedPlant || (statusFilter && statusFilter !== 'All Statuses') || equipmentTypeFilter
     return (

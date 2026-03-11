@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.5] - 2026-03-11
+
+- Added direct user-to-user messaging system with encrypted message storage (pgcrypto + Supabase Vault), MessageService, useMessages hook, and conversation-threaded UI
+- Rebuilt NotificationsView into a full messages center with conversation list, real-time chat thread, compose flow, and message attachments (equipment, issues, etc.)
+- Transformed NotificationsModal from an alerts dropdown into a conversations-based popup showing recent message threads
+- Added "Send Message" modal to IssueModalSection for notifying regional managers about issues with pre-filled context
+- Added configurable start page preference with custom dropdown in MyAccountView and auto-navigation on login
+- Improved operator exclusion flow in ReportsSubmitView — modal now triggers automatically when last operator is excluded, stores reason in form state instead of immediately submitting, and re-includes operator on cancel
+- Changed OperatorExclusionReasonModal confirm button text from "Confirm & Submit" to "Confirm"
+- Renamed MixerCard low-cleanliness badge from "DOWNED" to "DIRTY" and converted inline styles to Tailwind
+- Redesigned plant shutdown banner in ReportsReviewView with a more prominent card-style layout and hides report form when plant is shut down
+- Fixed UserNotificationsService to filter notification reads by the current user's ID instead of taking the first read record
+- Added dark mode support to RecapModalSection stat cards and NotificationsModal using CSS variables
+- Added messages and messages_decrypted to DatabaseService allowed tables
+- Added logo hover effect with brightness/scale animation in desktop Navigation
+- Added position: relative to main content scroll containers
+- Refactored fleet views (EquipmentsView, MixersView, TractorsView, TrailersView) with cleaner filter/sort pipelines and potential-match tracking
+- Added startPage to PreferencesContext defaults, persistence, and hydration from Supabase
+- Fixed PreferencesContext useEffect to re-fetch when auth trigger changes
+
 ## [30.4] - 2026-03-11
 
 - Fixed dark mode support for chart tooltips by replacing hardcoded white backgrounds with CSS variable-based theming

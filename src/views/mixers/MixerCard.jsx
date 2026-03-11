@@ -105,19 +105,10 @@ function MixerCard({
                             </div>
                             {mixer.cleanlinessRating < 3 && (
                                 <span
-                                    className="downed-badge"
                                     title="This truck cannot run loads until the cleanliness is 3 stars or better. Do not ignore this warning."
-                                    style={{
-                                        backgroundColor: 'var(--error)',
-                                        borderRadius: '4px',
-                                        color: 'white',
-                                        cursor: 'help',
-                                        fontSize: '11px',
-                                        fontWeight: 'bold',
-                                        padding: '2px 6px'
-                                    }}
+                                    className="bg-[#fee2e2] text-[#dc2626] rounded text-[11px] font-bold px-1.5 py-0.5 cursor-help"
                                 >
-                                    DOWNED
+                                    DIRTY
                                 </span>
                             )}
                         </div>

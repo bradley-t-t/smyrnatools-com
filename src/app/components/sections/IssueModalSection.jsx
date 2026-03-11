@@ -1,9 +1,665 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
+import MessageService from '../../../services/MessageService'
 import { UserService } from '../../../services/UserService'
+import { usePreferences } from '../../context/PreferencesContext'
 import ErrorMessage from '../common/ErrorMessage'
 import LoadingScreen from '../common/LoadingScreen'
+const SEVERITY_COLORS = {
+    High: { accent: '#dc2626', bg: 'rgba(220, 38, 38, 0.1)', icon: 'fa-fire' },
+    Low: { accent: '#22c55e', bg: 'rgba(34, 197, 94, 0.1)', icon: 'fa-leaf' },
+    Medium: { accent: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)', icon: 'fa-bolt' }
+}
+/** Modal for sending a message about an issue to a regional manager. */
+function SendIssueMessageModal({ issue, itemNumber, itemType, creatorName, onClose }) {
+    const [managers, setManagers] = useState([])
+    const [selectedManager, setSelectedManager] = useState(null)
+    const [commentary, setCommentary] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [sending, setSending] = useState(false)
+    const [sent, setSent] = useState(false)
+    const [error, setError] = useState('')
+    const [managerDropdownOpen, setManagerDropdownOpen] = useState(false)
+    const dropdownRef = useRef(null)
+    const { preferences } = usePreferences()
+    const accentColor = preferences?.accentColor || '#1e3a5f'
+    const regionCode = preferences?.selectedRegion?.code || ''
+    const sevConfig = SEVERITY_COLORS[issue.severity] || SEVERITY_COLORS.Medium
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setManagerDropdownOpen(false)
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    useEffect(() => {
+        let cancelled = false
+        const load = async () => {
+            setLoading(true)
+            try {
+                const list = await MessageService.getRegionalRecipients(regionCode)
+                if (!cancelled) setManagers(list)
+            } catch {
+                setError('Failed to load team members')
+            }
+            setLoading(false)
+        }
+        load()
+        return () => {
+            cancelled = true
+        }
+    }, [regionCode])
+
+    const handleSend = async () => {
+        if (!selectedManager || sending) return
+        setSending(true)
+        setError('')
+        try {
+            const currentUser = await UserService.getCurrentUser()
+            const subject = `Issue on ${itemType} ${itemNumber || ''} — ${issue.severity} Severity`
+            const attachment = {
+                meta: {
+                    issueId: issue.id,
+                    issueText: issue.issue,
+                    itemNumber,
+                    itemType,
+                    reportedBy: creatorName,
+                    severity: issue.severity
+                },
+                type: 'issue'
+            }
+            await MessageService.sendMessage(
+                currentUser?.id,
+                selectedManager.id,
+                subject,
+                commentary || issue.issue,
+                attachment
+            )
+            window.dispatchEvent(new Event('messages-refresh'))
+            setSent(true)
+        } catch (e) {
+            setError(e?.message || 'Failed to send message')
+        }
+        setSending(false)
+    }
+
+    const getInitials = (mgr) => {
+        const f = mgr.firstName?.[0] || ''
+        const l = mgr.lastName?.[0] || ''
+        return (f + l).toUpperCase() || '?'
+    }
+
+    return (
+        <div
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose()
+            }}
+            style={{
+                alignItems: 'center',
+                animation: 'issueFadeIn 0.2s ease',
+                background: 'rgba(15, 23, 42, 0.8)',
+                bottom: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                left: 0,
+                padding: '1rem',
+                position: 'fixed',
+                right: 0,
+                top: 0,
+                zIndex: 2100
+            }}
+        >
+            <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    animation: 'issueSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '20px',
+                    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    maxHeight: '90vh',
+                    maxWidth: '520px',
+                    overflow: 'hidden',
+                    width: '100%'
+                }}
+            >
+                {/* Header */}
+                <div
+                    style={{
+                        alignItems: 'center',
+                        borderBottom: '1px solid var(--bg-hover)',
+                        display: 'flex',
+                        gap: '0.75rem',
+                        justifyContent: 'space-between',
+                        padding: '1.25rem 1.5rem'
+                    }}
+                >
+                    <div style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                background: `${accentColor}20`,
+                                borderRadius: '12px',
+                                display: 'flex',
+                                height: '42px',
+                                justifyContent: 'center',
+                                width: '42px'
+                            }}
+                        >
+                            <i className="fas fa-paper-plane" style={{ color: accentColor, fontSize: '1rem' }}></i>
+                        </div>
+                        <div>
+                            <div style={{ color: 'var(--text-primary)', fontSize: '1.125rem', fontWeight: 700 }}>
+                                Send Message
+                            </div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                                Notify a team member about this issue
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            alignItems: 'center',
+                            background: 'var(--bg-hover)',
+                            border: 'none',
+                            borderRadius: '10px',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            fontSize: '0.875rem',
+                            height: '34px',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            width: '34px'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border-medium)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
+                    >
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.5rem' }}>
+                    {sent ? (
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem',
+                                padding: '2rem 0',
+                                textAlign: 'center'
+                            }}
+                        >
+                            <div
+                                style={{
+                                    alignItems: 'center',
+                                    background: 'rgba(34, 197, 94, 0.1)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    height: '64px',
+                                    justifyContent: 'center',
+                                    width: '64px'
+                                }}
+                            >
+                                <i className="fas fa-check" style={{ color: '#22c55e', fontSize: '1.5rem' }}></i>
+                            </div>
+                            <div style={{ color: 'var(--text-primary)', fontSize: '1.125rem', fontWeight: 600 }}>
+                                Message Sent
+                            </div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                                {selectedManager?.firstName} {selectedManager?.lastName} will be notified
+                            </div>
+                            <button
+                                onClick={onClose}
+                                style={{
+                                    background: accentColor,
+                                    border: 'none',
+                                    borderRadius: '10px',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600,
+                                    marginTop: '0.5rem',
+                                    padding: '0.625rem 1.5rem',
+                                    transition: 'opacity 0.2s'
+                                }}
+                            >
+                                Done
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Issue Preview Card */}
+                            <div
+                                style={{
+                                    background: 'var(--bg-primary)',
+                                    border: '1px solid var(--bg-hover)',
+                                    borderLeft: `4px solid ${sevConfig.accent}`,
+                                    borderRadius: '12px',
+                                    marginBottom: '1.25rem',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                <div style={{ padding: '1rem 1.25rem' }}>
+                                    <div
+                                        style={{
+                                            alignItems: 'center',
+                                            display: 'flex',
+                                            gap: '0.625rem',
+                                            marginBottom: '0.75rem'
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'var(--bg-hover)',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                gap: '0.375rem',
+                                                padding: '0.25rem 0.5rem'
+                                            }}
+                                        >
+                                            <i
+                                                className="fas fa-tag"
+                                                style={{ color: 'var(--text-secondary)', fontSize: '0.625rem' }}
+                                            ></i>
+                                            <span
+                                                style={{
+                                                    color: 'var(--text-secondary)',
+                                                    fontSize: '0.6875rem',
+                                                    fontWeight: 600,
+                                                    letterSpacing: '0.5px',
+                                                    textTransform: 'uppercase'
+                                                }}
+                                            >
+                                                {itemType}
+                                            </span>
+                                        </div>
+                                        <span
+                                            style={{
+                                                color: 'var(--text-primary)',
+                                                fontSize: '0.9375rem',
+                                                fontWeight: 700
+                                            }}
+                                        >
+                                            {itemNumber || 'N/A'}
+                                        </span>
+                                        <span
+                                            style={{
+                                                alignItems: 'center',
+                                                background: sevConfig.bg,
+                                                borderRadius: '6px',
+                                                color: sevConfig.accent,
+                                                display: 'inline-flex',
+                                                fontSize: '0.625rem',
+                                                fontWeight: 700,
+                                                gap: '0.25rem',
+                                                marginLeft: 'auto',
+                                                padding: '0.2rem 0.5rem'
+                                            }}
+                                        >
+                                            <i className={`fas ${sevConfig.icon}`} style={{ fontSize: '0.5rem' }}></i>
+                                            {issue.severity}
+                                        </span>
+                                    </div>
+                                    <p
+                                        style={{
+                                            color: 'var(--text-primary)',
+                                            fontSize: '0.875rem',
+                                            lineHeight: 1.6,
+                                            margin: 0,
+                                            whiteSpace: 'pre-wrap'
+                                        }}
+                                    >
+                                        {issue.issue}
+                                    </p>
+                                    <div
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            fontSize: '0.75rem',
+                                            marginTop: '0.625rem'
+                                        }}
+                                    >
+                                        Reported by {creatorName}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Manager Selector */}
+                            <div style={{ marginBottom: '1rem' }}>
+                                <label
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        display: 'block',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.5px',
+                                        marginBottom: '0.5rem',
+                                        textTransform: 'uppercase'
+                                    }}
+                                >
+                                    Send to
+                                </label>
+                                {loading ? (
+                                    <div
+                                        style={{
+                                            alignItems: 'center',
+                                            background: 'var(--bg-primary)',
+                                            borderRadius: '12px',
+                                            display: 'flex',
+                                            gap: '0.75rem',
+                                            padding: '0.875rem 1rem'
+                                        }}
+                                    >
+                                        <LoadingScreen message="Loading team members..." inline />
+                                    </div>
+                                ) : (
+                                    <div ref={dropdownRef} style={{ position: 'relative' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setManagerDropdownOpen((prev) => !prev)}
+                                            style={{
+                                                alignItems: 'center',
+                                                background: 'var(--bg-primary)',
+                                                border: managerDropdownOpen
+                                                    ? `2px solid ${accentColor}`
+                                                    : '2px solid transparent',
+                                                borderRadius: '12px',
+                                                boxShadow: managerDropdownOpen ? `0 0 0 3px ${accentColor}20` : 'none',
+                                                color: selectedManager
+                                                    ? 'var(--text-primary)'
+                                                    : 'var(--text-secondary)',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                fontSize: '0.875rem',
+                                                gap: '0.75rem',
+                                                padding: '0.75rem 1rem',
+                                                textAlign: 'left',
+                                                transition: 'all 0.2s',
+                                                width: '100%'
+                                            }}
+                                        >
+                                            {selectedManager ? (
+                                                <>
+                                                    <div
+                                                        style={{
+                                                            alignItems: 'center',
+                                                            background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`,
+                                                            borderRadius: '8px',
+                                                            color: 'white',
+                                                            display: 'flex',
+                                                            flexShrink: 0,
+                                                            fontSize: '0.6875rem',
+                                                            fontWeight: 700,
+                                                            height: '32px',
+                                                            justifyContent: 'center',
+                                                            width: '32px'
+                                                        }}
+                                                    >
+                                                        {getInitials(selectedManager)}
+                                                    </div>
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <div style={{ fontWeight: 600 }}>
+                                                            {selectedManager.firstName} {selectedManager.lastName}
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        >
+                                                            {selectedManager.roleName}
+                                                            {selectedManager.plantCode
+                                                                ? ` · ${selectedManager.plantCode}`
+                                                                : ''}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i
+                                                        className="fas fa-user-plus"
+                                                        style={{ fontSize: '0.875rem' }}
+                                                    ></i>
+                                                    <span>Select a recipient...</span>
+                                                </>
+                                            )}
+                                            <i
+                                                className={`fas fa-chevron-down`}
+                                                style={{
+                                                    color: 'var(--text-secondary)',
+                                                    fontSize: '0.625rem',
+                                                    marginLeft: 'auto',
+                                                    transform: managerDropdownOpen ? 'rotate(180deg)' : 'none',
+                                                    transition: 'transform 0.2s'
+                                                }}
+                                            ></i>
+                                        </button>
+                                        {managerDropdownOpen && (
+                                            <div
+                                                style={{
+                                                    background: 'var(--bg-primary)',
+                                                    border: '1px solid var(--bg-hover)',
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
+                                                    left: 0,
+                                                    maxHeight: '220px',
+                                                    overflowY: 'auto',
+                                                    position: 'absolute',
+                                                    right: 0,
+                                                    top: 'calc(100% + 6px)',
+                                                    zIndex: 10
+                                                }}
+                                            >
+                                                {managers.length === 0 ? (
+                                                    <div
+                                                        style={{
+                                                            color: 'var(--text-secondary)',
+                                                            fontSize: '0.8125rem',
+                                                            padding: '1rem',
+                                                            textAlign: 'center'
+                                                        }}
+                                                    >
+                                                        No team members found
+                                                    </div>
+                                                ) : (
+                                                    managers.map((mgr) => {
+                                                        const isSelected = selectedManager?.id === mgr.id
+                                                        return (
+                                                            <button
+                                                                key={mgr.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setSelectedManager(mgr)
+                                                                    setManagerDropdownOpen(false)
+                                                                }}
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    background: isSelected
+                                                                        ? `${accentColor}15`
+                                                                        : 'transparent',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    gap: '0.75rem',
+                                                                    padding: '0.625rem 1rem',
+                                                                    textAlign: 'left',
+                                                                    transition: 'background 0.15s',
+                                                                    width: '100%'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    if (!isSelected)
+                                                                        e.currentTarget.style.background =
+                                                                            'var(--bg-hover)'
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    if (!isSelected)
+                                                                        e.currentTarget.style.background = 'transparent'
+                                                                }}
+                                                            >
+                                                                <div
+                                                                    style={{
+                                                                        alignItems: 'center',
+                                                                        background: isSelected
+                                                                            ? accentColor
+                                                                            : 'var(--bg-hover)',
+                                                                        borderRadius: '8px',
+                                                                        color: isSelected
+                                                                            ? 'white'
+                                                                            : 'var(--text-secondary)',
+                                                                        display: 'flex',
+                                                                        flexShrink: 0,
+                                                                        fontSize: '0.625rem',
+                                                                        fontWeight: 700,
+                                                                        height: '30px',
+                                                                        justifyContent: 'center',
+                                                                        width: '30px'
+                                                                    }}
+                                                                >
+                                                                    {getInitials(mgr)}
+                                                                </div>
+                                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                                    <div
+                                                                        style={{
+                                                                            color: 'var(--text-primary)',
+                                                                            fontSize: '0.8125rem',
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    >
+                                                                        {mgr.firstName} {mgr.lastName}
+                                                                    </div>
+                                                                    <div
+                                                                        style={{
+                                                                            color: 'var(--text-secondary)',
+                                                                            fontSize: '0.6875rem'
+                                                                        }}
+                                                                    >
+                                                                        {mgr.roleName}
+                                                                        {mgr.plantCode ? ` · ${mgr.plantCode}` : ''}
+                                                                    </div>
+                                                                </div>
+                                                                {isSelected && (
+                                                                    <i
+                                                                        className="fas fa-check"
+                                                                        style={{
+                                                                            color: accentColor,
+                                                                            fontSize: '0.75rem'
+                                                                        }}
+                                                                    ></i>
+                                                                )}
+                                                            </button>
+                                                        )
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Commentary */}
+                            <div style={{ marginBottom: '1.25rem' }}>
+                                <label
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        display: 'block',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.5px',
+                                        marginBottom: '0.5rem',
+                                        textTransform: 'uppercase'
+                                    }}
+                                >
+                                    Message <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+                                </label>
+                                <textarea
+                                    value={commentary}
+                                    onChange={(e) => setCommentary(e.target.value)}
+                                    placeholder="Add context, questions, or instructions..."
+                                    rows="3"
+                                    style={{
+                                        background: 'var(--bg-primary)',
+                                        border: '2px solid transparent',
+                                        borderRadius: '12px',
+                                        color: 'var(--text-primary)',
+                                        fontFamily: 'inherit',
+                                        fontSize: '0.875rem',
+                                        lineHeight: 1.6,
+                                        outline: 'none',
+                                        padding: '0.875rem 1rem',
+                                        resize: 'vertical',
+                                        transition: 'all 0.2s',
+                                        width: '100%'
+                                    }}
+                                    onFocus={(e) => {
+                                        e.currentTarget.style.borderColor = accentColor
+                                        e.currentTarget.style.boxShadow = `0 0 0 3px ${accentColor}20`
+                                    }}
+                                    onBlur={(e) => {
+                                        e.currentTarget.style.borderColor = 'transparent'
+                                        e.currentTarget.style.boxShadow = 'none'
+                                    }}
+                                />
+                            </div>
+
+                            {error && (
+                                <div
+                                    style={{
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        borderRadius: '10px',
+                                        color: '#ef4444',
+                                        fontSize: '0.8125rem',
+                                        fontWeight: 500,
+                                        marginBottom: '1rem',
+                                        padding: '0.75rem 1rem'
+                                    }}
+                                >
+                                    <i className="fas fa-exclamation-triangle" style={{ marginRight: '0.5rem' }}></i>
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* Send Button */}
+                            <button
+                                onClick={handleSend}
+                                disabled={!selectedManager || sending}
+                                style={{
+                                    alignItems: 'center',
+                                    background: !selectedManager || sending ? 'var(--border-medium)' : accentColor,
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    boxShadow: !selectedManager || sending ? 'none' : `0 4px 14px ${accentColor}40`,
+                                    color: !selectedManager || sending ? 'var(--text-secondary)' : 'white',
+                                    cursor: !selectedManager || sending ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    fontSize: '0.9375rem',
+                                    fontWeight: 600,
+                                    gap: '0.5rem',
+                                    justifyContent: 'center',
+                                    padding: '0.875rem',
+                                    transition: 'all 0.2s',
+                                    width: '100%'
+                                }}
+                            >
+                                <i
+                                    className={`fas ${sending ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`}
+                                    style={{ fontSize: '0.8125rem' }}
+                                ></i>
+                                {sending ? 'Sending...' : 'Send Message'}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
 /**
  * Portal-rendered modal for managing asset issues.
  * Supports creating, resolving, and deleting issues with severity levels.
@@ -19,6 +675,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
     const [userNames, setUserNames] = useState({})
     const [canDelete, setCanDelete] = useState(false)
     const [activeTab, setActiveTab] = useState('open')
+    const [messageIssue, setMessageIssue] = useState(null)
     useEffect(() => {
         async function checkDeletePermission() {
             try {
@@ -672,32 +1329,64 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                 </div>
                                                 <div style={{ display: 'flex', flexShrink: 0, gap: '0.375rem' }}>
                                                     {!isResolved && (
-                                                        <button
-                                                            onClick={() => handleCompleteIssue(issue.id)}
-                                                            title="Mark resolved"
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                background: '#f0fdf4',
-                                                                border: 'none',
-                                                                borderRadius: '8px',
-                                                                color: '#22c55e',
-                                                                cursor: 'pointer',
-                                                                display: 'flex',
-                                                                fontSize: '0.8125rem',
-                                                                height: '32px',
-                                                                justifyContent: 'center',
-                                                                transition: 'all 0.15s',
-                                                                width: '32px'
-                                                            }}
-                                                            onMouseEnter={(e) =>
-                                                                (e.currentTarget.style.background = '#dcfce7')
-                                                            }
-                                                            onMouseLeave={(e) =>
-                                                                (e.currentTarget.style.background = '#f0fdf4')
-                                                            }
-                                                        >
-                                                            <i className="fas fa-check"></i>
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleCompleteIssue(issue.id)}
+                                                                title="Mark resolved"
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    background: 'var(--bg-hover)',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    color: '#22c55e',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    fontSize: '0.8125rem',
+                                                                    height: '32px',
+                                                                    justifyContent: 'center',
+                                                                    transition: 'all 0.15s',
+                                                                    width: '32px'
+                                                                }}
+                                                                onMouseEnter={(e) =>
+                                                                    (e.currentTarget.style.background =
+                                                                        'var(--border-medium)')
+                                                                }
+                                                                onMouseLeave={(e) =>
+                                                                    (e.currentTarget.style.background =
+                                                                        'var(--bg-hover)')
+                                                                }
+                                                            >
+                                                                <i className="fas fa-check"></i>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setMessageIssue(issue)}
+                                                                title="Send message about this issue"
+                                                                style={{
+                                                                    alignItems: 'center',
+                                                                    background: 'var(--bg-hover)',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    color: 'var(--accent, #3b82f6)',
+                                                                    cursor: 'pointer',
+                                                                    display: 'flex',
+                                                                    fontSize: '0.75rem',
+                                                                    height: '32px',
+                                                                    justifyContent: 'center',
+                                                                    transition: 'all 0.15s',
+                                                                    width: '32px'
+                                                                }}
+                                                                onMouseEnter={(e) =>
+                                                                    (e.currentTarget.style.background =
+                                                                        'var(--border-medium)')
+                                                                }
+                                                                onMouseLeave={(e) =>
+                                                                    (e.currentTarget.style.background =
+                                                                        'var(--bg-hover)')
+                                                                }
+                                                            >
+                                                                <i className="fas fa-paper-plane"></i>
+                                                            </button>
+                                                        </>
                                                     )}
                                                     {canDelete && (
                                                         <button
@@ -705,7 +1394,7 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                             title="Delete"
                                                             style={{
                                                                 alignItems: 'center',
-                                                                background: '#fef2f2',
+                                                                background: 'var(--bg-hover)',
                                                                 border: 'none',
                                                                 borderRadius: '8px',
                                                                 color: '#ef4444',
@@ -718,10 +1407,11 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                                                                 width: '32px'
                                                             }}
                                                             onMouseEnter={(e) =>
-                                                                (e.currentTarget.style.background = '#fee2e2')
+                                                                (e.currentTarget.style.background =
+                                                                    'var(--border-medium)')
                                                             }
                                                             onMouseLeave={(e) =>
-                                                                (e.currentTarget.style.background = '#fef2f2')
+                                                                (e.currentTarget.style.background = 'var(--bg-hover)')
                                                             }
                                                         >
                                                             <i className="fas fa-trash"></i>
@@ -737,6 +1427,15 @@ function IssueModalSection({ itemId, itemNumber, itemType, onClose, service }) {
                     </div>
                 </div>
             </div>
+            {messageIssue && (
+                <SendIssueMessageModal
+                    issue={messageIssue}
+                    itemNumber={itemNumber}
+                    itemType={itemType}
+                    creatorName={getCreatorName(messageIssue)}
+                    onClose={() => setMessageIssue(null)}
+                />
+            )}
         </>,
         document.body
     )

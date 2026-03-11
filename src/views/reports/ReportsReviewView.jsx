@@ -267,41 +267,56 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
                 </div>
             )}
             {isPlantShutdown && (
-                <div className="bg-amber-100 text-amber-800 px-6 py-4 flex items-center gap-3 text-sm font-medium">
-                    <i
-                        className={`fas ${operatorExclusionReason === 'operators_sent_to_other_location' ? 'fa-truck-loading' : 'fa-info-circle'}`}
-                    ></i>
-                    <span>
-                        {OPERATOR_EXCLUSION_REASONS[operatorExclusionReason] || 'Plant was shut down'}
-                        {reportDateVerbose ? ` on ${reportDateVerbose}` : ''}
-                    </span>
+                <div className="mx-6 mt-4 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 p-5">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-amber-200/60 flex items-center justify-center flex-shrink-0">
+                            <i
+                                className={`fas ${operatorExclusionReason === 'operators_sent_to_other_location' ? 'fa-truck-loading' : 'fa-industry'} text-amber-700 text-sm`}
+                            ></i>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
+                                All Operators Excluded
+                            </span>
+                            <span className="text-sm font-semibold text-amber-900">
+                                {OPERATOR_EXCLUSION_REASONS[operatorExclusionReason] || 'Plant was shut down'}
+                            </span>
+                            {reportDateVerbose && (
+                                <span className="text-xs text-amber-700/70">{reportDateVerbose}</span>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
-            <div className="p-6 max-w-5xl mx-auto">
-                {report.name === 'plant_manager' && renderPlantManagerForm()}
-                {!PLUGIN_ONLY_REPORTS.includes(report.name) && report.name !== 'plant_manager' && renderDefaultForm()}
-                {PluginComponent && (
-                    <PluginComponent
-                        form={form}
-                        yph={yph}
-                        yphGrade={yphGrade}
-                        yphLabel={yphLabel}
-                        lost={lost}
-                        lostGrade={lostGrade}
-                        lostLabel={lostLabel}
-                        summaryTab={summaryTab}
-                        setSummaryTab={setSummaryTab}
-                        maintenanceItems={maintenanceItems}
-                        operatorOptions={operatorOptions}
-                        plants={plants}
-                        weekIso={weekIso}
-                        user={completedByUser || user}
-                        assignedPlant={assignedPlant}
-                        reportUserId={initialData?.user_id}
-                    />
-                )}
-                {report.name === 'aggregate_production' && renderAggregateTable()}
-            </div>
+            {!isPlantShutdown && (
+                <div className="p-6 max-w-5xl mx-auto">
+                    {report.name === 'plant_manager' && renderPlantManagerForm()}
+                    {!PLUGIN_ONLY_REPORTS.includes(report.name) &&
+                        report.name !== 'plant_manager' &&
+                        renderDefaultForm()}
+                    {PluginComponent && (
+                        <PluginComponent
+                            form={form}
+                            yph={yph}
+                            yphGrade={yphGrade}
+                            yphLabel={yphLabel}
+                            lost={lost}
+                            lostGrade={lostGrade}
+                            lostLabel={lostLabel}
+                            summaryTab={summaryTab}
+                            setSummaryTab={setSummaryTab}
+                            maintenanceItems={maintenanceItems}
+                            operatorOptions={operatorOptions}
+                            plants={plants}
+                            weekIso={weekIso}
+                            user={completedByUser || user}
+                            assignedPlant={assignedPlant}
+                            reportUserId={initialData?.user_id}
+                        />
+                    )}
+                    {report.name === 'aggregate_production' && renderAggregateTable()}
+                </div>
+            )}
         </div>
     )
 }
