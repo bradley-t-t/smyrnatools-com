@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.7] - 2026-03-12
+
+- Removed unused variables from Navigation (notificationsHook assignment, magneticLeave, magneticMove from useMagneticHover destructure)
+- Standardized import spacing in DistrictManagerPlantsSection
+- Added v30.6 changelog entry
+- Logged realtime subscription error to console-errors.log
+
 ## [30.6] - 2026-03-12
 
 - Added new SideGlassNavigation component — a glassmorphic left sidebar navigation alternative

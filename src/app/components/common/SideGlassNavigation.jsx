@@ -770,7 +770,11 @@ export default function SideGlassNavigation({
             {/* Main content wrapper offset by sidebar */}
             <div
                 className="flex flex-col h-screen overflow-hidden"
-                style={{ ...buildGridStyle(accentColor), marginLeft: SIDEBAR_OFFSET }}
+                style={{
+                    ...buildGridStyle(accentColor),
+                    backgroundColor: 'var(--bg-primary)',
+                    marginLeft: SIDEBAR_OFFSET
+                }}
             >
                 <div data-content-scroll className="flex-1 overflow-x-hidden overflow-y-auto relative">
                     {children}
