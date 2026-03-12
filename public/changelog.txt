@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.6] - 2026-03-12
+
+- Added new SideGlassNavigation component — a glassmorphic left sidebar navigation alternative
+- Added navStyle preference (top_bar_basic / side_glass) with persistence in PreferencesContext
+- Added navigation style picker in MyAccountView so users can switch between top bar and left sidebar layouts
+- Updated App.js to dynamically render Navigation or SideGlassNavigation based on the user's navStyle preference
+- Made NotificationsModal and OnlineUsersModal positioning flexible with useLeft anchor support for sidebar layout
+- Converted RecapModalSection to support controlled open/close via external props (isOpen, onClose)
+- Added a Recap button to MixersView header that opens RecapModalSection inline instead of only via the side tab
+- Centered RecapModalSection modal instead of pinning it to top-left
+- Added dark mode support to RecapModalSection metric badge icons
+- Added skeleton loading placeholders to Navigation when menu items haven't loaded yet
+- Added 30 navigation concept HTML prototypes for design exploration
+- Standardized import spacing across multiple view files
+- Cleared old realtime subscription errors from console-errors.log
+
 ## [30.5] - 2026-03-11
 
 - Added direct user-to-user messaging system with encrypted message storage (pgcrypto + Supabase Vault), MessageService, useMessages hook, and conversation-threaded UI

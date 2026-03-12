@@ -100,14 +100,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
-    const notificationsHook = useNotifications(userId, preferences?.selectedRegion)
+    useNotifications(userId, preferences?.selectedRegion)
     const messagesHook = useMessages(userId)
     const notificationsCount = messagesHook.unreadCount
-    const {
-        handleMouseLeave: magneticLeave,
-        handleMouseMove: magneticMove,
-        registerElement: registerMagnetic
-    } = useMagneticHover()
+    const { registerElement: registerMagnetic } = useMagneticHover()
     useEffect(() => {
         const setupAndInit = async () => {
             try {
