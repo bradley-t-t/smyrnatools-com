@@ -34,7 +34,11 @@
       "Bash(yes N:*)",
       "Bash(npm list:*)",
       "Bash(nit:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(chmod +x:*)",
+      "Bash(kill 39466:*)",
+      "Bash(kill 41209:*)",
+      "Bash(kill 40087:*)"
     ]
   }
 }
