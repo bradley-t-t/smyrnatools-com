@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.6] - 2026-03-12
+
+- Added claude-remote-loop.sh script that auto-restarts Claude remote sessions using expect to handle the permissions prompt
+- Added Claude Code local settings for the scripts directory with scoped read and bash permissions
+- Updated root Claude Code settings to allow chmod and kill commands
+- Added claude-loop.log for tracking remote session activity
+
 ## [31.5] - 2026-03-12
 
 - Updated Claude Remote workflow to use claude_args instead of separate allowed_tools, max_turns, and model parameters
