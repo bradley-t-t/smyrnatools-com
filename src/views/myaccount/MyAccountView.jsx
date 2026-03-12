@@ -1232,10 +1232,10 @@ function MyAccountView({ userId }) {
                                             Top Bar
                                         </button>
                                         <button
-                                            onClick={() => updatePreferences('navStyle', 'side_glass')}
-                                            className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'side_glass' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            onClick={() => updatePreferences('navStyle', 'two_level_tabs')}
+                                            className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'two_level_tabs' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                             style={
-                                                preferences.navStyle === 'side_glass'
+                                                preferences.navStyle === 'two_level_tabs'
                                                     ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
                                                     : {}
                                             }

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.3] - 2026-03-12
+
+- Redesigned the online users button in Navigation to use a users icon with a badge count overlay instead of the inline green dot and text
+- Renamed the "side_glass" nav style preference to "two_level_tabs" in MyAccountView to match the consolidated navigation mode
+
 ## [31.2] - 2026-03-12
 
 - Consolidated SideGlassNavigation into Navigation by adding a new "two_level_tabs" layout mode with category pills, sliding underline, and secondary item tabs

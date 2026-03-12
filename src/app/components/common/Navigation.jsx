@@ -942,8 +942,25 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         setShowOnlineUsers(true)
                                     }}
                                 >
-                                    <i className="fas fa-circle" style={{ color: '#22c55e', fontSize: 7 }} />
-                                    <span className="ml-1 text-xs font-semibold text-white">{onlineUsersCount}</span>
+                                    <i className="fas fa-users" style={{ fontSize: 13 }} />
+                                    {onlineUsersCount > 0 && (
+                                        <span
+                                            className="absolute flex items-center justify-center rounded-full"
+                                            style={{
+                                                backgroundColor: '#22c55e',
+                                                border: `2px solid ${accentColor}`,
+                                                color: 'white',
+                                                fontSize: 9,
+                                                fontWeight: 700,
+                                                height: 16,
+                                                minWidth: 16,
+                                                right: -4,
+                                                top: -4
+                                            }}
+                                        >
+                                            {onlineUsersCount}
+                                        </span>
+                                    )}
                                 </button>
 
                                 {/* User avatar */}
