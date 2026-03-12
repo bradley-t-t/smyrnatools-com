@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { supabase } from '../../services/DatabaseService'
 import MessageService from '../../services/MessageService'
-import { useMultiTableSubscription } from './useRealtimeSubscription'
-const MESSAGE_TABLES = ['messages']
+
 /**
  * Manages message state with conversation-threaded inbox.
  * Groups all messages by the other participant into conversation threads.
- * Subscribes to realtime changes on the messages table.
+ *
+ * Uses two filtered Supabase realtime channels (sender + recipient) so only
+ * this user's messages trigger updates. Handles INSERT/UPDATE/DELETE granularly
+ * instead of re-fetching everything on each change.
  */
 export function useMessages(userId) {
     const [allMessages, setAllMessages] = useState([])
@@ -15,11 +18,14 @@ export function useMessages(userId) {
     const [resolvedUserId, setResolvedUserId] = useState(null)
     const hasLoadedRef = useRef(false)
     const refreshSeqRef = useRef(0)
+
     // Resolve the canonical user ID once
     useEffect(() => {
         if (!userId) return
         MessageService.resolveId(userId).then((id) => setResolvedUserId(id))
     }, [userId])
+
+    /** Full refresh — used on initial load and as a fallback. */
     const refresh = useCallback(async () => {
         if (!userId) {
             setAllMessages([])
@@ -47,24 +53,153 @@ export function useMessages(userId) {
             }
         }
     }, [userId])
+
+    // Initial data load
     useEffect(() => {
         refresh()
     }, [refresh])
-    useMultiTableSubscription(MESSAGE_TABLES, {
-        enabled: !!userId,
-        onAnyChange: refresh
-    })
+
+    /**
+     * Filtered Supabase realtime subscriptions.
+     * Two channels: one for messages where user is recipient, one where user is sender.
+     * This avoids firing on messages between other users entirely.
+     */
+    useEffect(() => {
+        if (!resolvedUserId) return
+
+        const handleInsert = async (payload) => {
+            const row = payload.new
+            if (!row?.id) return
+            // Fetch the decrypted message since the realtime payload has encrypted body
+            const message = await MessageService.getMessageById(row.id)
+            if (!message) return
+            setAllMessages((prev) => {
+                if (prev.some((m) => m.id === message.id)) return prev
+                return [message, ...prev]
+            })
+            // If we're the recipient and it's unread, bump the count
+            if (row.recipient_id === resolvedUserId && !row.is_read) {
+                setUnreadCount((prev) => prev + 1)
+            }
+        }
+
+        const handleUpdate = (payload) => {
+            const row = payload.new
+            const old = payload.old
+            if (!row?.id) return
+            setAllMessages((prev) =>
+                prev.map((m) => {
+                    if (m.id !== row.id) return m
+                    return {
+                        ...m,
+                        isRead: row.is_read ?? m.isRead,
+                        readAt: row.read_at ?? m.readAt
+                    }
+                })
+            )
+            // Adjust unread count for read-state transitions
+            if (row.recipient_id === resolvedUserId) {
+                if (old && !old.is_read && row.is_read) {
+                    setUnreadCount((prev) => Math.max(0, prev - 1))
+                } else if (old && old.is_read && !row.is_read) {
+                    setUnreadCount((prev) => prev + 1)
+                }
+            }
+            // Handle soft-delete flags — remove from local state
+            if (
+                (row.deleted_by_recipient && row.recipient_id === resolvedUserId) ||
+                (row.deleted_by_sender && row.sender_id === resolvedUserId)
+            ) {
+                setAllMessages((prev) => prev.filter((m) => m.id !== row.id))
+                if (row.recipient_id === resolvedUserId && !row.is_read) {
+                    setUnreadCount((prev) => Math.max(0, prev - 1))
+                }
+            }
+        }
+
+        const handleDelete = (payload) => {
+            const row = payload.old
+            if (!row?.id) return
+            setAllMessages((prev) => prev.filter((m) => m.id !== row.id))
+            if (row.recipient_id === resolvedUserId && !row.is_read) {
+                setUnreadCount((prev) => Math.max(0, prev - 1))
+            }
+        }
+
+        const recipientChannel = supabase
+            .channel(`messages-recipient-${resolvedUserId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    filter: `recipient_id=eq.${resolvedUserId}`,
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    switch (payload.eventType) {
+                        case 'INSERT':
+                            handleInsert(payload)
+                            break
+                        case 'UPDATE':
+                            handleUpdate(payload)
+                            break
+                        case 'DELETE':
+                            handleDelete(payload)
+                            break
+                        default:
+                            break
+                    }
+                }
+            )
+            .subscribe()
+
+        const senderChannel = supabase
+            .channel(`messages-sender-${resolvedUserId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    filter: `sender_id=eq.${resolvedUserId}`,
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    switch (payload.eventType) {
+                        case 'INSERT':
+                            handleInsert(payload)
+                            break
+                        case 'UPDATE':
+                            handleUpdate(payload)
+                            break
+                        case 'DELETE':
+                            handleDelete(payload)
+                            break
+                        default:
+                            break
+                    }
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(recipientChannel)
+            supabase.removeChannel(senderChannel)
+        }
+    }, [resolvedUserId])
+
+    // Listen for manual refresh events (e.g. after sending a message)
     useEffect(() => {
         const handleRefresh = () => refresh()
         window.addEventListener('messages-refresh', handleRefresh)
         return () => window.removeEventListener('messages-refresh', handleRefresh)
     }, [refresh])
+
     /** Conversations grouped by the other user, sorted by most recent message. */
     const conversations = useMemo(() => {
         if (!resolvedUserId || !allMessages.length) return []
         const threadMap = new Map()
         allMessages.forEach((msg) => {
-            // The "other" user is whoever isn't us. For self-messages, other = self.
             const otherId = msg.senderId === resolvedUserId ? msg.recipientId : msg.senderId
             if (!threadMap.has(otherId)) {
                 threadMap.set(otherId, { messages: [], otherId, unread: 0 })
@@ -77,7 +212,6 @@ export function useMessages(userId) {
         })
         return [...threadMap.values()]
             .map((thread) => {
-                // Messages already sorted newest-first from the service
                 const latest = thread.messages[0]
                 return {
                     lastMessage: latest,
@@ -88,17 +222,20 @@ export function useMessages(userId) {
             })
             .sort((a, b) => new Date(b.lastMessage.createdAt) - new Date(a.lastMessage.createdAt))
     }, [allMessages, resolvedUserId])
+
     /** Flat inbox (received messages only, for backward compat with nav popup). */
     const inbox = useMemo(
         () => (resolvedUserId ? allMessages.filter((m) => m.recipientId === resolvedUserId) : []),
         [allMessages, resolvedUserId]
     )
+
     const markAsRead = useCallback(async (messageId) => {
         if (!messageId) return
         await MessageService.markAsRead(messageId)
         setAllMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, isRead: true } : m)))
         setUnreadCount((prev) => Math.max(0, prev - 1))
     }, [])
+
     const markConversationRead = useCallback(
         async (otherUserId) => {
             if (!userId || !otherUserId) return
@@ -110,7 +247,6 @@ export function useMessages(userId) {
                         : m
                 )
             )
-            // Recount unread
             setUnreadCount((prev) => {
                 const conversationUnread = allMessages.filter(
                     (m) => m.senderId === otherUserId && m.recipientId === resolvedUserId && !m.isRead
@@ -120,18 +256,19 @@ export function useMessages(userId) {
         },
         [userId, resolvedUserId, allMessages]
     )
+
     const markAllRead = useCallback(async () => {
         if (!userId) return
         await MessageService.markAllRead(userId)
         setAllMessages((prev) => prev.map((m) => ({ ...m, isRead: true })))
         setUnreadCount(0)
     }, [userId])
+
     const deleteMessage = useCallback(
         async (messageId) => {
             if (!messageId) return
             const msg = allMessages.find((m) => m.id === messageId)
             if (!msg) return
-            // Delete from whichever side we are
             if (msg.senderId === resolvedUserId) {
                 await MessageService.deleteForSender(messageId)
             }
@@ -145,15 +282,17 @@ export function useMessages(userId) {
         },
         [allMessages, resolvedUserId]
     )
+
     const sendMessage = useCallback(
         async (recipientId, subject, body, attachment = null) => {
             if (!userId) throw new Error('Must be logged in to send messages')
             const id = await MessageService.sendMessage(userId, recipientId, subject, body, attachment)
-            window.dispatchEvent(new Event('messages-refresh'))
+            // Realtime subscription will pick up the INSERT — no manual refresh needed
             return id
         },
         [userId]
     )
+
     return {
         conversations,
         deleteMessage,

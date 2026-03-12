@@ -331,20 +331,79 @@ export default function SideGlassNavigation({
                         }}
                     >
                         <img src={SrmLogo} alt="Logo" style={{ height: 34 }} draggable={false} />
-                        <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="flex items-center justify-center cursor-pointer"
-                            style={{
-                                backgroundColor: mobileMenuOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-                                border: 'none',
-                                borderRadius: 10,
-                                color: 'white',
-                                height: 40,
-                                width: 40
-                            }}
-                        >
-                            <i className={`fas fa-${mobileMenuOpen ? 'times' : 'bars'}`} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                className="relative flex items-center justify-center cursor-pointer"
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    color: 'rgba(255,255,255,0.8)',
+                                    height: 36,
+                                    outline: 'none',
+                                    width: 36
+                                }}
+                                onClick={(e) => {
+                                    setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
+                                    setShowNotifications(true)
+                                }}
+                            >
+                                <i className="fas fa-bell" style={{ fontSize: 13 }} />
+                                {notificationsCount > 0 && (
+                                    <span
+                                        className="absolute flex items-center justify-center rounded-full"
+                                        style={{
+                                            backgroundColor: '#ef4444',
+                                            border: `2px solid ${accentColor}`,
+                                            color: 'white',
+                                            fontSize: 9,
+                                            fontWeight: 700,
+                                            height: 16,
+                                            minWidth: 16,
+                                            right: -4,
+                                            top: -4
+                                        }}
+                                    >
+                                        {notificationsCount}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                className="relative flex items-center justify-center cursor-pointer"
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                    border: 'none',
+                                    borderRadius: 8,
+                                    color: 'rgba(255,255,255,0.8)',
+                                    height: 36,
+                                    outline: 'none',
+                                    width: 36
+                                }}
+                                onClick={(e) => {
+                                    setOnlineUsersAnchor(e.currentTarget.getBoundingClientRect())
+                                    setShowOnlineUsers(true)
+                                }}
+                            >
+                                <i className="fas fa-circle" style={{ color: '#22c55e', fontSize: 7 }} />
+                                <span className="ml-1 text-xs font-semibold text-white">{onlineUsersCount}</span>
+                            </button>
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="flex items-center justify-center cursor-pointer"
+                                style={{
+                                    backgroundColor: mobileMenuOpen
+                                        ? 'rgba(255,255,255,0.2)'
+                                        : 'rgba(255,255,255,0.1)',
+                                    border: 'none',
+                                    borderRadius: 10,
+                                    color: 'white',
+                                    height: 40,
+                                    width: 40
+                                }}
+                            >
+                                <i className={`fas fa-${mobileMenuOpen ? 'times' : 'bars'}`} />
+                            </button>
+                        </div>
                     </div>
 
                     {mobileMenuOpen && (
@@ -366,6 +425,38 @@ export default function SideGlassNavigation({
                             >
                                 <div className="p-4">
                                     <img src={SrmLogo} alt="Logo" style={{ height: 28 }} draggable={false} />
+                                </div>
+                                {/* Region selector */}
+                                <div className="px-4 pb-3">
+                                    <label
+                                        className="block text-[11px] font-semibold uppercase tracking-wider mb-1.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Region
+                                    </label>
+                                    <select
+                                        value={regionCode || ''}
+                                        onChange={handleRegionChange}
+                                        className="w-full cursor-pointer text-sm font-semibold rounded-[10px] p-3"
+                                        style={{
+                                            backgroundColor: 'var(--bg-secondary)',
+                                            border: '2px solid var(--border-light)',
+                                            color: 'var(--text-primary)'
+                                        }}
+                                    >
+                                        {permittedRegions.length === 0 ? (
+                                            <option value="">Loading...</option>
+                                        ) : (
+                                            permittedRegions.map((r) => (
+                                                <option
+                                                    key={r.regionCode || r.region_code}
+                                                    value={r.regionCode || r.region_code}
+                                                >
+                                                    {r.regionName || r.region_name}
+                                                </option>
+                                            ))
+                                        )}
+                                    </select>
                                 </div>
                                 {visibleCategories.map((cat) => (
                                     <div key={cat.id} className="mb-1">
@@ -430,6 +521,29 @@ export default function SideGlassNavigation({
                                         )}
                                     </div>
                                 ))}
+                                {/* Account section */}
+                                <div className="mb-1">
+                                    <div
+                                        className="px-4 py-2 text-xs font-semibold uppercase tracking-wider"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Account
+                                    </div>
+                                    <button
+                                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm cursor-pointer border-none"
+                                        style={{
+                                            backgroundColor:
+                                                selectedView === 'MyAccount' ? `${accentColor}14` : 'transparent',
+                                            color: selectedView === 'MyAccount' ? accentColor : 'var(--text-primary)',
+                                            fontWeight: selectedView === 'MyAccount' ? 600 : 400,
+                                            outline: 'none'
+                                        }}
+                                        onClick={() => handleMenuClick('MyAccount')}
+                                    >
+                                        <i className={`fas ${ICONS.MyAccount}`} style={{ fontSize: 13, width: 18 }} />
+                                        My Account
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

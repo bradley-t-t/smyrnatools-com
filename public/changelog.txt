@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.0] - 2026-03-12
+
+- Fixed header background style conflicts by replacing shorthand `background` with separate `backgroundColor` and `backgroundImage` properties to eliminate React rerender warnings
+- Updated header grid pattern to match TopSection's accent grid style with brighter grid lines (0.12 opacity) and added a radial gradient center glow
+- Added changelog entry documenting the v30.9 navigation overhaul (two-level tab layout, category system, mobile drawer redesign, glassmorphism removal)
+
 ## [30.9] - 2026-03-12
 
 - Replaced the floating glass sidebar navigation with a two-level horizontal tab layout: accent-colored header with category pills on top, white secondary bar with sub-item tabs and a sliding underline below

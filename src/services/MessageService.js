@@ -60,6 +60,15 @@ const MessageService = {
         })
         return [...map.values()].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     },
+
+    /** Fetches a single message by ID from the decrypted view. */
+    async getMessageById(messageId) {
+        if (!messageId) return null
+        const { data, error } = await supabase.from(MESSAGES_VIEW).select('*').eq('id', messageId).maybeSingle()
+        if (error || !data) return null
+        return formatMessage(data)
+    },
+
     /**
      * Fetches regional team members for the recipient picker.
      * Returns users filtered to the selected region, excluding guests/terminated.

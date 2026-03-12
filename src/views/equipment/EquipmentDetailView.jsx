@@ -3,7 +3,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
+import VerificationCardSection from '../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { Equipment } from '../../models/equipment/Equipment'
 import { supabase } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { PlantService } from '../../services/PlantService'
@@ -55,7 +57,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
     const [showPlantModal, setShowPlantModal] = useState(false)
     const [currentRegion, setCurrentRegion] = useState(null)
-    const [_updatedByEmail, setUpdatedByEmail] = useState('')
+    const [updatedByEmail, setUpdatedByEmail] = useState('')
     const [showMissingFieldsModal, setShowMissingFieldsModal] = useState(false)
     const [missingFields, setMissingFields] = useState([])
     useEffect(() => {
@@ -408,7 +410,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         }
         checkDeletePermission()
     }, [])
-    async function _handleVerifyEquipment() {
+    async function handleVerifyEquipment() {
         try {
             const missing = []
             if (!make || !make.trim()) missing.push('Make')
@@ -886,6 +888,80 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                 )}
                             </div>
                         </div>
+                    </DetailViewSection.Card>
+                </DetailViewSection.Section>
+                <DetailViewSection.Section id="verification" title="Verification" icon="fas fa-clipboard-check">
+                    <DetailViewSection.Card>
+                        <VerificationCardSection
+                            isVerified={Equipment.ensureInstance(equipment).isVerified()}
+                            verificationLabel={
+                                !equipment.updatedLast || !equipment.updatedBy
+                                    ? 'Needs Verification'
+                                    : 'Verification Outdated'
+                            }
+                            verificationItems={[
+                                {
+                                    icon: 'fas fa-calendar-check',
+                                    iconStyle: {
+                                        color: equipment.updatedLast
+                                            ? Equipment.ensureInstance(equipment).isVerified()
+                                                ? 'var(--success)'
+                                                : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
+                                                  ? 'var(--error)'
+                                                  : 'var(--warning)'
+                                            : 'var(--error)'
+                                    },
+                                    label: 'Verified',
+                                    style: {
+                                        color: equipment.updatedLast
+                                            ? Equipment.ensureInstance(equipment).isVerified()
+                                                ? 'var(--success)'
+                                                : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
+                                                  ? 'var(--error)'
+                                                  : 'var(--warning)'
+                                            : 'var(--error)'
+                                    },
+                                    value: equipment.updatedLast
+                                        ? `${new Date(equipment.updatedLast).toLocaleString()}${
+                                              !Equipment.ensureInstance(equipment).isVerified()
+                                                  ? new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
+                                                      ? ' (Changes have been made)'
+                                                      : ' (It is a new week)'
+                                                  : ''
+                                          }`
+                                        : 'Never verified',
+                                    valueStyle: {
+                                        color: equipment.updatedLast
+                                            ? Equipment.ensureInstance(equipment).isVerified()
+                                                ? 'inherit'
+                                                : new Date(equipment.updatedAt) > new Date(equipment.updatedLast)
+                                                  ? 'var(--error)'
+                                                  : 'var(--warning)'
+                                            : 'var(--error)'
+                                    }
+                                },
+                                {
+                                    icon: 'fas fa-user-check',
+                                    iconStyle: {
+                                        color: equipment.updatedBy ? 'var(--success)' : 'var(--error)'
+                                    },
+                                    label: 'Verified By',
+                                    title: `Last Updated: ${new Date(equipment.updatedAt).toLocaleString()}`,
+                                    value: equipment.updatedBy
+                                        ? updatedByEmail || 'Unknown User'
+                                        : 'No verification record',
+                                    valueStyle: {
+                                        color: equipment.updatedBy ? 'inherit' : 'var(--error)'
+                                    }
+                                }
+                            ]}
+                            onVerify={handleVerifyEquipment}
+                            canEdit={canEditEquipment}
+                            lastVerifiedDate={equipment.updatedLast}
+                            lastChangedDate={equipment.updatedAt}
+                            assetId={equipmentId}
+                            assetType="equipment"
+                        />
                     </DetailViewSection.Card>
                 </DetailViewSection.Section>
             </DetailViewSection>
