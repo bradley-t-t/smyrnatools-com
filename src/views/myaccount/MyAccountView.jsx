@@ -1199,6 +1199,52 @@ function MyAccountView({ userId }) {
                                         </div>
                                     </div>
                                 </div>
+                                {/* Navigation Style */}
+                                <div className="rounded-2xl border border-gray-100 bg-white p-6">
+                                    <div className="mb-6 flex items-center gap-3">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                        >
+                                            <i
+                                                className="fas fa-bars"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            ></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">Navigation Style</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Choose your preferred navigation layout
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => updatePreferences('navStyle', 'top_bar_basic')}
+                                            className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'top_bar_basic' || !preferences.navStyle ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            style={
+                                                preferences.navStyle === 'top_bar_basic' || !preferences.navStyle
+                                                    ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                    : {}
+                                            }
+                                        >
+                                            <i className="fas fa-bars"></i>
+                                            Top Bar
+                                        </button>
+                                        <button
+                                            onClick={() => updatePreferences('navStyle', 'side_glass')}
+                                            className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'side_glass' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                            style={
+                                                preferences.navStyle === 'side_glass'
+                                                    ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                    : {}
+                                            }
+                                        >
+                                            <i className="fas fa-columns"></i>
+                                            Left Sidebar
+                                        </button>
+                                    </div>
+                                </div>
                                 {!isMobile && (
                                     <div className="rounded-2xl border border-gray-100 bg-white p-6">
                                         <div className="mb-6 flex items-center gap-3">

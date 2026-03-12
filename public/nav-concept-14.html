@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 14 — Breadcrumb Nav</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Top bar */
+        .top-bar {
+            background: #1e3a5f; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+        }
+        .top-bar img { height: 30px; }
+        .bar-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); }
+        .top-spacer { flex: 1; }
+        .t-region {
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .t-region i { font-size: 10px; opacity: 0.5; }
+        .t-btn {
+            width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; position: relative;
+        }
+        .t-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+        .t-badge { position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #1e3a5f; }
+        .t-avatar {
+            width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.2); color: white; font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+
+        /* Breadcrumb bar */
+        .breadcrumb-bar {
+            background: white; border-bottom: 1px solid #e2e8f0; padding: 0 24px;
+            height: 48px; display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+        }
+        .crumb {
+            position: relative; display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+            font-size: 14px; font-weight: 500; color: #64748b;
+        }
+        .crumb:hover { background: #f1f5f9; color: #1e293b; }
+        .crumb.active { color: #1e3a5f; font-weight: 600; }
+        .crumb i.crumb-icon { font-size: 13px; }
+        .crumb i.crumb-chevron { font-size: 9px; opacity: 0.4; margin-left: 2px; }
+        .crumb-sep { color: #cbd5e1; font-size: 11px; }
+
+        /* Dropdown */
+        .crumb-dropdown {
+            display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
+            background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 6px; min-width: 200px; z-index: 50;
+        }
+        .crumb-dropdown.open { display: block; }
+        .dd-section-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+            color: #94a3b8; padding: 8px 10px 4px; margin-top: 4px;
+        }
+        .dd-section-label:first-child { margin-top: 0; }
+        .dd-item {
+            display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.12s;
+        }
+        .dd-item:hover { background: #f1f5f9; color: #1e293b; }
+        .dd-item.active { background: #eef2ff; color: #1e3a5f; font-weight: 600; }
+        .dd-item i { width: 18px; text-align: center; font-size: 12px; }
+        .dd-divider { height: 1px; background: #f1f5f9; margin: 4px 8px; }
+
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; text-align: center; color: #94a3b8; font-size: 15px; }
+        .concept-tag { display: inline-block; background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <img src="/srm-logo.svg" alt="SRM" />
+        <div class="bar-divider"></div>
+        <div class="top-spacer"></div>
+        <div class="t-region"><i class="fas fa-map-marker-alt"></i> Nashville <i class="fas fa-chevron-down"></i></div>
+        <div class="t-btn"><i class="fas fa-search"></i></div>
+        <div class="t-btn"><i class="fas fa-bell"></i><span class="t-badge">3</span></div>
+        <div class="t-btn"><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i></div>
+        <div class="t-avatar">TT</div>
+    </div>
+
+    <div class="breadcrumb-bar">
+        <div class="crumb" id="crumb-home" onclick="toggleDropdown('home')">
+            <i class="fas fa-home crumb-icon"></i>
+            <span>Home</span>
+            <i class="fas fa-chevron-down crumb-chevron"></i>
+            <div class="crumb-dropdown" id="dd-home">
+                <div class="dd-item active" onclick="navigateTo('Dashboard', null, event)"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+                <div class="dd-divider"></div>
+                <div class="dd-section-label">Categories</div>
+                <div class="dd-item" onclick="selectCategory('assets', event)"><i class="fas fa-truck"></i> Assets</div>
+                <div class="dd-item" onclick="selectCategory('people', event)"><i class="fas fa-users"></i> People</div>
+                <div class="dd-item" onclick="selectCategory('productivity', event)"><i class="fas fa-chart-line"></i> Productivity</div>
+                <div class="dd-item" onclick="selectCategory('admin', event)"><i class="fas fa-cog"></i> Admin</div>
+            </div>
+        </div>
+
+        <div class="crumb-sep" id="sep1" style="display: none;"><i class="fas fa-chevron-right"></i></div>
+
+        <div class="crumb" id="crumb-category" style="display: none;" onclick="toggleDropdown('category')">
+            <i class="fas fa-truck crumb-icon" id="cat-icon"></i>
+            <span id="cat-label">Assets</span>
+            <i class="fas fa-chevron-down crumb-chevron"></i>
+            <div class="crumb-dropdown" id="dd-category"></div>
+        </div>
+
+        <div class="crumb-sep" id="sep2" style="display: none;"><i class="fas fa-chevron-right"></i></div>
+
+        <div class="crumb active" id="crumb-item" style="display: none;">
+            <i class="fas fa-truck crumb-icon" id="item-icon"></i>
+            <span id="item-label">Mixers</span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="placeholder-card">
+            <div class="concept-tag">Concept 14</div>
+            <h2 style="color: #1e293b; margin-bottom: 8px;">Breadcrumb Nav</h2>
+            <p>No traditional nav menu. Navigation is driven entirely by interactive breadcrumbs in a secondary bar. Each breadcrumb segment is clickable and opens a dropdown showing sibling items at that level.</p>
+            <br>
+            <p style="color:#cbd5e1; font-size: 13px;">Clicking "Home" shows all categories. Clicking a category shows its items. The breadcrumb trail updates as you drill down. Maximum content area — navigation only appears when you interact with the breadcrumbs.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                <a href="/nav-concept-13.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 13</a>
+                <a href="/nav-concept-15.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 15 <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categories = {
+            assets: {
+                label: 'Assets', icon: 'fa-truck',
+                items: [
+                    { icon: 'fa-truck', label: 'Mixers' },
+                    { icon: 'fa-tractor', label: 'Tractors' },
+                    { icon: 'fa-trailer', label: 'Trailers' },
+                    { icon: 'fa-snowplow', label: 'Heavy Equipment' },
+                    { icon: 'fa-truck-pickup', label: 'Pickup Trucks' }
+                ]
+            },
+            people: {
+                label: 'People', icon: 'fa-users',
+                items: [
+                    { icon: 'fa-users', label: 'Operators' },
+                    { icon: 'fa-user-tie', label: 'Managers' }
+                ]
+            },
+            productivity: {
+                label: 'Productivity', icon: 'fa-chart-line',
+                items: [
+                    { icon: 'fa-list', label: 'List' },
+                    { icon: 'fa-file-alt', label: 'Reports' },
+                    { icon: 'fa-calendar-alt', label: 'Plan' },
+                    { icon: 'fa-calculator', label: 'Calculators' },
+                    { icon: 'fa-trophy', label: 'Leaderboards' },
+                    { icon: 'fa-folder-open', label: 'Documents' }
+                ]
+            },
+            admin: {
+                label: 'Admin', icon: 'fa-cog',
+                items: [
+                    { icon: 'fa-industry', label: 'Plants' },
+                    { icon: 'fa-map-marker-alt', label: 'Regions' },
+                    { icon: 'fa-lock', label: 'Roles' },
+                    { icon: 'fa-wrench', label: 'Maintenance' }
+                ]
+            }
+        };
+
+        let currentCategory = null;
+        let currentItem = null;
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.crumb-dropdown').forEach(d => d.classList.remove('open'));
+        }
+
+        function toggleDropdown(which) {
+            const dd = document.getElementById('dd-' + which);
+            const isOpen = dd.classList.contains('open');
+            closeAllDropdowns();
+            if (!isOpen) dd.classList.add('open');
+        }
+
+        function selectCategory(catKey, event) {
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
+            currentCategory = catKey;
+            const cat = categories[catKey];
+
+            // Show category crumb
+            document.getElementById('sep1').style.display = '';
+            document.getElementById('crumb-category').style.display = '';
+            document.getElementById('cat-icon').className = 'fas ' + cat.icon + ' crumb-icon';
+            document.getElementById('cat-label').textContent = cat.label;
+
+            // Build category dropdown with siblings
+            const ddCat = document.getElementById('dd-category');
+            ddCat.innerHTML = Object.entries(categories).map(([key, c]) =>
+                `<div class="dd-item${key === catKey ? ' active' : ''}" onclick="selectCategory('${key}', event)">
+                    <i class="fas ${c.icon}"></i> ${c.label}
+                </div>`
+            ).join('');
+
+            // Select first item in category
+            selectItem(cat.items[0], catKey);
+        }
+
+        function selectItem(item, catKey) {
+            currentItem = item;
+            const cat = categories[catKey || currentCategory];
+
+            document.getElementById('sep2').style.display = '';
+            document.getElementById('crumb-item').style.display = '';
+            document.getElementById('item-icon').className = 'fas ' + item.icon + ' crumb-icon';
+            document.getElementById('item-label').textContent = item.label;
+
+            // Make item crumb clickable with dropdown of siblings
+            const crumbItem = document.getElementById('crumb-item');
+            crumbItem.onclick = function() { toggleDropdown('item'); };
+
+            // Add dropdown to item crumb if it doesn't have one
+            let ddItem = document.getElementById('dd-item');
+            if (!ddItem) {
+                ddItem = document.createElement('div');
+                ddItem.className = 'crumb-dropdown';
+                ddItem.id = 'dd-item';
+                crumbItem.appendChild(ddItem);
+
+                // Add chevron if not present
+                if (!crumbItem.querySelector('.crumb-chevron')) {
+                    const chev = document.createElement('i');
+                    chev.className = 'fas fa-chevron-down crumb-chevron';
+                    crumbItem.insertBefore(chev, ddItem);
+                }
+            }
+            ddItem.innerHTML = cat.items.map(i =>
+                `<div class="dd-item${i.label === item.label ? ' active' : ''}" onclick="selectItemDirect('${i.label}', event)">
+                    <i class="fas ${i.icon}"></i> ${i.label}
+                </div>`
+            ).join('');
+        }
+
+        function selectItemDirect(label, event) {
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
+            const cat = categories[currentCategory];
+            const item = cat.items.find(i => i.label === label);
+            if (item) selectItem(item);
+        }
+
+        function navigateTo(label, catKey, event) {
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
+            if (label === 'Dashboard') {
+                currentCategory = null;
+                currentItem = null;
+                document.getElementById('sep1').style.display = 'none';
+                document.getElementById('crumb-category').style.display = 'none';
+                document.getElementById('sep2').style.display = 'none';
+                document.getElementById('crumb-item').style.display = 'none';
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.crumb')) closeAllDropdowns();
+        });
+
+        // Initialize with Assets > Mixers shown
+        selectCategory('assets');
+    </script>
+</body>
+</html>

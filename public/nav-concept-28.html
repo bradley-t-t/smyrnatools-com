@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nav Concept 28 — Sidebar with Minimap</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff; --bg-secondary: #f8fafc; --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b; --text-secondary: #64748b; --text-muted: #94a3b8;
+            --border: #e2e8f0; --border-light: #f1f5f9;
+            --accent: #1e3a5f; --accent-light: rgba(30,58,95,0.08); --accent-hover: rgba(30,58,95,0.12);
+            --sidebar-bg: #1e3a5f; --sidebar-text: rgba(255,255,255,0.7);
+            --sidebar-active: rgba(255,255,255,0.15); --sidebar-hover: rgba(255,255,255,0.08);
+            --shadow: 0 1px 3px rgba(0,0,0,0.08); --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+            --card-bg: #ffffff; --badge-bg: #ef4444;
+            --minimap-node: rgba(255,255,255,0.3); --minimap-node-active: #60a5fa;
+            --minimap-line: rgba(255,255,255,0.15); --minimap-bg: rgba(0,0,0,0.15);
+        }
+        html.dark {
+            --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
+            --border: #334155; --border-light: #1e293b;
+            --accent: #3b82f6; --accent-light: rgba(59,130,246,0.15); --accent-hover: rgba(59,130,246,0.2);
+            --sidebar-bg: #0f172a; --sidebar-text: rgba(255,255,255,0.6);
+            --sidebar-active: rgba(59,130,246,0.2); --sidebar-hover: rgba(255,255,255,0.06);
+            --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+            --card-bg: #1e293b; --badge-bg: #ef4444;
+            --minimap-node: rgba(255,255,255,0.2); --minimap-node-active: #3b82f6;
+            --minimap-line: rgba(255,255,255,0.08); --minimap-bg: rgba(0,0,0,0.3);
+        }
+        html, html * { transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-secondary); color: var(--text-primary); min-height: 100vh; display: flex; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px; min-height: 100vh; background: var(--sidebar-bg);
+            display: flex; flex-direction: column; flex-shrink: 0;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+            overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        .sidebar-header {
+            padding: 20px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar-header img { height: 28px; filter: brightness(0) invert(1); }
+        .sidebar-header span { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: -0.3px; }
+
+        /* Minimap */
+        .minimap {
+            margin: 16px; padding: 16px; background: var(--minimap-bg);
+            border-radius: 12px; position: relative; min-height: 140px;
+        }
+        .minimap-title {
+            font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px;
+            color: rgba(255,255,255,0.35); font-weight: 600; margin-bottom: 14px;
+        }
+        .minimap-container { position: relative; width: 100%; height: 110px; }
+
+        .minimap-node {
+            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            background: var(--minimap-node); cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .minimap-node:hover { transform: scale(1.5); background: rgba(255,255,255,0.6); }
+        .minimap-node.active {
+            background: var(--minimap-node-active); box-shadow: 0 0 0 4px rgba(96,165,250,0.3);
+            animation: pulse 2s infinite;
+        }
+        .minimap-node .minimap-tooltip {
+            position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 3px 8px; border-radius: 4px;
+            font-size: 9px; white-space: nowrap; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .minimap-node:hover .minimap-tooltip { opacity: 1; }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(96,165,250,0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(96,165,250,0.1); }
+        }
+
+        /* Minimap lines - SVG */
+        .minimap-lines {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .minimap-lines line { stroke: var(--minimap-line); stroke-width: 1; }
+
+        /* Sidebar nav */
+        .sidebar-nav { flex: 1; padding: 8px 12px; }
+        .nav-group { margin-bottom: 4px; }
+        .nav-group-label {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+            color: rgba(255,255,255,0.3); font-weight: 600; padding: 12px 12px 6px;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+            border-radius: 8px; cursor: pointer; color: var(--sidebar-text);
+            font-size: 13px; font-weight: 500; text-decoration: none;
+            margin-bottom: 1px; position: relative;
+        }
+        .nav-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,0.9); }
+        .nav-item.active {
+            background: var(--sidebar-active); color: #ffffff; font-weight: 600;
+        }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 3px; height: 20px; background: var(--minimap-node-active); border-radius: 0 3px 3px 0;
+        }
+        .nav-item i { width: 18px; text-align: center; font-size: 13px; }
+        .nav-item.highlight { scroll-margin-top: 20px; }
+        .nav-item.flash { background: rgba(96,165,250,0.25); }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            padding: 16px; border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-footer-avatar {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 12px; font-weight: 700;
+        }
+        .sidebar-footer-info { flex: 1; }
+        .sidebar-footer-info .name { font-size: 13px; font-weight: 600; color: #ffffff; }
+        .sidebar-footer-info .role { font-size: 11px; color: rgba(255,255,255,0.4); }
+        .sidebar-footer button {
+            background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer;
+            font-size: 14px; padding: 4px;
+        }
+        .sidebar-footer button:hover { color: rgba(255,255,255,0.8); }
+
+        /* Main area */
+        .main-wrapper { margin-left: 280px; flex: 1; min-height: 100vh; }
+        .top-bar {
+            background: var(--bg-primary); border-bottom: 1px solid var(--border);
+            padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .top-bar h1 { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+        .top-bar-right { display: flex; align-items: center; gap: 12px; }
+        .btn-icon {
+            width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--bg-primary); cursor: pointer; display: flex; align-items: center;
+            justify-content: center; color: var(--text-secondary); font-size: 14px;
+        }
+        .btn-icon:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+        .notif-wrapper { position: relative; }
+        .notif-badge {
+            position: absolute; top: -4px; right: -4px; width: 16px; height: 16px;
+            background: var(--badge-bg); border-radius: 50%; font-size: 9px; font-weight: 700;
+            color: white; display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-primary);
+        }
+
+        .main-content { padding: 32px; max-width: 960px; }
+        .concept-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--accent-light); color: var(--accent);
+            padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .content-card {
+            background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);
+            box-shadow: var(--shadow); padding: 32px;
+        }
+        .content-card h2 { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+        .content-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+
+        .placeholder-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 20px;
+        }
+        .placeholder-item {
+            background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 12px;
+            padding: 20px; text-align: center;
+        }
+        .placeholder-item i { font-size: 28px; color: var(--accent); margin-bottom: 10px; }
+        .placeholder-item span { display: block; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="/srm-logo.svg" alt="SRM Logo">
+            <span>FleetOps</span>
+        </div>
+
+        <div class="minimap">
+            <div class="minimap-title">App Structure</div>
+            <div class="minimap-container">
+                <svg class="minimap-lines" viewBox="0 0 220 110">
+                    <!-- Root to groups -->
+                    <line x1="110" y1="8" x2="30" y2="40"/>
+                    <line x1="110" y1="8" x2="75" y2="40"/>
+                    <line x1="110" y1="8" x2="140" y2="40"/>
+                    <line x1="110" y1="8" x2="195" y2="40"/>
+                    <!-- Assets children -->
+                    <line x1="30" y1="40" x2="8" y2="75"/>
+                    <line x1="30" y1="40" x2="22" y2="75"/>
+                    <line x1="30" y1="40" x2="36" y2="75"/>
+                    <line x1="30" y1="40" x2="50" y2="75"/>
+                    <line x1="30" y1="40" x2="64" y2="75"/>
+                    <!-- People children -->
+                    <line x1="75" y1="40" x2="70" y2="75"/>
+                    <line x1="75" y1="40" x2="85" y2="75"/>
+                    <!-- Productivity children -->
+                    <line x1="140" y1="40" x2="105" y2="75"/>
+                    <line x1="140" y1="40" x2="119" y2="75"/>
+                    <line x1="140" y1="40" x2="133" y2="75"/>
+                    <line x1="140" y1="40" x2="147" y2="75"/>
+                    <line x1="140" y1="40" x2="161" y2="75"/>
+                    <line x1="140" y1="40" x2="175" y2="75"/>
+                    <!-- Admin children -->
+                    <line x1="195" y1="40" x2="183" y2="75"/>
+                    <line x1="195" y1="40" x2="195" y2="75"/>
+                    <line x1="195" y1="40" x2="207" y2="75"/>
+                    <line x1="195" y1="40" x2="218" y2="75"/>
+                </svg>
+                <!-- Dashboard root node -->
+                <div class="minimap-node active" style="left:calc(50% - 5px);top:3px;" data-nav="dashboard" onclick="minimapClick(this)">
+                    <span class="minimap-tooltip">Dashboard</span>
+                </div>
+                <!-- Group nodes -->
+                <div class="minimap-node" style="left:25px;top:35px;" data-nav="assets-group" onclick="minimapClick(this)">
+                    <span class="minimap-tooltip">Assets</span>
+                </div>
+                <div class="minimap-node" style="left:70px;top:35px;" data-nav="people-group" onclick="minimapClick(this)">
+                    <span class="minimap-tooltip">People</span>
+                </div>
+                <div class="minimap-node" style="left:135px;top:35px;" data-nav="productivity-group" onclick="minimapClick(this)">
+                    <span class="minimap-tooltip">Productivity</span>
+                </div>
+                <div class="minimap-node" style="left:190px;top:35px;" data-nav="admin-group" onclick="minimapClick(this)">
+                    <span class="minimap-tooltip">Admin</span>
+                </div>
+                <!-- Leaf nodes row - Assets -->
+                <div class="minimap-node" style="left:3px;top:70px;" data-nav="mixers" onclick="minimapClick(this)"><span class="minimap-tooltip">Mixers</span></div>
+                <div class="minimap-node" style="left:17px;top:70px;" data-nav="tractors" onclick="minimapClick(this)"><span class="minimap-tooltip">Tractors</span></div>
+                <div class="minimap-node" style="left:31px;top:70px;" data-nav="trailers" onclick="minimapClick(this)"><span class="minimap-tooltip">Trailers</span></div>
+                <div class="minimap-node" style="left:45px;top:70px;" data-nav="heavy-equipment" onclick="minimapClick(this)"><span class="minimap-tooltip">Heavy Eq.</span></div>
+                <div class="minimap-node" style="left:59px;top:70px;" data-nav="pickups" onclick="minimapClick(this)"><span class="minimap-tooltip">Pickups</span></div>
+                <!-- People -->
+                <div class="minimap-node" style="left:65px;top:70px;" data-nav="operators" onclick="minimapClick(this)"><span class="minimap-tooltip">Operators</span></div>
+                <div class="minimap-node" style="left:80px;top:70px;" data-nav="managers" onclick="minimapClick(this)"><span class="minimap-tooltip">Managers</span></div>
+                <!-- Productivity -->
+                <div class="minimap-node" style="left:100px;top:70px;" data-nav="list" onclick="minimapClick(this)"><span class="minimap-tooltip">List</span></div>
+                <div class="minimap-node" style="left:114px;top:70px;" data-nav="reports" onclick="minimapClick(this)"><span class="minimap-tooltip">Reports</span></div>
+                <div class="minimap-node" style="left:128px;top:70px;" data-nav="plan" onclick="minimapClick(this)"><span class="minimap-tooltip">Plan</span></div>
+                <div class="minimap-node" style="left:142px;top:70px;" data-nav="calculators" onclick="minimapClick(this)"><span class="minimap-tooltip">Calculators</span></div>
+                <div class="minimap-node" style="left:156px;top:70px;" data-nav="leaderboards" onclick="minimapClick(this)"><span class="minimap-tooltip">Leaderboards</span></div>
+                <div class="minimap-node" style="left:170px;top:70px;" data-nav="documents" onclick="minimapClick(this)"><span class="minimap-tooltip">Documents</span></div>
+                <!-- Admin -->
+                <div class="minimap-node" style="left:178px;top:70px;" data-nav="plants" onclick="minimapClick(this)"><span class="minimap-tooltip">Plants</span></div>
+                <div class="minimap-node" style="left:190px;top:70px;" data-nav="regions" onclick="minimapClick(this)"><span class="minimap-tooltip">Regions</span></div>
+                <div class="minimap-node" style="left:202px;top:70px;" data-nav="roles" onclick="minimapClick(this)"><span class="minimap-tooltip">Roles</span></div>
+                <div class="minimap-node" style="left:214px;top:70px;" data-nav="maintenance" onclick="minimapClick(this)"><span class="minimap-tooltip">Maintenance</span></div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <a class="nav-item active" data-nav="dashboard" onclick="selectNav(this)">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label" data-nav="assets-group">Assets</div>
+                <a class="nav-item" data-nav="mixers" onclick="selectNav(this)"><i class="fas fa-truck"></i> Mixers</a>
+                <a class="nav-item" data-nav="tractors" onclick="selectNav(this)"><i class="fas fa-tractor"></i> Tractors</a>
+                <a class="nav-item" data-nav="trailers" onclick="selectNav(this)"><i class="fas fa-trailer"></i> Trailers</a>
+                <a class="nav-item" data-nav="heavy-equipment" onclick="selectNav(this)"><i class="fas fa-snowplow"></i> Heavy Equipment</a>
+                <a class="nav-item" data-nav="pickups" onclick="selectNav(this)"><i class="fas fa-truck-pickup"></i> Pickup Trucks</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label" data-nav="people-group">People</div>
+                <a class="nav-item" data-nav="operators" onclick="selectNav(this)"><i class="fas fa-users"></i> Operators</a>
+                <a class="nav-item" data-nav="managers" onclick="selectNav(this)"><i class="fas fa-user-tie"></i> Managers</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label" data-nav="productivity-group">Productivity</div>
+                <a class="nav-item" data-nav="list" onclick="selectNav(this)"><i class="fas fa-list"></i> List</a>
+                <a class="nav-item" data-nav="reports" onclick="selectNav(this)"><i class="fas fa-file-alt"></i> Reports</a>
+                <a class="nav-item" data-nav="plan" onclick="selectNav(this)"><i class="fas fa-calendar-alt"></i> Plan</a>
+                <a class="nav-item" data-nav="calculators" onclick="selectNav(this)"><i class="fas fa-calculator"></i> Calculators</a>
+                <a class="nav-item" data-nav="leaderboards" onclick="selectNav(this)"><i class="fas fa-trophy"></i> Leaderboards</a>
+                <a class="nav-item" data-nav="documents" onclick="selectNav(this)"><i class="fas fa-folder-open"></i> Documents</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label" data-nav="admin-group">Admin</div>
+                <a class="nav-item" data-nav="plants" onclick="selectNav(this)"><i class="fas fa-industry"></i> Plants</a>
+                <a class="nav-item" data-nav="regions" onclick="selectNav(this)"><i class="fas fa-map-marker-alt"></i> Regions</a>
+                <a class="nav-item" data-nav="roles" onclick="selectNav(this)"><i class="fas fa-lock"></i> Roles</a>
+                <a class="nav-item" data-nav="maintenance" onclick="selectNav(this)"><i class="fas fa-wrench"></i> Maintenance</a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-avatar">TT</div>
+            <div class="sidebar-footer-info">
+                <div class="name">Trent Taylor</div>
+                <div class="role">Fleet Manager</div>
+            </div>
+            <button><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <div class="top-bar">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="top-bar-right">
+                <div class="notif-wrapper">
+                    <button class="btn-icon"><i class="fas fa-bell"></i></button>
+                    <span class="notif-badge">3</span>
+                </div>
+                <button class="btn-icon" onclick="toggleTheme()"><i id="theme-icon" class="fas fa-moon"></i></button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="concept-label"><i class="fas fa-compass"></i> Concept 28</div>
+            <div class="content-card">
+                <h2>Sidebar with Minimap</h2>
+                <p>A sidebar with a visual minimap showing the app's structure as connected nodes. The active node pulses. Click nodes in the minimap to jump to that section in the sidebar below.</p>
+                <div class="placeholder-grid">
+                    <div class="placeholder-item"><i class="fas fa-truck"></i><span>42 Active Mixers</span></div>
+                    <div class="placeholder-item"><i class="fas fa-tractor"></i><span>18 Tractors</span></div>
+                    <div class="placeholder-item"><i class="fas fa-users"></i><span>67 Operators</span></div>
+                    <div class="placeholder-item"><i class="fas fa-chart-line"></i><span>94% Utilization</span></div>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-27.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;"><i class="fas fa-arrow-left"></i> Concept 27</a>
+                    <a href="/nav-concept-29.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;">Concept 29 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            icon.className = document.documentElement.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function selectNav(el) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            const navId = el.getAttribute('data-nav');
+            updateMinimap(navId);
+            document.getElementById('page-title').textContent = el.textContent.trim();
+        }
+
+        function minimapClick(node) {
+            const navId = node.getAttribute('data-nav');
+            // Find corresponding nav item
+            const navItem = document.querySelector('.nav-item[data-nav="' + navId + '"]');
+            if (navItem) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active', 'flash'));
+                navItem.classList.add('active');
+                navItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Flash effect
+                navItem.classList.add('flash');
+                setTimeout(() => navItem.classList.remove('flash'), 800);
+                document.getElementById('page-title').textContent = navItem.textContent.trim();
+            }
+            updateMinimap(navId);
+        }
+
+        function updateMinimap(navId) {
+            document.querySelectorAll('.minimap-node').forEach(n => n.classList.remove('active'));
+            const activeNode = document.querySelector('.minimap-node[data-nav="' + navId + '"]');
+            if (activeNode) activeNode.classList.add('active');
+        }
+    </script>
+</body>
+</html>

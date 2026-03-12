@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 11 — Vertical Tabs Sidebar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+
+        /* Vertical tab strip (far left) */
+        .tab-strip {
+            width: 56px; background: #1e3a5f; display: flex; flex-direction: column; align-items: center;
+            padding: 12px 0; gap: 4px; flex-shrink: 0;
+        }
+        .tab-strip-logo { margin-bottom: 16px; }
+        .tab-strip-logo img { height: 28px; filter: brightness(0) invert(1); }
+        .tab-btn {
+            width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: rgba(255,255,255,0.45); font-size: 14px; transition: all 0.15s; position: relative;
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+        .tab-btn.active { background: rgba(255,255,255,0.15); color: white; }
+        .tab-btn.active::after {
+            content: ''; position: absolute; right: -2px; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 24px; background: white; border-radius: 4px;
+        }
+        .tab-btn .tab-label {
+            position: absolute; left: 58px; background: #1e293b; color: white; padding: 4px 10px;
+            border-radius: 6px; font-size: 11px; font-weight: 600; white-space: nowrap;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 100;
+        }
+        .tab-btn:hover .tab-label { opacity: 1; }
+        .tab-spacer { flex: 1; }
+
+        /* Sidebar panel */
+        .sidebar-panel {
+            width: 220px; background: white; border-right: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 16px 16px 12px; border-bottom: 1px solid #f1f5f9;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;
+        }
+        .sidebar-items { flex: 1; padding: 8px; overflow-y: auto; }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: #64748b; cursor: pointer; transition: all 0.15s;
+        }
+        .sidebar-item:hover { background: #f1f5f9; color: #1e293b; }
+        .sidebar-item.active { background: #eef2ff; color: #1e3a5f; font-weight: 600; }
+        .sidebar-item i { width: 18px; text-align: center; font-size: 13px; }
+
+        /* Top bar */
+        .main-area { flex: 1; display: flex; flex-direction: column; }
+        .top-bar {
+            height: 56px; background: white; border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0;
+        }
+        .top-spacer { flex: 1; }
+        .h-region {
+            background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569;
+            padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .h-region i { font-size: 10px; opacity: 0.5; }
+        .h-btn {
+            width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; border: 1px solid #e2e8f0;
+            color: #64748b; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; font-size: 14px;
+        }
+        .h-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .h-badge { position: absolute; top: -3px; right: -3px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+        .h-avatar {
+            width: 36px; height: 36px; border-radius: 10px; background: #1e3a5f; color: white;
+            font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; text-align: center; color: #94a3b8; font-size: 15px; }
+        .concept-tag { display: inline-block; background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="tab-strip">
+        <div class="tab-strip-logo"><img src="/srm-logo.svg" alt="SRM" /></div>
+        <div class="tab-btn active" onclick="switchTab('dashboard', this)" data-tab="dashboard">
+            <i class="fas fa-tachometer-alt"></i>
+            <span class="tab-label">Dashboard</span>
+        </div>
+        <div class="tab-btn" onclick="switchTab('assets', this)" data-tab="assets">
+            <i class="fas fa-truck"></i>
+            <span class="tab-label">Assets</span>
+        </div>
+        <div class="tab-btn" onclick="switchTab('people', this)" data-tab="people">
+            <i class="fas fa-users"></i>
+            <span class="tab-label">People</span>
+        </div>
+        <div class="tab-btn" onclick="switchTab('productivity', this)" data-tab="productivity">
+            <i class="fas fa-chart-line"></i>
+            <span class="tab-label">Productivity</span>
+        </div>
+        <div class="tab-btn" onclick="switchTab('admin', this)" data-tab="admin">
+            <i class="fas fa-cog"></i>
+            <span class="tab-label">Admin</span>
+        </div>
+        <div class="tab-spacer"></div>
+    </div>
+
+    <div class="sidebar-panel">
+        <div class="sidebar-header" id="sidebar-title">Dashboard</div>
+        <div class="sidebar-items" id="sidebar-items"></div>
+    </div>
+
+    <div class="main-area">
+        <div class="top-bar">
+            <div class="top-spacer"></div>
+            <div class="h-region"><i class="fas fa-map-marker-alt"></i> Nashville <i class="fas fa-chevron-down"></i></div>
+            <div class="h-btn"><i class="fas fa-search"></i></div>
+            <div class="h-btn"><i class="fas fa-bell"></i><span class="h-badge">3</span></div>
+            <div class="h-btn"><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i></div>
+            <div class="h-avatar">TT</div>
+        </div>
+        <div class="content">
+            <div class="placeholder-card">
+                <div class="concept-tag">Concept 11</div>
+                <h2 style="color: #1e293b; margin-bottom: 8px;">Vertical Tabs Sidebar</h2>
+                <p>A sidebar where each group is a vertical tab on the left edge. Clicking a tab highlights it and reveals that group's items in the adjacent sidebar panel. Dashboard sits as a standalone item at the top.</p>
+                <br>
+                <p style="color:#cbd5e1; font-size: 13px;">Two-level sidebar navigation — the narrow icon strip handles categories while the wider panel shows individual items. Keeps the layout compact and organized.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-10.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 10</a>
+                    <a href="/nav-concept-12.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 12 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabData = {
+            dashboard: { label: 'Dashboard', items: [
+                { icon: 'fa-tachometer-alt', label: 'Dashboard', active: true }
+            ]},
+            assets: { label: 'Assets', items: [
+                { icon: 'fa-truck', label: 'Mixers', active: true },
+                { icon: 'fa-tractor', label: 'Tractors' },
+                { icon: 'fa-trailer', label: 'Trailers' },
+                { icon: 'fa-snowplow', label: 'Heavy Equipment' },
+                { icon: 'fa-truck-pickup', label: 'Pickup Trucks' }
+            ]},
+            people: { label: 'People', items: [
+                { icon: 'fa-users', label: 'Operators', active: true },
+                { icon: 'fa-user-tie', label: 'Managers' }
+            ]},
+            productivity: { label: 'Productivity', items: [
+                { icon: 'fa-list', label: 'List', active: true },
+                { icon: 'fa-file-alt', label: 'Reports' },
+                { icon: 'fa-calendar-alt', label: 'Plan' },
+                { icon: 'fa-calculator', label: 'Calculators' },
+                { icon: 'fa-trophy', label: 'Leaderboards' },
+                { icon: 'fa-folder-open', label: 'Documents' }
+            ]},
+            admin: { label: 'Admin', items: [
+                { icon: 'fa-industry', label: 'Plants', active: true },
+                { icon: 'fa-map-marker-alt', label: 'Regions' },
+                { icon: 'fa-lock', label: 'Roles' },
+                { icon: 'fa-wrench', label: 'Maintenance' }
+            ]}
+        };
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const data = tabData[tab];
+            document.getElementById('sidebar-title').textContent = data.label;
+            const container = document.getElementById('sidebar-items');
+            container.innerHTML = data.items.map(item =>
+                `<div class="sidebar-item${item.active ? ' active' : ''}" onclick="activateItem(this)">
+                    <i class="fas ${item.icon}"></i> ${item.label}
+                </div>`
+            ).join('');
+        }
+
+        function activateItem(el) {
+            el.parentElement.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // Initialize with dashboard
+        switchTab('dashboard', document.querySelector('.tab-btn.active'));
+    </script>
+</body>
+</html>

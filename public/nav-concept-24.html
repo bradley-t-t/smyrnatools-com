@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 24 — Pill Navigation Bar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        :root {
+            --bg-primary: #ffffff; --bg-secondary: #f8fafc; --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b; --text-secondary: #64748b; --text-muted: #94a3b8;
+            --border: #e2e8f0; --border-light: #f1f5f9;
+            --accent: #1e3a5f; --accent-light: rgba(30,58,95,0.08); --accent-hover: rgba(30,58,95,0.12);
+            --sidebar-bg: #1e3a5f; --sidebar-text: rgba(255,255,255,0.7);
+            --sidebar-active: rgba(255,255,255,0.15); --sidebar-hover: rgba(255,255,255,0.08);
+            --shadow: 0 1px 3px rgba(0,0,0,0.08); --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+            --card-bg: #ffffff; --badge-bg: #ef4444;
+        }
+        html.dark {
+            --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
+            --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
+            --border: #334155; --border-light: #1e293b;
+            --accent: #3b82f6; --accent-light: rgba(59,130,246,0.15); --accent-hover: rgba(59,130,246,0.2);
+            --sidebar-bg: #0f172a; --sidebar-text: rgba(255,255,255,0.6);
+            --sidebar-active: rgba(59,130,246,0.2); --sidebar-hover: rgba(255,255,255,0.06);
+            --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+            --card-bg: #1e293b; --badge-bg: #ef4444;
+        }
+        html, html * { transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 100;
+        }
+        .header-logo { height: 30px; }
+        .header-brand {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+        .header-spacer { flex: 1; }
+        .header-actions { display: flex; align-items: center; gap: 8px; }
+        .h-btn {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--bg-tertiary); border: 1px solid var(--border);
+            color: var(--text-secondary); display: flex; align-items: center;
+            justify-content: center; cursor: pointer; font-size: 14px;
+            position: relative;
+        }
+        .h-btn:hover { background: var(--accent-light); color: var(--accent); }
+        .h-badge {
+            position: absolute; top: -4px; right: -4px;
+            width: 18px; height: 18px; background: var(--badge-bg);
+            color: white; border-radius: 50%; font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid var(--bg-primary);
+        }
+        .h-avatar {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--accent); color: white; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            margin-left: 4px;
+        }
+
+        /* ── Pill Nav Bar ── */
+        .pill-nav-wrapper {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 28px;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 90;
+        }
+        .pill-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            padding: 5px 6px;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .pill-divider {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 0 6px;
+            position: relative;
+        }
+        .pill-divider::before {
+            content: '';
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            border-radius: 1px;
+        }
+        .pill-divider-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            position: relative;
+            z-index: 2;
+            user-select: none;
+            border: 1.5px solid transparent;
+        }
+        .pill i { font-size: 13px; }
+        .pill:hover {
+            background: var(--accent-hover);
+            color: var(--text-primary);
+        }
+        .pill.active {
+            background: var(--accent);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .pill .pill-badge {
+            width: 18px; height: 18px;
+            background: var(--badge-bg);
+            color: white; border-radius: 50%;
+            font-size: 9px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            margin-left: -2px;
+        }
+        .pill.active .pill-badge {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* More dropdown */
+        .pill-more { position: relative; }
+        .more-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px;
+            min-width: 200px;
+            box-shadow: var(--shadow-lg);
+            z-index: 200;
+        }
+        .more-dropdown.open { display: block; }
+        .more-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .more-item:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .more-item i { width: 16px; text-align: center; font-size: 13px; }
+
+        /* ── Main Content ── */
+        .main {
+            flex: 1;
+            padding: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .placeholder-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px;
+            max-width: 640px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .placeholder-card .pc-icon {
+            width: 72px; height: 72px;
+            background: var(--accent-light);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+            color: var(--accent);
+        }
+        .placeholder-card h2 {
+            font-size: 22px; font-weight: 800; color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .placeholder-card p {
+            font-size: 14px; color: var(--text-secondary); line-height: 1.7;
+            max-width: 420px; margin: 0 auto;
+        }
+        .concept-label {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--accent-light); color: var(--accent);
+            padding: 6px 14px; border-radius: 8px;
+            font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive: pills become icon-only */
+        @media (max-width: 960px) {
+            .pill .pill-label { display: none; }
+            .pill { padding: 8px 12px; }
+            .pill-divider-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <img src="/srm-logo.svg" alt="SRM" class="header-logo" />
+        <span class="header-brand">FleetOps</span>
+        <div class="header-spacer"></div>
+        <div class="header-actions">
+            <div class="h-btn" onclick="toggleTheme()" title="Toggle theme">
+                <i id="theme-icon" class="fas fa-moon"></i>
+            </div>
+            <div class="h-btn">
+                <i class="fas fa-magnifying-glass"></i>
+            </div>
+            <div class="h-btn">
+                <i class="fas fa-bell"></i>
+                <span class="h-badge">3</span>
+            </div>
+            <div class="h-avatar">TT</div>
+        </div>
+    </header>
+
+    <!-- Pill Navigation -->
+    <div class="pill-nav-wrapper">
+        <nav class="pill-nav" id="pillNav">
+            <!-- Dashboard -->
+            <div class="pill active" data-page="dashboard" onclick="selectPill(this)">
+                <i class="fas fa-gauge-high"></i>
+                <span class="pill-label">Dashboard</span>
+            </div>
+
+            <!-- Assets divider -->
+            <div class="pill-divider">
+                <span class="pill-divider-label">Assets</span>
+            </div>
+
+            <div class="pill" data-page="vehicles" onclick="selectPill(this)">
+                <i class="fas fa-truck"></i>
+                <span class="pill-label">Vehicles</span>
+            </div>
+            <div class="pill" data-page="equipment" onclick="selectPill(this)">
+                <i class="fas fa-gears"></i>
+                <span class="pill-label">Equipment</span>
+            </div>
+            <div class="pill" data-page="inventory" onclick="selectPill(this)">
+                <i class="fas fa-warehouse"></i>
+                <span class="pill-label">Inventory</span>
+            </div>
+
+            <!-- People divider -->
+            <div class="pill-divider">
+                <span class="pill-divider-label">People</span>
+            </div>
+
+            <div class="pill" data-page="operators" onclick="selectPill(this)">
+                <i class="fas fa-id-card"></i>
+                <span class="pill-label">Operators</span>
+            </div>
+            <div class="pill" data-page="crews" onclick="selectPill(this)">
+                <i class="fas fa-users"></i>
+                <span class="pill-label">Crews</span>
+            </div>
+
+            <!-- Productivity divider -->
+            <div class="pill-divider">
+                <span class="pill-divider-label">Productivity</span>
+            </div>
+
+            <div class="pill" data-page="dispatch" onclick="selectPill(this)">
+                <i class="fas fa-route"></i>
+                <span class="pill-label">Dispatch</span>
+                <span class="pill-badge">5</span>
+            </div>
+            <div class="pill" data-page="tickets" onclick="selectPill(this)">
+                <i class="fas fa-ticket"></i>
+                <span class="pill-label">Tickets</span>
+            </div>
+
+            <!-- More dropdown for overflow -->
+            <div class="pill-more">
+                <div class="pill" onclick="toggleMore(event)">
+                    <i class="fas fa-ellipsis"></i>
+                    <span class="pill-label">More</span>
+                </div>
+                <div class="more-dropdown" id="moreDropdown">
+                    <div class="more-item" onclick="selectMore(this, 'reports')">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </div>
+                    <div class="more-item" onclick="selectMore(this, 'scheduling')">
+                        <i class="fas fa-calendar-days"></i> Scheduling
+                    </div>
+                    <div class="more-item" onclick="selectMore(this, 'settings')">
+                        <i class="fas fa-cog"></i> Settings
+                    </div>
+                    <div class="more-item" onclick="selectMore(this, 'users')">
+                        <i class="fas fa-user-shield"></i> User Management
+                    </div>
+                    <div class="more-item" onclick="selectMore(this, 'integrations')">
+                        <i class="fas fa-plug"></i> Integrations
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="placeholder-card">
+            <span class="concept-label"><i class="fas fa-capsules"></i> Concept 24</span>
+            <div class="pc-icon"><i class="fas fa-capsules"></i></div>
+            <h2>Pill Navigation Bar</h2>
+            <p>A single-row horizontal nav where each item is a rounded pill. Active pills are filled with the accent color, while inactive pills use a ghost style. Groups are visually separated by labeled dividers, and overflow items collapse into a "More" dropdown.</p>
+
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                <a href="/nav-concept-23.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                    <i class="fas fa-arrow-left"></i> Concept 23
+                </a>
+                <a href="/nav-concept-25.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                    Concept 25 <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            icon.className = document.documentElement.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function selectPill(el) {
+            document.querySelectorAll('.pill-nav > .pill, .pill-nav > .pill-more > .pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function toggleMore(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('moreDropdown');
+            dd.classList.toggle('open');
+        }
+
+        function selectMore(el, page) {
+            document.querySelectorAll('.pill-nav > .pill').forEach(p => p.classList.remove('active'));
+            document.getElementById('moreDropdown').classList.remove('open');
+            /* Highlight the More button */
+            const moreBtn = document.querySelector('.pill-more > .pill');
+            moreBtn.classList.add('active');
+        }
+
+        /* Close dropdown on outside click */
+        document.addEventListener('click', () => {
+            document.getElementById('moreDropdown').classList.remove('open');
+        });
+    </script>
+
+</body>
+</html>

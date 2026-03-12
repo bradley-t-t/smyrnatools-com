@@ -43,6 +43,7 @@ const defaultPreferences = {
         statusFilter: '',
         viewMode: 'list'
     },
+    navStyle: 'top_bar_basic',
     operatorFilters: {
         positionFilter: '',
         searchText: '',
@@ -109,6 +110,7 @@ export const PreferencesProvider = ({ children }) => {
                     last_viewed_filters: updatedPreferences.lastViewedFilters,
                     manager_filters: updatedPreferences.managerFilters,
                     mixer_filters: updatedPreferences.mixerFilters,
+                    nav_style: updatedPreferences.navStyle,
                     operator_filters: updatedPreferences.operatorFilters,
                     selected_region: updatedPreferences.selectedRegion,
                     start_page: updatedPreferences.startPage,
@@ -178,6 +180,7 @@ export const PreferencesProvider = ({ children }) => {
                                       viewMode: data.mixer_filters.viewMode || 'list'
                                   }
                                 : { ...defaultPreferences.mixerFilters },
+                            navStyle: data.nav_style || defaultPreferences.navStyle,
                             operatorFilters: data.operator_filters
                                 ? {
                                       ...data.operator_filters,

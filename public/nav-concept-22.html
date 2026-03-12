@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nav Concept 22 — Dashboard Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --accent: #1e3a5f;
+            --accent-light: rgba(30,58,95,0.08);
+            --accent-hover: rgba(30,58,95,0.12);
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
+            --card-bg: #ffffff;
+            --badge-bg: #ef4444;
+            --card-fleet-grad: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(37,99,235,0.02) 100%);
+            --card-personnel-grad: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(124,58,237,0.02) 100%);
+            --card-ops-grad: linear-gradient(135deg, rgba(5,150,105,0.06) 0%, rgba(5,150,105,0.02) 100%);
+            --card-admin-grad: linear-gradient(135deg, rgba(220,38,38,0.06) 0%, rgba(220,38,38,0.02) 100%);
+            --card-fleet-border: rgba(37,99,235,0.15);
+            --card-personnel-border: rgba(124,58,237,0.15);
+            --card-ops-border: rgba(5,150,105,0.15);
+            --card-admin-border: rgba(220,38,38,0.15);
+            --icon-fleet: #2563eb;
+            --icon-personnel: #7c3aed;
+            --icon-ops: #059669;
+            --icon-admin: #dc2626;
+            --header-bg: rgba(255,255,255,0.85);
+        }
+        html.dark {
+            --bg-primary: #0f172a;
+            --bg-secondary: #0f172a;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #1e293b;
+            --accent: #3b82f6;
+            --accent-light: rgba(59,130,246,0.15);
+            --accent-hover: rgba(59,130,246,0.2);
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.3);
+            --card-bg: #1e293b;
+            --badge-bg: #ef4444;
+            --card-fleet-grad: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.03) 100%);
+            --card-personnel-grad: linear-gradient(135deg, rgba(139,92,246,0.1) 0%, rgba(139,92,246,0.03) 100%);
+            --card-ops-grad: linear-gradient(135deg, rgba(52,211,153,0.1) 0%, rgba(52,211,153,0.03) 100%);
+            --card-admin-grad: linear-gradient(135deg, rgba(248,113,113,0.1) 0%, rgba(248,113,113,0.03) 100%);
+            --card-fleet-border: rgba(59,130,246,0.2);
+            --card-personnel-border: rgba(139,92,246,0.2);
+            --card-ops-border: rgba(52,211,153,0.2);
+            --card-admin-border: rgba(248,113,113,0.2);
+            --icon-fleet: #60a5fa;
+            --icon-personnel: #a78bfa;
+            --icon-ops: #34d399;
+            --icon-admin: #f87171;
+            --header-bg: rgba(15,23,42,0.85);
+        }
+        html, html * { transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Sticky header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+        }
+        .header-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .header-logo img { height: 32px; }
+        .header-logo-text {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .header-search {
+            flex: 1;
+            max-width: 440px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .header-search input {
+            width: 100%;
+            padding: 9px 14px 9px 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .header-search input::placeholder { color: var(--text-muted); }
+        .header-search input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .header-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .region-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .region-pill:hover { border-color: var(--accent); color: var(--accent); }
+        .header-btn {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 15px;
+            cursor: pointer;
+            position: relative;
+        }
+        .header-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .header-btn .notif-dot {
+            position: absolute;
+            top: 6px; right: 6px;
+            width: 7px; height: 7px;
+            background: var(--badge-bg);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+        .theme-toggle {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .theme-toggle:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.08);
+        }
+        .theme-toggle:active { transform: scale(0.94); }
+
+        /* Page content */
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 32px 48px;
+        }
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .page-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+
+        /* Category grid */
+        .cat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .cat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .cat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            opacity: 1;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .cat-card.fleet { border-color: var(--card-fleet-border); }
+        .cat-card.fleet::before { background: var(--card-fleet-grad); }
+        .cat-card.personnel { border-color: var(--card-personnel-border); }
+        .cat-card.personnel::before { background: var(--card-personnel-grad); }
+        .cat-card.ops { border-color: var(--card-ops-border); }
+        .cat-card.ops::before { background: var(--card-ops-grad); }
+        .cat-card.admin { border-color: var(--card-admin-border); }
+        .cat-card.admin::before { background: var(--card-admin-grad); }
+
+        .cat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .cat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+        .cat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .cat-icon.fleet { background: rgba(37,99,235,0.12); color: var(--icon-fleet); }
+        .cat-icon.personnel { background: rgba(124,58,237,0.12); color: var(--icon-personnel); }
+        .cat-icon.ops { background: rgba(5,150,105,0.12); color: var(--icon-ops); }
+        .cat-icon.admin { background: rgba(220,38,38,0.12); color: var(--icon-admin); }
+
+        .cat-title-block { flex: 1; }
+        .cat-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .cat-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+        .cat-arrow {
+            font-size: 14px;
+            color: var(--text-muted);
+            opacity: 0;
+            transform: translateX(-4px);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .cat-card:hover .cat-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Item list inside card */
+        .cat-items {
+            list-style: none;
+            position: relative;
+            z-index: 1;
+        }
+        .cat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin: 2px 0;
+            cursor: pointer;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+        }
+        .cat-item:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .cat-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .cat-item-label { flex: 1; }
+        .cat-item-badge {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        .cat-item-arrow {
+            font-size: 10px;
+            color: var(--text-muted);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .cat-item:hover .cat-item-arrow { opacity: 1; }
+
+        /* Quick actions row */
+        .quick-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .quick-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background-color 0.2s;
+        }
+        .quick-chip i { font-size: 14px; }
+        .quick-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+        .quick-chip .notif-badge {
+            background: var(--badge-bg);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        /* Placeholder at bottom */
+        .placeholder-card {
+            max-width: 700px;
+            margin: 40px auto 0;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .placeholder-card h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .placeholder-card .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .placeholder-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0 0;
+        }
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+        }
+        .feature-list li i {
+            color: var(--accent);
+            width: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <img src="/srm-logo.svg" alt="Logo">
+            <span class="header-logo-text">Smyrna Ready Mix</span>
+        </div>
+        <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search pages, trucks, operators...">
+        </div>
+        <div class="header-right">
+            <div class="region-pill">
+                <i class="fas fa-map-marker-alt"></i>
+                Southeast Region
+                <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
+            </div>
+            <button class="header-btn">
+                <i class="fas fa-bell"></i>
+                <span class="notif-dot"></span>
+            </button>
+            <button class="header-btn">
+                <i class="fas fa-user-circle"></i>
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Page -->
+<div class="page">
+    <h1 class="page-title">Fleet Command Center</h1>
+    <p class="page-subtitle">Your entire operation at a glance. Click any card or item to navigate.</p>
+
+    <!-- Quick access row -->
+    <div class="quick-row">
+        <div class="quick-chip">
+            <i class="fas fa-tachometer-alt"></i>
+            Dashboard
+        </div>
+        <div class="quick-chip">
+            <i class="fas fa-plus"></i>
+            New Dispatch
+        </div>
+        <div class="quick-chip">
+            <i class="fas fa-exclamation-triangle"></i>
+            Alerts
+            <span class="notif-badge">3</span>
+        </div>
+        <div class="quick-chip">
+            <i class="fas fa-clock"></i>
+            Recent
+        </div>
+    </div>
+
+    <!-- Category cards grid -->
+    <div class="cat-grid">
+        <!-- Fleet -->
+        <div class="cat-card fleet">
+            <div class="cat-card-header">
+                <div class="cat-icon fleet"><i class="fas fa-truck"></i></div>
+                <div class="cat-title-block">
+                    <div class="cat-title">Fleet Management</div>
+                    <div class="cat-count">5 sections &middot; 574 assets</div>
+                </div>
+                <i class="fas fa-arrow-right cat-arrow"></i>
+            </div>
+            <ul class="cat-items">
+                <li class="cat-item">
+                    <i class="fas fa-truck"></i>
+                    <span class="cat-item-label">Mixers</span>
+                    <span class="cat-item-badge">247</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-tractor"></i>
+                    <span class="cat-item-label">Tractors</span>
+                    <span class="cat-item-badge">89</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-trailer"></i>
+                    <span class="cat-item-label">Trailers</span>
+                    <span class="cat-item-badge">132</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-snowplow"></i>
+                    <span class="cat-item-label">Heavy Equipment</span>
+                    <span class="cat-item-badge">41</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-truck-pickup"></i>
+                    <span class="cat-item-label">Pickup Trucks</span>
+                    <span class="cat-item-badge">65</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Personnel -->
+        <div class="cat-card personnel">
+            <div class="cat-card-header">
+                <div class="cat-icon personnel"><i class="fas fa-users"></i></div>
+                <div class="cat-title-block">
+                    <div class="cat-title">Personnel</div>
+                    <div class="cat-count">2 sections</div>
+                </div>
+                <i class="fas fa-arrow-right cat-arrow"></i>
+            </div>
+            <ul class="cat-items">
+                <li class="cat-item">
+                    <i class="fas fa-users"></i>
+                    <span class="cat-item-label">Operators</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="cat-item-label">Managers</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Operations -->
+        <div class="cat-card ops">
+            <div class="cat-card-header">
+                <div class="cat-icon ops"><i class="fas fa-clipboard-list"></i></div>
+                <div class="cat-title-block">
+                    <div class="cat-title">Operations</div>
+                    <div class="cat-count">6 sections</div>
+                </div>
+                <i class="fas fa-arrow-right cat-arrow"></i>
+            </div>
+            <ul class="cat-items">
+                <li class="cat-item">
+                    <i class="fas fa-list"></i>
+                    <span class="cat-item-label">List</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="cat-item-label">Reports</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="cat-item-label">Plan</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-calculator"></i>
+                    <span class="cat-item-label">Calculators</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-trophy"></i>
+                    <span class="cat-item-label">Leaderboards</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-folder-open"></i>
+                    <span class="cat-item-label">Documents</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Admin -->
+        <div class="cat-card admin">
+            <div class="cat-card-header">
+                <div class="cat-icon admin"><i class="fas fa-cog"></i></div>
+                <div class="cat-title-block">
+                    <div class="cat-title">Administration</div>
+                    <div class="cat-count">4 sections</div>
+                </div>
+                <i class="fas fa-arrow-right cat-arrow"></i>
+            </div>
+            <ul class="cat-items">
+                <li class="cat-item">
+                    <i class="fas fa-industry"></i>
+                    <span class="cat-item-label">Plants</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="cat-item-label">Regions</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-lock"></i>
+                    <span class="cat-item-label">Roles</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+                <li class="cat-item">
+                    <i class="fas fa-wrench"></i>
+                    <span class="cat-item-label">Maintenance</span>
+                    <i class="fas fa-chevron-right cat-item-arrow"></i>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Placeholder card -->
+    <div class="placeholder-card">
+        <h2>Concept 22 — Dashboard Hub</h2>
+        <p class="subtitle">Full-page dashboard navigation with category cards</p>
+        <p>No traditional sidebar or hamburger menu. The main view IS the navigation, presented as a home-screen-style dashboard with rich category cards. Each card shows its items inline, and everything is clickable.</p>
+        <ul class="feature-list">
+            <li><i class="fas fa-check"></i> Full-page card grid replaces traditional navigation</li>
+            <li><i class="fas fa-check"></i> Category cards with gradient backgrounds and lift-on-hover</li>
+            <li><i class="fas fa-check"></i> Inline item lists with counts and hover arrows</li>
+            <li><i class="fas fa-check"></i> Quick-access chips for common actions</li>
+            <li><i class="fas fa-check"></i> Sticky frosted-glass header with search</li>
+            <li><i class="fas fa-check"></i> Color-coded categories (blue, purple, green, red)</li>
+            <li><i class="fas fa-check"></i> Region selector and notification bell in header</li>
+            <li><i class="fas fa-check"></i> Smooth dark/light theme transition</li>
+        </ul>
+
+        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+            <a href="/nav-concept-21.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 21</a>
+            <a href="/nav-concept-23.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--accent); color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 23 <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleTheme() {
+    document.documentElement.classList.toggle('dark');
+    const icon = document.getElementById('theme-icon');
+    icon.className = document.documentElement.classList.contains('dark') ? 'fas fa-sun' : 'fas fa-moon';
+}
+</script>
+</body>
+</html>

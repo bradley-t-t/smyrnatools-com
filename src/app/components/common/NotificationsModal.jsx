@@ -72,9 +72,13 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
 
     const modalStyle = {
         position: 'fixed',
-        right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
-        top: anchorRect ? anchorRect.bottom + 8 : '80px',
-        zIndex: 1000
+        zIndex: 1000,
+        ...(anchorRect?.useLeft
+            ? { bottom: anchorRect.bottom, left: anchorRect.left }
+            : {
+                  right: anchorRect ? window.innerWidth - anchorRect.right : '16px',
+                  top: anchorRect ? anchorRect.bottom + 8 : '80px'
+              })
     }
 
     return ReactDOM.createPortal(

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+
 import PlantDropdownModal from '../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../app/components/sections/DetailViewSection'
 import { usePreferences } from '../../app/context/PreferencesContext'

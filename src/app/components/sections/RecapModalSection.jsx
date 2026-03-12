@@ -18,11 +18,20 @@ function RecapModalSection({
     operators = [],
     isAllPlants = false,
     mixersLoaded = true,
-    isLoading: externalLoading = false
+    isLoading: externalLoading = false,
+    isOpen: externalIsOpen,
+    onClose
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-    const [isOpen, setIsOpen] = useState(false)
+    const controlled = externalIsOpen !== undefined
+    const [internalOpen, setInternalOpen] = useState(false)
+    const isOpen = controlled ? externalIsOpen : internalOpen
+    const setIsOpen = controlled
+        ? (v) => {
+              if (!v && onClose) onClose()
+          }
+        : setInternalOpen
     const [isLoading, setIsLoading] = useState(false)
     const [mixerHistory, setMixerHistory] = useState([])
     const [operatorHistory, setOperatorHistory] = useState([])
@@ -518,7 +527,7 @@ function RecapModalSection({
     if (!plantCode && !isAllPlants) return null
     const displayTitle = isAllPlants ? 'All Plants Recap' : `Plant ${plantCode} Recap`
     const displaySubtitle = isAllPlants ? 'All Fleet Changes' : plantName || 'Changes History'
-    const tab = (
+    const tab = !controlled ? (
         <div
             className={`fixed left-0 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 px-3 py-2.5 text-white rounded-r-lg cursor-pointer shadow-lg transition-all duration-300 hover:pl-4 ${isTabVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
             style={{ backgroundColor: accentColor }}
@@ -527,7 +536,7 @@ function RecapModalSection({
             <i className="fa-solid fa-clock-rotate-left text-sm"></i>
             <span className="text-sm font-medium">Recap</span>
         </div>
-    )
+    ) : null
     const filteredTotal = filteredHistory.reduce((sum, g) => sum + filteredChangesForGroup(g).length, 0)
     const DATE_OPTIONS = [
         { id: 'day', label: '24h' },
@@ -586,11 +595,11 @@ function RecapModalSection({
     )
     const modal = isOpen ? (
         <div
-            className="fixed inset-0 bg-black/50 z-50 flex items-start justify-start p-4"
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
             onClick={() => setIsOpen(false)}
         >
             <div
-                className="rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden ml-0 mt-12"
+                className="rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
                 style={{ backgroundColor: 'var(--bg-primary)' }}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -709,32 +718,32 @@ function RecapModalSection({
                             value={changeMetrics.operatorsNet}
                             label="Operators"
                             icon="fa-user"
-                            iconBg="bg-blue-50"
-                            iconColor="text-blue-500"
+                            iconBg="bg-blue-50 dark:bg-blue-500/20"
+                            iconColor="text-blue-500 dark:text-blue-400"
                             positive
                         />
                         <MetricBadge
                             value={changeMetrics.runnableNet}
                             label="Runnable"
                             icon="fa-truck"
-                            iconBg="bg-emerald-50"
-                            iconColor="text-emerald-500"
+                            iconBg="bg-emerald-50 dark:bg-emerald-500/20"
+                            iconColor="text-emerald-500 dark:text-emerald-400"
                             positive
                         />
                         <MetricBadge
                             value={changeMetrics.downNet}
                             label="Down"
                             icon="fa-wrench"
-                            iconBg="bg-amber-50"
-                            iconColor="text-amber-500"
+                            iconBg="bg-amber-50 dark:bg-amber-500/20"
+                            iconColor="text-amber-500 dark:text-amber-400"
                             positive={false}
                         />
                         <MetricBadge
                             value={changeMetrics.transfersNet}
                             label="Transfers"
                             icon="fa-right-left"
-                            iconBg="bg-purple-50"
-                            iconColor="text-purple-500"
+                            iconBg="bg-purple-50 dark:bg-purple-500/20"
+                            iconColor="text-purple-500 dark:text-purple-400"
                             positive
                         />
                     </div>

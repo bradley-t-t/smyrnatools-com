@@ -12,6 +12,7 @@ import LoginView from '../views/login/LoginView'
 import LockedOverlay from './components/common/LockedOverlay'
 import Navigation from './components/common/Navigation'
 import OfflineOverlay from './components/common/OfflineOverlay'
+import SideGlassNavigation from './components/common/SideGlassNavigation'
 import TerminatedOverlay from './components/common/TerminatedOverlay'
 import TutorialManager from './components/common/TutorialPopup'
 import VersionUpdateBanner from './components/common/VersionUpdateBanner'
@@ -325,13 +326,14 @@ function AppContent() {
                 )
         }
     }
+    const NavComponent = preferences.navStyle === 'side_glass' ? SideGlassNavigation : Navigation
     if (terminatedMode) return <TerminatedOverlay />
     if (!sessionChecked) return null
     if (!userId) return <div className="App">{renderCurrentView()}</div>
     if (!rolesLoaded) return null
     return (
         <div className="App">
-            <Navigation
+            <NavComponent
                 selectedView={selectedView.view}
                 onSelectView={handleViewSelection}
                 onExternalLink={setWebViewURL}
@@ -342,7 +344,7 @@ function AppContent() {
                 <Suspense fallback={null}>
                     <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
                 </Suspense>
-            </Navigation>
+            </NavComponent>
             {offlineMode && <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline} />}
             {isGuestOnly && <LockedOverlay reason="guest-only" />}
         </div>

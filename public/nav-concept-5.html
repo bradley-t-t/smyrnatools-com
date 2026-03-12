@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 5 — Split Sidebar (Mini + Panel)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Dark icon strip */
+        .icon-strip {
+            width: 60px;
+            background: #0f1d2f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 14px 0;
+            flex-shrink: 0;
+        }
+        .icon-strip img { height: 24px; margin-bottom: 20px; }
+        .strip-items { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .strip-item {
+            width: 42px; height: 42px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255,255,255,0.4); cursor: pointer; font-size: 16px;
+            transition: all 0.15s;
+        }
+        .strip-item:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); }
+        .strip-item.active { color: white; background: #1e3a5f; }
+        .strip-sep { width: 24px; height: 1px; background: rgba(255,255,255,0.08); margin: 6px auto; }
+        .strip-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .strip-avatar {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: #1e3a5f; color: white;
+            font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Light detail panel */
+        .detail-panel {
+            width: 220px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .panel-header {
+            padding: 18px 16px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .panel-items { flex: 1; padding: 8px; overflow-y: auto; }
+        .panel-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: #475569;
+            cursor: pointer; transition: all 0.12s;
+        }
+        .panel-item:hover { background: #f8fafc; color: #1e293b; }
+        .panel-item.active { background: #1e3a5f0f; color: #1e3a5f; font-weight: 600; }
+        .panel-item i { width: 18px; text-align: center; font-size: 13px; color: #94a3b8; }
+        .panel-item.active i { color: #1e3a5f; }
+        .panel-count {
+            margin-left: auto; font-size: 11px; font-weight: 600;
+            background: #f1f5f9; color: #64748b;
+            padding: 2px 7px; border-radius: 10px;
+        }
+
+        /* Region at bottom of panel */
+        .panel-region {
+            padding: 12px 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .panel-region select {
+            width: 100%; padding: 8px 10px; border-radius: 8px;
+            border: 1px solid #e2e8f0; font-size: 13px; font-weight: 600;
+            color: #1e293b; background: #f8fafc; cursor: pointer;
+        }
+
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            height: 56px; background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center;
+            padding: 0 24px; flex-shrink: 0;
+        }
+        .topbar-title { font-size: 18px; font-weight: 700; }
+        .topbar-right { margin-left: auto; display: flex; gap: 10px; }
+        .top-btn {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; position: relative;
+        }
+        .top-badge { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: #ef4444; color: white; border-radius: 50%; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; text-align: center; color: #94a3b8; font-size: 15px; }
+        .concept-tag { display: inline-block; background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="icon-strip">
+        <img src="/srm-logo.svg" alt="SRM" />
+        <div class="strip-items">
+            <div class="strip-item"><i class="fas fa-tachometer-alt"></i></div>
+            <div class="strip-sep"></div>
+            <div class="strip-item active"><i class="fas fa-truck"></i></div>
+            <div class="strip-item"><i class="fas fa-users"></i></div>
+            <div class="strip-item"><i class="fas fa-chart-line"></i></div>
+            <div class="strip-sep"></div>
+            <div class="strip-item"><i class="fas fa-cog"></i></div>
+        </div>
+        <div class="strip-bottom">
+            <div class="strip-item"><i class="fas fa-bell"></i></div>
+            <div class="strip-avatar">TT</div>
+        </div>
+    </div>
+    <div class="detail-panel">
+        <div class="panel-header">Assets</div>
+        <div class="panel-items">
+            <div class="panel-item active">
+                <i class="fas fa-truck"></i> Mixers
+                <span class="panel-count">247</span>
+            </div>
+            <div class="panel-item">
+                <i class="fas fa-tractor"></i> Tractors
+                <span class="panel-count">89</span>
+            </div>
+            <div class="panel-item">
+                <i class="fas fa-trailer"></i> Trailers
+                <span class="panel-count">132</span>
+            </div>
+            <div class="panel-item">
+                <i class="fas fa-snowplow"></i> Heavy Equipment
+                <span class="panel-count">41</span>
+            </div>
+            <div class="panel-item">
+                <i class="fas fa-truck-pickup"></i> Pickup Trucks
+                <span class="panel-count">65</span>
+            </div>
+        </div>
+        <div class="panel-region">
+            <select>
+                <option>Nashville</option>
+                <option>Memphis</option>
+                <option>Knoxville</option>
+            </select>
+        </div>
+    </div>
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">Mixers</div>
+            <div class="topbar-right">
+                <div class="top-btn"><i class="fas fa-search"></i></div>
+                <div class="top-btn"><i class="fas fa-bell"></i><span class="top-badge">3</span></div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="placeholder-card">
+                <div class="concept-tag">Concept 5</div>
+                <h2 style="color: #1e293b; margin-bottom: 8px;">Split Sidebar (Mini + Panel)</h2>
+                <p>Dark icon strip for category groups. Light detail panel shows sub-items with counts. Two-column sidebar pattern — compact but informative.</p>
+                <br>
+                <p style="color:#cbd5e1; font-size: 13px;">VS Code / Slack-style navigation. Icon strip selects the category, panel shows the items within.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-4.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 4</a>
+                    <a href="/nav-concept-6.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 6 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

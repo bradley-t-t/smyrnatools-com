@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 16 — Sidebar with Pinned Favorites</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; height: 100vh; display: flex; overflow: hidden; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 270px; background: white; border-right: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; flex-shrink: 0;
+            height: 100vh; overflow: hidden;
+        }
+
+        /* Sidebar header */
+        .sb-header {
+            padding: 18px 20px; border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .sb-header img { height: 28px; }
+        .sb-header-spacer { flex: 1; }
+        .sb-avatar {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: #1e3a5f; color: white; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+
+        /* Sidebar body */
+        .sb-body { flex: 1; overflow-y: auto; padding: 16px 12px; }
+
+        /* Dashboard link */
+        .sb-dashboard {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 600; color: #1e3a5f;
+            background: #eff6ff; cursor: pointer; margin-bottom: 16px;
+        }
+        .sb-dashboard i { font-size: 14px; }
+
+        /* Pinned section */
+        .sb-section-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #94a3b8; padding: 0 12px;
+            margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .sb-section-label i { font-size: 9px; }
+
+        .pinned-chips {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            padding: 0 8px; margin-bottom: 20px;
+        }
+        .pinned-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 12px; border-radius: 8px;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            font-size: 12px; font-weight: 500; color: #475569;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .pinned-chip:hover { background: #eff6ff; border-color: #bfdbfe; color: #1e3a5f; }
+        .pinned-chip i { font-size: 10px; color: #94a3b8; }
+        .pinned-chip .unpin {
+            font-size: 9px; color: #cbd5e1; margin-left: 2px;
+            cursor: pointer; transition: color 0.15s;
+        }
+        .pinned-chip:hover .unpin { color: #ef4444; }
+
+        /* Category sections */
+        .sb-category { margin-bottom: 6px; }
+        .sb-cat-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 12px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;
+            cursor: pointer; border-radius: 6px; transition: background 0.15s;
+        }
+        .sb-cat-header:hover { background: #f8fafc; }
+        .sb-cat-header .chevron { font-size: 8px; margin-left: auto; transition: transform 0.2s; }
+        .sb-cat-header.collapsed .chevron { transform: rotate(-90deg); }
+
+        .sb-items { padding: 2px 0 8px; }
+        .sb-items.hidden { display: none; }
+        .sb-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px 8px 20px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; color: #64748b;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .sb-item:hover { background: #f8fafc; color: #1e293b; }
+        .sb-item.active { background: #eff6ff; color: #1e3a5f; font-weight: 600; }
+        .sb-item i { font-size: 13px; width: 18px; text-align: center; }
+        .sb-item-spacer { flex: 1; }
+        .sb-item .star {
+            font-size: 11px; color: #e2e8f0; cursor: pointer;
+            transition: color 0.15s; opacity: 0;
+        }
+        .sb-item:hover .star { opacity: 1; }
+        .sb-item .star:hover { color: #f59e0b; }
+        .sb-item .star.pinned { color: #f59e0b; opacity: 1; }
+
+        /* Main area */
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .top-bar {
+            background: white; border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px; display: flex; align-items: center; gap: 12px;
+            flex-shrink: 0;
+        }
+        .tb-search {
+            flex: 1; max-width: 400px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 8px 14px; font-size: 13px; color: #64748b;
+            display: flex; align-items: center; gap: 8px; cursor: text;
+        }
+        .tb-search i { color: #94a3b8; font-size: 13px; }
+        .tb-spacer { flex: 1; }
+        .tb-region {
+            padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+            color: #475569; background: #f8fafc; border: 1px solid #e2e8f0;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .tb-region i.chevron { font-size: 10px; color: #94a3b8; }
+        .tb-btn {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            color: #64748b; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; font-size: 14px;
+        }
+        .tb-btn:hover { background: #eff6ff; color: #1e3a5f; }
+        .tb-badge { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: #ef4444; color: white; border-radius: 50%; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; text-align: center; color: #94a3b8; font-size: 15px; }
+        .concept-tag { display: inline-block; background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sb-header">
+            <img src="/srm-logo.svg" alt="SRM" />
+            <div class="sb-header-spacer"></div>
+            <div class="sb-avatar">TT</div>
+        </div>
+        <div class="sb-body">
+            <div class="sb-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+
+            <div class="sb-section-label"><i class="fas fa-thumbtack"></i> Pinned</div>
+            <div class="pinned-chips" id="pinnedChips">
+                <div class="pinned-chip" onclick="unpinFromChip(this, 'Mixers')"><i class="fas fa-truck"></i> Mixers <span class="unpin"><i class="fas fa-times"></i></span></div>
+                <div class="pinned-chip" onclick="unpinFromChip(this, 'Reports')"><i class="fas fa-file-alt"></i> Reports <span class="unpin"><i class="fas fa-times"></i></span></div>
+                <div class="pinned-chip" onclick="unpinFromChip(this, 'Operators')"><i class="fas fa-users"></i> Operators <span class="unpin"><i class="fas fa-times"></i></span></div>
+                <div class="pinned-chip" onclick="unpinFromChip(this, 'Maintenance')"><i class="fas fa-wrench"></i> Maintenance <span class="unpin"><i class="fas fa-times"></i></span></div>
+            </div>
+
+            <div class="sb-section-label" style="margin-bottom: 12px;"><i class="fas fa-th-large"></i> All Views</div>
+
+            <div class="sb-category">
+                <div class="sb-cat-header" onclick="toggleCat(this)">
+                    <i class="fas fa-truck" style="font-size: 10px;"></i> Assets
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="sb-items">
+                    <div class="sb-item active"><i class="fas fa-truck"></i> Mixers <div class="sb-item-spacer"></div><i class="fas fa-star star pinned" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-tractor"></i> Tractors <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-trailer"></i> Trailers <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-snowplow"></i> Heavy Equipment <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-truck-pickup"></i> Pickup Trucks <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                </div>
+            </div>
+
+            <div class="sb-category">
+                <div class="sb-cat-header" onclick="toggleCat(this)">
+                    <i class="fas fa-users" style="font-size: 10px;"></i> People
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="sb-items">
+                    <div class="sb-item"><i class="fas fa-users"></i> Operators <div class="sb-item-spacer"></div><i class="fas fa-star star pinned" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-user-tie"></i> Managers <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                </div>
+            </div>
+
+            <div class="sb-category">
+                <div class="sb-cat-header" onclick="toggleCat(this)">
+                    <i class="fas fa-chart-line" style="font-size: 10px;"></i> Productivity
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="sb-items">
+                    <div class="sb-item"><i class="fas fa-list"></i> List <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-file-alt"></i> Reports <div class="sb-item-spacer"></div><i class="fas fa-star star pinned" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-calendar-alt"></i> Plan <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-calculator"></i> Calculators <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-trophy"></i> Leaderboards <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-folder-open"></i> Documents <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                </div>
+            </div>
+
+            <div class="sb-category">
+                <div class="sb-cat-header" onclick="toggleCat(this)">
+                    <i class="fas fa-cog" style="font-size: 10px;"></i> Admin
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+                <div class="sb-items">
+                    <div class="sb-item"><i class="fas fa-industry"></i> Plants <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-map-marker-alt"></i> Regions <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-lock"></i> Roles <div class="sb-item-spacer"></div><i class="far fa-star star" onclick="togglePin(event, this)"></i></div>
+                    <div class="sb-item"><i class="fas fa-wrench"></i> Maintenance <div class="sb-item-spacer"></div><i class="fas fa-star star pinned" onclick="togglePin(event, this)"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="top-bar">
+            <div class="tb-search"><i class="fas fa-search"></i> Search views...</div>
+            <div class="tb-spacer"></div>
+            <div class="tb-region"><i class="fas fa-map-marker-alt"></i> Nashville <i class="fas fa-chevron-down chevron"></i></div>
+            <div class="tb-btn"><i class="fas fa-bell"></i><span class="tb-badge">3</span></div>
+            <div class="tb-btn"><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i></div>
+        </div>
+        <div class="content">
+            <div class="placeholder-card">
+                <div class="concept-tag">Concept 16</div>
+                <h2 style="color: #1e293b; margin-bottom: 8px;">Sidebar with Pinned Favorites</h2>
+                <p>Light sidebar with a "Pinned" section at top showing favorite views as small chips, followed by categorized "All Views" below. Star icons let users pin/unpin items for quick access.</p>
+                <br>
+                <p style="color:#cbd5e1; font-size: 13px;">Personalization-first navigation. Frequently used views float to the top as chips, reducing clicks for daily workflows. Categories collapse to keep the sidebar tidy.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-15.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 15</a>
+                    <a href="/nav-concept-17.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 17 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCat(header) {
+            header.classList.toggle('collapsed');
+            const items = header.nextElementSibling;
+            items.classList.toggle('hidden');
+        }
+
+        function togglePin(e, star) {
+            e.stopPropagation();
+            const item = star.closest('.sb-item');
+            const label = item.childNodes[1].textContent.trim();
+            const iconEl = item.querySelector('i:first-child');
+            const iconClass = [...iconEl.classList].find(c => c.startsWith('fa-'));
+
+            if (star.classList.contains('pinned')) {
+                star.classList.remove('pinned', 'fas');
+                star.classList.add('far');
+                removePinnedChip(label);
+            } else {
+                star.classList.add('pinned');
+                star.classList.remove('far');
+                star.classList.add('fas');
+                addPinnedChip(label, iconClass);
+            }
+        }
+
+        function addPinnedChip(label, iconClass) {
+            const chips = document.getElementById('pinnedChips');
+            const chip = document.createElement('div');
+            chip.className = 'pinned-chip';
+            chip.setAttribute('onclick', `unpinFromChip(this, '${label}')`);
+            chip.innerHTML = `<i class="fas ${iconClass}"></i> ${label} <span class="unpin"><i class="fas fa-times"></i></span>`;
+            chips.appendChild(chip);
+        }
+
+        function removePinnedChip(label) {
+            const chips = document.getElementById('pinnedChips');
+            [...chips.children].forEach(chip => {
+                if (chip.textContent.trim().replace('', '').trim() === label) {
+                    chip.remove();
+                }
+            });
+        }
+
+        function unpinFromChip(chip, label) {
+            chip.remove();
+            document.querySelectorAll('.sb-item').forEach(item => {
+                if (item.childNodes[1].textContent.trim() === label) {
+                    const star = item.querySelector('.star');
+                    star.classList.remove('pinned', 'fas');
+                    star.classList.add('far');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 2 — Top Bar + Command Palette</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Top nav bar */
+        .topnav {
+            background: #1e3a5f;
+            display: flex;
+            align-items: center;
+            height: 56px;
+            padding: 0 20px;
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .topnav img { height: 32px; }
+
+        /* Slim tab bar */
+        .tab-bar {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tab-bar::-webkit-scrollbar { display: none; }
+        .tab {
+            padding: 8px 14px;
+            border-radius: 8px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab:hover { color: white; background: rgba(255,255,255,0.08); }
+        .tab.active { color: white; background: rgba(255,255,255,0.15); font-weight: 600; }
+        .tab i { font-size: 12px; }
+
+        /* Divider */
+        .tab-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px; flex-shrink: 0; }
+
+        /* Right actions */
+        .nav-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            font-size: 14px;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+        .nav-badge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white; border-radius: 10px;
+            font-size: 10px; font-weight: 700; min-width: 18px; height: 18px;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #1e3a5f;
+        }
+
+        /* Search / command palette trigger */
+        .search-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 7px 14px;
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            cursor: pointer;
+            min-width: 180px;
+        }
+        .search-trigger:hover { background: rgba(255,255,255,0.12); }
+        .search-trigger kbd {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-left: auto;
+        }
+
+        /* Region selector pill */
+        .region-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .region-pill i { font-size: 10px; color: rgba(255,255,255,0.5); }
+
+        /* Secondary bar */
+        .secondary-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            height: 44px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .sub-tab {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+        }
+        .sub-tab:hover { background: #f1f5f9; color: #1e293b; }
+        .sub-tab.active { background: #1e3a5f10; color: #1e3a5f; font-weight: 600; }
+
+        /* Content */
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 15px;
+        }
+        .concept-tag {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        /* Command palette overlay */
+        .cmd-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 120px;
+        }
+        .cmd-overlay.open { display: flex; }
+        .cmd-palette {
+            background: white;
+            border-radius: 16px;
+            width: 520px;
+            max-height: 420px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        }
+        .cmd-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 16px;
+            outline: none;
+        }
+        .cmd-list { padding: 8px; }
+        .cmd-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .cmd-item:hover { background: #f1f5f9; }
+        .cmd-item i { width: 20px; text-align: center; color: #64748b; }
+        .cmd-hint { margin-left: auto; font-size: 11px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="topnav">
+        <img src="/srm-logo.svg" alt="SRM" />
+
+        <div class="tab-bar">
+            <div class="tab active"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+            <div class="tab-divider"></div>
+            <div class="tab"><i class="fas fa-truck"></i> Mixers</div>
+            <div class="tab"><i class="fas fa-tractor"></i> Tractors</div>
+            <div class="tab"><i class="fas fa-trailer"></i> Trailers</div>
+            <div class="tab-divider"></div>
+            <div class="tab"><i class="fas fa-users"></i> Operators</div>
+            <div class="tab"><i class="fas fa-user-tie"></i> Managers</div>
+            <div class="tab-divider"></div>
+            <div class="tab"><i class="fas fa-list"></i> List</div>
+            <div class="tab"><i class="fas fa-file-alt"></i> Reports</div>
+            <div class="tab"><i class="fas fa-calendar-alt"></i> Plan</div>
+        </div>
+
+        <div class="search-trigger" onclick="toggleCmd()">
+            <i class="fas fa-search"></i>
+            <span>Search...</span>
+            <kbd>⌘K</kbd>
+        </div>
+
+        <div class="region-pill">
+            <i class="fas fa-map-marker-alt"></i>
+            Nashville
+            <i class="fas fa-chevron-down"></i>
+        </div>
+
+        <div class="nav-actions">
+            <div class="nav-btn">
+                <i class="fas fa-bell"></i>
+                <span class="nav-badge">3</span>
+            </div>
+            <div class="nav-btn" style="font-size: 12px; font-weight: 700; color: white; background: rgba(255,255,255,0.15);">TT</div>
+        </div>
+    </div>
+
+    <div class="secondary-bar">
+        <div class="sub-tab active">Overview</div>
+        <div class="sub-tab">Analytics</div>
+        <div class="sub-tab">Activity</div>
+    </div>
+
+    <div class="content">
+        <div class="placeholder-card">
+            <div class="concept-tag">Concept 2</div>
+            <h2 style="color: #1e293b; margin-bottom: 8px;">Slim Top Bar + Command Palette</h2>
+            <p>Compact horizontal nav with all primary items visible as tabs. Grouped by dividers. Secondary contextual tabs appear below based on active view.</p>
+            <br>
+            <p>Click the search bar (or press ⌘K) to open a command palette for quick navigation to any view, asset, or operator.</p>
+            <br>
+            <p style="color:#cbd5e1; font-size: 13px;">Maximizes vertical space — no sidebar. Region selector lives in the top bar as a pill.</p>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                <a href="/nav-concept-1.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 1</a>
+                <a href="/nav-concept-3.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 3 <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette -->
+    <div class="cmd-overlay" id="cmdOverlay" onclick="toggleCmd()">
+        <div class="cmd-palette" onclick="event.stopPropagation()">
+            <input class="cmd-input" placeholder="Search views, assets, operators..." autofocus />
+            <div class="cmd-list">
+                <div class="cmd-item"><i class="fas fa-tachometer-alt"></i> Dashboard <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-truck"></i> Mixers <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-users"></i> Operators <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-list"></i> List <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-file-alt"></i> Reports <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-calculator"></i> Calculators <span class="cmd-hint">View</span></div>
+                <div class="cmd-item"><i class="fas fa-trophy"></i> Leaderboards <span class="cmd-hint">View</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleCmd() { document.getElementById('cmdOverlay').classList.toggle('open'); }
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); toggleCmd(); }
+            if (e.key === 'Escape') document.getElementById('cmdOverlay').classList.remove('open');
+        });
+    </script>
+</body>
+</html>

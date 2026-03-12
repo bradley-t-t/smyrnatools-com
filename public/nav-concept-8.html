@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 8 — Sidebar with Accordion Groups</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .sidebar-header img { height: 32px; filter: brightness(0) saturate(100%) invert(18%) sepia(25%) saturate(1500%) hue-rotate(180deg); }
+
+        /* Region pill */
+        .region-bar {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .region-select-full {
+            width: 100%; padding: 8px 12px; border-radius: 10px;
+            border: 1px solid #e2e8f0; background: #f8fafc;
+            font-size: 13px; font-weight: 600; color: #1e293b; cursor: pointer;
+        }
+
+        .nav-scroll { flex: 1; overflow-y: auto; padding: 8px; }
+
+        /* Standalone item */
+        .s-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 14px; font-weight: 500; color: #475569;
+            cursor: pointer; transition: all 0.12s;
+        }
+        .s-item:hover { background: #f8fafc; color: #1e293b; }
+        .s-item.active { background: #1e3a5f; color: white; }
+        .s-item i { width: 20px; text-align: center; font-size: 14px; }
+        .s-item.active i { color: white; }
+
+        /* Accordion group */
+        .accordion { margin-top: 4px; }
+        .acc-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 13px; font-weight: 600; color: #94a3b8;
+            cursor: pointer; transition: all 0.12s;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .acc-header:hover { background: #f8fafc; color: #64748b; }
+        .acc-header i.icon { width: 20px; text-align: center; font-size: 14px; }
+        .acc-header .acc-chevron { margin-left: auto; font-size: 10px; transition: transform 0.2s; }
+        .acc-header.open .acc-chevron { transform: rotate(90deg); }
+        .acc-body { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+        .acc-body.open { max-height: 400px; }
+        .acc-body .s-item { padding-left: 44px; font-size: 13px; }
+        .acc-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #cbd5e1; flex-shrink: 0;
+        }
+        .acc-body .s-item.active .acc-dot { background: white; }
+        .acc-body .s-item:not(.active) { color: #64748b; }
+
+        /* User footer */
+        .sidebar-footer {
+            padding: 12px 14px;
+            border-top: 1px solid #f1f5f9;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .footer-avatar {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: #1e3a5f; color: white;
+            font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .footer-name { font-size: 13px; font-weight: 600; color: #1e293b; }
+        .footer-role { font-size: 11px; color: #94a3b8; }
+        .footer-actions { margin-left: auto; display: flex; gap: 6px; }
+        .footer-btn {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; cursor: pointer; font-size: 12px;
+        }
+
+        /* Main */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            height: 54px; background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center;
+            padding: 0 24px; flex-shrink: 0;
+        }
+        .topbar-title { font-size: 18px; font-weight: 700; }
+        .topbar-right { margin-left: auto; display: flex; gap: 10px; }
+        .top-btn { width: 36px; height: 36px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; position: relative; }
+        .top-badge { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; background: #ef4444; color: white; border-radius: 50%; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; text-align: center; color: #94a3b8; font-size: 15px; }
+        .concept-tag { display: inline-block; background: #1e3a5f; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="/srm-logo.svg" alt="SRM" />
+        </div>
+        <div class="region-bar">
+            <select class="region-select-full">
+                <option>Nashville</option>
+                <option>Memphis</option>
+                <option>Knoxville</option>
+            </select>
+        </div>
+        <div class="nav-scroll">
+            <div class="s-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+
+            <div class="accordion">
+                <div class="acc-header open" onclick="toggleAcc(this)">
+                    <i class="fas fa-truck icon"></i> Assets
+                    <i class="fas fa-chevron-right acc-chevron"></i>
+                </div>
+                <div class="acc-body open">
+                    <div class="s-item"><span class="acc-dot"></span> Mixers</div>
+                    <div class="s-item"><span class="acc-dot"></span> Tractors</div>
+                    <div class="s-item"><span class="acc-dot"></span> Trailers</div>
+                    <div class="s-item"><span class="acc-dot"></span> Heavy Equipment</div>
+                    <div class="s-item"><span class="acc-dot"></span> Pickup Trucks</div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">
+                    <i class="fas fa-users icon"></i> People
+                    <i class="fas fa-chevron-right acc-chevron"></i>
+                </div>
+                <div class="acc-body">
+                    <div class="s-item"><span class="acc-dot"></span> Operators</div>
+                    <div class="s-item"><span class="acc-dot"></span> Managers</div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">
+                    <i class="fas fa-chart-line icon"></i> Productivity
+                    <i class="fas fa-chevron-right acc-chevron"></i>
+                </div>
+                <div class="acc-body">
+                    <div class="s-item"><span class="acc-dot"></span> List</div>
+                    <div class="s-item"><span class="acc-dot"></span> Reports</div>
+                    <div class="s-item"><span class="acc-dot"></span> Plan</div>
+                    <div class="s-item"><span class="acc-dot"></span> Calculators</div>
+                    <div class="s-item"><span class="acc-dot"></span> Leaderboards</div>
+                    <div class="s-item"><span class="acc-dot"></span> Documents</div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="acc-header" onclick="toggleAcc(this)">
+                    <i class="fas fa-cog icon"></i> Admin
+                    <i class="fas fa-chevron-right acc-chevron"></i>
+                </div>
+                <div class="acc-body">
+                    <div class="s-item"><span class="acc-dot"></span> Plants</div>
+                    <div class="s-item"><span class="acc-dot"></span> Regions</div>
+                    <div class="s-item"><span class="acc-dot"></span> Roles</div>
+                    <div class="s-item"><span class="acc-dot"></span> Maintenance</div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="footer-avatar">TT</div>
+            <div>
+                <div class="footer-name">Trenton Taylor</div>
+                <div class="footer-role">Administrator</div>
+            </div>
+            <div class="footer-actions">
+                <div class="footer-btn"><i class="fas fa-cog"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">Dashboard</div>
+            <div class="topbar-right">
+                <div class="top-btn"><i class="fas fa-search"></i></div>
+                <div class="top-btn"><i class="fas fa-bell"></i><span class="top-badge">3</span></div>
+                <div class="top-btn"><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i></div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="placeholder-card">
+                <div class="concept-tag">Concept 8</div>
+                <h2 style="color: #1e293b; margin-bottom: 8px;">Light Sidebar with Accordion Groups</h2>
+                <p>White/light sidebar with collapsible accordion sections. Clean, professional look. Region selector at top of sidebar. User profile at bottom.</p>
+                <br>
+                <p>Click group headers (Assets, People, etc.) to expand/collapse.</p>
+                <br>
+                <p style="color:#cbd5e1; font-size: 13px;">Familiar SaaS pattern. Dot indicators for sub-items. Easy to scan.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-7.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 7</a>
+                    <a href="/nav-concept-9.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 9 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAcc(el) {
+            el.classList.toggle('open');
+            el.nextElementSibling.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

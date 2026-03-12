@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nav Concept 1 — Collapsible Sidebar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #1e3a5f;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.25s ease;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed { width: 68px; }
+        .sidebar.collapsed .nav-label,
+        .sidebar.collapsed .section-title,
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .chevron { display: none; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px 0; }
+        .sidebar.collapsed .nav-icon { margin: 0; }
+
+        /* Logo area */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .logo-area img { height: 36px; flex-shrink: 0; }
+        .logo-text { color: white; font-weight: 700; font-size: 16px; white-space: nowrap; }
+
+        /* Collapse toggle */
+        .collapse-btn {
+            position: absolute;
+            top: 24px;
+            right: -14px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #1e3a5f;
+            border: 2px solid #e2e8f0;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            z-index: 10;
+            transition: transform 0.25s;
+        }
+        .sidebar.collapsed .collapse-btn { transform: rotate(180deg); }
+
+        /* Nav */
+        .nav-scroll { flex: 1; overflow-y: auto; padding: 12px 10px; }
+        .section-title {
+            color: rgba(255,255,255,0.4);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 16px 10px 6px;
+            white-space: nowrap;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
+            white-space: nowrap;
+            margin-bottom: 2px;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+        .nav-icon { width: 20px; text-align: center; flex-shrink: 0; font-size: 14px; }
+        .nav-label { white-space: nowrap; }
+        .chevron { margin-left: auto; font-size: 10px; transition: transform 0.2s; }
+        .chevron.open { transform: rotate(90deg); }
+
+        /* Subnav */
+        .subnav { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+        .subnav.open { max-height: 300px; }
+        .subnav .nav-item { padding-left: 44px; font-size: 13px; }
+
+        /* User area */
+        .user-area {
+            padding: 14px 18px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .user-info { white-space: nowrap; }
+        .user-name { color: white; font-size: 13px; font-weight: 600; }
+        .user-role { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+        /* Main content */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            height: 60px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            flex-shrink: 0;
+        }
+        .topbar-title { font-size: 18px; font-weight: 700; color: #1e293b; }
+        .topbar-actions { display: flex; gap: 12px; }
+        .topbar-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+            position: relative;
+        }
+        .badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .content { flex: 1; padding: 24px; overflow-y: auto; }
+        .placeholder-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 15px;
+        }
+        .concept-tag {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar" id="sidebar" style="position: relative;">
+        <button class="collapse-btn" onclick="toggleSidebar()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="logo-area">
+            <img src="/srm-logo.svg" alt="SRM" />
+        </div>
+        <div class="nav-scroll">
+            <div class="nav-item active">
+                <span class="nav-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span class="nav-label">Dashboard</span>
+            </div>
+
+            <div class="section-title">Assets</div>
+            <div class="nav-item" onclick="toggleSub('assets')">
+                <span class="nav-icon"><i class="fas fa-truck"></i></span>
+                <span class="nav-label">Fleet</span>
+                <i class="fas fa-chevron-right chevron" id="chevron-assets"></i>
+            </div>
+            <div class="subnav" id="sub-assets">
+                <div class="nav-item"><span class="nav-label">Mixers</span></div>
+                <div class="nav-item"><span class="nav-label">Tractors</span></div>
+                <div class="nav-item"><span class="nav-label">Trailers</span></div>
+                <div class="nav-item"><span class="nav-label">Heavy Equipment</span></div>
+                <div class="nav-item"><span class="nav-label">Pickup Trucks</span></div>
+            </div>
+
+            <div class="section-title">People</div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-users"></i></span>
+                <span class="nav-label">Operators</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-user-tie"></i></span>
+                <span class="nav-label">Managers</span>
+            </div>
+
+            <div class="section-title">Productivity</div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-list"></i></span>
+                <span class="nav-label">List</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+                <span class="nav-label">Reports</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span class="nav-label">Plan</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-calculator"></i></span>
+                <span class="nav-label">Calculators</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-trophy"></i></span>
+                <span class="nav-label">Leaderboards</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-folder-open"></i></span>
+                <span class="nav-label">Documents</span>
+            </div>
+
+            <div class="section-title">Admin</div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-industry"></i></span>
+                <span class="nav-label">Plants</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-map-marker-alt"></i></span>
+                <span class="nav-label">Regions</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-lock"></i></span>
+                <span class="nav-label">Roles</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon"><i class="fas fa-wrench"></i></span>
+                <span class="nav-label">Maintenance</span>
+            </div>
+        </div>
+        <div class="user-area">
+            <div class="user-avatar">TT</div>
+            <div class="user-info">
+                <div class="user-name">Trenton Taylor</div>
+                <div class="user-role">Administrator</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-title">Dashboard</div>
+            <div class="topbar-actions">
+                <div class="topbar-btn"><i class="fas fa-search"></i></div>
+                <div class="topbar-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-btn"><i class="fas fa-circle" style="color: #22c55e; font-size: 8px;"></i> &nbsp;5</div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="placeholder-card">
+                <div class="concept-tag">Concept 1</div>
+                <h2 style="color: #1e293b; margin-bottom: 8px;">Collapsible Sidebar</h2>
+                <p>Persistent left sidebar with grouped sections, collapsible sub-menus, and icon-only collapsed state. Click the circle button on the sidebar edge to collapse/expand.</p>
+                <br>
+                <p style="color:#cbd5e1; font-size: 13px;">Region selector could live in the topbar or at the top of the sidebar.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+                    <a href="/nav-concept-20.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'"><i class="fas fa-arrow-left"></i> Concept 20</a>
+                    <a href="/nav-concept-2.html" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #1e3a5f; color: white; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.15s;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Concept 2 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+        function toggleSub(id) {
+            const sub = document.getElementById('sub-' + id);
+            const chev = document.getElementById('chevron-' + id);
+            sub.classList.toggle('open');
+            chev.classList.toggle('open');
+        }
+    </script>
+</body>
+</html>

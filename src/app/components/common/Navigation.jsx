@@ -658,6 +658,22 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 minWidth: 0
                             }}
                         >
+                            {visibleMenuItems.length === 0 && (
+                                <div className="flex items-center gap-2">
+                                    {[72, 56, 52, 64, 48].map((w, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-white/10 animate-pulse rounded-lg"
+                                            style={{
+                                                animationDelay: `${i * 80}ms`,
+                                                animationFillMode: 'both',
+                                                height: 32,
+                                                width: w
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                             {standaloneItems.find((i) => i.id === 'Dashboard') && (
                                 <div
                                     ref={registerMagnetic}
