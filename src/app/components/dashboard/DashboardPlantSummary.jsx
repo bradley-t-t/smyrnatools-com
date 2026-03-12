@@ -400,7 +400,8 @@ const AlertsContent = ({
     setExpandedSections,
     setEmbeddedView,
     setEmbeddedViewSearch,
-    shopIssue
+    shopIssue,
+    accentColor = '#1e3a5f'
 }) => (
     <>
         {/* Fleet Alert — gradient banner at top */}
@@ -409,7 +410,7 @@ const AlertsContent = ({
                 className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 mb-2"
                 style={{
                     animation: 'fadeSlideIn 0.3s ease both',
-                    background: 'linear-gradient(135deg, #dc2626, #b91c1c)'
+                    background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`
                 }}
             >
                 <div className="flex items-center justify-center w-8 h-8 bg-white/20 rounded-full flex-shrink-0">
@@ -417,7 +418,7 @@ const AlertsContent = ({
                 </div>
                 <div className="flex-1">
                     <div className="text-white text-[12px] font-semibold">Fleet Alert</div>
-                    <div className="text-red-100 text-[11px]">
+                    <div className="text-white/70 text-[11px]">
                         {shopIssue.inShopCount} in shop &middot; {shopIssue.spareCount} spare
                     </div>
                 </div>
@@ -764,6 +765,7 @@ const DashboardPlantSummary = memo(function DashboardPlantSummary({
                                         setEmbeddedView={setEmbeddedView}
                                         setEmbeddedViewSearch={setEmbeddedViewSearch}
                                         shopIssue={shopIssue}
+                                        accentColor={accentColor}
                                     />
                                     <OperatorsContent
                                         plantNotifications={plantNotifications}

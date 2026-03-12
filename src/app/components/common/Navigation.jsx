@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { OnlineUsersService } from '../../../services/OnlineUsersService'
@@ -6,6 +6,7 @@ import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import { useMagneticHover } from '../../hooks/useMagneticHover'
 import { useMessages } from '../../hooks/useMessages'
 import { useNotifications } from '../../hooks/useNotifications'
@@ -72,31 +73,65 @@ const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Picku
 const PEOPLE_ITEMS = ['Operators', 'Managers']
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
 const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
+/** Navigation item IDs grouped under the "Admin" category (two-level mode). */
+const ADMIN_ITEMS = ['Plants', 'Regions', 'Roles', 'Maintenance']
+
+/** Category definitions for the two-level tab nav row. */
+const CATEGORIES = [
+    { icon: 'fa-tachometer-alt', id: 'dashboard', items: [], label: 'Dashboard' },
+    { icon: 'fa-truck', id: 'assets', items: ASSET_ITEMS, label: 'Assets' },
+    { icon: 'fa-users', id: 'people', items: PEOPLE_ITEMS, label: 'People' },
+    { icon: 'fa-chart-bar', id: 'productivity', items: PRODUCTIVITY_ITEMS, label: 'Productivity' },
+    { icon: 'fa-cog', id: 'admin', items: ADMIN_ITEMS, label: 'Admin' }
+]
+
+/** Resolves which category a view ID belongs to. */
+const getCategoryForView = (viewId) => {
+    if (!viewId || viewId === 'Dashboard') return 'dashboard'
+    if (ASSET_ITEMS.includes(viewId)) return 'assets'
+    if (PEOPLE_ITEMS.includes(viewId)) return 'people'
+    if (PRODUCTIVITY_ITEMS.includes(viewId)) return 'productivity'
+    if (ADMIN_ITEMS.includes(viewId)) return 'admin'
+    return 'dashboard'
+}
+
 /**
- * Primary app navigation bar with responsive mobile/tablet/desktop layouts.
- * Handles permission-based menu filtering, region switching, notifications,
- * and online user presence display.
- * @param {Object} props
- * @param {string} props.selectedView - Currently active view ID.
- * @param {Function} props.onSelectView - Callback to switch the active view.
- * @param {React.ReactNode} props.children - Main content rendered below the nav bar.
- * @param {string} [props.userName] - Current user's display name for the account button tooltip.
- * @param {string|null} [props.userId] - Current user's ID for permission and notification lookups.
+ * Unified app navigation supporting two desktop layout modes:
+ * - `top_bar_basic` (default): single-row top bar with dropdown menus
+ * - `two_level_tabs`: two-level horizontal tabs with category pills + sliding underline
+ *
+ * Mobile layout is shared across both modes.
  */
 export default function Navigation({ selectedView, onSelectView, children, userName = '', userId = null, ..._rest }) {
     const { preferences, updatePreferences } = usePreferences()
+    const navStyle = preferences.navStyle || 'top_bar_basic'
+    const isTwoLevel = navStyle === 'two_level_tabs'
+
+    /* ── Shared state ── */
     const [visibleMenuItems, setVisibleMenuItems] = useState([])
     const [permittedRegions, setPermittedRegions] = useState([])
-    const [openDropdown, setOpenDropdown] = useState(null)
     const [showNotifications, setShowNotifications] = useState(false)
     const [notificationsAnchor, setNotificationsAnchor] = useState(null)
     const [showOnlineUsers, setShowOnlineUsers] = useState(false)
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState(null)
     const [onlineUsersCount, setOnlineUsersCount] = useState(0)
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
-    const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+    /* ── Top-bar-specific state ── */
+    const [openDropdown, setOpenDropdown] = useState(null)
+    const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024)
+
+    /* ── Two-level-specific state ── */
+    const [activeCategory, setActiveCategory] = useState(() => getCategoryForView(selectedView))
+
+    /* ── Refs ── */
     const dropdownRef = useRef(null)
+    const secondaryNavRef = useRef(null)
+    const underlineRef = useRef(null)
+    const mobileDrawerRef = useRef(null)
+
+    /* ── Shared hooks ── */
+    const isMobile = useIsMobile()
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
@@ -104,6 +139,17 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const messagesHook = useMessages(userId)
     const notificationsCount = messagesHook.unreadCount
     const { registerElement: registerMagnetic } = useMagneticHover()
+
+    /* ── Tablet breakpoint for top-bar mode ── */
+    useEffect(() => {
+        const handleResize = () => {
+            setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+        }
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    /* ── Presence tracking ── */
     useEffect(() => {
         const setupAndInit = async () => {
             try {
@@ -121,14 +167,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         OnlineUsersService.addListener(handleUpdate)
         return () => OnlineUsersService.removeListener(handleUpdate)
     }, [])
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 768)
-            setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
-        }
-        window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [])
+
+    /* ── Close dropdown on outside click (top-bar mode) ── */
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -138,6 +178,20 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         if (openDropdown) document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [openDropdown])
+
+    /* ── Close mobile drawer on outside click (two-level mode) ── */
+    useEffect(() => {
+        if (!isMobile || !mobileMenuOpen || !isTwoLevel) return
+        const handleClickOutside = (e) => {
+            if (mobileDrawerRef.current && !mobileDrawerRef.current.contains(e.target)) {
+                setMobileMenuOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isMobile, mobileMenuOpen, isTwoLevel])
+
+    /* ── Fetch permitted regions ── */
     useEffect(() => {
         async function fetchRegions() {
             if (!userId) return setPermittedRegions([])
@@ -158,6 +212,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         }
         fetchRegions()
     }, [userId, regionCode, updatePreferences])
+
+    /* ── Permission-based menu filtering ── */
     useEffect(() => {
         async function filterItems() {
             if (!userId) return setVisibleMenuItems([])
@@ -184,6 +240,52 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         }
         filterItems()
     }, [userId, regionType, regionCode])
+
+    /* ── Two-level: sync activeCategory when selectedView changes ── */
+    useEffect(() => {
+        if (isTwoLevel) setActiveCategory(getCategoryForView(selectedView))
+    }, [selectedView, isTwoLevel])
+
+    /* ── Two-level: sliding underline position ── */
+    const updateUnderline = useCallback(() => {
+        if (!secondaryNavRef.current || !underlineRef.current) return
+        const activeTab = secondaryNavRef.current.querySelector('[data-active="true"]')
+        if (activeTab) {
+            const navRect = secondaryNavRef.current.getBoundingClientRect()
+            const tabRect = activeTab.getBoundingClientRect()
+            underlineRef.current.style.left = `${tabRect.left - navRect.left + secondaryNavRef.current.scrollLeft}px`
+            underlineRef.current.style.width = `${tabRect.width}px`
+        } else {
+            underlineRef.current.style.width = '0'
+        }
+    }, [])
+
+    useEffect(() => {
+        if (isTwoLevel) updateUnderline()
+    }, [selectedView, activeCategory, visibleMenuItems, updateUnderline, isTwoLevel])
+
+    useEffect(() => {
+        if (!isTwoLevel) return
+        window.addEventListener('resize', updateUnderline)
+        return () => window.removeEventListener('resize', updateUnderline)
+    }, [updateUnderline, isTwoLevel])
+
+    /* ── Two-level: visible categories filtered by permission ── */
+    const visibleCategories = useMemo(() => {
+        return CATEGORIES.filter((cat) => {
+            if (cat.id === 'dashboard') return visibleMenuItems.some((i) => i.id === 'Dashboard')
+            return cat.items.some((itemId) => visibleMenuItems.some((i) => i.id === itemId))
+        })
+    }, [visibleMenuItems])
+
+    /* ── Two-level: secondary items for active category ── */
+    const secondaryItems = useMemo(() => {
+        const cat = CATEGORIES.find((c) => c.id === activeCategory)
+        if (!cat || cat.items.length === 0) return []
+        return cat.items.map((id) => visibleMenuItems.find((i) => i.id === id)).filter(Boolean)
+    }, [activeCategory, visibleMenuItems])
+
+    /* ── Shared handlers ── */
     const handleMenuClick = (id) => {
         if (window.appSwitchView && (id === 'List' || id === 'Archive')) {
             window.appSwitchView(id)
@@ -193,6 +295,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         setMobileMenuOpen(false)
         setOpenDropdown(null)
     }
+
     const handleRegionChange = (e) => {
         const code = e.target.value
         if (!code) return
@@ -207,6 +310,25 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             window.dispatchEvent(new CustomEvent('region-changed', { detail: newRegion }))
         }
     }
+
+    /* ── Two-level: category click handler ── */
+    const handleCategoryClick = (catId) => {
+        setActiveCategory(catId)
+        if (catId === 'dashboard') {
+            handleMenuClick('Dashboard')
+        } else {
+            const cat = CATEGORIES.find((c) => c.id === catId)
+            if (cat) {
+                const currentInCategory = cat.items.includes(selectedView)
+                if (!currentInCategory) {
+                    const firstVisible = cat.items.find((id) => visibleMenuItems.some((i) => i.id === id))
+                    if (firstVisible) handleMenuClick(firstVisible)
+                }
+            }
+        }
+    }
+
+    /* ── Top-bar: derived grouping flags ── */
     const hasAssets = visibleMenuItems.some((i) => ASSET_ITEMS.includes(i.id))
     const hasPeople = visibleMenuItems.filter((i) => PEOPLE_ITEMS.includes(i.id)).length > 1
     const hasProductivity = visibleMenuItems.filter((i) => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
@@ -216,6 +338,30 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
             !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
     )
+
+    /* ── Two-level: user initials for avatar ── */
+    const userInitials = userName
+        ? userName
+              .split(' ')
+              .map((n) => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2)
+        : '?'
+
+    /* ── Header background style shared across modes ── */
+    const headerStyle = {
+        backgroundColor: accentColor,
+        backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
+        `,
+        backgroundPosition: '0 0, 0 0, 0 0',
+        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
+    }
+
+    /* ── Top-bar: style helpers ── */
     const navItemStyle = (isActive) => ({
         alignItems: 'center',
         backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'transparent',
@@ -232,6 +378,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         transition: 'all 0.2s ease',
         whiteSpace: 'nowrap'
     })
+
     const dropdownStyle = {
         backgroundColor: 'var(--bg-primary)',
         border: '1px solid var(--border-light)',
@@ -245,6 +392,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         top: '100%',
         zIndex: 1000
     }
+
     const renderDropdown = (label, icon, items, dropdownId, activeCheck) => {
         const isOpen = openDropdown === dropdownId
         const isActive = activeCheck()
@@ -310,6 +458,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             </div>
         )
     }
+
     const renderIconButton = (
         icon,
         title,
@@ -374,21 +523,50 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             )}
         </div>
     )
+
+    /* ── Shared modals ── */
+    const renderModals = () => (
+        <>
+            {showNotifications && (
+                <NotificationsModal
+                    isOpen={showNotifications}
+                    messagesHook={messagesHook}
+                    onClose={() => {
+                        setShowNotifications(false)
+                        window.dispatchEvent(new CustomEvent('messages-refresh'))
+                    }}
+                    onViewAll={() => {
+                        setShowNotifications(false)
+                        handleMenuClick('Notifications')
+                    }}
+                    onSelectConversation={(otherId) => {
+                        setShowNotifications(false)
+                        onSelectView('Notifications', { initialConversationId: otherId })
+                    }}
+                    anchorRect={notificationsAnchor}
+                />
+            )}
+            {showOnlineUsers && (
+                <OnlineUsersModal
+                    isOpen={showOnlineUsers}
+                    onClose={() => setShowOnlineUsers(false)}
+                    anchorRect={onlineUsersAnchor}
+                />
+            )}
+        </>
+    )
+
+    /* ══════════════════════════════════════════════
+     * MOBILE LAYOUT (shared across both nav styles)
+     * ══════════════════════════════════════════════ */
     if (isMobile) {
         return (
             <>
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
                     <div
                         style={{
+                            ...headerStyle,
                             alignItems: 'center',
-                            backgroundColor: accentColor,
-                            backgroundImage: `
-                            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-                            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
-                        `,
-                            backgroundPosition: '0 0, 0 0, 0 0',
-                            backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                             borderBottom: '1px solid rgba(255,255,255,0.08)',
                             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                             display: 'flex',
@@ -586,9 +764,281 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                         {children}
                     </div>
                 </div>
+                {renderModals()}
             </>
         )
     }
+
+    /* ══════════════════════════════════════════════
+     * DESKTOP: two-level tabs layout
+     * ══════════════════════════════════════════════ */
+    if (isTwoLevel) {
+        return (
+            <>
+                <div className="flex flex-col h-screen w-full overflow-hidden">
+                    {/* Primary header bar */}
+                    <header
+                        className="flex-shrink-0 sticky top-0 z-[100]"
+                        style={{
+                            ...headerStyle,
+                            borderBottom: '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                        }}
+                    >
+                        {/* Single row: logo + category tabs + actions */}
+                        <div className="flex items-center justify-between" style={{ padding: '12px 32px' }}>
+                            {/* Left: logo + category tabs on same line */}
+                            <div className="flex items-center gap-6 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                                <img
+                                    src={SrmLogo}
+                                    alt="Smyrna Ready Mix"
+                                    className="flex-shrink-0 transition-all duration-300 hover:brightness-125"
+                                    style={{ height: 28 }}
+                                    draggable={false}
+                                />
+                                <div className="flex items-center gap-1">
+                                    {/* Skeleton while loading */}
+                                    {visibleMenuItems.length === 0 && (
+                                        <>
+                                            {[72, 56, 52, 64, 48].map((w, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="animate-pulse rounded-lg"
+                                                    style={{
+                                                        animationDelay: `${i * 80}ms`,
+                                                        animationFillMode: 'both',
+                                                        backgroundColor: 'rgba(255,255,255,0.08)',
+                                                        height: 34,
+                                                        width: w
+                                                    }}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
+                                    {visibleCategories.map((cat) => {
+                                        const isActive = activeCategory === cat.id
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                className="flex items-center gap-2 whitespace-nowrap cursor-pointer border-none transition-all duration-200"
+                                                style={{
+                                                    background: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+                                                    borderRadius: 10,
+                                                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                                                    color: isActive ? 'white' : 'rgba(255,255,255,0.65)',
+                                                    fontSize: 13,
+                                                    fontWeight: isActive ? 600 : 500,
+                                                    outline: 'none',
+                                                    padding: '8px 18px'
+                                                }}
+                                                onClick={() => handleCategoryClick(cat.id)}
+                                                onMouseEnter={(e) => {
+                                                    if (!isActive)
+                                                        e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (!isActive) e.currentTarget.style.background = 'transparent'
+                                                }}
+                                            >
+                                                <i className={`fas ${cat.icon}`} style={{ fontSize: 13 }} />
+                                                {cat.label}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Right: actions */}
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                                {/* Region selector */}
+                                <select
+                                    value={regionCode || ''}
+                                    onChange={handleRegionChange}
+                                    className="cursor-pointer transition-all duration-200 outline-none"
+                                    style={{
+                                        appearance: 'none',
+                                        backgroundColor: 'rgba(255,255,255,0.08)',
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                        backgroundPosition: 'right 8px center',
+                                        backgroundRepeat: 'no-repeat',
+                                        backgroundSize: 14,
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        borderRadius: 10,
+                                        color: 'white',
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        padding: '8px 30px 8px 12px'
+                                    }}
+                                >
+                                    {permittedRegions.length === 0 ? (
+                                        <option value="">Loading...</option>
+                                    ) : (
+                                        permittedRegions.map((r) => (
+                                            <option
+                                                key={r.regionCode || r.region_code}
+                                                value={r.regionCode || r.region_code}
+                                                style={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
+                                            >
+                                                {r.regionName || r.region_name}
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
+
+                                {/* Notifications */}
+                                <button
+                                    className="relative flex items-center justify-center cursor-pointer"
+                                    title="Notifications"
+                                    style={{
+                                        backgroundColor: 'rgba(255,255,255,0.06)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: 8,
+                                        color: 'rgba(255,255,255,0.7)',
+                                        height: 34,
+                                        outline: 'none',
+                                        width: 34
+                                    }}
+                                    onClick={(e) => {
+                                        setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
+                                        setShowNotifications(true)
+                                    }}
+                                >
+                                    <i className="fas fa-bell" style={{ fontSize: 13 }} />
+                                    {notificationsCount > 0 && (
+                                        <span
+                                            className="absolute flex items-center justify-center rounded-full"
+                                            style={{
+                                                backgroundColor: '#ef4444',
+                                                border: `2px solid ${accentColor}`,
+                                                color: 'white',
+                                                fontSize: 9,
+                                                fontWeight: 700,
+                                                height: 16,
+                                                minWidth: 16,
+                                                right: -4,
+                                                top: -4
+                                            }}
+                                        >
+                                            {notificationsCount}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {/* Online users */}
+                                <button
+                                    className="relative flex items-center justify-center cursor-pointer"
+                                    title="Online Users"
+                                    style={{
+                                        backgroundColor: 'rgba(255,255,255,0.06)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: 8,
+                                        color: 'rgba(255,255,255,0.7)',
+                                        height: 34,
+                                        outline: 'none',
+                                        width: 34
+                                    }}
+                                    onClick={(e) => {
+                                        setOnlineUsersAnchor(e.currentTarget.getBoundingClientRect())
+                                        setShowOnlineUsers(true)
+                                    }}
+                                >
+                                    <i className="fas fa-circle" style={{ color: '#22c55e', fontSize: 7 }} />
+                                    <span className="ml-1 text-xs font-semibold text-white">{onlineUsersCount}</span>
+                                </button>
+
+                                {/* User avatar */}
+                                <div
+                                    className="flex items-center justify-center cursor-pointer"
+                                    style={{
+                                        backgroundColor: 'rgba(255,255,255,0.15)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: 8,
+                                        color: 'white',
+                                        fontSize: 12,
+                                        fontWeight: 700,
+                                        height: 34,
+                                        width: 34
+                                    }}
+                                    onClick={() => handleMenuClick('MyAccount')}
+                                    title={userName || 'My Account'}
+                                >
+                                    {userInitials}
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Secondary nav bar with sliding underline */}
+                    {secondaryItems.length > 0 && (
+                        <div
+                            className="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm"
+                            style={{ minHeight: 44 }}
+                        >
+                            <div
+                                ref={secondaryNavRef}
+                                className="flex items-center relative overflow-x-auto"
+                                style={{ padding: '0 32px', scrollbarWidth: 'none' }}
+                            >
+                                {secondaryItems.map((item) => {
+                                    const isActive = selectedView === item.id
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            data-active={isActive}
+                                            className="flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-none bg-transparent transition-colors duration-150"
+                                            style={{
+                                                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                                fontSize: 13,
+                                                fontWeight: isActive ? 600 : 500,
+                                                outline: 'none',
+                                                padding: '12px 16px'
+                                            }}
+                                            onClick={() => handleMenuClick(item.id)}
+                                            onMouseEnter={(e) => {
+                                                if (!isActive) e.currentTarget.style.color = 'var(--text-primary)'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'
+                                            }}
+                                        >
+                                            <i
+                                                className={`fas ${ICONS[item.id] || 'fa-circle'}`}
+                                                style={{ fontSize: 12 }}
+                                            />
+                                            {item.text}
+                                        </button>
+                                    )
+                                })}
+                                {/* Sliding underline */}
+                                <div
+                                    ref={underlineRef}
+                                    className="absolute bottom-0 rounded-t"
+                                    style={{
+                                        backgroundColor: accentColor,
+                                        height: 2.5,
+                                        transition:
+                                            'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        width: 0
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Content area */}
+                    <div data-content-scroll className="flex-1 overflow-x-hidden overflow-y-auto relative">
+                        {children}
+                    </div>
+                </div>
+
+                {renderModals()}
+            </>
+        )
+    }
+
+    /* ══════════════════════════════════════════════
+     * DESKTOP: top-bar basic layout (default)
+     * ══════════════════════════════════════════════ */
     return (
         <>
             <div
@@ -596,15 +1046,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
             >
                 <header
                     style={{
+                        ...headerStyle,
                         alignItems: 'center',
-                        backgroundColor: accentColor,
-                        backgroundImage: `
-                            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-                            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
-                        `,
-                        backgroundPosition: '0 0, 0 0, 0 0',
-                        backgroundSize: '20px 20px, 20px 20px, 40px 40px',
                         borderBottom: '1px solid rgba(255,255,255,0.08)',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                         display: 'flex',
@@ -828,32 +1271,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 >
                     {children}
                 </main>
-                {showNotifications && (
-                    <NotificationsModal
-                        isOpen={showNotifications}
-                        messagesHook={messagesHook}
-                        onClose={() => {
-                            setShowNotifications(false)
-                            window.dispatchEvent(new CustomEvent('messages-refresh'))
-                        }}
-                        onViewAll={() => {
-                            setShowNotifications(false)
-                            handleMenuClick('Notifications')
-                        }}
-                        onSelectConversation={(otherId) => {
-                            setShowNotifications(false)
-                            onSelectView('Notifications', { initialConversationId: otherId })
-                        }}
-                        anchorRect={notificationsAnchor}
-                    />
-                )}
-                {showOnlineUsers && (
-                    <OnlineUsersModal
-                        isOpen={showOnlineUsers}
-                        onClose={() => setShowOnlineUsers(false)}
-                        anchorRect={onlineUsersAnchor}
-                    />
-                )}
+                {renderModals()}
             </div>
         </>
     )

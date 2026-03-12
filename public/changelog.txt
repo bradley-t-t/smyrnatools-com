@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.1] - 2026-03-12
+
+- Added region selector dropdown to the mobile drawer navigation so users can switch regions without leaving the menu
+- Added "My Account" button to the mobile drawer navigation under a new Account section
+- Replaced broadcast-style realtime message subscription with filtered Supabase channels scoped to the current user's sender and recipient IDs, handling INSERT/UPDATE/DELETE granularly instead of re-fetching all messages on every change
+- Added getMessageById method to MessageService for fetching single decrypted messages by ID
+- Removed manual messages-refresh event dispatch after sending a message since the realtime subscription now picks up inserts automatically
+- Added verification section to the equipment detail view using VerificationCardSection, showing verified date, verified-by user, and color-coded status indicators
+- Wired up the previously unused handleVerifyEquipment function and updatedByEmail state in the equipment detail view
+
 ## [31.0] - 2026-03-12
 
 - Fixed header background style conflicts by replacing shorthand `background` with separate `backgroundColor` and `backgroundImage` properties to eliminate React rerender warnings

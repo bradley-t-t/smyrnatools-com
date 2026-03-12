@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.2] - 2026-03-12
+
+- Consolidated SideGlassNavigation into Navigation by adding a new "two_level_tabs" layout mode with category pills, sliding underline, and secondary item tabs
+- Removed the standalone SideGlassNavigation component entirely
+- Added two-level tab navigation with category groupings: Dashboard, Assets, People, Productivity, and Admin
+- Extracted shared header background style and notification/online-user modals into reusable pieces within Navigation
+- Replaced inline mobile breakpoint detection with the useIsMobile hook
+- Added skeleton loading placeholders for category tabs while menu items load
+- Added user initials avatar button to the two-level desktop layout
+- Added mobile drawer support for the two-level navigation mode with outside-click-to-close behavior
+- Moved tablet breakpoint resize listener into its own effect, decoupled from mobile detection
+- Updated DashboardPlantSummary to use the useIsMobile hook instead of manual window width tracking
+
 ## [31.1] - 2026-03-12
 
 - Added region selector dropdown to the mobile drawer navigation so users can switch regions without leaving the menu
