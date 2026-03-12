@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.5] - 2026-03-12
+
+- Updated Claude Remote workflow to use claude_args instead of separate allowed_tools, max_turns, and model parameters
+- Added id-token write permission to Claude Remote workflow
+- Upgraded Node.js from 18 to 20 in Claude Remote workflow
+- Added v31.4 changelog entry documenting the Claude Remote workflow, navigation redesign, and nav style preference rename
+
 ## [31.4] - 2026-03-12
 
 - Added Claude Remote Edit GitHub Actions workflow that lets repo owner or "claude"-labeled issues trigger automated code edits, with lint/build verification, auto-commit, and issue commenting

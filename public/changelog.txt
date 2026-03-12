@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.4] - 2026-03-12
+
+- Added Claude Remote Edit GitHub Actions workflow that lets repo owner or "claude"-labeled issues trigger automated code edits, with lint/build verification, auto-commit, and issue commenting
+- Redesigned the online users button in Navigation to use a users icon with a badge count overlay instead of the inline green dot and text
+- Renamed the "side_glass" nav style preference to "two_level_tabs" in MyAccountView to match the consolidated navigation mode
+
 ## [31.3] - 2026-03-12
 
 - Redesigned the online users button in Navigation to use a users icon with a badge count overlay instead of the inline green dot and text

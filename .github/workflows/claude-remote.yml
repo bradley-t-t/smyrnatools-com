@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: write
       issues: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -27,7 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
 
       - name: Configure Git for GitHub packages
@@ -40,6 +41,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--model claude-sonnet-4-20250514 --max-turns 50 --allowedTools Edit,Write,Read,Glob,Grep,Bash"
           prompt: |
             ${{ github.event.issue.body }}
 
@@ -47,9 +49,6 @@ jobs:
             1. Run 'npm run lint' and fix any errors
             2. Run 'npm run build' (with CI=false env var) to verify the build passes
             3. Do NOT commit — the workflow handles that
-          allowed_tools: "Edit,Write,Read,Glob,Grep,Bash"
-          max_turns: "50"
-          model: "claude-sonnet-4-20250514"
 
       - name: Run lint
         run: npm run lint
