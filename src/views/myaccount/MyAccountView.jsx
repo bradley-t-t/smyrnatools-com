@@ -1240,8 +1240,8 @@ function MyAccountView({ userId }) {
                                                     : {}
                                             }
                                         >
-                                            <i className="fas fa-columns"></i>
-                                            Left Sidebar
+                                            <i className="fas fa-layer-group"></i>
+                                            Two-Level Tabs
                                         </button>
                                     </div>
                                 </div>

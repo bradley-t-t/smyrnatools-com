@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.8] - 2026-03-12
+
+- Added explicit background color (--bg-primary) to SideGlassNavigation main content wrapper
+- Added v30.7 changelog entry
+
 ## [30.7] - 2026-03-12
 
 - Removed unused variables from Navigation (notificationsHook assignment, magneticLeave, magneticMove from useMagneticHover destructure)

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [30.9] - 2026-03-12
+
+- Replaced the floating glass sidebar navigation with a two-level horizontal tab layout: accent-colored header with category pills on top, white secondary bar with sub-item tabs and a sliding underline below
+- Organized nav items into explicit categories (Dashboard, Assets, People, Productivity, Admin) with a new category resolution system
+- Moved region selector, notifications, online users, and user avatar into the header bar's right-hand action area
+- Added sliding underline animation on the secondary nav bar that tracks the active tab
+- Redesigned mobile nav drawer to use category-grouped layout with CSS variable-based theming instead of glassmorphism
+- Removed useMagneticHover hook dependency and the Logout icon from the nav icon map
+- Changed Productivity icon from fa-chart-line to fa-chart-bar
+- Updated MyAccount navigation style selector label from "Left Sidebar" to "Two-Level Tabs" with a new fa-layer-group icon
+- Removed glassmorphism styles (backdrop blur, grid overlays, buildGridStyle helper, GLASS_PANEL_STYLE constant, SIDEBAR_OFFSET constant)
+- Notifications and online users modals now anchor from the clicked button's bounding rect instead of a fixed sidebar offset
+
 ## [30.8] - 2026-03-12
 
 - Added explicit background color (--bg-primary) to SideGlassNavigation main content wrapper

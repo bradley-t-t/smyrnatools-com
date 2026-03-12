@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { OnlineUsersService } from '../../../services/OnlineUsersService'
@@ -7,7 +7,6 @@ import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import { useIsMobile } from '../../hooks/useIsMobile'
-import { useMagneticHover } from '../../hooks/useMagneticHover'
 import { useMessages } from '../../hooks/useMessages'
 import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
@@ -32,7 +31,6 @@ const ICONS = {
     'Heavy Equipment': 'fa-snowplow',
     Leaderboards: 'fa-trophy',
     List: 'fa-list',
-    Logout: 'fa-sign-out-alt',
     Maintenance: 'fa-wrench',
     Managers: 'fa-user-tie',
     Mixers: 'fa-truck',
@@ -42,7 +40,7 @@ const ICONS = {
     'Pickup Trucks': 'fa-truck-pickup',
     Plan: 'fa-calendar-alt',
     Plants: 'fa-industry',
-    Productivity: 'fa-chart-line',
+    Productivity: 'fa-chart-bar',
     Regions: 'fa-map-marker-alt',
     Reports: 'fa-file-alt',
     Roles: 'fa-lock',
@@ -70,36 +68,38 @@ const menuItems = [
     { id: 'Documents', permission: 'documents.view', text: 'Documents' }
 ]
 
-/** Navigation item IDs grouped under the "Assets" section. */
+/** Navigation item IDs grouped under the "Assets" category. */
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
-/** Navigation item IDs grouped under the "People" section. */
+/** Navigation item IDs grouped under the "People" category. */
 const PEOPLE_ITEMS = ['Operators', 'Managers']
-/** Navigation item IDs grouped under the "Productivity" section. */
+/** Navigation item IDs grouped under the "Productivity" category. */
 const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
+/** Navigation item IDs grouped under the "Admin" category. */
+const ADMIN_ITEMS = ['Plants', 'Regions', 'Roles', 'Maintenance']
 
-/** Sidebar content offset: 220px sidebar + 16px left margin + 16px gap. */
-const SIDEBAR_OFFSET = 252
+/** Category definitions for the primary nav row. */
+const CATEGORIES = [
+    { icon: 'fa-tachometer-alt', id: 'dashboard', items: [], label: 'Dashboard' },
+    { icon: 'fa-truck', id: 'assets', items: ASSET_ITEMS, label: 'Assets' },
+    { icon: 'fa-users', id: 'people', items: PEOPLE_ITEMS, label: 'People' },
+    { icon: 'fa-chart-bar', id: 'productivity', items: PRODUCTIVITY_ITEMS, label: 'Productivity' },
+    { icon: 'fa-cog', id: 'admin', items: ADMIN_ITEMS, label: 'Admin' }
+]
 
-/** Glass panel base styles for backdrop blur and translucent background. */
-const GLASS_PANEL_STYLE = {
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-    backdropFilter: 'blur(24px) saturate(180%)'
-}
-
-/** Builds the accent-colored grid background matching TopSection's pattern. White variant for the sidebar overlay. */
-const buildGridStyle = (color, white = false) => {
-    const line = white ? 'rgba(255,255,255,0.06)' : `${color}10`
-    const glow = white ? 'rgba(255,255,255,0.03)' : `${color}08`
-    return {
-        backgroundImage: `linear-gradient(${line} 1px, transparent 1px), linear-gradient(90deg, ${line} 1px, transparent 1px), radial-gradient(circle at center, ${glow} 0%, transparent 50%)`,
-        backgroundPosition: '0 0, 0 0, 0 0',
-        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
-    }
+/** Resolves which category a view ID belongs to. */
+const getCategoryForView = (viewId) => {
+    if (!viewId || viewId === 'Dashboard') return 'dashboard'
+    if (ASSET_ITEMS.includes(viewId)) return 'assets'
+    if (PEOPLE_ITEMS.includes(viewId)) return 'people'
+    if (PRODUCTIVITY_ITEMS.includes(viewId)) return 'productivity'
+    if (ADMIN_ITEMS.includes(viewId)) return 'admin'
+    return 'dashboard'
 }
 
 /**
- * Glassmorphism floating sidebar navigation. Drop-in replacement for Navigation.jsx
- * with the same props interface and filtering logic, but rendered as a fixed glass sidebar.
+ * Two-level horizontal tab navigation inspired by concept 30.
+ * Top row: accent-colored header with category pills.
+ * Second row: white bar with sub-item tabs and sliding underline.
  */
 export default function SideGlassNavigation({
     selectedView,
@@ -118,8 +118,11 @@ export default function SideGlassNavigation({
     const [onlineUsersAnchor, setOnlineUsersAnchor] = useState(null)
     const [onlineUsersCount, setOnlineUsersCount] = useState(0)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [activeCategory, setActiveCategory] = useState(() => getCategoryForView(selectedView))
     const isMobile = useIsMobile()
-    const sidebarRef = useRef(null)
+    const secondaryNavRef = useRef(null)
+    const underlineRef = useRef(null)
+    const mobileDrawerRef = useRef(null)
 
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
@@ -127,7 +130,11 @@ export default function SideGlassNavigation({
     useNotifications(userId, preferences?.selectedRegion)
     const messagesHook = useMessages(userId)
     const notificationsCount = messagesHook.unreadCount
-    const { registerElement: registerMagnetic } = useMagneticHover()
+
+    /* ── Sync active category when selectedView changes ── */
+    useEffect(() => {
+        setActiveCategory(getCategoryForView(selectedView))
+    }, [selectedView])
 
     /* ── Presence tracking ── */
     useEffect(() => {
@@ -148,11 +155,11 @@ export default function SideGlassNavigation({
         return () => OnlineUsersService.removeListener(handleUpdate)
     }, [])
 
-    /* ── Close sidebar on outside click (mobile) ── */
+    /* ── Close mobile drawer on outside click ── */
     useEffect(() => {
         if (!isMobile || !mobileMenuOpen) return
         const handleClickOutside = (e) => {
-            if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+            if (mobileDrawerRef.current && !mobileDrawerRef.current.contains(e.target)) {
                 setMobileMenuOpen(false)
             }
         }
@@ -210,12 +217,43 @@ export default function SideGlassNavigation({
         filterItems()
     }, [userId, regionType, regionCode])
 
-    /** Build an anchor rect that positions portal modals to the right of the sidebar, anchored from the bottom. */
-    const sidebarAnchorRect = () => ({
-        bottom: 16,
-        left: SIDEBAR_OFFSET,
-        useLeft: true
-    })
+    /* ── Sliding underline position ── */
+    const updateUnderline = useCallback(() => {
+        if (!secondaryNavRef.current || !underlineRef.current) return
+        const activeTab = secondaryNavRef.current.querySelector('[data-active="true"]')
+        if (activeTab) {
+            const navRect = secondaryNavRef.current.getBoundingClientRect()
+            const tabRect = activeTab.getBoundingClientRect()
+            underlineRef.current.style.left = `${tabRect.left - navRect.left + secondaryNavRef.current.scrollLeft}px`
+            underlineRef.current.style.width = `${tabRect.width}px`
+        } else {
+            underlineRef.current.style.width = '0'
+        }
+    }, [])
+
+    useEffect(() => {
+        updateUnderline()
+    }, [selectedView, activeCategory, visibleMenuItems, updateUnderline])
+
+    useEffect(() => {
+        window.addEventListener('resize', updateUnderline)
+        return () => window.removeEventListener('resize', updateUnderline)
+    }, [updateUnderline])
+
+    /** Visible categories based on which items the user has permission to see. */
+    const visibleCategories = useMemo(() => {
+        return CATEGORIES.filter((cat) => {
+            if (cat.id === 'dashboard') return visibleMenuItems.some((i) => i.id === 'Dashboard')
+            return cat.items.some((itemId) => visibleMenuItems.some((i) => i.id === itemId))
+        })
+    }, [visibleMenuItems])
+
+    /** Items for the currently active category, filtered by permission. */
+    const secondaryItems = useMemo(() => {
+        const cat = CATEGORIES.find((c) => c.id === activeCategory)
+        if (!cat || cat.items.length === 0) return []
+        return cat.items.map((id) => visibleMenuItems.find((i) => i.id === id)).filter(Boolean)
+    }, [activeCategory, visibleMenuItems])
 
     const handleMenuClick = (id) => {
         if (window.appSwitchView && (id === 'List' || id === 'Archive')) {
@@ -224,6 +262,22 @@ export default function SideGlassNavigation({
             onSelectView(id)
         }
         setMobileMenuOpen(false)
+    }
+
+    const handleCategoryClick = (catId) => {
+        setActiveCategory(catId)
+        if (catId === 'dashboard') {
+            handleMenuClick('Dashboard')
+        } else {
+            const cat = CATEGORIES.find((c) => c.id === catId)
+            if (cat) {
+                const currentInCategory = cat.items.includes(selectedView)
+                if (!currentInCategory) {
+                    const firstVisible = cat.items.find((id) => visibleMenuItems.some((i) => i.id === id))
+                    if (firstVisible) handleMenuClick(firstVisible)
+                }
+            }
+        }
     }
 
     const handleRegionChange = (e) => {
@@ -241,18 +295,6 @@ export default function SideGlassNavigation({
         }
     }
 
-    /* ── Group detection ── */
-    const hasAssets = visibleMenuItems.some((i) => ASSET_ITEMS.includes(i.id))
-    const hasPeople = visibleMenuItems.filter((i) => PEOPLE_ITEMS.includes(i.id)).length > 1
-    const hasProductivity = visibleMenuItems.filter((i) => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
-    const standaloneItems = visibleMenuItems.filter(
-        (i) =>
-            !ASSET_ITEMS.includes(i.id) &&
-            !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
-            !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
-    )
-
-    /** Extract user initials from display name for the avatar circle. */
     const userInitials = userName
         ? userName
               .split(' ')
@@ -262,383 +304,27 @@ export default function SideGlassNavigation({
               .slice(0, 2)
         : '?'
 
-    /* ── Render helpers ── */
-
-    const renderNavItem = (item) => {
-        const isActive = selectedView === item.id
-        return (
-            <button
-                key={item.id}
-                ref={registerMagnetic}
-                onClick={() => handleMenuClick(item.id)}
-                title={item.text}
-                className="relative flex items-center w-full gap-2.5 rounded-lg cursor-pointer transition-all duration-150 group"
-                style={{
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
-                    border: 'none',
-                    color: isActive ? 'white' : 'rgba(255,255,255,0.7)',
-                    fontSize: '12.5px',
-                    fontWeight: isActive ? 600 : 400,
-                    height: 32,
-                    outline: 'none',
-                    padding: '0 10px',
-                    textAlign: 'left'
-                }}
-                onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                }}
-                onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
-                }}
-            >
-                {/* Active left bar indicator */}
-                {isActive && (
-                    <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.8)', height: 16, width: 3 }}
-                    />
-                )}
-                <i
-                    className={`fas ${ICONS[item.id] || 'fa-circle'}`}
-                    style={{
-                        color: isActive ? 'white' : 'rgba(255,255,255,0.5)',
-                        flexShrink: 0,
-                        fontSize: 11,
-                        textAlign: 'center',
-                        width: 16
-                    }}
-                />
-                <span className="truncate">{item.text}</span>
-            </button>
-        )
+    /** Header background with grid pattern matching the accent color. */
+    const headerStyle = {
+        background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+        backgroundImage: `
+            linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%),
+            linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
+        `,
+        backgroundPosition: '0 0, 0 0, 0 0',
+        backgroundSize: '100% 100%, 20px 20px, 20px 20px'
     }
-
-    const renderSection = (label, itemIds) => {
-        const sectionItems = itemIds.map((id) => visibleMenuItems.find((i) => i.id === id)).filter(Boolean)
-        if (!sectionItems.length) return null
-        return (
-            <div className="mb-1">
-                <div
-                    className="uppercase tracking-wider px-2.5 pb-1 pt-2.5 select-none"
-                    style={{
-                        color: 'rgba(255,255,255,0.4)',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        letterSpacing: '0.06em'
-                    }}
-                >
-                    {label}
-                </div>
-                {sectionItems.map(renderNavItem)}
-            </div>
-        )
-    }
-
-    const renderSeparator = () => (
-        <div className="mx-3 my-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.08)', height: 1 }} />
-    )
-
-    /* ── Sidebar content (shared between desktop and mobile overlay) ── */
-    const renderSidebarContent = () => (
-        <>
-            {/* Logo + Region selector */}
-            <div className="px-3 pt-3 pb-1 flex-shrink-0">
-                <div className="flex items-center gap-2 mb-3">
-                    <img
-                        src={SrmLogo}
-                        alt="Smyrna Ready Mix"
-                        className="transition-all duration-300 hover:brightness-110"
-                        style={{ height: 28 }}
-                        draggable={false}
-                    />
-                </div>
-                <select
-                    value={regionCode || ''}
-                    onChange={handleRegionChange}
-                    className="w-full rounded-lg cursor-pointer transition-all duration-200 outline-none"
-                    style={{
-                        appearance: 'none',
-                        backgroundColor: 'rgba(255,255,255,0.08)',
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                        backgroundPosition: 'right 8px center',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundSize: 14,
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: 'rgba(255,255,255,0.9)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        padding: '7px 10px'
-                    }}
-                    onFocus={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'
-                        e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.08)'
-                    }}
-                    onBlur={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                        e.currentTarget.style.boxShadow = 'none'
-                    }}
-                >
-                    {permittedRegions.length === 0 ? (
-                        <option value="">Loading...</option>
-                    ) : (
-                        permittedRegions.map((r) => (
-                            <option key={r.regionCode || r.region_code} value={r.regionCode || r.region_code}>
-                                {r.regionName || r.region_name}
-                            </option>
-                        ))
-                    )}
-                </select>
-            </div>
-
-            {renderSeparator()}
-
-            {/* Navigation items */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-1.5 py-1" style={{ scrollbarWidth: 'thin' }}>
-                {/* Skeleton while loading */}
-                {visibleMenuItems.length === 0 && (
-                    <div className="px-2 py-1 flex flex-col gap-1.5">
-                        {[1, 0.85, 0.7, 1, 0.9, 0.75, 1, 0.8, 0.65, 0.9, 0.7, 0.85].map((w, i) => (
-                            <div
-                                key={i}
-                                className="animate-pulse rounded-lg"
-                                style={{
-                                    animationDelay: `${i * 60}ms`,
-                                    animationFillMode: 'both',
-                                    backgroundColor: 'rgba(255,255,255,0.08)',
-                                    height: 28,
-                                    width: `${w * 100}%`
-                                }}
-                            />
-                        ))}
-                    </div>
-                )}
-                {/* Dashboard standalone */}
-                {standaloneItems.find((i) => i.id === 'Dashboard') &&
-                    renderNavItem(standaloneItems.find((i) => i.id === 'Dashboard'))}
-
-                {hasAssets && (
-                    <>
-                        {renderSeparator()}
-                        {renderSection('Fleet / Assets', ASSET_ITEMS)}
-                    </>
-                )}
-
-                {hasPeople && (
-                    <>
-                        {renderSeparator()}
-                        {renderSection('People', PEOPLE_ITEMS)}
-                    </>
-                )}
-
-                {hasProductivity && (
-                    <>
-                        {renderSeparator()}
-                        {renderSection('Productivity', PRODUCTIVITY_ITEMS)}
-                    </>
-                )}
-
-                {/* Remaining standalone items (excluding Dashboard) */}
-                {standaloneItems.filter((i) => i.id !== 'Dashboard').length > 0 && (
-                    <>
-                        {renderSeparator()}
-                        <div className="mb-1">
-                            <div
-                                className="uppercase tracking-wider px-2.5 pb-1 pt-2.5 select-none"
-                                style={{
-                                    color: 'rgba(255,255,255,0.4)',
-                                    fontSize: 10,
-                                    fontWeight: 600,
-                                    letterSpacing: '0.06em'
-                                }}
-                            >
-                                Admin
-                            </div>
-                            {standaloneItems.filter((i) => i.id !== 'Dashboard').map(renderNavItem)}
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {renderSeparator()}
-
-            {/* Footer: notifications, online users, user avatar, settings */}
-            <div className="flex-shrink-0 px-3 pb-3 pt-1.5">
-                {/* Notification + Online users row */}
-                <div className="flex items-center gap-2 mb-2.5">
-                    {/* Notifications bell */}
-                    <button
-                        className="relative flex items-center justify-center rounded-lg cursor-pointer transition-all duration-150"
-                        title="Notifications"
-                        style={{
-                            backgroundColor: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: 'rgba(255,255,255,0.7)',
-                            height: 32,
-                            outline: 'none',
-                            width: 32
-                        }}
-                        onClick={() => {
-                            setNotificationsAnchor(sidebarAnchorRect())
-                            setShowNotifications(true)
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                        }}
-                    >
-                        <i className="fas fa-bell" style={{ fontSize: 12 }} />
-                        {notificationsCount > 0 && (
-                            <span
-                                className="absolute flex items-center justify-center rounded-full"
-                                style={{
-                                    backgroundColor: '#ef4444',
-                                    border: `2px solid ${accentColor}`,
-                                    boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
-                                    color: 'white',
-                                    fontSize: 9,
-                                    fontWeight: 700,
-                                    height: 16,
-                                    minWidth: 16,
-                                    padding: '0 4px',
-                                    right: -4,
-                                    top: -4
-                                }}
-                            >
-                                {notificationsCount}
-                            </span>
-                        )}
-                    </button>
-
-                    {/* Online users */}
-                    <button
-                        className="relative flex items-center justify-center rounded-lg cursor-pointer transition-all duration-150"
-                        title="Online Users"
-                        style={{
-                            backgroundColor: 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: 'rgba(255,255,255,0.7)',
-                            height: 32,
-                            outline: 'none',
-                            width: 32
-                        }}
-                        onClick={() => {
-                            setOnlineUsersAnchor(sidebarAnchorRect())
-                            setShowOnlineUsers(true)
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                        }}
-                    >
-                        <i className="fas fa-users" style={{ fontSize: 11 }} />
-                        {onlineUsersCount > 0 && (
-                            <span
-                                className="absolute flex items-center justify-center rounded-full"
-                                style={{
-                                    backgroundColor: '#22c55e',
-                                    border: `2px solid ${accentColor}`,
-                                    boxShadow: '0 2px 6px rgba(34,197,94,0.4)',
-                                    color: 'white',
-                                    fontSize: 9,
-                                    fontWeight: 700,
-                                    height: 16,
-                                    minWidth: 16,
-                                    padding: '0 4px',
-                                    right: -4,
-                                    top: -4
-                                }}
-                            >
-                                {onlineUsersCount}
-                            </span>
-                        )}
-                    </button>
-
-                    <div className="flex-1" />
-
-                    {/* Settings gear */}
-                    <button
-                        className="flex items-center justify-center rounded-lg cursor-pointer transition-all duration-150"
-                        title="Settings"
-                        style={{
-                            backgroundColor:
-                                selectedView === 'MyAccount' ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.08)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            color: selectedView === 'MyAccount' ? 'white' : 'rgba(255,255,255,0.7)',
-                            height: 32,
-                            outline: 'none',
-                            width: 32
-                        }}
-                        onClick={() => handleMenuClick('MyAccount')}
-                        onMouseEnter={(e) => {
-                            if (selectedView !== 'MyAccount')
-                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
-                        }}
-                        onMouseLeave={(e) => {
-                            if (selectedView !== 'MyAccount')
-                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                        }}
-                    >
-                        <i className="fas fa-cog" style={{ fontSize: 12 }} />
-                    </button>
-                </div>
-
-                {/* User avatar row */}
-                <div
-                    className="flex items-center gap-2.5 rounded-lg cursor-pointer transition-all duration-150 px-1.5 py-1.5"
-                    onClick={() => handleMenuClick('MyAccount')}
-                    title={userName || 'My Account'}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent'
-                    }}
-                >
-                    {/* Avatar circle with initials */}
-                    <div
-                        className="flex items-center justify-center rounded-full flex-shrink-0"
-                        style={{
-                            backgroundColor: 'rgba(255,255,255,0.15)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'white',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            height: 30,
-                            letterSpacing: '0.02em',
-                            width: 30
-                        }}
-                    >
-                        {userInitials}
-                    </div>
-                    <span
-                        className="truncate"
-                        style={{
-                            color: 'rgba(255,255,255,0.85)',
-                            fontSize: 12,
-                            fontWeight: 500
-                        }}
-                    >
-                        {userName || 'Account'}
-                    </span>
-                </div>
-            </div>
-        </>
-    )
 
     /* ── Mobile layout ── */
     if (isMobile) {
         return (
             <>
-                {/* Mobile top bar */}
                 <div className="flex flex-col h-screen w-full">
                     <div
                         className="flex items-center justify-between sticky top-0 z-[100] flex-shrink-0"
                         style={{
-                            backgroundColor: accentColor,
+                            ...headerStyle,
                             borderBottom: '1px solid rgba(255,255,255,0.08)',
                             boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                             padding: '12px 16px'
@@ -661,42 +347,98 @@ export default function SideGlassNavigation({
                         </button>
                     </div>
 
-                    {/* Mobile glass sidebar overlay */}
                     {mobileMenuOpen && (
                         <div
                             className="fixed inset-0 z-[200]"
                             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            <nav
-                                ref={sidebarRef}
-                                className="absolute left-0 top-0 bottom-0 flex flex-col overflow-hidden"
+                            <div
+                                ref={mobileDrawerRef}
+                                className="absolute left-0 top-0 bottom-0 overflow-y-auto"
                                 style={{
-                                    width: 260,
-                                    ...GLASS_PANEL_STYLE,
-                                    background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor}99)`,
-                                    borderRight: '1px solid rgba(255,255,255,0.1)',
-                                    boxShadow: '4px 0 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)'
+                                    backgroundColor: 'var(--bg-primary)',
+                                    borderRight: '1px solid var(--border-light)',
+                                    boxShadow: '4px 0 24px rgba(0,0,0,0.2)',
+                                    width: 280
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                {/* Grid overlay */}
-                                <div
-                                    className="absolute inset-0 pointer-events-none"
-                                    style={{ ...buildGridStyle(accentColor, true), zIndex: 0 }}
-                                />
-                                <div className="relative z-10 flex flex-col h-full">{renderSidebarContent()}</div>
-                            </nav>
+                                <div className="p-4">
+                                    <img src={SrmLogo} alt="Logo" style={{ height: 28 }} draggable={false} />
+                                </div>
+                                {visibleCategories.map((cat) => (
+                                    <div key={cat.id} className="mb-1">
+                                        <div
+                                            className="px-4 py-2 text-xs font-semibold uppercase tracking-wider"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {cat.label}
+                                        </div>
+                                        {cat.id === 'dashboard' ? (
+                                            <button
+                                                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm cursor-pointer border-none"
+                                                style={{
+                                                    backgroundColor:
+                                                        selectedView === 'Dashboard'
+                                                            ? `${accentColor}14`
+                                                            : 'transparent',
+                                                    color:
+                                                        selectedView === 'Dashboard'
+                                                            ? accentColor
+                                                            : 'var(--text-primary)',
+                                                    fontWeight: selectedView === 'Dashboard' ? 600 : 400,
+                                                    outline: 'none'
+                                                }}
+                                                onClick={() => handleMenuClick('Dashboard')}
+                                            >
+                                                <i
+                                                    className={`fas ${ICONS.Dashboard}`}
+                                                    style={{ fontSize: 13, width: 18 }}
+                                                />
+                                                Dashboard
+                                            </button>
+                                        ) : (
+                                            cat.items
+                                                .map((id) => visibleMenuItems.find((i) => i.id === id))
+                                                .filter(Boolean)
+                                                .map((item) => (
+                                                    <button
+                                                        key={item.id}
+                                                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm cursor-pointer border-none"
+                                                        style={{
+                                                            backgroundColor:
+                                                                selectedView === item.id
+                                                                    ? `${accentColor}14`
+                                                                    : 'transparent',
+                                                            color:
+                                                                selectedView === item.id
+                                                                    ? accentColor
+                                                                    : 'var(--text-primary)',
+                                                            fontWeight: selectedView === item.id ? 600 : 400,
+                                                            outline: 'none'
+                                                        }}
+                                                        onClick={() => handleMenuClick(item.id)}
+                                                    >
+                                                        <i
+                                                            className={`fas ${ICONS[item.id] || 'fa-circle'}`}
+                                                            style={{ fontSize: 13, width: 18 }}
+                                                        />
+                                                        {item.text}
+                                                    </button>
+                                                ))
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
-                    {/* Main content */}
                     <div data-content-scroll className="flex-1 overflow-x-hidden overflow-y-auto relative">
                         {children}
                     </div>
                 </div>
 
-                {/* Modals */}
                 {showNotifications && (
                     <NotificationsModal
                         isOpen={showNotifications}
@@ -730,52 +472,257 @@ export default function SideGlassNavigation({
     /* ── Desktop layout ── */
     return (
         <>
-            {/* Grid background behind the sidebar only */}
-            <div
-                className="fixed pointer-events-none z-[99]"
-                style={{
-                    ...buildGridStyle(accentColor),
-                    backgroundColor: 'var(--bg-primary)',
-                    bottom: 0,
-                    left: 0,
-                    top: 0,
-                    width: SIDEBAR_OFFSET
-                }}
-            />
+            <div className="flex flex-col h-screen w-full overflow-hidden">
+                {/* Primary header bar */}
+                <header
+                    className="flex-shrink-0 sticky top-0 z-[100]"
+                    style={{
+                        ...headerStyle,
+                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+                    }}
+                >
+                    {/* Single row: logo + category tabs + actions */}
+                    <div className="flex items-center justify-between" style={{ padding: '12px 32px' }}>
+                        {/* Left: logo + category tabs on same line */}
+                        <div className="flex items-center gap-6 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                            <img
+                                src={SrmLogo}
+                                alt="Smyrna Ready Mix"
+                                className="flex-shrink-0 transition-all duration-300 hover:brightness-125"
+                                style={{ height: 28 }}
+                                draggable={false}
+                            />
+                            <div className="flex items-center gap-1">
+                                {/* Skeleton while loading */}
+                                {visibleMenuItems.length === 0 && (
+                                    <>
+                                        {[72, 56, 52, 64, 48].map((w, i) => (
+                                            <div
+                                                key={i}
+                                                className="animate-pulse rounded-lg"
+                                                style={{
+                                                    animationDelay: `${i * 80}ms`,
+                                                    animationFillMode: 'both',
+                                                    backgroundColor: 'rgba(255,255,255,0.08)',
+                                                    height: 34,
+                                                    width: w
+                                                }}
+                                            />
+                                        ))}
+                                    </>
+                                )}
+                                {visibleCategories.map((cat) => {
+                                    const isActive = activeCategory === cat.id
+                                    return (
+                                        <button
+                                            key={cat.id}
+                                            className="flex items-center gap-2 whitespace-nowrap cursor-pointer border-none transition-all duration-200"
+                                            style={{
+                                                background: isActive ? 'rgba(255,255,255,0.18)' : 'transparent',
+                                                borderRadius: 10,
+                                                boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                                                color: isActive ? 'white' : 'rgba(255,255,255,0.65)',
+                                                fontSize: 13,
+                                                fontWeight: isActive ? 600 : 500,
+                                                outline: 'none',
+                                                padding: '8px 18px'
+                                            }}
+                                            onClick={() => handleCategoryClick(cat.id)}
+                                            onMouseEnter={(e) => {
+                                                if (!isActive)
+                                                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!isActive) e.currentTarget.style.background = 'transparent'
+                                            }}
+                                        >
+                                            <i className={`fas ${cat.icon}`} style={{ fontSize: 13 }} />
+                                            {cat.label}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
 
-            {/* Floating glass sidebar */}
-            <nav
-                className="fixed flex flex-col z-[100] select-none overflow-hidden"
-                style={{
-                    borderRadius: 20,
-                    bottom: 16,
-                    left: 16,
-                    top: 16,
-                    width: 220,
-                    ...GLASS_PANEL_STYLE,
-                    background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor}99)`,
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    boxShadow:
-                        '0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.06)'
-                }}
-            >
-                {/* Grid overlay */}
-                <div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ ...buildGridStyle(accentColor, true), borderRadius: 20, zIndex: 0 }}
-                />
-                <div className="relative z-10 flex flex-col h-full">{renderSidebarContent()}</div>
-            </nav>
+                        {/* Right: actions */}
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                            {/* Region selector */}
+                            <select
+                                value={regionCode || ''}
+                                onChange={handleRegionChange}
+                                className="cursor-pointer transition-all duration-200 outline-none"
+                                style={{
+                                    appearance: 'none',
+                                    backgroundColor: 'rgba(255,255,255,0.08)',
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundPosition: 'right 8px center',
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: 14,
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    borderRadius: 10,
+                                    color: 'white',
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    padding: '8px 30px 8px 12px'
+                                }}
+                            >
+                                {permittedRegions.length === 0 ? (
+                                    <option value="">Loading...</option>
+                                ) : (
+                                    permittedRegions.map((r) => (
+                                        <option
+                                            key={r.regionCode || r.region_code}
+                                            value={r.regionCode || r.region_code}
+                                            style={{ backgroundColor: '#1e293b', color: '#f8fafc' }}
+                                        >
+                                            {r.regionName || r.region_name}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
 
-            {/* Main content wrapper offset by sidebar */}
-            <div
-                className="flex flex-col h-screen overflow-hidden"
-                style={{
-                    ...buildGridStyle(accentColor),
-                    backgroundColor: 'var(--bg-primary)',
-                    marginLeft: SIDEBAR_OFFSET
-                }}
-            >
+                            {/* Notifications */}
+                            <button
+                                className="relative flex items-center justify-center cursor-pointer"
+                                title="Notifications"
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.06)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: 8,
+                                    color: 'rgba(255,255,255,0.7)',
+                                    height: 34,
+                                    outline: 'none',
+                                    width: 34
+                                }}
+                                onClick={(e) => {
+                                    setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
+                                    setShowNotifications(true)
+                                }}
+                            >
+                                <i className="fas fa-bell" style={{ fontSize: 13 }} />
+                                {notificationsCount > 0 && (
+                                    <span
+                                        className="absolute flex items-center justify-center rounded-full"
+                                        style={{
+                                            backgroundColor: '#ef4444',
+                                            border: `2px solid ${accentColor}`,
+                                            color: 'white',
+                                            fontSize: 9,
+                                            fontWeight: 700,
+                                            height: 16,
+                                            minWidth: 16,
+                                            right: -4,
+                                            top: -4
+                                        }}
+                                    >
+                                        {notificationsCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* Online users */}
+                            <button
+                                className="relative flex items-center justify-center cursor-pointer"
+                                title="Online Users"
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.06)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: 8,
+                                    color: 'rgba(255,255,255,0.7)',
+                                    height: 34,
+                                    outline: 'none',
+                                    width: 34
+                                }}
+                                onClick={(e) => {
+                                    setOnlineUsersAnchor(e.currentTarget.getBoundingClientRect())
+                                    setShowOnlineUsers(true)
+                                }}
+                            >
+                                <i className="fas fa-circle" style={{ color: '#22c55e', fontSize: 7 }} />
+                                <span className="ml-1 text-xs font-semibold text-white">{onlineUsersCount}</span>
+                            </button>
+
+                            {/* User avatar */}
+                            <div
+                                className="flex items-center justify-center cursor-pointer"
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.15)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: 8,
+                                    color: 'white',
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    height: 34,
+                                    width: 34
+                                }}
+                                onClick={() => handleMenuClick('MyAccount')}
+                                title={userName || 'My Account'}
+                            >
+                                {userInitials}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Secondary nav bar with sliding underline */}
+                {secondaryItems.length > 0 && (
+                    <div
+                        className="flex-shrink-0 bg-white border-b border-slate-200 shadow-sm"
+                        style={{ minHeight: 44 }}
+                    >
+                        <div
+                            ref={secondaryNavRef}
+                            className="flex items-center relative overflow-x-auto"
+                            style={{ padding: '0 32px', scrollbarWidth: 'none' }}
+                        >
+                            {secondaryItems.map((item) => {
+                                const isActive = selectedView === item.id
+                                return (
+                                    <button
+                                        key={item.id}
+                                        data-active={isActive}
+                                        className="flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-none bg-transparent transition-colors duration-150"
+                                        style={{
+                                            color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                            fontSize: 13,
+                                            fontWeight: isActive ? 600 : 500,
+                                            outline: 'none',
+                                            padding: '12px 16px'
+                                        }}
+                                        onClick={() => handleMenuClick(item.id)}
+                                        onMouseEnter={(e) => {
+                                            if (!isActive) e.currentTarget.style.color = 'var(--text-primary)'
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)'
+                                        }}
+                                    >
+                                        <i
+                                            className={`fas ${ICONS[item.id] || 'fa-circle'}`}
+                                            style={{ fontSize: 12 }}
+                                        />
+                                        {item.text}
+                                    </button>
+                                )
+                            })}
+                            {/* Sliding underline */}
+                            <div
+                                ref={underlineRef}
+                                className="absolute bottom-0 rounded-t"
+                                style={{
+                                    backgroundColor: accentColor,
+                                    height: 2.5,
+                                    transition:
+                                        'left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    width: 0
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Content area */}
                 <div data-content-scroll className="flex-1 overflow-x-hidden overflow-y-auto relative">
                     {children}
                 </div>
