@@ -38,3 +38,7 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
 [2026-03-12T02:47:59.500Z] [error] Realtime subscription error
 [2026-03-12T13:10:51.480Z] [error] Realtime subscription error
+[2026-03-12T13:14:19.218Z] [error] %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values. Removing background backgroundImage
+[2026-03-12T13:14:19.219Z] [error] %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values. Removing background backgroundPosition
+[2026-03-12T13:14:19.219Z] [error] %s a style property during rerender (%s) when a conflicting property is set (%s) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values. Removing background backgroundSize
+[2026-03-12T13:15:54.908Z] [error] Realtime subscription error

@@ -304,16 +304,16 @@ export default function SideGlassNavigation({
               .slice(0, 2)
         : '?'
 
-    /** Header background with grid pattern matching the accent color. */
+    /** Header background with grid pattern matching TopSection's accent grid style. */
     const headerStyle = {
-        background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+        backgroundColor: accentColor,
         backgroundImage: `
-            linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%),
-            linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
+            linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px),
+            radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, transparent 50%)
         `,
         backgroundPosition: '0 0, 0 0, 0 0',
-        backgroundSize: '100% 100%, 20px 20px, 20px 20px'
+        backgroundSize: '20px 20px, 20px 20px, 40px 40px'
     }
 
     /* ── Mobile layout ── */
