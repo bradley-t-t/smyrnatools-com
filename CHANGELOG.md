@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.0] - 2026-03-13
+
+- Reordered navigation menu items to place Reports before List in both the menu items array and the Productivity dropdown group
+- Added v31.9 changelog entry documenting the views directory reorganization into categorical subdirectories and import path updates
+
 ## [31.9] - 2026-03-13
 
 - Reorganized views directory into categorical subdirectories: admin (plants, regions, roles), common (dashboard, login, myaccount, notifications), people (managers, operators), and productivity (calculator, documents, leaderboards, list, maintenance, plan, reports)

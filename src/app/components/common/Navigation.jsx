@@ -57,8 +57,8 @@ const menuItems = [
     { id: 'Pickup Trucks', permission: 'pickup_trucks.view', text: 'Pickup Trucks' },
     { id: 'Operators', permission: 'operators.view', text: 'Operators' },
     { id: 'Managers', permission: 'managers.view', text: 'Managers' },
-    { id: 'List', permission: 'list.view', text: 'List' },
     { id: 'Reports', permission: 'reports.view', text: 'Reports' },
+    { id: 'List', permission: 'list.view', text: 'List' },
     { id: 'Plan', permission: 'plan.view', text: 'Plan' },
     { id: 'Plants', permission: 'plants.view', text: 'Plants' },
     { id: 'Regions', permission: 'regions.view', text: 'Regions' },
@@ -72,7 +72,7 @@ const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Picku
 /** Navigation item IDs grouped under the "People" dropdown. */
 const PEOPLE_ITEMS = ['Operators', 'Managers']
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
-const PRODUCTIVITY_ITEMS = ['List', 'Reports', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
+const PRODUCTIVITY_ITEMS = ['Reports', 'List', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
 /** Navigation item IDs grouped under the "Admin" category (two-level mode). */
 const ADMIN_ITEMS = ['Plants', 'Regions', 'Roles', 'Maintenance']
 
