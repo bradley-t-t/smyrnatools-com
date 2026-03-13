@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
@@ -44,8 +44,7 @@ export function useReportsData() {
         async (userIds) => {
             const missing = userIds.filter((id) => !userProfiles[id])
             if (missing.length === 0) return
-            const { data: profiles, error } = await supabase
-                .from('users_profiles')
+            const { data: profiles, error } = await Database.from('users_profiles')
                 .select('id, first_name, last_name')
                 .in('id', missing)
             if (!error && Array.isArray(profiles)) {
@@ -61,8 +60,7 @@ export function useReportsData() {
         async ({ weeks, scope }) => {
             if (!user || !Array.isArray(weeks) || weeks.length === 0) return
             const isoList = weeks.map((w) => new Date(w).toISOString())
-            let query = supabase
-                .from('reports')
+            let query = Database.from('reports')
                 .select(
                     'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
                 )
@@ -96,8 +94,7 @@ export function useReportsData() {
             if (!Array.isArray(data)) return
             const reportIds = data.map((r) => r.id).filter((id) => id != null)
             if (reportIds.length > 0 && scope === 'review' && user?.id) {
-                const { data: reviewedData } = await supabase
-                    .from('reports_reviewed')
+                const { data: reviewedData } = await Database.from('reports_reviewed')
                     .select('report_id')
                     .in('report_id', reportIds)
                     .eq('reviewed_by_user_id', user.id)
@@ -193,8 +190,7 @@ export function useReportsData() {
     }, [user?.id])
     useEffect(() => {
         async function fetchPlants() {
-            const { data, error } = await supabase
-                .from('plants')
+            const { data, error } = await Database.from('plants')
                 .select('plant_code,plant_name')
                 .order('plant_code', { ascending: true })
             setPlants(!error && Array.isArray(data) ? data.filter((p) => p.plant_code && p.plant_name) : [])
@@ -351,8 +347,7 @@ export function useReportsData() {
         if (!user || isLoadingPermissions || lostLoadsLoaded) return
         setIsLoadingLostLoads(true)
         try {
-            const { data, error } = await supabase
-                .from('reports')
+            const { data, error } = await Database.from('reports')
                 .select('id,user_id,submitted_at,data,week')
                 .eq('report_name', 'lost_load')
                 .eq('completed', true)
@@ -385,7 +380,7 @@ export function useReportsData() {
         setLostLoadReports((prev) => [mapped, ...prev])
     }, [])
     const deleteLostLoadReport = useCallback(async (reportId) => {
-        const { error } = await supabase.from('reports').delete().eq('id', reportId)
+        const { error } = await Database.from('reports').delete().eq('id', reportId)
         if (error) throw error
         setLostLoadReports((prev) => prev.filter((r) => r.id !== reportId))
     }, [])

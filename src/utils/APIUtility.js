@@ -1,4 +1,4 @@
-import { supabase } from '../services/DatabaseService'
+import { Database } from '../services/DatabaseService'
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 const REQUEST_TIMEOUT_MS = 30_000
@@ -10,7 +10,7 @@ const DEFAULT_RETRY_DELAY_MS = 1_000
  */
 const getAuthToken = async () => {
     try {
-        const { data } = await supabase.auth.getSession()
+        const { data } = await Database.auth.getSession()
         if (data?.session?.access_token) return data.session.access_token
     } catch (error) {
         console.error('Failed to retrieve auth session, falling back to anon key:', error)
@@ -26,7 +26,7 @@ const errorResponse = (message) => ({
     res: { ok: false, status: 0 }
 })
 /**
- * Authenticated HTTP client for Supabase Edge Functions.
+ * Authenticated HTTP client for edge functions.
  *
  * Each attempt fetches a fresh auth token so that retries succeed even if
  * the previous token expired mid-session. Requests are aborted after

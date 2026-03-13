@@ -5,7 +5,7 @@ import { useAuth } from '../../../app/context/AuthContext'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 import { useVersion } from '../../../app/hooks/useVersion'
 import SrmLogo from '../../../assets/images/srm-logo.svg'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import ValidationUtility from '../../../utils/ValidationUtility'
 const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
@@ -75,7 +75,7 @@ const getLabelClasses = (isFocused, hasValue) =>
  * Full-screen login/signup view with a lazy-loaded video background,
  * animated fleet stats, password strength indicator, and links to
  * password recovery and the changelog. Creates a browser session
- * record in Supabase on successful authentication.
+ * record in the database on successful authentication.
  */
 function LoginView() {
     const version = useVersion()
@@ -111,18 +111,16 @@ function LoginView() {
             if (cancelled) return
             try {
                 const [mixersRes, tractorsRes, trailersRes, equipmentRes, operatorsRes, plantsRes] = await Promise.all([
-                    supabase.from('mixers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
-                    supabase.from('tractors').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
-                    supabase.from('trailers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
-                    supabase
-                        .from('heavy_equipment')
+                    Database.from('mixers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    Database.from('tractors').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    Database.from('trailers').select('*', { count: 'exact', head: true }).neq('status', 'Retired'),
+                    Database.from('heavy_equipment')
                         .select('*', { count: 'exact', head: true })
                         .neq('status', 'Retired'),
-                    supabase
-                        .from('operators')
+                    Database.from('operators')
                         .select('*', { count: 'exact', head: true })
                         .in('status', ['Active', 'Training', 'Light Duty']),
-                    supabase.from('plants').select('*', { count: 'exact', head: true })
+                    Database.from('plants').select('*', { count: 'exact', head: true })
                 ])
                 if (cancelled) return
                 const totalAssets =

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AIService } from '../../services/AIService'
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import DashboardUtility from '../../utils/DashboardUtility'
@@ -207,8 +207,7 @@ export function useLeaderboardMetrics({
                 if (!isMultiPlant && !plantCodesInRegion.includes(dashboardPlant)) return
                 const extendedStartDate = new Date(selectedYear - 1, 11, 25)
                 const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
-                const { data: profilesData } = await supabase
-                    .from('users_profiles')
+                const { data: profilesData } = await Database.from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodesInRegion)
                     .not('plant_code', 'is', null)
@@ -220,15 +219,13 @@ export function useLeaderboardMetrics({
                 })
                 const allUserIds = profilesData.map((p) => p.id)
                 const [{ data: reports }, { data: safetyReports }] = await Promise.all([
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'plant_manager')
                         .in('user_id', allUserIds)
                         .gte('week', extendedStartDate.toISOString())
                         .lte('week', extendedEndDate.toISOString()),
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'safety_manager')
                         .gte('week', extendedStartDate.toISOString())

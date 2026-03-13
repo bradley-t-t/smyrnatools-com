@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
 
@@ -213,8 +213,7 @@ export default function useAssetData({
     )
 
     useEffect(() => {
-        const channel = supabase
-            .channel(config.channelName)
+        const channel = Database.channel(config.channelName)
             .on('postgres_changes', { event: '*', schema: 'public', table: config.tableName }, (payload) => {
                 handleRealtimeUpdate(payload.eventType, { new: payload.new, old: payload.old })
             })
@@ -223,7 +222,7 @@ export default function useAssetData({
                     console.error(`${config.singularLabel} realtime subscription error`)
                 }
             })
-        return () => supabase.removeChannel(channel)
+        return () => Database.removeChannel(channel)
     }, [config.channelName, config.singularLabel, config.tableName, handleRealtimeUpdate])
 
     // --- Main data load ---

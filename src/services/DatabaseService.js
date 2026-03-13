@@ -1,19 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
 
 import APIUtility from '../utils/APIUtility'
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-/** Shared Supabase client instance configured with realtime support. */
-const supabase = createClient(supabaseUrl, supabaseKey, {
+const databaseUrl = process.env.REACT_APP_SUPABASE_URL
+const databaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
+/** Shared database client instance configured with realtime support. */
+const Database = createClient(databaseUrl, databaseKey, {
     realtime: {
         params: {
             eventsPerSecond: 10
         }
     }
 })
-export default supabase
-/** Prefer named import: `import { supabase } from './DatabaseService'` */
-export { supabase }
+export default Database
+/** Prefer named import: `import { Database } from './DatabaseService'` */
+export { Database }
 /** Allowlisted tables for sanitized database operations to prevent injection. */
 const ALLOWED_TABLES = new Set([
     'users',
@@ -98,8 +98,8 @@ export class DatabaseService {
         return json?.data ?? []
     }
 }
-/** Formats a Supabase error into a human-readable string with details, hint, and code. */
-export const getSupabaseErrorDetails = (error) => {
+/** Formats a database error into a human-readable string with details, hint, and code. */
+export const getDatabaseErrorDetails = (error) => {
     if (!error) return 'Unknown error'
     if (error.message) {
         if (error.details || error.hint || error.code) {
@@ -113,13 +113,13 @@ export const getSupabaseErrorDetails = (error) => {
         return 'Error object could not be stringified'
     }
 }
-/** Logs a Supabase error with context label and full details to the console. */
-export const logSupabaseError = (context, error) => {
-    console.error(`Supabase error in ${context}:`, error)
-    console.error('Details:', getSupabaseErrorDetails(error))
+/** Logs a database error with context label and full details to the console. */
+export const logDatabaseError = (context, error) => {
+    console.error(`Database error in ${context}:`, error)
+    console.error('Details:', getDatabaseErrorDetails(error))
 }
-/** Converts a date value to ISO string format for Supabase queries. Returns null on invalid input. */
-export const formatDateForSupabase = (date) => {
+/** Converts a date value to ISO string format for database queries. Returns null on invalid input. */
+export const formatDateForDatabase = (date) => {
     if (!date) return null
     if (date instanceof Date) return date.toISOString()
     try {
@@ -129,20 +129,20 @@ export const formatDateForSupabase = (date) => {
         return null
     }
 }
-/** Validates that Supabase is properly configured with real (non-placeholder) credentials. */
-export const isSupabaseConfigured = (client) => {
+/** Validates that the database is properly configured with real (non-placeholder) credentials. */
+export const isDatabaseConfigured = (client) => {
     if (!client) return false
     if (!process.env.REACT_APP_SUPABASE_URL || !process.env.REACT_APP_SUPABASE_ANON_KEY) return false
     if (!client.supabaseUrl || client.supabaseUrl.includes('example.supabase.co')) return false
     if (!client.supabaseKey || client.supabaseKey === 'your-public-anon-key') return false
     return true
 }
-/** Extracts an error message from a Supabase response, or null if no error. */
-export const extractSupabaseErrorMessage = (response) => {
+/** Extracts an error message from a database response, or null if no error. */
+export const extractDatabaseErrorMessage = (response) => {
     if (!response) return 'Empty response received'
-    return response.error ? getSupabaseErrorDetails(response.error) : null
+    return response.error ? getDatabaseErrorDetails(response.error) : null
 }
-/** Builds a case-insensitive partial text filter object for Supabase ILIKE queries. */
+/** Builds a case-insensitive partial text filter object for ILIKE queries. */
 export const createPartialTextFilter = (column, searchTerm) => {
     const sanitizedColumn = sanitizeColumnName(column)
     if (!searchTerm?.trim() || !sanitizedColumn) return {}
@@ -153,7 +153,7 @@ export const createPartialTextFilter = (column, searchTerm) => {
  * Low-level CRUD operations against allowlisted tables via the database-service edge function.
  * All table and column names are sanitized before being sent to the API.
  */
-export const SupabaseUtils = {
+export const DatabaseUtils = {
     /** Deletes records matching a filter column/value from an allowlisted table. */
     async delete(table, filterColumn, value) {
         const sanitizedTable = sanitizeTableName(table)

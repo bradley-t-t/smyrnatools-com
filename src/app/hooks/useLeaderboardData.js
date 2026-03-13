@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { MixerService } from '../../services/MixerService'
 import { OperatorService } from '../../services/OperatorService'
@@ -87,8 +87,7 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                 const plantNames = Object.fromEntries(plantsInRegion.map((p) => [p.plantCode, p.plantName]))
                 const extendedStartDate = new Date(selectedYear - 1, 11, 25)
                 const extendedEndDate = new Date(selectedYear + 1, 0, 7, 23, 59, 59)
-                const { data: profilesData, error: profilesError } = await supabase
-                    .from('users_profiles')
+                const { data: profilesData, error: profilesError } = await Database.from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodesInRegion)
                     .not('plant_code', 'is', null)
@@ -114,15 +113,13 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     return
                 }
                 const [{ data: reports, error: reportsError }, { data: safetyReports }] = await Promise.all([
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'plant_manager')
                         .in('user_id', allUserIds)
                         .gte('week', extendedStartDate.toISOString())
                         .lte('week', extendedEndDate.toISOString()),
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'safety_manager')
                         .gte('week', extendedStartDate.toISOString())

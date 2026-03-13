@@ -6,7 +6,7 @@ import DetailViewSection from '../../../app/components/sections/DetailViewSectio
 import VerificationCardSection from '../../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Tractor } from '../../../app/models/tractors/Tractor'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
@@ -304,8 +304,7 @@ function TractorDetailView({ tractorId, onClose }) {
                 ? overrideValues.status
                 : status
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
-                const { data: openIssues } = await supabase
-                    .from('tractors_maintenance')
+                const { data: openIssues } = await Database.from('tractors_maintenance')
                     .select('id')
                     .eq('tractor_id', tractor.id)
                     .is('time_completed', null)

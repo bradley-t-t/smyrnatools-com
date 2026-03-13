@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 async function assertITAccess() {
     const user = await UserService.getCurrentUser()
@@ -60,8 +60,7 @@ export function useRolesData() {
         async (roleId, permissionsText) => {
             await assertITAccess()
             const sortedPermissions = parsePermissionsText(permissionsText)
-            const { error: updateError } = await supabase
-                .from('users_roles')
+            const { error: updateError } = await Database.from('users_roles')
                 .update({ permissions: sortedPermissions })
                 .eq('id', roleId)
             if (updateError) throw updateError
@@ -74,7 +73,7 @@ export function useRolesData() {
     const updateRoleWeight = useCallback(
         async (roleId, weight) => {
             await assertITAccess()
-            const { error: updateError } = await supabase.from('users_roles').update({ weight }).eq('id', roleId)
+            const { error: updateError } = await Database.from('users_roles').update({ weight }).eq('id', roleId)
             if (updateError) throw updateError
             UserService.clearCache()
             await loadData()
@@ -85,8 +84,7 @@ export function useRolesData() {
     const createRole = useCallback(
         async (name, weight) => {
             await assertITAccess()
-            const { error: createError } = await supabase
-                .from('users_roles')
+            const { error: createError } = await Database.from('users_roles')
                 .insert([{ name: name.trim(), permissions: [], weight }])
                 .select()
             if (createError) throw createError
@@ -110,8 +108,7 @@ export function useRolesData() {
                     a.localeCompare(b)
                 )
                 if (JSON.stringify(existingPermissions.sort()) !== JSON.stringify(sortedPermissions)) {
-                    const { error: updateError } = await supabase
-                        .from('users_roles')
+                    const { error: updateError } = await Database.from('users_roles')
                         .update({ permissions: sortedPermissions })
                         .eq('id', roleId)
                     if (updateError) throw updateError
@@ -135,8 +132,7 @@ export function useRolesData() {
             const sortedPermissions = role.permissions
                 .filter((p) => p !== permission)
                 .sort((a, b) => a.localeCompare(b))
-            const { error: updateError } = await supabase
-                .from('users_roles')
+            const { error: updateError } = await Database.from('users_roles')
                 .update({ permissions: sortedPermissions })
                 .eq('id', roleId)
             if (updateError) throw updateError
@@ -155,8 +151,7 @@ export function useRolesData() {
                 const sortedPermissions = role.permissions
                     .filter((p) => p !== permission)
                     .sort((a, b) => a.localeCompare(b))
-                const { error: updateError } = await supabase
-                    .from('users_roles')
+                const { error: updateError } = await Database.from('users_roles')
                     .update({ permissions: sortedPermissions })
                     .eq('id', role.id)
                 if (updateError) throw updateError

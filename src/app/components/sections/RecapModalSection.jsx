@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
@@ -217,8 +217,7 @@ function RecapModalSection({
             }
             const [mixerResult, operatorResult] = await Promise.all([
                 mixerIds.length > 0
-                    ? supabase
-                          .from('mixers_history')
+                    ? Database.from('mixers_history')
                           .select('id,mixer_id,field_name,old_value,new_value,changed_at,changed_by')
                           .in('mixer_id', mixerIds)
                           .gte('changed_at', startDate.toISOString())
@@ -226,8 +225,7 @@ function RecapModalSection({
                           .limit(500)
                     : Promise.resolve({ data: [], error: null }),
                 operatorIds.length > 0
-                    ? supabase
-                          .from('operators_history')
+                    ? Database.from('operators_history')
                           .select('id,operator_id,field_name,old_value,new_value,changed_at,changed_by')
                           .in('operator_id', operatorIds)
                           .gte('changed_at', startDate.toISOString())

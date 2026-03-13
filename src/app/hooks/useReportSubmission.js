@@ -1,11 +1,11 @@
 import { useCallback } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { reportTypeMap } from '../types/ReportTypes'
 const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
 const persistExclusionReason = async (reportId, reason) => {
     if (!reportId || !reason) return
-    await supabase.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
+    await Database.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
 }
 /**
  * Handles report upsert (create/update) and submission workflows,
@@ -30,8 +30,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
     }, [])
     const findExistingReport = useCallback(async ({ reportName, userId, weekIso }) => {
         const monday = weekIso ? new Date(weekIso) : null
-        const { data, error } = await supabase
-            .from('reports')
+        const { data, error } = await Database.from('reports')
             .select('id')
             .eq('report_name', reportName)
             .eq('user_id', userId)
@@ -43,8 +42,8 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
         const selectFields =
             'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
         const response = existingId
-            ? await supabase.from('reports').update(upsertData).eq('id', existingId).select(selectFields).single()
-            : await supabase.from('reports').insert([upsertData]).select(selectFields).single()
+            ? await Database.from('reports').update(upsertData).eq('id', existingId).select(selectFields).single()
+            : await Database.from('reports').insert([upsertData]).select(selectFields).single()
         return response
     }, [])
     const mapReportData = useCallback(
@@ -179,8 +178,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
         if (!userId || !item?.name || !item.weekIso) {
             return null
         }
-        const { data, error } = await supabase
-            .from('reports')
+        const { data, error } = await Database.from('reports')
             .select(
                 'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
             )

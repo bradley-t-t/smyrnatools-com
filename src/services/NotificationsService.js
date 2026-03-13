@@ -2,7 +2,7 @@ import EquipmentVerificationProvider from '../app/notifications/EquipmentVerific
 import MixerVerificationProvider from '../app/notifications/MixerVerificationNotifications'
 import OverdueListProvider from '../app/notifications/OverdueListNotifications'
 import TractorVerificationProvider from '../app/notifications/TractorVerificationNotifications'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { UserService } from './UserService'
 
 /** Computed providers that derive notifications from live asset/task state. */
@@ -23,12 +23,10 @@ const NotificationsService = {
     async deleteNotification(userId, dbId) {
         if (!userId || !dbId) return
         const now = new Date().toISOString()
-        await supabase
-            .from('notification_reads')
-            .upsert(
-                { deleted_at: now, notification_id: dbId, read_at: now, user_id: userId },
-                { onConflict: 'notification_id,user_id' }
-            )
+        await Database.from('notification_reads').upsert(
+            { deleted_at: now, notification_id: dbId, read_at: now, user_id: userId },
+            { onConflict: 'notification_id,user_id' }
+        )
     },
 
     async getDbNotifications(userId, selectedRegion) {
@@ -39,8 +37,7 @@ const NotificationsService = {
         ])
         const roleNames = roles.map((r) => r.name || r.role_name || '').filter(Boolean)
         const regionCode = selectedRegion?.code || null
-        const { data, error } = await supabase
-            .from('notifications')
+        const { data, error } = await Database.from('notifications')
             .select('*, notification_reads(read_at, deleted_at, user_id)')
             .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
             .order('created_at', { ascending: false })
@@ -102,7 +99,7 @@ const NotificationsService = {
 
     async markAllRead(userId, dbIds) {
         if (!userId || !dbIds?.length) return
-        await supabase.from('notification_reads').upsert(
+        await Database.from('notification_reads').upsert(
             dbIds.map((id) => ({
                 notification_id: id,
                 read_at: new Date().toISOString(),
@@ -114,12 +111,10 @@ const NotificationsService = {
 
     async markAsRead(userId, dbId) {
         if (!userId || !dbId) return
-        const { error } = await supabase
-            .from('notification_reads')
-            .upsert(
-                { notification_id: dbId, read_at: new Date().toISOString(), user_id: userId },
-                { onConflict: 'notification_id,user_id' }
-            )
+        const { error } = await Database.from('notification_reads').upsert(
+            { notification_id: dbId, read_at: new Date().toISOString(), user_id: userId },
+            { onConflict: 'notification_id,user_id' }
+        )
         return !error
     }
 }

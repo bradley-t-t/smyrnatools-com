@@ -10,7 +10,7 @@ import {
     getDuplicateFieldValues
 } from '../utils/BaseAssetUtility'
 import ValidationUtility from '../utils/ValidationUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
 const SERVICE_PREFIX = '/operator-service'
@@ -112,12 +112,12 @@ class OperatorServiceImpl {
         return (json?.data ?? []).map((op) => new Operator(op))
     }
     /**
-     * Fetches operators directly from Supabase with status change history enrichment.
+     * Fetches operators directly from the database with status change history enrichment.
      * Optionally filtered by region codes for scoped views.
      */
     async fetchOperators(regionCodes = null) {
         try {
-            const { data, error } = await supabase.from('operators').select('*')
+            const { data, error } = await Database.from('operators').select('*')
             if (error) throw error
             const operatorIds = (data || []).map((op) => op.employee_id).filter(Boolean)
             const statusHistoryMap = await fetchStatusHistoryMap('operators_history', 'operator_id', operatorIds)
@@ -140,7 +140,7 @@ class OperatorServiceImpl {
     /** Fetches all plants from the database. */
     async fetchPlants() {
         try {
-            const { data, error } = await supabase.from('plants').select('*')
+            const { data, error } = await Database.from('plants').select('*')
             if (error) throw error
             return data
         } catch (err) {
@@ -151,7 +151,7 @@ class OperatorServiceImpl {
     /** Fetches trainer-eligible operators (employee ID + name). */
     async fetchTrainers() {
         try {
-            const { data, error } = await supabase.from('operators').select('employee_id, name').eq('is_trainer', true)
+            const { data, error } = await Database.from('operators').select('employee_id, name').eq('is_trainer', true)
             if (error) throw error
             return data.map((t) => ({ employeeId: t.employee_id, name: t.name }))
         } catch (err) {

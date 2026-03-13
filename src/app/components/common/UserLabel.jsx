@@ -13,7 +13,7 @@ const SIZE_CONFIG = {
  * Inline label that asynchronously resolves and displays a user's name by ID.
  * Optionally shows a colored initials badge or user icon, with loading/error states.
  * @param {Object} props
- * @param {string} props.userId - Supabase user ID to resolve.
+ * @param {string} props.userId - database user ID to resolve.
  * @param {boolean} [props.showInitials=false] - Show a circular initials badge.
  * @param {boolean} [props.showIcon=false] - Show a generic user icon instead of initials.
  * @param {'small'|'medium'|'large'} [props.size='medium'] - Controls font and badge sizing.

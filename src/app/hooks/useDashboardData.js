@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { MixerService } from '../../services/MixerService'
 import { OperatorService } from '../../services/OperatorService'
@@ -13,7 +13,7 @@ import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS } from '../constants/dashbo
 /**
  * Fetches and caches all fleet assets (mixers, tractors, trailers, equipment, operators, pickups)
  * for the dashboard, using localStorage cache with TTL to reduce API calls.
- * Subscribes to Supabase realtime for live updates.
+ * Subscribes to database realtime for live updates.
  */
 export function useDashboardAssets({
     allEquipmentRef,
@@ -198,29 +198,28 @@ export function useIssueCommentCounts({
             if (!mixerIds.length && !tractorIds.length && !trailerIds.length && !equipmentIds.length) return
             const [mMaint, mCom, tMaint, tCom, trMaint, trCom, eMaint, eCom] = await Promise.all([
                 mixerIds.length
-                    ? supabase.from('mixers_maintenance').select('*').in('mixer_id', mixerIds)
+                    ? Database.from('mixers_maintenance').select('*').in('mixer_id', mixerIds)
                     : Promise.resolve({ data: [] }),
                 mixerIds.length
-                    ? supabase.from('mixers_comments').select('id,mixer_id').in('mixer_id', mixerIds)
+                    ? Database.from('mixers_comments').select('id,mixer_id').in('mixer_id', mixerIds)
                     : Promise.resolve({ data: [] }),
                 tractorIds.length
-                    ? supabase.from('tractors_maintenance').select('*').in('tractor_id', tractorIds)
+                    ? Database.from('tractors_maintenance').select('*').in('tractor_id', tractorIds)
                     : Promise.resolve({ data: [] }),
                 tractorIds.length
-                    ? supabase.from('tractors_comments').select('id,tractor_id').in('tractor_id', tractorIds)
+                    ? Database.from('tractors_comments').select('id,tractor_id').in('tractor_id', tractorIds)
                     : Promise.resolve({ data: [] }),
                 trailerIds.length
-                    ? supabase.from('trailers_maintenance').select('*').in('trailer_id', trailerIds)
+                    ? Database.from('trailers_maintenance').select('*').in('trailer_id', trailerIds)
                     : Promise.resolve({ data: [] }),
                 trailerIds.length
-                    ? supabase.from('trailers_comments').select('id,trailer_id').in('trailer_id', trailerIds)
+                    ? Database.from('trailers_comments').select('id,trailer_id').in('trailer_id', trailerIds)
                     : Promise.resolve({ data: [] }),
                 equipmentIds.length
-                    ? supabase.from('heavy_equipment_maintenance').select('*').in('equipment_id', equipmentIds)
+                    ? Database.from('heavy_equipment_maintenance').select('*').in('equipment_id', equipmentIds)
                     : Promise.resolve({ data: [] }),
                 equipmentIds.length
-                    ? supabase
-                          .from('heavy_equipment_comments')
+                    ? Database.from('heavy_equipment_comments')
                           .select('id,equipment_id')
                           .in('equipment_id', equipmentIds)
                     : Promise.resolve({ data: [] })

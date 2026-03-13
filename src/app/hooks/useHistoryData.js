@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { AIService } from '../../services/AIService'
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { OperatorService } from '../../services/OperatorService'
 import { UserService } from '../../services/UserService'
 import { HistoryUtility } from '../../utils/HistoryUtility'
@@ -53,7 +53,7 @@ export default function useHistoryData(item, type) {
     }, [])
     const fetchUsers = useCallback(async () => {
         try {
-            const { data } = await supabase.from('profiles').select('id, name, email')
+            const { data } = await Database.from('profiles').select('id, name, email')
             setUsers(data ?? [])
         } catch (e) {
             console.error('Failed to fetch user profiles for history:', e)
@@ -97,8 +97,7 @@ export default function useHistoryData(item, type) {
             try {
                 const tableName = HISTORY_TABLE_MAP[type]
                 const idField = type === 'pickup-truck' ? 'truck_id' : `${type}_id`
-                const { data, error: queryError } = await supabase
-                    .from(tableName)
+                const { data, error: queryError } = await Database.from(tableName)
                     .select('*')
                     .eq(idField, assetId)
                     .order('changed_at', { ascending: false })

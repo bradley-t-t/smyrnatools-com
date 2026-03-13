@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import PlantDropdownModal from '../../../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../../../app/context/PreferencesContext'
-import { supabase } from '../../../../services/DatabaseService'
+import { Database } from '../../../../services/DatabaseService'
 import { UserService } from '../../../../services/UserService'
 import { ReportUtility } from '../../../../utils/ReportUtility'
 import OperatorSelectModal from '../../../assets/mixers/OperatorSelectModal'
@@ -85,8 +85,7 @@ function useYphCalculation(weekIso, plantCode, form) {
                 const [year] = weekStart.split('-').map(Number)
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-                const { data: allReports } = await supabase
-                    .from('reports')
+                const { data: allReports } = await Database.from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
                     .eq('completed', true)
@@ -171,16 +170,14 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
                 const [{ data, error }, { data: yearData, error: yearError }] = await Promise.all([
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'plant_manager')
                         .eq('completed', true)
                         .gte('week', startOfMonthStr)
                         .lte('week', endOfMonthStr + 'T23:59:59.999Z')
                         .order('week', { ascending: true }),
-                    supabase
-                        .from('reports')
+                    Database.from('reports')
                         .select('*')
                         .eq('report_name', 'plant_manager')
                         .eq('completed', true)
@@ -197,8 +194,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 const userIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))]
                 const usersMap = {}
                 if (userIds.length > 0) {
-                    const { data: usersData } = await supabase
-                        .from('users_profiles')
+                    const { data: usersData } = await Database.from('users_profiles')
                         .select('id, plant_code')
                         .in('id', userIds)
                     if (usersData) {
@@ -311,8 +307,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 const currentYear = yearNum
                 const startOfYear = new Date(currentYear, 0, 1)
                 const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59)
-                const { data: allData, error } = await supabase
-                    .from('reports')
+                const { data: allData, error } = await Database.from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
                     .gte('week', startOfYear.toISOString())
@@ -326,8 +321,7 @@ function WeeklyTrendsSection({ currentWeekIso, plantCode, user }) {
                 const userIds = [...new Set(allData.map((r) => r.user_id).filter(Boolean))]
                 const usersMap = {}
                 if (userIds.length > 0) {
-                    const { data: usersData } = await supabase
-                        .from('users_profiles')
+                    const { data: usersData } = await Database.from('users_profiles')
                         .select('id, plant_code')
                         .in('id', userIds)
                     if (usersData) {
@@ -838,22 +832,19 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     setPlants(mappedPlants)
                 } else if (currentPlantCode) {
                     let regionPlantCodes = []
-                    const { data: regionData } = await supabase
-                        .from('regions_plants')
+                    const { data: regionData } = await Database.from('regions_plants')
                         .select('region_id')
                         .eq('plant_code', currentPlantCode)
                         .limit(1)
                         .maybeSingle()
                     if (regionData?.region_id) {
-                        const { data: regionPlantsData } = await supabase
-                            .from('regions_plants')
+                        const { data: regionPlantsData } = await Database.from('regions_plants')
                             .select('plant_code')
                             .eq('region_id', regionData.region_id)
                         regionPlantCodes = (regionPlantsData || []).map((rp) => rp.plant_code).filter(Boolean)
                     }
                     if (regionPlantCodes.length > 0) {
-                        const { data: plantsData } = await supabase
-                            .from('plants')
+                        const { data: plantsData } = await Database.from('plants')
                             .select('plant_code, plant_name')
                             .in('plant_code', regionPlantCodes)
                             .order('plant_code')
@@ -868,8 +859,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                 }
                 const operatorPlantCode = currentPlantCode
                 if (operatorPlantCode) {
-                    const { data: operatorsData } = await supabase
-                        .from('operators')
+                    const { data: operatorsData } = await Database.from('operators')
                         .select('employee_id, name, status, plant_code, smyrna_id, position')
                         .eq('status', 'Active')
                         .eq('plant_code', operatorPlantCode)
@@ -1236,8 +1226,7 @@ function OperatorsSentToHelp({ entries, onUpdate, weekIso, readOnly, user, plant
                     onRefresh={async () => {
                         setLoading(true)
                         try {
-                            const { data: operatorsData } = await supabase
-                                .from('operators')
+                            const { data: operatorsData } = await Database.from('operators')
                                 .select('employee_id, name, status, plant_code, smyrna_id, position')
                                 .eq('status', 'Active')
                                 .eq('plant_code', currentPlantCode)

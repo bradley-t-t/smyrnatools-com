@@ -16,8 +16,8 @@ class BaseAssetService {
     /**
      * @param {Object} config
      * @param {string} config.servicePrefix     - API route prefix (e.g. '/mixer-service')
-     * @param {string} config.commentsTable      - Supabase table for comments (e.g. 'mixers_comments')
-     * @param {string} config.issuesTable        - Supabase table for issues (e.g. 'mixers_maintenance')
+     * @param {string} config.commentsTable      - database table for comments (e.g. 'mixers_comments')
+     * @param {string} config.issuesTable        - database table for issues (e.g. 'mixers_maintenance')
      * @param {string} config.idColumn           - Column name for entity FK (e.g. 'mixer_id')
      * @param {string} config.entityIdParam      - API payload key for entity ID (e.g. 'mixerId')
      * @param {string} config.entityName         - Human-readable name for error messages (e.g. 'Mixer')

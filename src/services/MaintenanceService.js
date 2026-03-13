@@ -1,4 +1,4 @@
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { UserService } from './UserService'
 const STORAGE_BUCKET = 'smyrna'
 const STORAGE_PREFIX = 'maintenance'
@@ -52,7 +52,7 @@ async function requirePermission(userId, permission) {
 }
 /** Fetches the plant_code from a user's profile for plant-based access control. */
 async function fetchUserPlantCode(userId) {
-    const { data: profile } = await supabase.from('users_profiles').select('plant_code').eq('id', userId).maybeSingle()
+    const { data: profile } = await Database.from('users_profiles').select('plant_code').eq('id', userId).maybeSingle()
     return profile?.plant_code ?? null
 }
 /**
@@ -110,20 +110,20 @@ function buildResponseRows(responses, submissionId) {
 /** Inserts response rows for a submission. No-op if responses array is empty. */
 async function insertResponses(responses, submissionId) {
     if (!responses?.length) return
-    const { error } = await supabase
-        .from('maintenance_submission_responses')
-        .insert(buildResponseRows(responses, submissionId))
+    const { error } = await Database.from('maintenance_submission_responses').insert(
+        buildResponseRows(responses, submissionId)
+    )
     if (error) throw error
 }
 /** Replaces all existing responses for a submission (delete + re-insert). */
 async function replaceResponses(responses, submissionId) {
-    await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
+    await Database.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
     await insertResponses(responses, submissionId)
 }
 /** Inserts field definition rows for a form. No-op if fields array is empty. */
 async function insertFields(fields, formId) {
     if (!fields?.length) return
-    const { error } = await supabase.from('maintenance_form_fields').insert(buildFieldRows(fields, formId))
+    const { error } = await Database.from('maintenance_form_fields').insert(buildFieldRows(fields, formId))
     if (error) throw error
 }
 /**
@@ -140,8 +140,7 @@ async function fetchReviewableSubmissions(statusFilter, orderField, orderAscendi
             UserService.hasPermission(user.id, PERMISSION_IT).catch(() => false),
             UserService.hasPermission(user.id, PERMISSION_BYPASS_PLANT).catch(() => false)
         ])
-        let query = supabase
-            .from('maintenance_submissions')
+        let query = Database.from('maintenance_submissions')
             .select(SUBMISSION_DETAIL_SELECT)
             .order(orderField, { ascending: orderAscending })
         query = Array.isArray(statusFilter) ? query.in('status', statusFilter) : query.eq('status', statusFilter)
@@ -186,8 +185,7 @@ export class MaintenanceService {
     }
     /** Fetches all active maintenance forms, optionally filtered by region, plant, or creator. */
     static async fetchForms(filters = {}) {
-        let query = supabase
-            .from('maintenance_forms')
+        let query = Database.from('maintenance_forms')
             .select(FORM_WITH_FIELDS_SELECT)
             .eq('is_active', true)
             .order('created_at', { ascending: false })
@@ -200,8 +198,7 @@ export class MaintenanceService {
     }
     /** Fetches a single form by ID with its field definitions. */
     static async fetchFormById(formId) {
-        const { data, error } = await supabase
-            .from('maintenance_forms')
+        const { data, error } = await Database.from('maintenance_forms')
             .select(FORM_WITH_FIELDS_SELECT)
             .eq('id', formId)
             .single()
@@ -213,8 +210,7 @@ export class MaintenanceService {
         const user = await requireAuthenticatedUser()
         const { fields, plant_codes, ...formInfo } = formData
         const timestamp = now()
-        const { data: form, error: formError } = await supabase
-            .from('maintenance_forms')
+        const { data: form, error: formError } = await Database.from('maintenance_forms')
             .insert({
                 ...formInfo,
                 created_at: timestamp,
@@ -233,13 +229,12 @@ export class MaintenanceService {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
         const { fields, plant_codes, ...formInfo } = formData
-        const { error: formError } = await supabase
-            .from('maintenance_forms')
+        const { error: formError } = await Database.from('maintenance_forms')
             .update({ ...formInfo, plant_codes: plant_codes || [], updated_at: now() })
             .eq('id', formId)
         if (formError) throw formError
         if (fields) {
-            await supabase.from('maintenance_form_fields').delete().eq('form_id', formId)
+            await Database.from('maintenance_form_fields').delete().eq('form_id', formId)
             await insertFields(fields, formId)
         }
         return this.fetchFormById(formId)
@@ -248,8 +243,7 @@ export class MaintenanceService {
     static async deleteForm(formId) {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
-        const { error } = await supabase
-            .from('maintenance_forms')
+        const { error } = await Database.from('maintenance_forms')
             .update({ is_active: false, updated_at: now() })
             .eq('id', formId)
         if (error) throw error
@@ -258,8 +252,7 @@ export class MaintenanceService {
     /** Fetches due items with their associated forms and submissions. */
     static async fetchDueItems(filters = {}) {
         await requireAuthenticatedUser()
-        let query = supabase
-            .from('maintenance_due_items')
+        let query = Database.from('maintenance_due_items')
             .select(`*, maintenance_forms(*, maintenance_form_fields(*)), maintenance_submissions(*)`)
             .order('due_date', { ascending: true })
         if (filters.userId) query = query.eq('assigned_user_id', filters.userId)
@@ -281,8 +274,7 @@ export class MaintenanceService {
             const userRoleIds = (await UserService.getUserRoles(user.id).catch(() => []))
                 .map((r) => String(typeof r === 'object' ? r.id || r.role_id || '' : r))
                 .filter(Boolean)
-            const { data: allForms, error: formsError } = await supabase
-                .from('maintenance_forms')
+            const { data: allForms, error: formsError } = await Database.from('maintenance_forms')
                 .select(FORM_WITH_FIELDS_SELECT)
                 .eq('is_active', true)
             if (formsError || !allForms?.length) return []
@@ -319,8 +311,7 @@ export class MaintenanceService {
                 )
                 const submissionResults = await Promise.all(
                     combinations.map(({ dueDateStr, plantCode }) => {
-                        let query = supabase
-                            .from('maintenance_submissions')
+                        let query = Database.from('maintenance_submissions')
                             .select('id, submitted_by')
                             .eq('form_id', form.id)
                             .eq('due_date', dueDateStr)
@@ -393,8 +384,7 @@ export class MaintenanceService {
      */
     static async submitForm(formId, dueDate, responses, plantCode = null) {
         const user = await requireAuthenticatedUser()
-        const { data: existingDraft } = await supabase
-            .from('maintenance_submissions')
+        const { data: existingDraft } = await Database.from('maintenance_submissions')
             .select('id')
             .eq('form_id', formId)
             .eq('due_date', dueDate)
@@ -402,12 +392,11 @@ export class MaintenanceService {
             .eq('status', 'draft')
             .maybeSingle()
         if (existingDraft) {
-            await supabase.from('maintenance_submission_responses').delete().eq('submission_id', existingDraft.id)
-            await supabase.from('maintenance_submissions').delete().eq('id', existingDraft.id)
+            await Database.from('maintenance_submission_responses').delete().eq('submission_id', existingDraft.id)
+            await Database.from('maintenance_submissions').delete().eq('id', existingDraft.id)
         }
         const timestamp = now()
-        const { data: submission, error: submissionError } = await supabase
-            .from('maintenance_submissions')
+        const { data: submission, error: submissionError } = await Database.from('maintenance_submissions')
             .insert({
                 created_at: timestamp,
                 due_date: dueDate,
@@ -427,8 +416,7 @@ export class MaintenanceService {
     /** Updates the responses of an existing submission. */
     static async updateSubmission(submissionId, responses) {
         const user = await requireAuthenticatedUser()
-        const { error: updateError } = await supabase
-            .from('maintenance_submissions')
+        const { error: updateError } = await Database.from('maintenance_submissions')
             .update({ updated_at: now() })
             .eq('id', submissionId)
             .eq('submitted_by', user.id)
@@ -444,8 +432,7 @@ export class MaintenanceService {
         const user = await requireAuthenticatedUser()
         let submissionId = existingSubmissionId
         if (!submissionId) {
-            const { data: existing } = await supabase
-                .from('maintenance_submissions')
+            const { data: existing } = await Database.from('maintenance_submissions')
                 .select('id')
                 .eq('form_id', formId)
                 .eq('due_date', dueDate)
@@ -455,16 +442,14 @@ export class MaintenanceService {
             submissionId = existing?.id ?? null
         }
         if (submissionId) {
-            const { error: updateError } = await supabase
-                .from('maintenance_submissions')
+            const { error: updateError } = await Database.from('maintenance_submissions')
                 .update({ updated_at: now() })
                 .eq('id', submissionId)
             if (updateError) throw updateError
-            await supabase.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
+            await Database.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
         } else {
             const timestamp = now()
-            const { data: submission, error: submissionError } = await supabase
-                .from('maintenance_submissions')
+            const { data: submission, error: submissionError } = await Database.from('maintenance_submissions')
                 .insert({
                     created_at: timestamp,
                     due_date: dueDate,
@@ -486,8 +471,7 @@ export class MaintenanceService {
     static async fetchDraft(formId, dueDate, plantCode = null) {
         const user = await UserService.getCurrentUser()
         if (!user?.id) return null
-        let query = supabase
-            .from('maintenance_submissions')
+        let query = Database.from('maintenance_submissions')
             .select('*, maintenance_submission_responses (*)')
             .eq('form_id', formId)
             .eq('due_date', dueDate)
@@ -499,8 +483,7 @@ export class MaintenanceService {
     }
     /** Fetches submissions with optional filters, including full form and response details. */
     static async fetchSubmissions(filters = {}) {
-        let query = supabase
-            .from('maintenance_submissions')
+        let query = Database.from('maintenance_submissions')
             .select(`*, maintenance_forms(*), maintenance_submission_responses(*, maintenance_form_fields(*))`)
             .order('submitted_at', { ascending: false })
         if (filters.formId) query = query.eq('form_id', filters.formId)
@@ -513,8 +496,7 @@ export class MaintenanceService {
     }
     /** Fetches a single submission with full details (form fields, responses). */
     static async fetchSubmissionById(submissionId) {
-        const { data, error } = await supabase
-            .from('maintenance_submissions')
+        const { data, error } = await Database.from('maintenance_submissions')
             .select(SUBMISSION_DETAIL_SELECT)
             .eq('id', submissionId)
             .single()
@@ -525,8 +507,7 @@ export class MaintenanceService {
     static async reviewSubmission(submissionId, status, notes = '') {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_REVIEW)
-        const { data, error } = await supabase
-            .from('maintenance_submissions')
+        const { data, error } = await Database.from('maintenance_submissions')
             .update({
                 review_notes: notes,
                 reviewed_at: now(),
@@ -548,8 +529,7 @@ export class MaintenanceService {
     static async fetchMySubmissions(userId) {
         try {
             if (!userId) return []
-            const { data, error } = await supabase
-                .from('maintenance_submissions')
+            const { data, error } = await Database.from('maintenance_submissions')
                 .select(SUBMISSION_DETAIL_SELECT)
                 .eq('submitted_by', userId)
                 .order('submitted_at', { ascending: false })
@@ -578,24 +558,24 @@ export class MaintenanceService {
             return { canCreate: false, canReview: false }
         }
     }
-    /** Uploads an image file to Supabase storage for a form field response. */
+    /** Uploads an image file to database storage for a form field response. */
     static async uploadImage(file, formId, fieldId) {
         const user = await requireAuthenticatedUser()
         const sanitizedFieldId = String(fieldId).replace(/[^a-zA-Z0-9_-]/g, '_')
         const fileExt = file.name.split('.').pop()
         const fileName = `${STORAGE_PREFIX}/${formId}/${sanitizedFieldId}/${user.id}_${Date.now()}.${fileExt}`
-        const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(fileName, file, {
+        const { error } = await Database.storage.from(STORAGE_BUCKET).upload(fileName, file, {
             cacheControl: IMAGE_CACHE_CONTROL,
             upsert: false
         })
         if (error) throw new Error('Failed to upload image: ' + error.message)
-        const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName)
+        const { data: urlData } = Database.storage.from(STORAGE_BUCKET).getPublicUrl(fileName)
         return urlData?.publicUrl || fileName
     }
-    /** Deletes an image from Supabase storage by its path. */
+    /** Deletes an image from database storage by its path. */
     static async deleteImage(imagePath) {
         const path = extractStoragePath(imagePath)
-        const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([path])
+        const { error } = await Database.storage.from(STORAGE_BUCKET).remove([path])
         if (error) throw new Error('Failed to delete image: ' + error.message)
         return true
     }
@@ -607,7 +587,7 @@ export class MaintenanceService {
         let path = extractStoragePath(trimmed)
         if (!path.startsWith(`${STORAGE_PREFIX}/`) && !path.includes('/')) return null
         if (!path.startsWith(`${STORAGE_PREFIX}/`)) path = `${STORAGE_PREFIX}/${path}`
-        const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path)
+        const { data } = Database.storage.from(STORAGE_BUCKET).getPublicUrl(path)
         return data?.publicUrl || null
     }
 }

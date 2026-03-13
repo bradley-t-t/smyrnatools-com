@@ -1,7 +1,7 @@
 import { reportTypes } from '../app/types/ReportTypes'
 import CacheUtility from '../utils/CacheUtility'
 import { ReportUtility } from '../utils/ReportUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 import { UserService } from './UserService'
 const TTL_SHORT = 5 * 60 * 1000
@@ -254,8 +254,7 @@ class ReportServiceImpl {
     /** Fetches active mixer counts grouped by plant code. */
     async fetchActiveMixerCountsByPlant(plantCodes = []) {
         if (!plantCodes || plantCodes.length === 0) return {}
-        const { data, error } = await supabase
-            .from('mixers')
+        const { data, error } = await Database.from('mixers')
             .select('assigned_plant')
             .eq('status', 'Active')
             .in('assigned_plant', plantCodes)
@@ -276,8 +275,7 @@ class ReportServiceImpl {
         const cacheKey = 'plants:all'
         const cached = CacheUtility.get(cacheKey)
         if (cached) return cached
-        const { data, error } = await supabase
-            .from('plants')
+        const { data, error } = await Database.from('plants')
             .select('plant_code,plant_name')
             .order('plant_code', { ascending: true })
         const plants = !error && Array.isArray(data) ? sortPlants(data) : []
@@ -329,7 +327,7 @@ class ReportServiceImpl {
         const key = `operators:${plantCode}`
         const cached = CacheUtility.get(key)
         if (cached) return cached
-        const { data, error } = await supabase.from('operators').select('employee_id, name').eq('plant_code', plantCode)
+        const { data, error } = await Database.from('operators').select('employee_id, name').eq('plant_code', plantCode)
         const options = !error && Array.isArray(data) ? data.map((u) => ({ label: u.name, value: u.employee_id })) : []
         CacheUtility.set(key, options, TTL_SHORT)
         return options
@@ -341,13 +339,12 @@ class ReportServiceImpl {
         const cached = CacheUtility.get(key)
         if (cached) return cached
         const [opsRes, mixRes] = await Promise.all([
-            supabase
-                .from('operators')
+            Database.from('operators')
                 .select('employee_id, name, status, plant_code, position')
                 .eq('plant_code', plantCode)
                 .eq('status', 'Active')
                 .eq('position', 'Mixer Operator'),
-            supabase.from('mixers').select('assigned_operator, truck_number').eq('assigned_plant', plantCode)
+            Database.from('mixers').select('assigned_operator, truck_number').eq('assigned_plant', plantCode)
         ])
         const operatorOptions =
             !opsRes.error && Array.isArray(opsRes.data)
@@ -366,8 +363,7 @@ class ReportServiceImpl {
         if (cached) return cached
         const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
         if (!monday || !saturday) return []
-        const { data, error } = await supabase
-            .from('list_items')
+        const { data, error } = await Database.from('list_items')
             .select('*')
             .eq('completed', true)
             .gte('completed_at', monday.toISOString())
@@ -396,9 +392,8 @@ class ReportServiceImpl {
             CacheUtility.set(cacheKey, [], TTL_SHORT)
             return []
         }
-        const { data: profiles, error: profilesError } = await supabase
-            .from('users_profiles')
-            .select('id, first_name, last_name')
+        const { data: profiles, error: profilesError } =
+            await Database.from('users_profiles').select('id, first_name, last_name')
         if (profilesError || !Array.isArray(profiles) || profiles.length === 0) {
             CacheUtility.set(cacheKey, [], TTL_SHORT)
             return []
@@ -435,26 +430,22 @@ class ReportServiceImpl {
         const startFieldList = weekFieldList
         const endFieldList = Array.from(new Set([...saturdayFullIsoList, ...saturdayDateStrList]))
         const dataWeekList = mondayDateStrList
-        let weekEq = supabase
-            .from('reports')
+        let weekEq = Database.from('reports')
             .select('user_id, report_name, completed, week')
             .in('user_id', candidateUserIds)
             .in('week', weekFieldList)
             .eq('completed', true)
-        let rangeEq = supabase
-            .from('reports')
+        let rangeEq = Database.from('reports')
             .select('user_id, report_name, completed, report_date_range_start')
             .in('user_id', candidateUserIds)
             .in('report_date_range_start', startFieldList)
             .eq('completed', true)
-        let endEq = supabase
-            .from('reports')
+        let endEq = Database.from('reports')
             .select('user_id, report_name, completed, report_date_range_end')
             .in('user_id', candidateUserIds)
             .in('report_date_range_end', endFieldList)
             .eq('completed', true)
-        let dataWeekEq = supabase
-            .from('reports')
+        let dataWeekEq = Database.from('reports')
             .select('user_id, report_name, completed, data')
             .in('user_id', candidateUserIds)
             .in('data->>week', dataWeekList)
@@ -488,8 +479,7 @@ class ReportServiceImpl {
         const submittedQueries = await Promise.all(
             weekRanges.map(async (wr) => {
                 if (!wr.startIso || !wr.endIso) return { data: [], error: null }
-                let q = supabase
-                    .from('reports')
+                let q = Database.from('reports')
                     .select('user_id, report_name, completed, submitted_at')
                     .in('user_id', candidateUserIds)
                     .gte('submitted_at', wr.startIso)
@@ -575,8 +565,7 @@ class ReportServiceImpl {
             const weekStartStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`
             const weekEndDate = new Date(year, month - 1, day + 7)
             const weekEndStr = `${weekEndDate.getFullYear()}-${String(weekEndDate.getMonth() + 1).padStart(2, '0')}-${String(weekEndDate.getDate()).padStart(2, '0')}`
-            const { data, error } = await supabase
-                .from('reports')
+            const { data, error } = await Database.from('reports')
                 .select('*')
                 .eq('report_name', 'plant_manager')
                 .eq('completed', true)

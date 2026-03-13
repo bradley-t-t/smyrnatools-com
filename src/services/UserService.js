@@ -1,6 +1,6 @@
 import APIUtility from '../utils/APIUtility'
 import { requireEntityId, resolveEntityId } from '../utils/BaseAssetUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 const USER_FUNCTION = '/user-service'
 const PROFILES_TABLE = 'users_profiles'
@@ -24,8 +24,7 @@ const fallbackName = (userId) => `User ${userId.slice(0, 8)}`
 const fetchProfileField = async (userId, field) => {
     if (!userId) return ''
     try {
-        const { data, error } = await supabase
-            .from(PROFILES_TABLE)
+        const { data, error } = await Database.from(PROFILES_TABLE)
             .select(field)
             .eq('id', resolveEntityId(userId))
             .maybeSingle()
@@ -60,7 +59,7 @@ const findMatchingRegion = (normalizedInput, allRegions) =>
             .trim()
         return code === normalizedInput || name === normalizedInput
     })
-/** Throws the first error found in an array of Supabase query results. */
+/** Throws the first error found in an array of database query results. */
 const throwFirstError = (results) => {
     const firstError = results.find((r) => r.error)?.error
     if (firstError) throw firstError
@@ -247,10 +246,10 @@ class UserServiceImpl {
     }
     async getAllUsersWithProfilesAndRoles() {
         const results = await Promise.all([
-            supabase.from('users').select('id, email, last_login_at, created_at, updated_at'),
-            supabase.from(PROFILES_TABLE).select('*'),
-            supabase.from('users_permissions').select('user_id, role_id'),
-            supabase.from('users_roles').select('id, name, weight')
+            Database.from('users').select('id, email, last_login_at, created_at, updated_at'),
+            Database.from(PROFILES_TABLE).select('*'),
+            Database.from('users_permissions').select('user_id, role_id'),
+            Database.from('users_roles').select('id, name, weight')
         ])
         throwFirstError(results)
         const [{ data: users }, { data: profiles }, { data: permissions }, { data: rolesList }] = results
@@ -287,8 +286,7 @@ class UserServiceImpl {
         const id = resolveEntityId(userId)
         const hasAllRegions = await this.hasPermission(id, ALL_REGIONS_PERMISSION).catch(() => false)
         if (hasAllRegions) return safelyFetchRegions(() => PlantService.fetchRegions())
-        const { data: profile } = await supabase
-            .from(PROFILES_TABLE)
+        const { data: profile } = await Database.from(PROFILES_TABLE)
             .select('plant_code, regions')
             .eq('id', id)
             .maybeSingle()
@@ -317,8 +315,7 @@ class UserServiceImpl {
     }
     // --- District Manager: Eligible Roles ---
     async fetchEligibleRoles() {
-        const { data, error } = await supabase
-            .from(ELIGIBLE_ROLES_TABLE)
+        const { data, error } = await Database.from(ELIGIBLE_ROLES_TABLE)
             .select('id, role_id, created_at, users_roles(id, name, weight)')
             .order('created_at')
         if (error) throw new Error('Failed to fetch eligible roles')
@@ -327,16 +324,17 @@ class UserServiceImpl {
     }
     async addEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
-        const { error } = await supabase
-            .from(ELIGIBLE_ROLES_TABLE)
-            .insert({ created_at: new Date().toISOString(), role_id: roleId })
+        const { error } = await Database.from(ELIGIBLE_ROLES_TABLE).insert({
+            created_at: new Date().toISOString(),
+            role_id: roleId
+        })
         if (error) throw new Error(error.code === '23505' ? 'Role is already eligible' : 'Failed to add eligible role')
         this.eligibleRolesCache = null
         return true
     }
     async removeEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
-        const { error } = await supabase.from(ELIGIBLE_ROLES_TABLE).delete().eq('role_id', roleId)
+        const { error } = await Database.from(ELIGIBLE_ROLES_TABLE).delete().eq('role_id', roleId)
         if (error) throw new Error('Failed to remove eligible role')
         this.eligibleRolesCache = null
         return true
@@ -347,8 +345,7 @@ class UserServiceImpl {
             return this.eligibleRolesCache.some((r) => r.role_id === roleId)
         }
         try {
-            const { data, error } = await supabase
-                .from(ELIGIBLE_ROLES_TABLE)
+            const { data, error } = await Database.from(ELIGIBLE_ROLES_TABLE)
                 .select('id')
                 .eq('role_id', roleId)
                 .maybeSingle()
@@ -362,8 +359,7 @@ class UserServiceImpl {
     async fetchUserPlants(userId) {
         if (!userId) throw new Error('User ID is required')
         if (this.userPlantsCache.has(userId)) return this.userPlantsCache.get(userId)
-        const { data, error } = await supabase
-            .from(PLANTS_TABLE)
+        const { data, error } = await Database.from(PLANTS_TABLE)
             .select('id, user_id, plant_code, created_at')
             .eq('user_id', userId)
             .order('plant_code')
@@ -374,7 +370,7 @@ class UserServiceImpl {
     }
     async updateUserPlants(userId, plantCodes = []) {
         if (!userId) throw new Error('User ID is required')
-        const { error: deleteError } = await supabase.from(PLANTS_TABLE).delete().eq('user_id', userId)
+        const { error: deleteError } = await Database.from(PLANTS_TABLE).delete().eq('user_id', userId)
         if (deleteError) throw new Error('Failed to clear existing assignments')
         const validCodes = plantCodes.filter((v) => typeof v === 'string' && v.trim())
         if (validCodes.length) {
@@ -384,7 +380,7 @@ class UserServiceImpl {
                 plant_code: code.trim(),
                 user_id: userId
             }))
-            const { error: insertError } = await supabase.from(PLANTS_TABLE).insert(rows)
+            const { error: insertError } = await Database.from(PLANTS_TABLE).insert(rows)
             if (insertError) throw new Error('Failed to assign plants')
         }
         this.userPlantsCache.delete(userId)

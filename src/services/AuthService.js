@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 const AUTH_SERVICE_FUNCTION = '/auth-service'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
@@ -47,7 +47,7 @@ class AuthServiceImpl {
         const sessionId = this._generateSessionId()
         const { browser, os, device, userAgent } = this._getBrowserInfo()
         try {
-            const { error } = await supabase.from('users_sessions').upsert(
+            const { error } = await Database.from('users_sessions').upsert(
                 {
                     browser,
                     created_at: new Date().toISOString(),
@@ -92,8 +92,7 @@ class AuthServiceImpl {
             return { userId, valid: true }
         }
         try {
-            const { data, error } = await supabase
-                .from('users_sessions')
+            const { data, error } = await Database.from('users_sessions')
                 .select('id, last_active')
                 .eq('id', sessionId)
                 .eq('user_id', userId)
@@ -108,8 +107,7 @@ class AuthServiceImpl {
                 this._clearSession()
                 return { userId: null, valid: false }
             }
-            supabase
-                .from('users_sessions')
+            Database.from('users_sessions')
                 .update({ last_active: new Date().toISOString() })
                 .eq('id', sessionId)
                 .then(() => {})
@@ -155,7 +153,7 @@ class AuthServiceImpl {
             const now = new Date().toISOString()
             const baseFilters = { searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'grid' }
             const roleFilters = { roleFilter: '', searchText: '', selectedPlant: '', viewMode: 'grid' }
-            await supabase.from('users_preferences').upsert(
+            await Database.from('users_preferences').upsert(
                 {
                     created_at: now,
                     default_view_mode: null,
@@ -201,7 +199,7 @@ class AuthServiceImpl {
         const sessionId = localStorage.getItem(SESSION_ID_KEY)
         if (sessionId) {
             try {
-                await supabase.from('users_sessions').delete().eq('id', sessionId)
+                await Database.from('users_sessions').delete().eq('id', sessionId)
             } catch (err) {
                 console.error('Failed to delete session record on sign-out:', err)
             }

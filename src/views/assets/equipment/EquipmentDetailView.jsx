@@ -6,7 +6,7 @@ import DetailViewSection from '../../../app/components/sections/DetailViewSectio
 import VerificationCardSection from '../../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Equipment } from '../../../app/models/equipment/Equipment'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { EquipmentService } from '../../../services/EquipmentService'
 import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
@@ -269,8 +269,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
             const statusValue = overrides.status ?? status
             // Business rule: equipment cannot be set to "In Shop" unless it has at least one open maintenance issue.
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
-                const { data: openIssues } = await supabase
-                    .from('heavy_equipment_maintenance')
+                const { data: openIssues } = await Database.from('heavy_equipment_maintenance')
                     .select('id')
                     .eq('equipment_id', equipment.id)
                     .is('time_completed', null)

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { UserService } from '../../../services/UserService'
 import DateUtility from '../../../utils/DateUtility'
 import GrammarUtility from '../../../utils/GrammarUtility'
@@ -111,8 +111,7 @@ export default function VerificationRequirementsModal({
     const fetchOperatorData = useCallback(async () => {
         setIsLoadingOperator(true)
         try {
-            const { data, error } = await supabase
-                .from('operators')
+            const { data, error } = await Database.from('operators')
                 .select('*')
                 .eq('employee_id', assignedOperator)
                 .single()
@@ -279,8 +278,7 @@ export default function VerificationRequirementsModal({
         setIsSavingPhone(true)
         try {
             const formatted = GrammarUtility.formatPhone(operatorPhone)
-            const { error } = await supabase
-                .from('operators')
+            const { error } = await Database.from('operators')
                 .update({ phone: formatted })
                 .eq('employee_id', assignedOperator)
             if (error) {
@@ -298,8 +296,7 @@ export default function VerificationRequirementsModal({
     const handleSaveOperatorRating = async (rating) => {
         if (!assignedOperator) return
         try {
-            const { error } = await supabase
-                .from('operators')
+            const { error } = await Database.from('operators')
                 .update({ rating: rating })
                 .eq('employee_id', assignedOperator)
             if (error) {

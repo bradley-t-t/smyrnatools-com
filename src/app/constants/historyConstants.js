@@ -15,7 +15,7 @@ export const HISTORY_SERVICE_MAP = {
     tractor: { method: 'getTractorHistory', service: 'TractorService' },
     trailer: { method: 'getTrailerHistory', service: 'TrailerService' }
 }
-/** Maps asset types to their Supabase history table names. */
+/** Maps asset types to their database history table names. */
 export const HISTORY_TABLE_MAP = {
     equipment: 'heavy_equipment_history',
     mixer: 'mixers_history',

@@ -1,4 +1,4 @@
-import { supabase } from '../services/DatabaseService'
+import { Database } from '../services/DatabaseService'
 import { PlantService } from '../services/PlantService'
 import { UserService } from '../services/UserService'
 import APIUtility from './APIUtility'
@@ -62,7 +62,7 @@ export async function apiPostRequireSuccess(endpoint, payload, errorMessage) {
 }
 export async function fetchAllCountsFromTable(tableName, idColumnName, entityIds) {
     if (!entityIds?.length) return {}
-    const { data, error } = await supabase.from(tableName).select(idColumnName).in(idColumnName, entityIds)
+    const { data, error } = await Database.from(tableName).select(idColumnName).in(idColumnName, entityIds)
     if (error) return {}
     const counts = {}
     entityIds.forEach((id) => (counts[id] = 0))
@@ -73,8 +73,7 @@ export async function fetchAllCountsFromTable(tableName, idColumnName, entityIds
 }
 export async function fetchAllOpenIssueCountsFromTable(tableName, idColumnName, entityIds) {
     if (!entityIds?.length) return {}
-    const { data, error } = await supabase
-        .from(tableName)
+    const { data, error } = await Database.from(tableName)
         .select(`${idColumnName}, time_completed`)
         .in(idColumnName, entityIds)
     if (error) return {}
@@ -91,8 +90,7 @@ export async function fetchStatusHistoryMap(historyTableName, idColumnName, enti
     if (!entityIds?.length) return {}
     const statusHistoryMap = {}
     try {
-        const { data: statusHistory } = await supabase
-            .from(historyTableName)
+        const { data: statusHistory } = await Database.from(historyTableName)
             .select(`${idColumnName}, changed_at`)
             .eq('field_name', 'status')
             .in(idColumnName, entityIds)

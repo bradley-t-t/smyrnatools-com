@@ -1,4 +1,4 @@
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { UserService } from './UserService'
 const TABLE = 'documents'
 const STORAGE_BUCKET = 'smyrna'
@@ -30,7 +30,7 @@ function getFileType(filename) {
 }
 class DocumentServiceImpl {
     async fetchAll() {
-        const { data, error } = await supabase.from(TABLE).select('*').order('created_at', { ascending: false })
+        const { data, error } = await Database.from(TABLE).select('*').order('created_at', { ascending: false })
         if (error) throw new Error(error.message)
         return data || []
     }
@@ -39,11 +39,11 @@ class DocumentServiceImpl {
         if (!user?.id) throw new Error('Authentication required')
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
         const storagePath = `${STORAGE_PREFIX}/${user.id}/${Date.now()}_${safeName}`
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await Database.storage
             .from(STORAGE_BUCKET)
             .upload(storagePath, file, { cacheControl: CACHE_CONTROL, upsert: false })
         if (uploadError) throw new Error('Failed to upload file: ' + uploadError.message)
-        const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath)
+        const { data: urlData } = Database.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath)
         const publicUrl = urlData?.publicUrl || storagePath
         const record = {
             file_path: publicUrl,
@@ -52,7 +52,7 @@ class DocumentServiceImpl {
             name: file.name,
             uploaded_by: user.id
         }
-        const { data, error: insertError } = await supabase.from(TABLE).insert(record).select().single()
+        const { data, error: insertError } = await Database.from(TABLE).insert(record).select().single()
         if (insertError) throw new Error('Failed to save document record: ' + insertError.message)
         return data
     }
@@ -62,9 +62,9 @@ class DocumentServiceImpl {
         const pathIndex = url.indexOf(bucketSegment)
         const storagePath = pathIndex !== -1 ? url.substring(pathIndex + bucketSegment.length) : null
         if (storagePath) {
-            await supabase.storage.from(STORAGE_BUCKET).remove([storagePath])
+            await Database.storage.from(STORAGE_BUCKET).remove([storagePath])
         }
-        const { error } = await supabase.from(TABLE).delete().eq('id', doc.id)
+        const { error } = await Database.from(TABLE).delete().eq('id', doc.id)
         if (error) throw new Error('Failed to delete document: ' + error.message)
     }
 }

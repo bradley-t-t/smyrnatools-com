@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { supabase } from '../../../../../services/DatabaseService'
+import { Database } from '../../../../../services/DatabaseService'
 import { ReportUtility } from '../../../../../utils/ReportUtility'
 const EMPTY_ARRAY = []
 function toMondayIso(dateInput) {
@@ -27,8 +27,7 @@ function buildDateWindow(targetMondayIso, offsetWeeks = 0) {
     }
 }
 async function fetchReportsByDateRange(reportName, qStart, qEnd, extraFilters = {}) {
-    let query = supabase
-        .from('reports')
+    let query = Database.from('reports')
         .select('id,data,week,report_date_range_start,completed,submitted_at,user_id')
         .eq('report_name', reportName)
         .gte('week', qStart)
@@ -39,8 +38,7 @@ async function fetchReportsByDateRange(reportName, qStart, qEnd, extraFilters = 
     let { data } = await query
     if (!Array.isArray(data)) data = EMPTY_ARRAY
     if (data.length === 0) {
-        let fallbackQuery = supabase
-            .from('reports')
+        let fallbackQuery = Database.from('reports')
             .select('id,data,week,report_date_range_start,completed,submitted_at,user_id')
             .eq('report_name', reportName)
             .gte('report_date_range_start', qStart)
@@ -194,7 +192,7 @@ export function useCurrentWeekReports(weekIso, reportName, plantCodes = EMPTY_AR
     }, [weekIso, reportName, plantCodesKey])
     return { loading, reports }
 }
-/** Fetches a single report matching the given week and report type, with optional extra Supabase filters. */
+/** Fetches a single report matching the given week and report type, with optional extra database filters. */
 export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
     const [report, setReport] = useState(null)
     const [loading, setLoading] = useState(false)

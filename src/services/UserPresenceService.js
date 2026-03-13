@@ -1,5 +1,5 @@
 import { detectDeviceType } from '../utils/DeviceUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 import { UserService } from './UserService'
 
@@ -7,7 +7,7 @@ let _hasActiveDevicesCol = null
 async function checkActiveDevicesCol() {
     if (_hasActiveDevicesCol !== null) return _hasActiveDevicesCol
     try {
-        const { error } = await supabase.from('users_presence').select('active_devices').limit(0)
+        const { error } = await Database.from('users_presence').select('active_devices').limit(0)
         _hasActiveDevicesCol = !error
     } catch (err) {
         console.error('Failed to check active_devices column:', err)
@@ -20,15 +20,14 @@ async function mergeActiveDevice(userId, device, now) {
     const hasCol = await checkActiveDevicesCol()
     if (!hasCol) return
     try {
-        const { data } = await supabase
-            .from('users_presence')
+        const { data } = await Database.from('users_presence')
             .select('active_devices')
             .eq('user_id', userId)
             .maybeSingle()
         const devices =
             data?.active_devices && typeof data.active_devices === 'object' ? { ...data.active_devices } : {}
         devices[device] = now
-        await supabase.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
+        await Database.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
     } catch (err) {
         console.error('Failed to merge active device:', err)
     }
@@ -123,8 +122,7 @@ class UserPresenceService {
             const user = await UserService.getCurrentUser()
             if (!user?.id) return false
             this.currentUserId = user.id
-            const subscription = supabase
-                .channel('presence_changes')
+            const subscription = Database.channel('presence_changes')
                 .on(
                     'postgres_changes',
                     {
@@ -173,8 +171,7 @@ class UserPresenceService {
         if (!this.currentUserId) return false
         try {
             const now = new Date().toISOString()
-            await supabase
-                .from('users_presence')
+            await Database.from('users_presence')
                 .update({ last_activity: now, last_seen: now, updated_at: now })
                 .eq('user_id', this.currentUserId)
             mergeActiveDevice(this.currentUserId, detectDeviceType(), now)
@@ -182,7 +179,7 @@ class UserPresenceService {
             if (this.lastLoginDateWritten !== today) {
                 this.lastLoginDateWritten = today
                 try {
-                    await supabase.from('users').update({ last_login_at: today }).eq('id', this.currentUserId)
+                    await Database.from('users').update({ last_login_at: today }).eq('id', this.currentUserId)
                 } catch (err) {
                     console.error('Failed to update last_login_at:', err)
                 }
@@ -205,18 +202,16 @@ class UserPresenceService {
         if (!userId) return false
         try {
             const now = new Date().toISOString()
-            const { data: existing } = await supabase
-                .from('users_presence')
+            const { data: existing } = await Database.from('users_presence')
                 .select('user_id')
                 .eq('user_id', userId)
                 .maybeSingle()
             if (existing) {
-                await supabase
-                    .from('users_presence')
+                await Database.from('users_presence')
                     .update({ is_online: true, last_seen: now, updated_at: now })
                     .eq('user_id', userId)
             } else {
-                await supabase.from('users_presence').insert({
+                await Database.from('users_presence').insert({
                     is_online: true,
                     last_activity: now,
                     last_seen: now,
@@ -236,8 +231,7 @@ class UserPresenceService {
         if (!userId) return false
         try {
             const now = new Date().toISOString()
-            await supabase
-                .from('users_presence')
+            await Database.from('users_presence')
                 .update({ is_online: true, last_seen: now, updated_at: now })
                 .eq('user_id', userId)
             mergeActiveDevice(userId, detectDeviceType(), now)
@@ -252,8 +246,7 @@ class UserPresenceService {
         if (!userId) return false
         try {
             const now = new Date().toISOString()
-            await supabase
-                .from('users_presence')
+            await Database.from('users_presence')
                 .update({ is_online: false, last_seen: now, updated_at: now })
                 .eq('user_id', userId)
             return true
@@ -267,8 +260,7 @@ class UserPresenceService {
         if (!this.currentUserId) return false
         try {
             const now = new Date().toISOString()
-            await supabase
-                .from('users_presence')
+            await Database.from('users_presence')
                 .update({ last_seen: now, updated_at: now })
                 .eq('user_id', this.currentUserId)
             return true
@@ -288,8 +280,7 @@ class UserPresenceService {
         this.cleanupInterval = setInterval(async () => {
             try {
                 const staleTime = new Date(Date.now() - STALE_THRESHOLD).toISOString()
-                await supabase
-                    .from('users_presence')
+                await Database.from('users_presence')
                     .update({ is_online: false, updated_at: new Date().toISOString() })
                     .eq('is_online', true)
                     .lt('last_seen', staleTime)
@@ -332,8 +323,7 @@ class UserPresenceService {
 
     async getOnlineCount() {
         try {
-            const { count, error } = await supabase
-                .from('users_presence')
+            const { count, error } = await Database.from('users_presence')
                 .select('user_id', { count: 'exact', head: true })
                 .eq('is_online', true)
             if (error) return 0
@@ -384,7 +374,7 @@ class UserPresenceService {
         window.removeEventListener('offline', this.onOffline)
         for (const sub of this.subscriptions) {
             try {
-                supabase.removeChannel(sub)
+                Database.removeChannel(sub)
             } catch (err) {
                 console.error('Failed to remove presence channel:', err)
             }
@@ -426,8 +416,7 @@ class UserPresenceService {
             const cols = hasDevicesCol
                 ? 'user_id, last_seen, last_activity, is_online, active_devices'
                 : 'user_id, last_seen, last_activity, is_online'
-            const { data: presences, error } = await supabase
-                .from('users_presence')
+            const { data: presences, error } = await Database.from('users_presence')
                 .select(cols)
                 .or(`is_online.eq.true,last_activity.gte.${fiveMinutesAgo}`)
                 .order('last_activity', { ascending: false })

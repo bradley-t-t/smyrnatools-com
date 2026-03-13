@@ -4,7 +4,7 @@ import PlantDropdownModal from '../../../app/components/common/PlantDropdownModa
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import Trailer from '../../../app/models/trailers/Trailer'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
 import { TrailerService } from '../../../services/TrailerService'
@@ -278,8 +278,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                 ? overrideValues.status
                 : status
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
-                const { data: openIssues } = await supabase
-                    .from('trailers_maintenance')
+                const { data: openIssues } = await Database.from('trailers_maintenance')
                     .select('id')
                     .eq('trailer_id', trailer.id)
                     .is('time_completed', null)
@@ -365,7 +364,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         if (!trailer) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
         try {
-            await supabase.from('trailers').delete().eq('id', trailer.id)
+            await Database.from('trailers').delete().eq('id', trailer.id)
             alert('Trailer deleted successfully')
             onClose()
         } catch (error) {
@@ -412,14 +411,12 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         async function fetchCommentsAndIssues() {
             const id = trailer?.id || trailerId
             if (!id) return
-            const { data: commentData } = await supabase
-                .from('trailers_comments')
+            const { data: commentData } = await Database.from('trailers_comments')
                 .select('*')
                 .eq('trailer_id', id)
                 .order('created_at', { ascending: false })
             setComments(Array.isArray(commentData) ? commentData.filter((c) => c && (c.comment || c.text)) : [])
-            const { data: issueData } = await supabase
-                .from('trailers_maintenance')
+            const { data: issueData } = await Database.from('trailers_maintenance')
                 .select('*')
                 .eq('trailer_id', id)
                 .order('time_created', { ascending: false })

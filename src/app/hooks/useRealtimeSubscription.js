@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 const activeChannels = new Map()
 /**
- * Supabase realtime subscription hook with debounced change processing.
+ * database realtime subscription hook with debounced change processing.
  * Handles INSERT, UPDATE, DELETE events with per-event-type callbacks.
  */
 export function useRealtimeSubscription(config) {
@@ -75,8 +75,7 @@ export function useRealtimeSubscription(config) {
         if (filter) {
             subscriptionConfig.filter = filter
         }
-        const channel = supabase
-            .channel(channelName)
+        const channel = Database.channel(channelName)
             .on('postgres_changes', subscriptionConfig, handleChange)
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
@@ -88,12 +87,12 @@ export function useRealtimeSubscription(config) {
                 clearTimeout(debounceTimerRef.current)
             }
             activeChannels.delete(channelName)
-            supabase.removeChannel(channel)
+            Database.removeChannel(channel)
         }
     }, [table, event, filter, enabled, handleChange])
 }
 /**
- * Subscribes to multiple Supabase tables simultaneously,
+ * Subscribes to multiple database tables simultaneously,
  * invoking a shared onAnyChange handler for any event.
  */
 export function useMultiTableSubscription(tables, handlers) {
@@ -101,7 +100,7 @@ export function useMultiTableSubscription(tables, handlers) {
     useEffect(() => {
         if (!enabled || !tables || tables.length === 0) return
         const channelName = `realtime-multi-${tables.join('-')}-${Date.now()}`
-        let channel = supabase.channel(channelName)
+        let channel = Database.channel(channelName)
         tables.forEach((table) => {
             channel = channel.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
                 if (onAnyChange) {
@@ -116,11 +115,11 @@ export function useMultiTableSubscription(tables, handlers) {
         })
         return () => {
             activeChannels.delete(channelName)
-            supabase.removeChannel(channel)
+            Database.removeChannel(channel)
         }
     }, [tables, onAnyChange, enabled])
 }
-/** Imperatively subscribes to a single Supabase table outside of React lifecycle. */
+/** Imperatively subscribes to a single database table outside of React lifecycle. */
 export function subscribeToTable(table, callback, options = {}) {
     const { event = '*', filter = null } = options
     const channelName = `manual-${table}-${Date.now()}`
@@ -132,9 +131,9 @@ export function subscribeToTable(table, callback, options = {}) {
     if (filter) {
         subscriptionConfig.filter = filter
     }
-    const channel = supabase.channel(channelName).on('postgres_changes', subscriptionConfig, callback).subscribe()
+    const channel = Database.channel(channelName).on('postgres_changes', subscriptionConfig, callback).subscribe()
     return () => {
-        supabase.removeChannel(channel)
+        Database.removeChannel(channel)
     }
 }
 export default useRealtimeSubscription

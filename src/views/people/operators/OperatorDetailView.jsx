@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import supabase from '../../../services/DatabaseService'
+import Database from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
@@ -68,7 +68,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     const fetchData = useCallback(async () => {
         setIsLoading(true)
         try {
-            const { data } = await supabase.from('operators').select('*').eq('employee_id', operatorId).single()
+            const { data } = await Database.from('operators').select('*').eq('employee_id', operatorId).single()
             setOperator({
                 ...data,
                 employeeId: data.employee_id,
@@ -95,12 +95,11 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         setIsLoading(false)
     }, [operatorId])
     const fetchPlants = useCallback(async () => {
-        const { data } = await supabase.from('plants').select('*')
+        const { data } = await Database.from('plants').select('*')
         setPlants(data || [])
     }, [])
     const fetchTrainers = useCallback(async () => {
-        const { data } = await supabase
-            .from('operators')
+        const { data } = await Database.from('operators')
             .select('employee_id, name, is_trainer, plant_code')
             .eq('is_trainer', true)
         setTrainers(
@@ -211,7 +210,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     }
     const handleDelete = async () => {
         setIsSaving(true)
-        await supabase.from('operators').delete().eq('employee_id', operatorId)
+        await Database.from('operators').delete().eq('employee_id', operatorId)
         setIsSaving(false)
         if (onClose) onClose()
     }
@@ -256,7 +255,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     }
                 }
             }
-            const { error } = await supabase.from('operators').update(updateObj).eq('employee_id', operatorId)
+            const { error } = await Database.from('operators').update(updateObj).eq('employee_id', operatorId)
             if (error) {
                 setMessage('Error saving changes. Please try again.')
             } else {

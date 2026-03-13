@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.8] - 2026-03-13
+
+- Converted inline CSS styles, `<style>` blocks, and keyframe animations to Tailwind classes across all common components (ConfirmDialog, LoadingScreen, NotificationsModal, OfflineOverlay, OnlineUsersModal, TutorialPopup, StatusHistoryBar, VerificationRequirementsModal, and more)
+- Moved inline keyframe animations (confirmSlideIn, progress) into tailwind.config.js as custom animate-* utilities
+- Replaced inline onMouseEnter/onMouseLeave hover handlers with Tailwind hover: classes throughout the codebase
+- Decomposed AssetView into smaller focused modules: AssetListRow, AssetModals, and dedicated hooks (useAssetData, useAssetFilters, useAssetVerification)
+- Extracted shared dashboard rendering logic into DashboardSharedComponents, reducing duplication between DashboardPlantSummary and DashboardRegionSummary
+- Created new utility classes: DeviceUtility, FormatUtility, HistoryDisplayUtility, and UserUtility to centralize repeated logic
+- Moved inline helper functions (formatTimeAgo, getInitials) from components into DateUtility and UserUtility
+- Significantly simplified all calculator types (Proportions, SetTime, SlumpAdjustment, WaterCement, YardagePerHour) with extracted calculatorConstants and reduced code volume
+- Refactored services across the board (ListService, MaintenanceService, OperatorService, PlantService, ReportService, TrailerService, UserPresenceService, and others) for cleaner patterns
+- Refactored history models (MixerHistory, OperatorHistory, TractorHistory) and BaseAssetUtility, CleanupUtility, VerifiedUtility
+- Simplified section components (AddViewSection, CommentModalSection, ListViewModeSection, CardSection, TopSection, VerificationCardSection)
+- Refactored people views (OperatorsView, ManagersView, ManagerDetailView, OperatorDetailView, OperatorAddView) and asset card components
+- Refactored WeeklySafetyManagerReport and RegionsDetailView
+- Removed dead code: useWeldingSparks hook and PickupTruckComment model
+- Removed raw CSS rules from index.css in favor of Tailwind equivalents
+- Added audit skill for automated code quality checks
+
 ## [32.7] - 2026-03-13
 
 - Fixed horizontal overflow in DashboardSidebar by replacing inline minWidth styles with Tailwind overflow-hidden classes

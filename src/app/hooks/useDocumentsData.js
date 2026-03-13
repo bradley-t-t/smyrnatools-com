@@ -42,8 +42,9 @@ export function useDocumentsData() {
         async function fetchProfiles() {
             const missing = uploaderIds.filter((id) => !profiles[id])
             if (missing.length === 0) return
-            const { data, error } = await (await import('../../services/DatabaseService')).supabase
-                .from('users_profiles')
+            const { data, error } = await (
+                await import('../../services/DatabaseService')
+            ).Database.from('users_profiles')
                 .select('id, first_name, last_name')
                 .in('id', missing)
             if (cancelled || error || !Array.isArray(data)) return

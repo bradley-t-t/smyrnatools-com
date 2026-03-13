@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.0] - 2026-03-13
+
+- Renamed all references to `supabase` client to `Database` across the entire codebase, enforcing the project convention that the word "supabase" should never appear in application code
+- Renamed `logSupabaseError` to `logDatabaseError` and `getSupabaseErrorDetails` to `getDatabaseErrorDetails` throughout services and hooks
+- Updated all comments and JSDoc to say "database" instead of "Supabase" (e.g., history table references, realtime subscriptions, context descriptions)
+- Added a new audit rule (check 10) for detecting "supabase" references in application code and enforcing the Database naming convention
+- Added a live directive to CLAUDE.md codifying the "no supabase in application code" rule
+- Refactored DatabaseService to export `Database` instead of `supabase`, and `logDatabaseError`/`getDatabaseErrorDetails`/`DatabaseUtils` instead of their supabase-prefixed counterparts
+- Updated all service files (AuthService, MaintenanceService, MessageService, NotificationsService, OperatorService, ReportService, UserPreferencesService, UserPresenceService, UserService, DocumentService, BaseAssetService) to use the new Database imports and naming
+- Updated all hooks (useDashboardData, useDashboardInit, useDocumentsData, useHistoryData, useLeaderboardData, useMessages, usePlantNotifications, useRealtimeSubscription, useReportSubmission, useReportsData, useReviewData, useRolesData, useStatusHistory, useSubmitData) to import from `Database`
+- Updated all views and components (App.js, LoginView, MyAccountView, ManagerDetailView, OperatorDetailView, OperatorsView, ReportsView, asset detail views, report types, dashboard charts, modals, and section components) to use `Database` imports
+- Updated utility files (APIUtility, BaseAssetUtility, DateUtility, ExportUtility) to use the new naming convention
+- Added changelog entry documenting the v32.8 release changes
+
 ## [32.8] - 2026-03-13
 
 - Converted inline CSS styles, `<style>` blocks, and keyframe animations to Tailwind classes across all common components (ConfirmDialog, LoadingScreen, NotificationsModal, OfflineOverlay, OnlineUsersModal, TutorialPopup, StatusHistoryBar, VerificationRequirementsModal, and more)

@@ -5,7 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../services/DatabaseService'
+import { Database } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
 import LoginView from '../views/common/login/LoginView'
@@ -156,8 +156,7 @@ function AppContent() {
     }, [userId, rolesLoaded])
     useEffect(() => {
         if (!userId) return
-        supabase
-            .from('users_profiles')
+        Database.from('users_profiles')
             .select('first_name, last_name')
             .eq('id', userId)
             .single()

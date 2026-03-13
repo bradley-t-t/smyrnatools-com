@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { usePreferences } from '../../context/PreferencesContext'
 /**
  * Verification status card shown in asset detail views.
@@ -30,8 +30,7 @@ function VerificationCardSection({
         if (!tableName) return
         const fetchHistory = async () => {
             const idCol = assetType === 'mixer' ? 'mixer_id' : 'tractor_id'
-            const { data } = await supabase
-                .from(tableName)
+            const { data } = await Database.from(tableName)
                 .select('*')
                 .eq(idCol, assetId)
                 .order('changed_at', { ascending: false })
@@ -55,8 +54,7 @@ function VerificationCardSection({
         const uuidArray = Array.from(uuidsToResolve)
         const names = {}
         try {
-            const { data: operators } = await supabase
-                .from('operators')
+            const { data: operators } = await Database.from('operators')
                 .select('employee_id, name')
                 .in('employee_id', uuidArray)
             if (operators) {
@@ -68,8 +66,7 @@ function VerificationCardSection({
             console.error('Failed to resolve operator UUIDs:', e)
         }
         try {
-            const { data: plants } = await supabase
-                .from('plants')
+            const { data: plants } = await Database.from('plants')
                 .select('id, plant_name, plant_code')
                 .in('id', uuidArray)
             if (plants) {
@@ -81,8 +78,7 @@ function VerificationCardSection({
             console.error('Failed to resolve plant UUIDs:', e)
         }
         try {
-            const { data: users } = await supabase
-                .from('users_profiles')
+            const { data: users } = await Database.from('users_profiles')
                 .select('id, first_name, last_name')
                 .in('id', uuidArray)
             if (users) {

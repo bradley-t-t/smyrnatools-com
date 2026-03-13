@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import MessageService from '../../services/MessageService'
 
 /**
  * Manages message state with conversation-threaded inbox.
  * Groups all messages by the other participant into conversation threads.
  *
- * Uses two filtered Supabase realtime channels (sender + recipient) so only
+ * Uses two filtered database realtime channels (sender + recipient) so only
  * this user's messages trigger updates. Handles INSERT/UPDATE/DELETE granularly
  * instead of re-fetching everything on each change.
  */
@@ -60,7 +60,7 @@ export function useMessages(userId) {
     }, [refresh])
 
     /**
-     * Filtered Supabase realtime subscriptions.
+     * Filtered database realtime subscriptions.
      * Two channels: one for messages where user is recipient, one where user is sender.
      * This avoids firing on messages between other users entirely.
      */
@@ -126,8 +126,7 @@ export function useMessages(userId) {
             }
         }
 
-        const recipientChannel = supabase
-            .channel(`messages-recipient-${resolvedUserId}`)
+        const recipientChannel = Database.channel(`messages-recipient-${resolvedUserId}`)
             .on(
                 'postgres_changes',
                 {
@@ -154,8 +153,7 @@ export function useMessages(userId) {
             )
             .subscribe()
 
-        const senderChannel = supabase
-            .channel(`messages-sender-${resolvedUserId}`)
+        const senderChannel = Database.channel(`messages-sender-${resolvedUserId}`)
             .on(
                 'postgres_changes',
                 {
@@ -183,8 +181,8 @@ export function useMessages(userId) {
             .subscribe()
 
         return () => {
-            supabase.removeChannel(recipientChannel)
-            supabase.removeChannel(senderChannel)
+            Database.removeChannel(recipientChannel)
+            Database.removeChannel(senderChannel)
         }
     }, [resolvedUserId])
 

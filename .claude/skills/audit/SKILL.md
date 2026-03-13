@@ -74,6 +74,13 @@ Run every check below against each file in scope. Use subagents to parallelize w
 - Foreign keys to `auth.users(id)`
 - **Fix:** Remove. This project uses custom authentication.
 
+### 10. No "supabase" in Application Code (Critical)
+- Any variable, import, function name, or comment using the word "supabase" outside of `DatabaseService.js`
+- Inside `DatabaseService.js`: only the `@supabase/supabase-js` package import and `REACT_APP_SUPABASE_*` env var reads are acceptable
+- The database client must be referenced as `Database` (imported from `DatabaseService.js`), never `supabase`
+- Helper functions must use the `Database` prefix: `logDatabaseError`, `getDatabaseErrorDetails`, `DatabaseUtils`, etc.
+- **Fix:** Rename all references. Update imports to `import { Database } from '...DatabaseService'`. Replace "Supabase" in comments with "database".
+
 ## Output Format
 
 After auditing, produce a summary:

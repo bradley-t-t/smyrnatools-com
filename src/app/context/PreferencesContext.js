@@ -1,12 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import { logSupabaseError, supabase } from '../../services/DatabaseService'
+import { Database, logDatabaseError } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
 /**
  * User preferences context managing per-entity filter states, region selection,
- * view modes, accent color, and tutorial toggles. Persists to Supabase on change.
+ * view modes, accent color, and tutorial toggles. Persists to the database on change.
  * Auto-resolves the user's default region from their plant assignment on first load.
  */
 const PreferencesContext = createContext()
@@ -122,9 +122,9 @@ export const PreferencesProvider = ({ children }) => {
                     user_id: userId
                 }
                 try {
-                    await supabase.from('users_preferences').upsert(upsertData, { onConflict: 'user_id' })
+                    await Database.from('users_preferences').upsert(upsertData, { onConflict: 'user_id' })
                 } catch (e) {
-                    logSupabaseError('upserting preferences', e)
+                    logDatabaseError('upserting preferences', e)
                 }
             }
         },
@@ -346,7 +346,7 @@ export const PreferencesProvider = ({ children }) => {
                 lastViewedFilters: finalFilters
             }))
         } catch (error) {
-            logSupabaseError('saving last viewed filters', error)
+            logDatabaseError('saving last viewed filters', error)
         }
     }
     const contextValue = {

@@ -1,7 +1,7 @@
 import APIUtility from '../utils/APIUtility'
 import { CacheUtility } from '../utils/CacheUtility'
 import { detectPlatformType } from '../utils/DeviceUtility'
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 
 const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
 const VERSION_CACHE_KEY = 'app:version'
@@ -60,20 +60,18 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: userExists, error: userError } = await supabase
-                .from('users')
+            const { data: userExists, error: userError } = await Database.from('users')
                 .select('id')
                 .eq('id', userId)
                 .maybeSingle()
             if (userError || !userExists) return true
-            const { data: existing } = await supabase
-                .from('users_tutorials')
+            const { data: existing } = await Database.from('users_tutorials')
                 .select('id')
                 .eq('user_id', userId)
                 .eq('tutorial_id', tutorialId)
                 .maybeSingle()
             if (existing) return true
-            await supabase.from('users_tutorials').insert({
+            await Database.from('users_tutorials').insert({
                 dismissed_at: new Date().toISOString(),
                 tutorial_id: tutorialId,
                 user_id: userId
@@ -94,7 +92,7 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return localDismissed
-            const { data, error } = await supabase.from('users_tutorials').select('tutorial_id').eq('user_id', userId)
+            const { data, error } = await Database.from('users_tutorials').select('tutorial_id').eq('user_id', userId)
             if (error) return localDismissed
             const dbDismissed = data ? data.map((d) => d.tutorial_id) : []
             return [...new Set([...localDismissed, ...dbDismissed])]
@@ -109,13 +107,12 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: existing } = await supabase
-                .from('users_tutorials')
+            const { data: existing } = await Database.from('users_tutorials')
                 .select('id, tutorial_id')
                 .eq('user_id', userId)
             if (!existing || existing.length === 0) return true
             const ids = existing.map((row) => row.id)
-            const { error } = await supabase.from('users_tutorials').delete().in('id', ids)
+            const { error } = await Database.from('users_tutorials').delete().in('id', ids)
             if (error) {
                 console.error('Error deleting tutorials:', error)
                 return false
@@ -136,14 +133,13 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: existing } = await supabase
-                .from('users_tutorials')
+            const { data: existing } = await Database.from('users_tutorials')
                 .select('id')
                 .eq('user_id', userId)
                 .eq('tutorial_id', tutorialId)
                 .maybeSingle()
             if (!existing) return true
-            const { error } = await supabase.from('users_tutorials').delete().eq('id', existing.id)
+            const { error } = await Database.from('users_tutorials').delete().eq('id', existing.id)
             if (error) {
                 console.error('Error deleting tutorial:', error)
                 return false
@@ -176,8 +172,7 @@ class UserPreferencesService {
     static async shouldShowPrompt(userId, promptType) {
         if (!userId) return false
         try {
-            const { data, error } = await supabase
-                .from('app_install_prompts')
+            const { data, error } = await Database.from('app_install_prompts')
                 .select('*')
                 .eq('user_id', userId)
                 .eq('prompt_type', promptType)
@@ -216,8 +211,7 @@ class UserPreferencesService {
             if (action === 'remind_later') {
                 dataToUpsert.reminded_at = new Date().toISOString()
             }
-            const { data, error } = await supabase
-                .from('app_install_prompts')
+            const { data, error } = await Database.from('app_install_prompts')
                 .upsert(dataToUpsert, {
                     onConflict: 'user_id,prompt_type'
                 })

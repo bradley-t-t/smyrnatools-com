@@ -8,7 +8,7 @@ import ListViewModeSection from '../../../app/components/sections/ListViewModeSe
 import TopSection from '../../../app/components/sections/TopSection'
 import AssetListSkeleton from '../../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
@@ -20,7 +20,7 @@ import OperatorCommentModal from './OperatorCommentModal'
 import OperatorDetailView from './OperatorDetailView'
 /**
  * Main list/grid view for the operator roster. Handles data fetching,
- * Supabase realtime subscriptions for live INSERT/UPDATE/DELETE,
+ * database realtime subscriptions for live INSERT/UPDATE/DELETE,
  * region-scoped plant filtering, name/ID search, status and position
  * filtering, sortable columns, operator ratings export, and drill-down
  * into OperatorDetailView. Falls back to a 1-hour localStorage cache
@@ -122,10 +122,9 @@ function OperatorsView({
             return () => clearTimeout(timer)
         }
     }, [initialSearch])
-    // Subscribe to Supabase realtime changes on the operators table to keep the list in sync without refetching.
+    // Subscribe to database realtime changes on the operators table to keep the list in sync without refetching.
     useEffect(() => {
-        const channel = supabase
-            .channel('operators-realtime-changes')
+        const channel = Database.channel('operators-realtime-changes')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'operators' }, (payload) => {
                 const newData = payload.new
                 setOperators((prev) => {
@@ -183,7 +182,7 @@ function OperatorsView({
             })
             .subscribe()
         return () => {
-            supabase.removeChannel(channel)
+            Database.removeChannel(channel)
         }
     }, [])
     /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */

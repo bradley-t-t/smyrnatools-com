@@ -4,7 +4,7 @@ import PlantDropdownModal from '../../../app/components/common/PlantDropdownModa
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import { useAuth } from '../../../app/context/AuthContext'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
 import APIUtility from '../../../utils/APIUtility'
@@ -69,9 +69,9 @@ function ManagerDetailView({ managerId, onClose }) {
                     { data: profileData, error: profileError },
                     { data: permissionData, error: permissionError }
                 ] = await Promise.all([
-                    supabase.from('users').select('*').eq('id', managerId).single(),
-                    supabase.from('users_profiles').select('*').eq('id', managerId).single(),
-                    supabase.from('users_permissions').select('role_id').eq('user_id', managerId).single()
+                    Database.from('users').select('*').eq('id', managerId).single(),
+                    Database.from('users_profiles').select('*').eq('id', managerId).single(),
+                    Database.from('users_permissions').select('role_id').eq('user_id', managerId).single()
                 ])
                 if (userError) throw userError
                 if (profileError) throw profileError
@@ -80,8 +80,7 @@ function ManagerDetailView({ managerId, onClose }) {
                     roleId = null,
                     roleWeight = 0
                 if (permissionData?.role_id) {
-                    const { data: roleData, error: roleError } = await supabase
-                        .from('users_roles')
+                    const { data: roleData, error: roleError } = await Database.from('users_roles')
                         .select('name, id, weight')
                         .eq('id', permissionData.role_id)
                         .single()
@@ -254,7 +253,7 @@ function ManagerDetailView({ managerId, onClose }) {
     }
     async function fetchPlants() {
         try {
-            const { data, error } = await supabase.from('plants').select('*')
+            const { data, error } = await Database.from('plants').select('*')
             if (error) throw error
             setPlants(data || [])
         } catch (error) {
@@ -274,15 +273,13 @@ function ManagerDetailView({ managerId, onClose }) {
         }
         setIsSaving(true)
         try {
-            const { data: checkManager } = await supabase
-                .from('users_profiles')
+            const { data: checkManager } = await Database.from('users_profiles')
                 .select('id')
                 .eq('id', manager.id)
                 .single()
             if (!checkManager) throw new Error(`Manager with ID ${manager.id} not found`)
             const [{ error: profileError }, { error: userError }] = await Promise.all([
-                supabase
-                    .from('users_profiles')
+                Database.from('users_profiles')
                     .update({
                         additional_assigned_plants: additionalPlants.length ? additionalPlants : null,
                         first_name: firstName,
@@ -291,8 +288,7 @@ function ManagerDetailView({ managerId, onClose }) {
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', manager.id),
-                supabase
-                    .from('users')
+                Database.from('users')
                     .update({
                         email,
                         updated_at: new Date().toISOString()
@@ -304,8 +300,7 @@ function ManagerDetailView({ managerId, onClose }) {
             const selectedRole = availableRoles.find((role) => role.name === roleName)
             if (!selectedRole) throw new Error(`Role '${roleName}' not found in available roles.`)
             // Upsert the role assignment — insert if this is the user's first role, otherwise update.
-            const { data: existingPermission } = await supabase
-                .from('users_permissions')
+            const { data: existingPermission } = await Database.from('users_permissions')
                 .select('user_id')
                 .eq('user_id', managerId)
             const updateData = {
@@ -313,8 +308,8 @@ function ManagerDetailView({ managerId, onClose }) {
                 updated_at: new Date().toISOString()
             }
             const { error: permError } = existingPermission?.length
-                ? await supabase.from('users_permissions').update(updateData).eq('user_id', managerId)
-                : await supabase.from('users_permissions').insert({
+                ? await Database.from('users_permissions').update(updateData).eq('user_id', managerId)
+                : await Database.from('users_permissions').insert({
                       ...updateData,
                       created_at: new Date().toISOString(),
                       user_id: managerId
@@ -349,7 +344,7 @@ function ManagerDetailView({ managerId, onClose }) {
             return
         }
         try {
-            const { error } = await supabase.from('users').delete().eq('id', managerId)
+            const { error } = await Database.from('users').delete().eq('id', managerId)
             if (error) throw error
             setMessage('Manager deleted successfully')
             setTimeout(() => onClose(), 1500)

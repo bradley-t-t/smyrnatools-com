@@ -17,7 +17,7 @@ import {
     YAxis
 } from 'recharts'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { PlantService } from '../../../services/PlantService'
 /** Semantic color palette used across all dashboard chart series. */
 const COLORS = {
@@ -185,8 +185,7 @@ export default function DashboardCharts({
                     setLoading(false)
                     return
                 }
-                const { data: profilesData } = await supabase
-                    .from('users_profiles')
+                const { data: profilesData } = await Database.from('users_profiles')
                     .select('id, plant_code')
                     .in('plant_code', plantCodes)
                 if (cancelled || !profilesData?.length) {
@@ -196,8 +195,7 @@ export default function DashboardCharts({
                 const userIds = profilesData.map((p) => p.id)
                 const twelveWeeksAgo = new Date()
                 twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84)
-                const { data: reports } = await supabase
-                    .from('reports')
+                const { data: reports } = await Database.from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
                     .in('user_id', userIds)
@@ -233,8 +231,7 @@ export default function DashboardCharts({
                         })
                     setWeeklyData(sortedWeeks)
                 }
-                const { data: mixers } = await supabase
-                    .from('mixers')
+                const { data: mixers } = await Database.from('mixers')
                     .select('cleanliness_rating, status, assigned_plant')
                     .in('assigned_plant', plantCodes)
                     .eq('status', 'Active')

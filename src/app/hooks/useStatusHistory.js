@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import DashboardUtility from '../../utils/DashboardUtility'
 const HISTORY_TABLES = [
@@ -89,7 +89,7 @@ export function useStatusHistory({
         try {
             const results = await Promise.all(
                 HISTORY_TABLES.map(({ table }) =>
-                    supabase.from(table).select('*').eq('field_name', 'status').order('changed_at', { ascending: true })
+                    Database.from(table).select('*').eq('field_name', 'status').order('changed_at', { ascending: true })
                 )
             )
             const historyData = {}

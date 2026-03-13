@@ -1,4 +1,4 @@
-import { supabase } from '../services/DatabaseService'
+import { Database } from '../services/DatabaseService'
 import { ReportUtility } from './ReportUtility'
 /**
  * Excel export infrastructure: workbook creation, styled header/data row builders,
@@ -126,8 +126,7 @@ async function fetchReportsByWeekWindow(reportName, weekIso) {
     const window = getWeekWindow(weekIso)
     if (!window) return { reports: [], targetMondayIso: '' }
     const { targetMondayIso, qStart, qEnd } = window
-    const { data } = await supabase
-        .from('reports')
+    const { data } = await Database.from('reports')
         .select(REPORT_COLUMNS_SHORT)
         .eq('report_name', reportName)
         .gte('week', qStart)
@@ -140,14 +139,12 @@ async function fetchReportsDualQuery(reportName, weekIso) {
     if (!window) return { reports: [], targetMondayIso: '' }
     const { targetMondayIso, qStart, qEnd } = window
     const [byWeek, byRange] = await Promise.all([
-        supabase
-            .from('reports')
+        Database.from('reports')
             .select(REPORT_COLUMNS_FULL)
             .eq('report_name', reportName)
             .gte('week', qStart)
             .lt('week', qEnd),
-        supabase
-            .from('reports')
+        Database.from('reports')
             .select(REPORT_COLUMNS_FULL)
             .eq('report_name', reportName)
             .gte('report_date_range_start', qStart)
@@ -206,8 +203,7 @@ export async function fetchAggregateProductionReport(weekIso) {
     return pickBestReport(reports)
 }
 export async function fetchAllAggregateReports(upToWeekIso) {
-    const { data: reports } = await supabase
-        .from('reports')
+    const { data: reports } = await Database.from('reports')
         .select(REPORT_COLUMNS_FULL)
         .eq('report_name', 'aggregate_production')
         .order('week', { ascending: false })
@@ -240,8 +236,7 @@ export async function fetchGMReportForWeek(weekIso) {
     return pickBestReport(reports)?.data ?? null
 }
 export async function fetchAllMonthlyGMReports() {
-    const { data: reports } = await supabase
-        .from('reports')
+    const { data: reports } = await Database.from('reports')
         .select(REPORT_COLUMNS_SHORT)
         .eq('report_name', 'general_manager')
         .order('week', { ascending: false })

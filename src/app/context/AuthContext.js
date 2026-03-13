@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import APIUtility from '../../utils/APIUtility'
 import { SESSION_STORAGE_KEYS } from '../constants/auth'
 import { getBrowserMetadata } from '../utils/BrowserDetection'
@@ -45,7 +45,7 @@ async function createDbSession(userId) {
     const { browser, os, device, userAgent } = getBrowserMetadata()
     const now = new Date().toISOString()
     try {
-        const { error } = await supabase.from('users_sessions').upsert(
+        const { error } = await Database.from('users_sessions').upsert(
             {
                 browser,
                 created_at: now,
@@ -74,8 +74,7 @@ async function validateDbSession() {
     const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
     if (!sessionId) return { userId: null, valid: false }
     try {
-        const { data, error } = await supabase
-            .from('users_sessions')
+        const { data, error } = await Database.from('users_sessions')
             .select('id, last_active')
             .eq('id', sessionId)
             .eq('user_id', userId)
@@ -89,8 +88,7 @@ async function validateDbSession() {
             return { userId: null, valid: false }
         }
         // Fire-and-forget last_active refresh
-        supabase
-            .from('users_sessions')
+        Database.from('users_sessions')
             .update({ last_active: new Date().toISOString() })
             .eq('id', sessionId)
             .then(() => {})
@@ -218,7 +216,7 @@ export function AuthProvider({ children }) {
         const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
         if (sessionId) {
             try {
-                await supabase.from('users_sessions').delete().eq('id', sessionId)
+                await Database.from('users_sessions').delete().eq('id', sessionId)
             } catch {}
         }
         await APIUtility.post(`${AUTH_FUNCTION}/sign-out`).catch(() => {})

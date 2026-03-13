@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
@@ -41,7 +41,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 if (cancelled) return
                 setAllPlantsCount(Array.isArray(fetchedPlants) ? fetchedPlants.length : 0)
                 setAllPlants(fetchedPlants)
-                const { data: sessionData } = await supabase.auth.getSession()
+                const { data: sessionData } = await Database.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 const allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
                 if (cancelled) return
@@ -120,13 +120,13 @@ export function useDashboardInit({ plantSetRef, preferences }) {
         let cancelled = false
         async function checkPlantManagerRole() {
             try {
-                const { data: sessionData } = await supabase.auth.getSession()
+                const { data: sessionData } = await Database.auth.getSession()
                 const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
                 if (!uid || cancelled) return
                 const [roles, weight, profileData, highestRole, additionalPlants] = await Promise.all([
                     UserService.getUserRoles(uid),
                     UserService.getUserWeight(uid),
-                    supabase.from('users_profiles').select('plant_code').eq('id', uid).maybeSingle(),
+                    Database.from('users_profiles').select('plant_code').eq('id', uid).maybeSingle(),
                     UserService.getHighestRole(uid).catch(() => null),
                     UserService.getAdditionalAssignedPlants(uid).catch(() => [])
                 ])

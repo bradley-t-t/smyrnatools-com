@@ -141,7 +141,7 @@ const DateUtility = {
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
     },
-    /** Formats a Date to a Supabase-compatible timestamp string: `YYYY-MM-DD HH:MM:SS+00`. */
+    /** Formats a Date to a database-compatible timestamp string: `YYYY-MM-DD HH:MM:SS+00`. */
     formatDateForDb(date) {
         if (!date) return null
         const d = date instanceof Date ? date : new Date(date)

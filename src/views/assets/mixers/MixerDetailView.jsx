@@ -6,7 +6,7 @@ import DetailViewSection from '../../../app/components/sections/DetailViewSectio
 import VerificationCardSection from '../../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Mixer } from '../../../app/models/mixers/Mixer'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
@@ -303,8 +303,7 @@ function MixerDetailView({ mixerId, onClose }) {
                 ? overrideValues.status
                 : status
             if (statusValue === 'In Shop' && originalValues.status !== 'In Shop') {
-                const { data: openIssues } = await supabase
-                    .from('mixers_maintenance')
+                const { data: openIssues } = await Database.from('mixers_maintenance')
                     .select('id')
                     .eq('mixer_id', mixer.id)
                     .is('time_completed', null)

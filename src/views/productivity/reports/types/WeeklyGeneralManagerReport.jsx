@@ -2,7 +2,7 @@ import React from 'react'
 
 import { reportTypeMap } from '../../../../app/types/ReportTypes'
 import { AIService } from '../../../../services/AIService'
-import { supabase } from '../../../../services/DatabaseService'
+import { Database } from '../../../../services/DatabaseService'
 import { ReportService } from '../../../../services/ReportService'
 import { ReportUtility } from '../../../../utils/ReportUtility'
 import { RPT_INPUT, RPT_TEXTAREA, TD_STYLE, TH_STYLE, useReportForWeek } from './shared'
@@ -71,16 +71,14 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             }
             const setU = new Set(codes.map(normU))
             const setN = new Set(codes.map(normN))
-            let { data: prod } = await supabase
-                .from('reports')
+            let { data: prod } = await Database.from('reports')
                 .select('id,data,week,submitted_at,report_date_range_start,completed')
                 .eq('report_name', 'plant_production')
                 .gte('week', qStart)
                 .lt('week', qEnd)
             if (!Array.isArray(prod)) prod = []
             if (prod.length === 0) {
-                const resp = await supabase
-                    .from('reports')
+                const resp = await Database.from('reports')
                     .select('id,data,week,submitted_at,report_date_range_start,completed')
                     .eq('report_name', 'plant_production')
                     .gte('report_date_range_start', qStart)
@@ -143,16 +141,14 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 )
                 setEffIdx(0)
             }
-            let { data: agg } = await supabase
-                .from('reports')
+            let { data: agg } = await Database.from('reports')
                 .select('id,data,week,report_date_range_start,completed,submitted_at')
                 .eq('report_name', 'aggregate_production')
                 .gte('week', qStart)
                 .lt('week', qEnd)
             if (!Array.isArray(agg)) agg = []
             if (agg.length === 0) {
-                const resp = await supabase
-                    .from('reports')
+                const resp = await Database.from('reports')
                     .select('id,data,week,report_date_range_start,completed,submitted_at')
                     .eq('report_name', 'aggregate_production')
                     .gte('report_date_range_start', qStart)
@@ -199,16 +195,14 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 return ReportUtility.getMondayISO(dt)
             }
             const sameIsoDay = (a, b) => a && b && a.slice(0, 10) === b.slice(0, 10)
-            let { data: agg } = await supabase
-                .from('reports')
+            let { data: agg } = await Database.from('reports')
                 .select('id,data,week,report_date_range_start,completed,submitted_at')
                 .eq('report_name', 'aggregate_production')
                 .gte('week', qStart)
                 .lt('week', qEnd)
             if (!Array.isArray(agg)) agg = []
             if (agg.length === 0) {
-                const resp = await supabase
-                    .from('reports')
+                const resp = await Database.from('reports')
                     .select('id,data,week,report_date_range_start,completed,submitted_at')
                     .eq('report_name', 'aggregate_production')
                     .gte('report_date_range_start', qStart)
@@ -253,8 +247,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             windowEnd.setUTCDate(windowEnd.getUTCDate() + 8)
             const qStart = prevSunday.toISOString()
             const qEnd = windowEnd.toISOString()
-            let { data: gm } = await supabase
-                .from('reports')
+            let { data: gm } = await Database.from('reports')
                 .select('id,data,week,report_date_range_start,completed,submitted_at')
                 .eq('report_name', 'general_manager')
                 .eq('user_id', userId)
@@ -262,8 +255,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 .lt('week', qEnd)
             if (!Array.isArray(gm)) gm = []
             if (gm.length === 0) {
-                const resp = await supabase
-                    .from('reports')
+                const resp = await Database.from('reports')
                     .select('id,data,week,report_date_range_start,completed,submitted_at')
                     .eq('report_name', 'general_manager')
                     .eq('user_id', userId)
@@ -304,8 +296,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
             const qStart = prevSunday.toISOString()
             const qEnd = windowEnd.toISOString()
             try {
-                let { data: reports } = await supabase
-                    .from('reports')
+                let { data: reports } = await Database.from('reports')
                     .select('id,data,week,submitted_at,completed')
                     .eq('report_name', 'ready_mix_instructor')
                     .gte('week', qStart)

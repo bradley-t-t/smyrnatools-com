@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { supabase } from '../../services/DatabaseService'
+import { Database } from '../../services/DatabaseService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
@@ -46,8 +46,7 @@ export function useReviewData({ report, initialData, user, completedByUser }) {
                 const normalizedWeekStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                 const startOfYear = new Date(year, 0, 1)
                 const endOfYear = new Date(year, 11, 31, 23, 59, 59)
-                const { data: allReports, error } = await supabase
-                    .from('reports')
+                const { data: allReports, error } = await Database.from('reports')
                     .select('*')
                     .eq('report_name', 'plant_manager')
                     .eq('completed', true)

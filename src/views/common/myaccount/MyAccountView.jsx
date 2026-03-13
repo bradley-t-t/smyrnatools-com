@@ -8,7 +8,7 @@ import { useTutorial } from '../../../app/context/TutorialContext'
 import { useThemeMode } from '../../../app/hooks/useThemeMode'
 import { useVersion } from '../../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../../app/utils/BrowserDetection'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { UserService } from '../../../services/UserService'
 import { CacheUtility } from '../../../utils/CacheUtility'
 import DashboardUtility from '../../../utils/DashboardUtility'
@@ -131,7 +131,7 @@ function StartPageDropdown({ value, accentColor, onChange }) {
  * Preferences: accent color picker (with brightness clamping) and tutorial toggles.
  * Session deduplication runs on load, keeping only one session per browser/OS/device.
  *
- * @param {string} [userId] - Explicit user ID; falls back to Supabase auth session or sessionStorage.
+ * @param {string} [userId] - Explicit user ID; falls back to auth session or sessionStorage.
  */
 function MyAccountView({ userId }) {
     const { preferences, updatePreferences } = usePreferences()
@@ -182,7 +182,7 @@ function MyAccountView({ userId }) {
             return
         }
         try {
-            const { error } = await supabase.from('users_sessions').delete().eq('id', sessionId)
+            const { error } = await Database.from('users_sessions').delete().eq('id', sessionId)
             if (error) throw error
             setSessions(sessions.filter((s) => s.id !== sessionId))
             setMessage('Session revoked successfully')
@@ -201,7 +201,7 @@ function MyAccountView({ userId }) {
         let cancelled = false
         async function load() {
             try {
-                const { data } = await supabase.auth.getSession()
+                const { data } = await Database.auth.getSession()
                 const session = data?.session
                 const uid = userId || session?.user?.id || sessionStorage.getItem('userId')
                 if (!uid) {
@@ -210,15 +210,13 @@ function MyAccountView({ userId }) {
                 }
                 setIsAuthenticated(true)
                 const [profileData, userData, highestRole, regionsList] = await Promise.all([
-                    supabase
-                        .from('users_profiles')
+                    Database.from('users_profiles')
                         .select('*')
                         .eq('id', uid)
                         .single()
                         .then((r) => r.data)
                         .catch(() => null),
-                    supabase
-                        .from('users')
+                    Database.from('users')
                         .select('email')
                         .eq('id', uid)
                         .single()
@@ -261,8 +259,7 @@ function MyAccountView({ userId }) {
                     const currentBrowser = getBrowserName(userAgent)
                     const currentOS = getOSName(userAgent)
                     const currentDevice = getDeviceType(userAgent)
-                    const { data: existingSessions } = await supabase
-                        .from('users_sessions')
+                    const { data: existingSessions } = await Database.from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -292,7 +289,7 @@ function MyAccountView({ userId }) {
                         }
                         if (duplicates.length > 0) {
                             try {
-                                await supabase.from('users_sessions').delete().in('id', duplicates)
+                                await Database.from('users_sessions').delete().in('id', duplicates)
                             } catch (err) {
                                 console.error('Failed to remove duplicate sessions:', err)
                             }
@@ -303,8 +300,7 @@ function MyAccountView({ userId }) {
                         currentSessId = matchingSession.id
                         sessionStorage.setItem('sessionId', currentSessId)
                         try {
-                            await supabase
-                                .from('users_sessions')
+                            await Database.from('users_sessions')
                                 .update({ last_active: new Date().toISOString() })
                                 .eq('id', currentSessId)
                         } catch (err) {
@@ -314,7 +310,7 @@ function MyAccountView({ userId }) {
                         currentSessId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                         sessionStorage.setItem('sessionId', currentSessId)
                         try {
-                            await supabase.from('users_sessions').upsert(
+                            await Database.from('users_sessions').upsert(
                                 {
                                     browser: currentBrowser,
                                     created_at: new Date().toISOString(),
@@ -332,8 +328,7 @@ function MyAccountView({ userId }) {
                         }
                     }
                     setCurrentSessionId(currentSessId)
-                    const { data: userSessions } = await supabase
-                        .from('users_sessions')
+                    const { data: userSessions } = await Database.from('users_sessions')
                         .select('*')
                         .eq('user_id', uid)
                         .gte('last_active', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
@@ -377,10 +372,9 @@ function MyAccountView({ userId }) {
                 const {
                     data: { session },
                     error: sessionError
-                } = await supabase.auth.getSession()
+                } = await Database.auth.getSession()
                 if (sessionError || !session) throw new Error('No active session or user ID')
-                const { error: pe } = await supabase
-                    .from('users_profiles')
+                const { error: pe } = await Database.from('users_profiles')
                     .update({
                         first_name: firstName,
                         last_name: lastName,
@@ -389,8 +383,7 @@ function MyAccountView({ userId }) {
                     .eq('id', session.user.id)
                 if (pe) throw pe
             } else {
-                const { error: pe } = await supabase
-                    .from('users_profiles')
+                const { error: pe } = await Database.from('users_profiles')
                     .update({
                         first_name: firstName,
                         last_name: lastName,

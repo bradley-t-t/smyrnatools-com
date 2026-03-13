@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
@@ -99,8 +99,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
         try {
             const { monday, saturday } = getCurrentWeekBounds()
             const fullReason = reason === 'Other' ? `Other: ${explanation.trim()}` : `${reason}: ${explanation.trim()}`
-            const { data, error: dbError } = await supabase
-                .from('reports')
+            const { data, error: dbError } = await Database.from('reports')
                 .insert({
                     completed: true,
                     data: {

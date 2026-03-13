@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react'
 
-import { supabase } from '../../../services/DatabaseService'
+import { Database } from '../../../services/DatabaseService'
 /** Color mapping for each known asset status value. */
 const STATUS_COLORS = {
     Active: '#16a34a',
@@ -21,7 +21,7 @@ const STATUS_COLORS = {
 /**
  * Animated horizontal bar that visualizes the percentage of time an asset
  * has spent in each status since creation.
- * Fetches status change history from the corresponding Supabase history table
+ * Fetches status change history from the corresponding database history table
  * and renders proportional colored segments with a hover tooltip breakdown.
  * @param {Object} props
  * @param {string} props.itemId - Primary key of the asset record.
@@ -61,8 +61,7 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                     setLoading(false)
                     return
                 }
-                const { data: historyData } = await supabase
-                    .from(tableName)
+                const { data: historyData } = await Database.from(tableName)
                     .select('field_name, old_value, new_value, changed_at')
                     .eq(idField, itemId)
                     .eq('field_name', 'status')

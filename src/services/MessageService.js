@@ -1,4 +1,4 @@
-import { supabase } from './DatabaseService'
+import { Database } from './DatabaseService'
 import { UserService } from './UserService'
 const MESSAGES_VIEW = 'messages_decrypted'
 const MESSAGES_TABLE = 'messages'
@@ -9,7 +9,7 @@ const MESSAGES_TABLE = 'messages'
 async function resolveUserId(sessionId) {
     if (!sessionId) return null
     try {
-        const { data } = await supabase.from('users_sessions').select('user_id').eq('id', sessionId).maybeSingle()
+        const { data } = await Database.from('users_sessions').select('user_id').eq('id', sessionId).maybeSingle()
         return data?.user_id || sessionId
     } catch (err) {
         console.error('Failed to resolve user ID from session:', err)
@@ -23,8 +23,7 @@ async function resolveUserId(sessionId) {
 /** Soft-deletes a message by setting the given boolean column to true. */
 async function _softDelete(messageId, column) {
     if (!messageId) return
-    const { error } = await supabase
-        .from(MESSAGES_TABLE)
+    const { error } = await Database.from(MESSAGES_TABLE)
         .update({ [column]: true })
         .eq('id', messageId)
     if (error) console.error(`Failed to soft-delete message (${column}):`, error)
@@ -46,15 +45,13 @@ const MessageService = {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId) return []
         const [receivedResult, sentResult] = await Promise.all([
-            supabase
-                .from(MESSAGES_VIEW)
+            Database.from(MESSAGES_VIEW)
                 .select('*')
                 .eq('recipient_id', resolvedId)
                 .eq('deleted_by_recipient', false)
                 .order('created_at', { ascending: false })
                 .limit(200),
-            supabase
-                .from(MESSAGES_VIEW)
+            Database.from(MESSAGES_VIEW)
                 .select('*')
                 .eq('sender_id', resolvedId)
                 .eq('deleted_by_sender', false)
@@ -76,7 +73,7 @@ const MessageService = {
     /** Fetches a single message by ID from the decrypted view. */
     async getMessageById(messageId) {
         if (!messageId) return null
-        const { data, error } = await supabase.from(MESSAGES_VIEW).select('*').eq('id', messageId).maybeSingle()
+        const { data, error } = await Database.from(MESSAGES_VIEW).select('*').eq('id', messageId).maybeSingle()
         if (error || !data) return null
         return formatMessage(data)
     },
@@ -108,8 +105,7 @@ const MessageService = {
     async getUnreadCount(userId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId) return 0
-        const { count, error } = await supabase
-            .from(MESSAGES_TABLE)
+        const { count, error } = await Database.from(MESSAGES_TABLE)
             .select('id', { count: 'exact', head: true })
             .eq('recipient_id', resolvedId)
             .eq('is_read', false)
@@ -121,8 +117,7 @@ const MessageService = {
     async markAllRead(userId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId) return
-        await supabase
-            .from(MESSAGES_TABLE)
+        await Database.from(MESSAGES_TABLE)
             .update({ is_read: true, read_at: new Date().toISOString() })
             .eq('recipient_id', resolvedId)
             .eq('is_read', false)
@@ -131,8 +126,7 @@ const MessageService = {
     /** Marks a single message as read. */
     async markAsRead(messageId) {
         if (!messageId) return
-        const { error } = await supabase
-            .from(MESSAGES_TABLE)
+        const { error } = await Database.from(MESSAGES_TABLE)
             .update({ is_read: true, read_at: new Date().toISOString() })
             .eq('id', messageId)
         return !error
@@ -141,8 +135,7 @@ const MessageService = {
     async markConversationRead(userId, otherUserId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId || !otherUserId) return
-        await supabase
-            .from(MESSAGES_TABLE)
+        await Database.from(MESSAGES_TABLE)
             .update({ is_read: true, read_at: new Date().toISOString() })
             .eq('recipient_id', resolvedId)
             .eq('sender_id', otherUserId)
@@ -164,7 +157,7 @@ const MessageService = {
         const resolvedSenderId = await resolveUserId(senderId)
         if (!resolvedSenderId || !recipientId) throw new Error('Sender and recipient are required')
         if (!body?.trim()) throw new Error('Message body is required')
-        const { data, error } = await supabase.rpc('send_message', {
+        const { data, error } = await Database.rpc('send_message', {
             p_attachment_meta: attachment?.meta || null,
             p_attachment_type: attachment?.type || null,
             p_body: body,
