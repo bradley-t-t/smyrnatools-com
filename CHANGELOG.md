@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.5] - 2026-03-13
+
+- Merged AppInstallPromptService and AppService into UserPreferencesService, consolidating app version fetching, PWA install prompt logic, and device detection into a single service
+- Deleted AppInstallPromptService.js entirely after absorbing all methods as static members of UserPreferencesService
+- Updated AppInstallPromptModal and useVersion hook to import from UserPreferencesService instead of the removed service
+
 ## [32.4] - 2026-03-13
 
 - Consolidated 7 single-purpose services into their parent services: RegionService merged into PlantService, OnlineUsersService merged into UserPresenceService, DistrictManagerService merged into UserService, TutorialService and UserNotificationsService merged into their respective services, AppService merged into AppInstallPromptService, ErrorReporterService removed

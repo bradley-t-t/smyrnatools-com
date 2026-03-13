@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.4] - 2026-03-13
+
+- Consolidated 7 single-purpose services into their parent services: RegionService merged into PlantService, OnlineUsersService merged into UserPresenceService, DistrictManagerService merged into UserService, TutorialService and UserNotificationsService merged into their respective services, AppService merged into AppInstallPromptService, ErrorReporterService removed
+- Created BaseAssetService class to extract shared comment, issue, history, and bulk count patterns from individual asset services
+- Refactored EquipmentService, MixerService, TractorService, TrailerService, and PickupTruckService to delegate common operations to BaseAssetService
+- Absorbed NotificationsService DB notification fetching, mark-as-read, mark-all-read, and delete logic from the deleted UserNotificationsService
+- Moved tutorial dismissal, reset, and retrieval methods from TutorialService into UserPreferencesService
+- Merged online users list management (fetching, caching, role colors, region names, listeners) from OnlineUsersService into UserPresenceService
+- Absorbed district manager eligible roles and user plant assignment methods from DistrictManagerService into UserService
+- Removed duplicate getMainAssignedPlant method from UserService (identical to getUserPlant)
+- Updated all import paths across views, hooks, components, and contexts to reflect the consolidated service structure
+
 ## [32.3] - 2026-03-13
 
 - Moved models, notifications, and types directories from src/ into src/app/ to align with the established app directory structure

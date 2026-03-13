@@ -1,7 +1,10 @@
 import APIUtility from '../utils/APIUtility'
+import { CacheUtility } from '../utils/CacheUtility'
 import { supabase } from './DatabaseService'
 
 const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
+const VERSION_CACHE_KEY = 'app:version'
+const VERSION_CACHE_TTL_MS = 60_000
 
 /** Resolves the current user ID from local or session storage. */
 const getTutorialUserId = () => {
@@ -149,6 +152,122 @@ class UserPreferencesService {
             console.error('Exception in resetTutorial:', err)
             return false
         }
+    }
+
+    /**
+     * Fetches the current app version from nit.json with a 60-second cache TTL.
+     * Falls back to an empty string on network or parse failure.
+     */
+    static async getVersion() {
+        const cached = CacheUtility.get(VERSION_CACHE_KEY)
+        if (cached) return cached
+        try {
+            const response = await fetch('/nit.json', { cache: 'no-store' })
+            if (!response.ok) throw new Error('failed')
+            const { version = '' } = await response.json()
+            return CacheUtility.set(VERSION_CACHE_KEY, version, VERSION_CACHE_TTL_MS)
+        } catch {
+            return CacheUtility.set(VERSION_CACHE_KEY, '', VERSION_CACHE_TTL_MS)
+        }
+    }
+
+    /** Determines whether the install prompt should be shown based on the user's prior actions. */
+    static async shouldShowPrompt(userId, promptType) {
+        if (!userId) return false
+        try {
+            const { data, error } = await supabase
+                .from('app_install_prompts')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('prompt_type', promptType)
+                .single()
+            if (error && error.code !== 'PGRST116') {
+                console.error('Error checking app install prompt:', error)
+                return true
+            }
+            if (!data) return true
+            if (data.action === 'dismissed_forever' || data.action === 'installed') {
+                return false
+            }
+            if (data.action === 'remind_later' && data.reminded_at) {
+                const remindedDate = new Date(data.reminded_at)
+                const daysSinceReminder = (Date.now() - remindedDate.getTime()) / (1000 * 60 * 60 * 24)
+                return daysSinceReminder >= 7
+            }
+            return false
+        } catch (err) {
+            console.error('Error in shouldShowPrompt:', err)
+            return true
+        }
+    }
+
+    /** Records a user's prompt action (installed, dismissed_forever, remind_later) via upsert. */
+    static async recordPromptAction(userId, promptType, action, deviceType = null) {
+        if (!userId) return { error: 'No user ID', success: false }
+        try {
+            const dataToUpsert = {
+                action: action,
+                device_type: deviceType,
+                prompt_type: promptType,
+                updated_at: new Date().toISOString(),
+                user_id: userId
+            }
+            if (action === 'remind_later') {
+                dataToUpsert.reminded_at = new Date().toISOString()
+            }
+            const { data, error } = await supabase
+                .from('app_install_prompts')
+                .upsert(dataToUpsert, {
+                    onConflict: 'user_id,prompt_type'
+                })
+                .select()
+                .single()
+            if (error) {
+                console.error('Error recording prompt action:', error)
+                return { error, success: false }
+            }
+            return { data, success: true }
+        } catch (err) {
+            console.error('Error in recordPromptAction:', err)
+            return { error: err, success: false }
+        }
+    }
+
+    /** Convenience shorthand for recording an "installed" action. */
+    static async markAsInstalled(userId, promptType, deviceType) {
+        return UserPreferencesService.recordPromptAction(userId, promptType, 'installed', deviceType)
+    }
+
+    /** Convenience shorthand for recording a "dismissed_forever" action. */
+    static async dismissForever(userId, promptType, deviceType) {
+        return UserPreferencesService.recordPromptAction(userId, promptType, 'dismissed_forever', deviceType)
+    }
+
+    /** Convenience shorthand for recording a "remind_later" action. */
+    static async remindLater(userId, promptType, deviceType) {
+        return UserPreferencesService.recordPromptAction(userId, promptType, 'remind_later', deviceType)
+    }
+
+    /** Detects the user's device type from the user-agent string. */
+    static detectDeviceType() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera
+        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios'
+        if (/android/i.test(ua)) return 'android'
+        return 'desktop'
+    }
+
+    /** Returns true if the app is running in standalone (installed PWA) mode. */
+    static isStandalone() {
+        return (
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone ||
+            document.referrer.includes('android-app://')
+        )
+    }
+
+    /** Returns true if the install prompt is allowed (i.e., not already in standalone mode). */
+    static canShowInstallPrompt() {
+        return !UserPreferencesService.isStandalone()
     }
 }
 export { UserPreferencesService }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { AppInstallPromptService } from '../../../services/AppInstallPromptService'
+import { UserPreferencesService } from '../../../services/UserPreferencesService'
 import { UserService } from '../../../services/UserService'
 import { useAccentColor } from '../../hooks/useAccentColor'
 /** Step-by-step PWA install instructions for iOS Safari. */
@@ -242,12 +242,12 @@ function AppInstallPromptModal() {
             const roles = await UserService.getUserRoles(currentUser.id)
             const isGuestOnly = roles.length > 0 && roles.every((r) => r?.name?.toLowerCase() === 'guest')
             if (isGuestOnly || roles.length === 0) return
-            const device = AppInstallPromptService.detectDeviceType()
+            const device = UserPreferencesService.detectDeviceType()
             setDeviceType(device)
-            if (!AppInstallPromptService.canShowInstallPrompt()) return
+            if (!UserPreferencesService.canShowInstallPrompt()) return
             const type = device === 'desktop' ? 'desktop_tutorial' : 'mobile_install'
             setPromptType(type)
-            const shouldShow = await AppInstallPromptService.shouldShowPrompt(currentUser.id, type)
+            const shouldShow = await UserPreferencesService.shouldShowPrompt(currentUser.id, type)
             if (shouldShow) timerId = setTimeout(() => setShowModal(true), 2000)
         }
         checkAndShowPrompt()
@@ -259,11 +259,11 @@ function AppInstallPromptModal() {
         setShowModal(false)
     }
     const handleDismissForever = () =>
-        withCurrentUser((id) => AppInstallPromptService.dismissForever(id, promptType, deviceType))
+        withCurrentUser((id) => UserPreferencesService.dismissForever(id, promptType, deviceType))
     const handleRemindLater = () =>
-        withCurrentUser((id) => AppInstallPromptService.remindLater(id, promptType, deviceType))
+        withCurrentUser((id) => UserPreferencesService.remindLater(id, promptType, deviceType))
     const handleInstalled = () =>
-        withCurrentUser((id) => AppInstallPromptService.markAsInstalled(id, promptType, deviceType))
+        withCurrentUser((id) => UserPreferencesService.markAsInstalled(id, promptType, deviceType))
     if (!showModal) return null
     const ContentComponent = deviceType === 'desktop' ? DesktopContent : MobileContent
     return (
