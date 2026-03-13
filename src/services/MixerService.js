@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { Mixer } from '../models/mixers/Mixer'
-import { MixerComment } from '../models/mixers/MixerComment'
-import { MixerHistory } from '../models/mixers/MixerHistory'
-import { MixerImage } from '../models/mixers/MixerImage'
+import { Mixer } from '../app/models/mixers/Mixer'
+import { MixerComment } from '../app/models/mixers/MixerComment'
+import { MixerHistory } from '../app/models/mixers/MixerHistory'
+import { MixerImage } from '../app/models/mixers/MixerImage'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,

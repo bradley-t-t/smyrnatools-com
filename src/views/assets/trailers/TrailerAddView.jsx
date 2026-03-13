@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../../app/components/sections/AddViewSection'
-import Trailer from '../../../models/trailers/Trailer'
+import Trailer from '../../../app/models/trailers/Trailer'
 import { TrailerService } from '../../../services/TrailerService'
 /**
  * Slide-in form for creating a new trailer record. Requires trailer number

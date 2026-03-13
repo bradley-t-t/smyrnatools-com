@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { Tractor } from '../../../models/tractors/Tractor'
+import { Tractor } from '../../../app/models/tractors/Tractor'
 import { RegionService } from '../../../services/RegionService'
 import { TractorService } from '../../../services/TractorService'
 /**

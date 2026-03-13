@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../services/DatabaseService'
 import { RegionService } from '../../services/RegionService'
 import { UserService } from '../../services/UserService'
-import { reportTypeMap, reportTypes } from '../../types/ReportTypes'
+import { reportTypeMap, reportTypes } from '../types/ReportTypes'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
 const HARDCODED_TODAY = new Date()

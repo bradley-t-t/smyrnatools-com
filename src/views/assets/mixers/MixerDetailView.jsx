@@ -5,7 +5,7 @@ import VerificationRequirementsModal from '../../../app/components/common/Verifi
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import VerificationCardSection from '../../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { Mixer } from '../../../models/mixers/Mixer'
+import { Mixer } from '../../../app/models/mixers/Mixer'
 import { supabase } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'

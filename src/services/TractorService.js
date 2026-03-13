@@ -1,6 +1,6 @@
-import { Tractor } from '../models/tractors/Tractor'
-import { TractorComment } from '../models/tractors/TractorComment'
-import { TractorHistory } from '../models/tractors/TractorHistory'
+import { Tractor } from '../app/models/tractors/Tractor'
+import { TractorComment } from '../app/models/tractors/TractorComment'
+import { TractorHistory } from '../app/models/tractors/TractorHistory'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,

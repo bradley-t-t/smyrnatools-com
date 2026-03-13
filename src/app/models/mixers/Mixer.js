@@ -1,20 +1,20 @@
-import { DateUtility } from '../../utils/DateUtility'
-import VerifiedUtility from '../../utils/VerifiedUtility'
+import { DateUtility } from '../../../utils/DateUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 /**
- * Tractor domain model. Maps snake_case API data to camelCase properties,
+ * Mixer domain model. Maps snake_case API data to camelCase properties,
  * provides serialization (toApiFormat), status/operator mutations,
- * blower tracking, and freight classification.
+ * and service/chip date calculations.
  */
-export class Tractor {
+export class Mixer {
     constructor(data = {}) {
         this.id = data.id ?? null
         this.truckNumber = data.truck_number ?? ''
         this.assignedPlant = data.assigned_plant ?? ''
         this.assignedOperator = data.assigned_operator ?? ''
         this.lastServiceDate = data.last_service_date ?? null
+        this.lastChipDate = data.last_chip_date ?? null
         this.cleanlinessRating = data.cleanliness_rating ?? 0
         this.status = data.status ?? 'Active'
-        this.hasBlower = data.has_blower ?? false
         this.createdAt = data.created_at ?? new Date().toISOString()
         this.updatedAt = data.updated_at ?? new Date().toISOString()
         this.updatedLast = data.updated_last ?? new Date().toISOString()
@@ -23,21 +23,22 @@ export class Tractor {
         this.make = data.make ?? ''
         this.model = data.model ?? ''
         this.year = data.year ?? ''
-        this.freight = data.freight ?? ''
+        this.shopStatus = data.shop_status ?? data.shopStatus ?? null
         this.latestHistoryDate = data.latestHistoryDate ?? null
         this.openIssuesCount = data.openIssuesCount ?? 0
         this.commentsCount = data.commentsCount ?? 0
+        this.statusChangedAt = data.status_changed_at ?? data.statusChangedAt ?? null
     }
     static fromApiFormat(data) {
         if (!data) return null
-        return new Tractor(data)
+        return new Mixer(data)
     }
     static fromRow(row) {
         return this.fromApiFormat(row)
     }
     static ensureInstance(obj) {
-        if (obj instanceof Tractor) return obj
-        return Tractor.fromApiFormat(obj)
+        if (obj instanceof Mixer) return obj
+        return Mixer.fromApiFormat(obj)
     }
     toApiFormat() {
         const apiObject = {
@@ -45,14 +46,14 @@ export class Tractor {
             assigned_plant: this.assignedPlant,
             cleanliness_rating: this.cleanlinessRating,
             created_at: DateUtility.toDbTimestamp(this.createdAt) || DateUtility.nowDb(),
-            freight: this.freight || null,
-            has_blower: this.hasBlower,
+            last_chip_date: DateUtility.toDbDate(this.lastChipDate),
             last_service_date: DateUtility.toDbDate(this.lastServiceDate),
             make: this.make,
             model: this.model,
+            shop_status: this.shopStatus,
             status: this.status,
             truck_number: this.truckNumber,
-            updated_at: DateUtility.nowDb(),
+            updated_at: DateUtility.toDbTimestamp(this.updatedAt) || DateUtility.nowDb(),
             updated_by: this.updatedBy,
             updated_last: DateUtility.toDbTimestamp(this.updatedLast),
             vin: (this.vin || '').toUpperCase(),
@@ -67,6 +68,10 @@ export class Tractor {
     getDaysSinceService() {
         if (!this.lastServiceDate) return null
         return Math.ceil((new Date() - new Date(this.lastServiceDate)) / 86400000)
+    }
+    getDaysSinceChip() {
+        if (!this.lastChipDate) return null
+        return Math.ceil((new Date() - new Date(this.lastChipDate)) / 86400000)
     }
     getStatus() {
         return this.status || 'Unknown'
@@ -89,7 +94,16 @@ export class Tractor {
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
+    getFormattedChipDate() {
+        return this.lastChipDate ? new Date(this.lastChipDate).toLocaleDateString() : 'Not available'
+    }
     isVerified() {
         return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
+    }
+    verify(userId) {
+        const now = new Date().toISOString()
+        this.updatedLast = now
+        this.updatedBy = userId
+        return this
     }
 }

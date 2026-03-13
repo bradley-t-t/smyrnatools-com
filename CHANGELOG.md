@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.3] - 2026-03-13
+
+- Moved models, notifications, and types directories from src/ into src/app/ to align with the established app directory structure
+- Updated all import paths across services, views, hooks, and components to reflect the relocated modules
+
 ## [32.2] - 2026-03-13
 
 - Consolidated 13 single-purpose utility files into their parent utilities: FleetUtility, FormatUtility, AuthUtility, AsyncUtility, EntityIdUtility, EquipmentUtility, MixerUtility, TractorUtility, TrailerUtility, UserUtility, RegionPlantScopeUtility, VerificationDueDateUtility, VerificationNotificationProviderUtility, and HistoryViewHelpersUtility all deleted

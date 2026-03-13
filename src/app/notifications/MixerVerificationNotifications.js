@@ -1,6 +1,6 @@
 /** Mixer verification notification provider — alerts when unverified mixers exist at a plant. */
-import { MixerService } from '../services/MixerService'
-import VerifiedUtility, { createVerificationNotificationProvider } from '../utils/VerifiedUtility'
+import { MixerService } from '../../services/MixerService'
+import VerifiedUtility, { createVerificationNotificationProvider } from '../../utils/VerifiedUtility'
 export default createVerificationNotificationProvider({
     entityLabel: (count) => (count === 1 ? 'mixer' : 'mixers'),
     fetchAllItems: () => MixerService.getAllMixers().catch(() => []),

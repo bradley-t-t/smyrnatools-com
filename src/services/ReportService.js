@@ -1,4 +1,4 @@
-import { reportTypes } from '../types/ReportTypes'
+import { reportTypes } from '../app/types/ReportTypes'
 import CacheUtility from '../utils/CacheUtility'
 import { ReportUtility } from '../utils/ReportUtility'
 import { supabase } from './DatabaseService'

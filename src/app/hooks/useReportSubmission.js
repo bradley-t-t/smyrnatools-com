@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
-import { reportTypeMap } from '../../types/ReportTypes'
+import { reportTypeMap } from '../types/ReportTypes'
 const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
 const persistExclusionReason = async (reportId, reason) => {
     if (!reportId || !reason) return

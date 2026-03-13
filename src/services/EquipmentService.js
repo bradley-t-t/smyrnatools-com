@@ -1,6 +1,6 @@
-import { Equipment } from '../models/equipment/Equipment'
-import { EquipmentComment } from '../models/equipment/EquipmentComment'
-import { EquipmentHistory } from '../models/equipment/EquipmentHistory'
+import { Equipment } from '../app/models/equipment/Equipment'
+import { EquipmentComment } from '../app/models/equipment/EquipmentComment'
+import { EquipmentHistory } from '../app/models/equipment/EquipmentHistory'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,

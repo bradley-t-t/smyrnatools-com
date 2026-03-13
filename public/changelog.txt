@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.2] - 2026-03-13
+
+- Consolidated 13 single-purpose utility files into their parent utilities: FleetUtility, FormatUtility, AuthUtility, AsyncUtility, EntityIdUtility, EquipmentUtility, MixerUtility, TractorUtility, TrailerUtility, UserUtility, RegionPlantScopeUtility, VerificationDueDateUtility, VerificationNotificationProviderUtility, and HistoryViewHelpersUtility all deleted
+- Moved formatDate, formatDateTime into DateUtility; compareVINs into ValidationUtility; fleet sorting/operator-assignment helpers into AssetStatsUtility
+- Absorbed auth helpers (emailIsValid, passwordStrength, normalizeName) and UUID operations (generateUUID, isValidUUID, safeUUID) into ValidationUtility
+- Moved resolveEntityId and requireEntityId inline into BaseAssetUtility
+- Added region-scoped plant code resolution (getRegionScopedPlantCodes, resolveUserPlantCode) to BaseAssetUtility
+- Consolidated verification due-date severity logic and notification provider factory into VerifiedUtility
+- Expanded AssetStatsUtility with trailer-specific counts, chip-overdue check, trailer verification, and retired-last sorting
+- Merged HistoryViewHelpersUtility functions (buildConsolidatedTimeline, daysBetween, formatDuration, getStatusColor, pluralizeDays, etc.) into HistoryUtility
+- Inlined debounce function directly into AssetView instead of importing from deleted AsyncUtility
+- Updated all consumers across models, services, notifications, views, hooks, and configs to use the consolidated utility imports
+
 ## [32.1] - 2026-03-13
 
 - Created AssetStatsUtility to consolidate duplicated stats logic (cleanliness averages, service-overdue checks, plant/status distribution counts) shared across fleet utilities

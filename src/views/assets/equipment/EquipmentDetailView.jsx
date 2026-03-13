@@ -5,7 +5,7 @@ import VerificationRequirementsModal from '../../../app/components/common/Verifi
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import VerificationCardSection from '../../../app/components/sections/VerificationCardSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { Equipment } from '../../../models/equipment/Equipment'
+import { Equipment } from '../../../app/models/equipment/Equipment'
 import { supabase } from '../../../services/DatabaseService'
 import { EquipmentService } from '../../../services/EquipmentService'
 import { PlantService } from '../../../services/PlantService'

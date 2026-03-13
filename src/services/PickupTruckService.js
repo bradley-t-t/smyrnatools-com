@@ -1,4 +1,4 @@
-import PickupTruck from '../models/pickup-trucks/PickupTruck'
+import PickupTruck from '../app/models/pickup-trucks/PickupTruck'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,

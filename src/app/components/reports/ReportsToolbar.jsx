@@ -2,7 +2,7 @@ import React from 'react'
 
 import TopSection from '../../../app/components/sections/TopSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { reportTypes } from '../../../types/ReportTypes'
+import { reportTypes } from '../../types/ReportTypes'
 const TAB_LABELS = { all: 'My Reports', lost_loads: 'Lost Loads', review: 'Review' }
 const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
     <button

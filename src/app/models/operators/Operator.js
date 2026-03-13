@@ -1,4 +1,4 @@
-import ValidationUtility from '../../utils/ValidationUtility'
+import ValidationUtility from '../../../utils/ValidationUtility'
 /**
  * Operator domain model. Handles dual snake_case/camelCase field resolution,
  * UUID-based employee IDs, trainer assignments, and API serialization

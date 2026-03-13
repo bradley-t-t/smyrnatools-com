@@ -1,4 +1,4 @@
-import Region from '../models/regions/Region'
+import Region from '../app/models/regions/Region'
 import APIUtility from '../utils/APIUtility'
 import { UserService } from './UserService'
 /**

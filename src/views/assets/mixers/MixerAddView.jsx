@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { Mixer } from '../../../models/mixers/Mixer'
+import { Mixer } from '../../../app/models/mixers/Mixer'
 import { MixerService } from '../../../services/MixerService'
 import { RegionService } from '../../../services/RegionService'
 /**

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { reportTypeMap } from '../../../../types/ReportTypes'
+import { reportTypeMap } from '../../../../app/types/ReportTypes'
 import {
     ComparisonTable,
     ReportCard,

@@ -1,6 +1,6 @@
-import { ListService } from '../services/ListService'
-import { UserService } from '../services/UserService'
-import { getRegionScopedPlantCodes, resolveUserPlantCode } from '../utils/BaseAssetUtility'
+import { ListService } from '../../services/ListService'
+import { UserService } from '../../services/UserService'
+import { getRegionScopedPlantCodes, resolveUserPlantCode } from '../../utils/BaseAssetUtility'
 /**
  * Overdue task-list notification provider.
  * Detects incomplete overdue list items per plant and produces

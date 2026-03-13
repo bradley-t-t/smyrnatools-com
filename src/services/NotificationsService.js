@@ -1,7 +1,7 @@
-import EquipmentVerificationProvider from '../notifications/EquipmentVerificationNotifications'
-import MixerVerificationProvider from '../notifications/MixerVerificationNotifications'
-import OverdueListProvider from '../notifications/OverdueListNotifications'
-import TractorVerificationProvider from '../notifications/TractorVerificationNotifications'
+import EquipmentVerificationProvider from '../app/notifications/EquipmentVerificationNotifications'
+import MixerVerificationProvider from '../app/notifications/MixerVerificationNotifications'
+import OverdueListProvider from '../app/notifications/OverdueListNotifications'
+import TractorVerificationProvider from '../app/notifications/TractorVerificationNotifications'
 import UserNotificationsService from './UserNotificationsService'
 /** Computed providers that derive notifications from live asset/task state. */
 const computedProviders = [

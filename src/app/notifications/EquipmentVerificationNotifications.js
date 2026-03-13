@@ -1,6 +1,6 @@
 /** Equipment verification notification provider — alerts when unverified equipment exists at a plant. */
-import { EquipmentService } from '../services/EquipmentService'
-import VerifiedUtility, { createVerificationNotificationProvider } from '../utils/VerifiedUtility'
+import { EquipmentService } from '../../services/EquipmentService'
+import VerifiedUtility, { createVerificationNotificationProvider } from '../../utils/VerifiedUtility'
 export default createVerificationNotificationProvider({
     entityLabel: () => 'equipment',
     fetchAllItems: () => EquipmentService.getAllEquipments().catch(() => []),

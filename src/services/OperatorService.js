@@ -1,5 +1,5 @@
-import { Operator } from '../models/operators/Operator'
-import { OperatorHistory } from '../models/operators/OperatorHistory'
+import { Operator } from '../app/models/operators/Operator'
+import { OperatorHistory } from '../app/models/operators/OperatorHistory'
 import {
     apiPost,
     apiPostOrThrow,

@@ -1,4 +1,4 @@
-import { Plant } from '../models/plants/Plant'
+import { Plant } from '../app/models/plants/Plant'
 import APIUtility from '../utils/APIUtility'
 const AUTH_FUNCTION = 'plant-service'
 /**

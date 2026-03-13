@@ -1,6 +1,6 @@
 /** Tractor verification notification provider — alerts when unverified tractors exist at a plant. */
-import { TractorService } from '../services/TractorService'
-import VerifiedUtility, { createVerificationNotificationProvider } from '../utils/VerifiedUtility'
+import { TractorService } from '../../services/TractorService'
+import VerifiedUtility, { createVerificationNotificationProvider } from '../../utils/VerifiedUtility'
 export default createVerificationNotificationProvider({
     entityLabel: () => 'tractors',
     fetchAllItems: () => TractorService.getAllTractors().catch(() => []),

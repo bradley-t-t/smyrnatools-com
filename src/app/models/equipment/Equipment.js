@@ -1,4 +1,4 @@
-import VerifiedUtility from '../../utils/VerifiedUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 /**
  * Equipment domain model with heuristic field resolution.
  * Maps snake_case API fields to camelCase properties and applies

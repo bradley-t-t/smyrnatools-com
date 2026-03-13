@@ -1,4 +1,4 @@
-import Trailer from '../models/trailers/Trailer'
+import Trailer from '../app/models/trailers/Trailer'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
