@@ -1,61 +1,26 @@
+import AssetStatsUtility from './AssetStatsUtility'
 import VerifiedUtility from './VerifiedUtility'
 /**
- * Equipment-specific fleet statistics: status counts, plant distribution,
- * cleanliness/condition averages, service-overdue detection, and verification checks.
+ * Equipment-specific fleet utilities. Generic stats delegate to AssetStatsUtility;
+ * only equipment-specific logic (condition average) lives here.
  */
 const equipmentUtility = {
-    formatDate(date) {
-        if (!date) return 'Not available'
-        try {
-            return new Date(date).toLocaleDateString()
-        } catch (error) {
-            return 'Invalid date'
-        }
-    },
-    getCleanlinessAverage(equipments) {
-        if (!Array.isArray(equipments) || !equipments.length) return 'N/A'
-        const ratings = equipments.filter((e) => e.cleanlinessRating != null).map((e) => Number(e.cleanlinessRating))
-        return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 'N/A'
-    },
+    getCleanlinessAverage: (equipments) => AssetStatsUtility.getCleanlinessAverage(equipments),
+    /** Equipment-specific: average condition rating across the fleet */
     getConditionAverage(equipments) {
         if (!Array.isArray(equipments) || !equipments.length) return 'N/A'
         const ratings = equipments.filter((e) => e.conditionRating != null).map((e) => Number(e.conditionRating))
         return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 'N/A'
     },
-    getNeedServiceCount(equipments) {
-        if (!Array.isArray(equipments)) return 0
-        return equipments.filter((equipment) => equipmentUtility.isServiceOverdue(equipment.lastServiceDate)).length
-    },
-    getPlantCounts(equipments) {
-        if (!Array.isArray(equipments)) return {}
-        return equipments.reduce((counts, equipment) => {
-            const plant = equipment.assignedPlant || 'Unassigned'
-            counts[plant] = (counts[plant] || 0) + 1
-            return counts
-        }, {})
-    },
-    getStatusCounts(equipments) {
-        if (!Array.isArray(equipments)) return {}
-        const counts = { Active: 0, 'In Shop': 0, Retired: 0, Spare: 0, Total: equipments.length }
-        equipments.forEach((equipment) => {
-            const status = equipment.status || 'Unknown'
-            if (['Active', 'Spare', 'In Shop', 'Retired'].includes(status)) counts[status]++
-        })
-        return counts
-    },
-    isServiceOverdue(serviceDate) {
-        if (!serviceDate) return false
-        try {
-            const service = new Date(serviceDate)
-            const today = new Date()
-            const diffDays = Math.ceil((today - service) / (1000 * 60 * 60 * 24))
-            return diffDays > 180
-        } catch (error) {
-            return false
-        }
-    },
-    isVerified(updatedLast, updatedAt, updatedBy) {
-        return VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
-    }
+
+    getNeedServiceCount: (equipments) => AssetStatsUtility.getNeedServiceCount(equipments),
+
+    getPlantCounts: (equipments) => AssetStatsUtility.getPlantCounts(equipments),
+
+    getStatusCounts: (equipments) => AssetStatsUtility.getStatusCounts(equipments),
+
+    isServiceOverdue: (serviceDate) => AssetStatsUtility.isServiceOverdue(serviceDate, 180),
+
+    isVerified: (updatedLast, updatedAt, updatedBy) => VerifiedUtility.isVerified(updatedLast, updatedAt, updatedBy)
 }
 export default equipmentUtility

@@ -1,6 +1,4 @@
 import './app/index.css'
-import './utils/APIErrorHandler'
-import './utils/ConsoleLogger'
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'

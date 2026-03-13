@@ -1,6 +1,7 @@
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import APIUtility from './APIUtility'
+import resolveEntityId from './EntityIdUtility'
 /**
  * Shared asset-level helpers used across all fleet services (Mixer, Tractor, Trailer, Equipment).
  * Provides user resolution, API wrappers, issue/comment counting, status history,
@@ -9,7 +10,8 @@ import APIUtility from './APIUtility'
 const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000'
 const VALID_SEVERITIES = ['Low', 'Medium', 'High']
 const DEFAULT_SEVERITY = 'Medium'
-export async function resolveUserId(userId) {
+export { resolveEntityId }
+async function resolveUserId(userId) {
     if (userId) return userId
     const user = await UserService.getCurrentUser()
     return typeof user === 'object' && user !== null ? user.id : user
@@ -27,9 +29,6 @@ export function uppercaseVin(entity) {
         entity.vin = entity.vin.toUpperCase()
     }
     return entity
-}
-export function resolveEntityId(entityOrId) {
-    return typeof entityOrId === 'object' ? entityOrId.id : entityOrId
 }
 export function dispatchNotificationsRefresh(detail = null) {
     try {

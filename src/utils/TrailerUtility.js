@@ -1,24 +1,14 @@
+import AssetStatsUtility from './AssetStatsUtility'
 /**
- * Trailer-specific fleet statistics: type-based counts (Cement/End Dump),
- * status distribution, cleanliness averages, 90-day service-overdue detection,
- * and weekly verification with history-aware staleness checks.
+ * Trailer-specific fleet utilities. Generic stats delegate to AssetStatsUtility;
+ * trailer-specific logic (type-based counts, 90-day service threshold,
+ * history-aware verification) lives here.
  */
 const TrailerUtility = {
-    getCleanlinessAverage(trailers) {
-        const ratings = trailers.filter((t) => t.cleanlinessRating).map((t) => t.cleanlinessRating)
-        return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 0
-    },
-    getNeedServiceCount(trailers) {
-        return trailers.filter((t) => TrailerUtility.isServiceOverdue(t.lastServiceDate)).length
-    },
-    getPlantCounts(trailers) {
-        const counts = {}
-        trailers.forEach((trailer) => {
-            const plant = trailer.assignedPlant || 'Unassigned'
-            counts[plant] = (counts[plant] || 0) + 1
-        })
-        return counts
-    },
+    getCleanlinessAverage: (trailers) => AssetStatsUtility.getCleanlinessAverage(trailers),
+    getNeedServiceCount: (trailers) => AssetStatsUtility.getNeedServiceCount(trailers, 'lastServiceDate', 90),
+    getPlantCounts: (trailers) => AssetStatsUtility.getPlantCounts(trailers),
+    /** Trailer-specific: counts by trailer type (Cement / End Dump) */
     getStatusCounts(trailers) {
         const counts = { Total: trailers.length }
         ;['Cement', 'End Dump'].forEach((type) => {
@@ -26,6 +16,8 @@ const TrailerUtility = {
         })
         return counts
     },
+
+    /** Trailer-specific: counts by operational status */
     getStatusCountsByStatus(trailers) {
         const statuses = ['Active', 'Spare', 'In Shop', 'Retired']
         const counts = {}
@@ -34,13 +26,9 @@ const TrailerUtility = {
         })
         return counts
     },
-    isServiceOverdue(lastServiceDate) {
-        if (!lastServiceDate) return true
-        const serviceDate = new Date(lastServiceDate)
-        const now = new Date()
-        const diffDays = Math.ceil((now - serviceDate) / (1000 * 60 * 60 * 24))
-        return diffDays > 90
-    },
+
+    isServiceOverdue: (serviceDate) => AssetStatsUtility.isServiceOverdue(serviceDate, 90),
+    /** Trailer-specific: weekly verification with history-aware staleness */
     isVerified(updatedLast, updatedAt, updatedBy, latestHistoryDate = null) {
         if (!updatedLast || !updatedBy) return false
         const lastVerification = new Date(updatedLast)
