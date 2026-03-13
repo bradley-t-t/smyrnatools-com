@@ -1,28 +1,13 @@
 import React from 'react'
 /**
- * Sticky dashboard top bar with refresh button and optional plant filter.
- * The plant selector is hidden for Office-type regions.
- * @param {Object} props
- * @param {string} props.accentColor - Theme accent color for the refresh button.
- * @param {boolean} props.isMobile - Applies compact spacing when true.
- * @param {boolean} props.refreshing - Disables the refresh button and shows a spinner.
- * @param {Function} props.onRefresh - Callback triggered by the refresh button.
- * @param {string} props.dashboardRegionCode - Currently selected region code.
- * @param {Object} props.selectedRegion - Region object with `type` used to hide plant filter for Office.
- * @param {string|null} props.dashboardPlant - Currently selected plant code, or null for "All Plants".
- * @param {Array} props.regionPlants - Plants available in the current region for label lookup.
- * @param {Function} props.setPlantModalOpen - Opens the plant selection modal.
+ * Sticky dashboard top bar. Displays the dashboard title and region/plant breadcrumb.
+ * Plant filter and refresh controls live in the sidebar.
  */
 export default function DashboardHeader({
     accentColor,
     isMobile,
-    refreshing,
-    onRefresh,
-    dashboardRegionCode,
-    selectedRegion,
-    dashboardPlant,
-    regionPlants,
-    setPlantModalOpen,
+    regionDisplayName,
+    heroRegionSub,
     isLoading = false
 }) {
     return (
@@ -40,49 +25,25 @@ export default function DashboardHeader({
             }}
         >
             {isLoading ? (
-                <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3 mx-auto max-w-full">
+                <div className="flex flex-wrap items-center gap-2 mx-auto max-w-full">
                     <div className={`${isMobile ? 'h-6 w-28' : 'h-7 w-32'} rounded-lg bg-slate-200 animate-pulse`} />
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className={`${isMobile ? 'h-9 w-9' : 'h-9 w-24'} rounded-lg bg-slate-200 animate-pulse`} />
-                        <div className="h-9 w-24 rounded-lg bg-slate-200 animate-pulse" />
-                    </div>
+                    <div className="h-4 w-40 rounded bg-slate-200 animate-pulse" />
                 </div>
             ) : (
-                <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3 mx-auto max-w-full">
+                <div className="flex flex-wrap items-center gap-3 mx-auto max-w-full">
                     <h1 className={`font-bold text-slate-900 m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>Dashboard</h1>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={onRefresh}
-                            disabled={refreshing}
-                            className="flex items-center justify-center gap-1.5 rounded-lg text-white text-sm font-medium px-3 py-2 min-w-9"
-                            style={{
-                                backgroundColor: accentColor,
-                                cursor: refreshing ? 'not-allowed' : 'pointer',
-                                opacity: refreshing ? 0.7 : 1
-                            }}
-                        >
-                            <i className={`fas fa-sync-alt ${refreshing ? 'animate-spin' : ''}`} />
-                            <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
-                        </button>
-                        {dashboardRegionCode && selectedRegion?.type !== 'Office' && (
-                            <button
-                                type="button"
-                                onClick={() => setPlantModalOpen(true)}
-                                disabled={refreshing}
-                                className="bg-white border border-gray-300 rounded-lg text-gray-700 text-sm font-medium px-3 py-2 max-w-36 truncate cursor-pointer"
-                            >
-                                {dashboardPlant === 'MY_PLANTS'
-                                    ? 'My Plants'
-                                    : dashboardPlant?.startsWith('DISTRICT:')
-                                      ? dashboardPlant.slice(9)
-                                      : dashboardPlant
-                                        ? regionPlants.find((p) => (p.plantCode || p.plant_code) === dashboardPlant)
-                                              ?.plantName || dashboardPlant
-                                        : 'All Plants'}
-                            </button>
-                        )}
-                    </div>
+                    {regionDisplayName && (
+                        <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                            <i className="fas fa-chevron-right text-[8px] text-slate-300" />
+                            <span>{regionDisplayName}</span>
+                            {heroRegionSub && (
+                                <>
+                                    <i className="fas fa-chevron-right text-[8px] text-slate-300" />
+                                    <span className="text-slate-400">{heroRegionSub}</span>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

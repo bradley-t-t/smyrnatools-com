@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.6] - 2026-03-13
+
+- Redesigned dashboard layout from single-column to a sidebar + main content split
+- Added DashboardSidebar component with collapsible sections for AI analysis, fleet alerts, and people pipeline, plus a minimized rail view
+- Added KeyMetricsStrip component showing top-level KPIs (YPH, cleanliness, safety in plant mode; fleet total, allocation, shop, overdue in region mode)
+- Simplified DashboardHeader to show a title with region/plant breadcrumb instead of housing refresh and plant filter controls (moved to sidebar)
+- Replaced separate DashboardPlantSummary and DashboardRegionSummary with unified sidebar that switches AI context based on plant vs region mode
+- Integrated useDashboardChat directly in DashboardView, building chat context for whichever mode (plant or region) is active
+- Sidebar is hidden on mobile, shown as a sticky right panel on desktop with smooth expand/collapse animation
+
 ## [32.5] - 2026-03-13
 
 - Merged AppInstallPromptService and AppService into UserPreferencesService, consolidating app version fetching, PWA install prompt logic, and device detection into a single service
