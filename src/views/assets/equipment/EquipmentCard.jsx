@@ -1,7 +1,8 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
-import EquipmentUtility from '../../../utils/EquipmentUtility'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 /**
  * Grid-mode card for a single equipment item. Displays key details
  * (plant, status, type, service date, hours/mileage, cleanliness, condition)
@@ -9,23 +10,18 @@ import EquipmentUtility from '../../../utils/EquipmentUtility'
  * layout and interaction chrome to the shared CardSection component.
  */
 function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onShowIssueModal }) {
-    const isServiceOverdue = EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)
-    // Verification can be a method (attached at runtime) or computed statically via EquipmentUtility.
+    const isServiceOverdue = AssetStatsUtility.isServiceOverdue(equipment.lastServiceDate)
+    // Verification can be a method (attached at runtime) or computed statically via VerifiedUtility.
     const isVerified =
         typeof equipment.isVerified === 'function'
             ? equipment.isVerified(equipment.latestHistoryDate)
-            : EquipmentUtility.isVerified(
-                  equipment.updatedLast,
-                  equipment.updatedAt,
-                  equipment.updatedBy,
-                  equipment.latestHistoryDate
-              )
+            : VerifiedUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy)
     let statusColor = 'var(--accent)'
     if (equipment.status === 'Active') statusColor = 'var(--status-active)'
     else if (equipment.status === 'Spare') statusColor = 'var(--status-spare)'
     else if (equipment.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (equipment.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (EquipmentUtility.isServiceOverdue(equipment.lastServiceDate)) statusColor = 'var(--error)'
+    else if (AssetStatsUtility.isServiceOverdue(equipment.lastServiceDate)) statusColor = 'var(--error)'
     const verificationTooltip =
         !equipment.updatedLast || !equipment.updatedBy
             ? 'Equipment never verified'

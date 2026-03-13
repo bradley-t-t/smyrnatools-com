@@ -1,7 +1,7 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
-import formatUtility from '../../../utils/FormatUtility'
+import DateUtility from '../../../utils/DateUtility'
 import GrammarUtility from '../../../utils/GrammarUtility'
 /** Maps operator lifecycle statuses to their card accent colors. */
 const operatorStatusColors = {
@@ -82,7 +82,7 @@ function OperatorCard({
                 <div className="detail-row">
                     <div className="detail-label">Pending Start Date</div>
                     <div className="detail-value">
-                        {operator.pendingStartDate ? formatUtility.formatDate(operator.pendingStartDate) : 'Not Set'}
+                        {operator.pendingStartDate ? DateUtility.formatDate(operator.pendingStartDate) : 'Not Set'}
                     </div>
                 </div>
             )}

@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-import resolveEntityId, { requireEntityId } from '../utils/EntityIdUtility'
+import { requireEntityId, resolveEntityId } from '../utils/BaseAssetUtility'
 import { supabase } from './DatabaseService'
 import { RegionService } from './RegionService'
 const USER_FUNCTION = '/user-service'

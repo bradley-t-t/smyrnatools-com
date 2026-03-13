@@ -1,6 +1,7 @@
 import { EquipmentService } from '../../../services/EquipmentService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import CleanupUtility from '../../../utils/CleanupUtility'
-import EquipmentUtility from '../../../utils/EquipmentUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 import EquipmentAddView from '../equipment/EquipmentAddView'
 import EquipmentCard from '../equipment/EquipmentCard'
 import EquipmentDetailView from '../equipment/EquipmentDetailView'
@@ -41,13 +42,8 @@ const equipmentConfig = {
     addViewPassesPlants: true,
     attachIsVerified: (obj) => {
         if (!obj) return obj
-        obj.isVerified = function (latestHistoryDate) {
-            return EquipmentUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        obj.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
         return obj
     },
@@ -57,17 +53,9 @@ const equipmentConfig = {
         'Equipment #': (a, b) => (parseFloat(a.identifyingNumber) || 0) - (parseFloat(b.identifyingNumber) || 0),
         Verified: (a, b) => {
             const aVal =
-                a.status === 'Retired'
-                    ? 0
-                    : EquipmentUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy)
-                      ? 2
-                      : 1
+                a.status === 'Retired' ? 0 : VerifiedUtility.isVerified(a.updatedLast, a.updatedAt, a.updatedBy) ? 2 : 1
             const bVal =
-                b.status === 'Retired'
-                    ? 0
-                    : EquipmentUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy)
-                      ? 2
-                      : 1
+                b.status === 'Retired' ? 0 : VerifiedUtility.isVerified(b.updatedLast, b.updatedAt, b.updatedBy) ? 2 : 1
             return aVal - bVal
         }
     },
@@ -106,7 +94,7 @@ const equipmentConfig = {
         {
             getValue: (item) =>
                 item.lastServiceDate ? new Date(item.lastServiceDate).toLocaleDateString() : 'Unknown',
-            isOverdue: (item) => EquipmentUtility.isServiceOverdue(item.lastServiceDate),
+            isOverdue: (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
             label: 'Last Service'
         },
         {
@@ -186,7 +174,7 @@ const equipmentConfig = {
                 getIsVerified: (item) =>
                     typeof item.isVerified === 'function'
                         ? item.isVerified(item.latestHistoryDate)
-                        : EquipmentUtility.isVerified(
+                        : VerifiedUtility.isVerified(
                               item.updatedLast,
                               item.updatedAt,
                               item.updatedBy,
@@ -268,10 +256,10 @@ const equipmentConfig = {
 
     specialStatusFilters: {
         'Not Verified': (item) =>
-            !EquipmentUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy) && item.status !== 'Retired',
+            !VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy) && item.status !== 'Retired',
         'Open Issues': (item) => Number(item.openIssuesCount || 0) > 0,
-        'Past Due Service': (item) => EquipmentUtility.isServiceOverdue(item.lastServiceDate),
-        Verified: (item) => EquipmentUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy)
+        'Past Due Service': (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
+        Verified: (item) => VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy)
     },
 
     statusBadgeClasses: {
@@ -316,7 +304,7 @@ const equipmentConfig = {
             ...(!item.year && !item.yearMade ? ['Year'] : [])
         ],
         hasLastChipDate: false,
-        isServiceOverdueFn: EquipmentUtility.isServiceOverdue,
+        isServiceOverdueFn: AssetStatsUtility.isServiceOverdue,
         itemType: 'equipment',
         updateFn: (id, updates) => EquipmentService.updateEquipment(id, updates),
         verifyFn: (id) => EquipmentService.verifyEquipment(id)

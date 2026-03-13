@@ -1,7 +1,8 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
-import { TractorUtility } from '../../../utils/TractorUtility'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 /**
  * Grid-mode card for a single tractor. Displays plant, operator, status,
  * service overdue warning, blower indicator, cleanliness rating, and
@@ -16,22 +17,17 @@ function TractorCard({
     onShowCommentModal,
     onShowIssueModal
 }) {
-    const isServiceOverdue = TractorUtility.isServiceOverdue(tractor.lastServiceDate)
+    const isServiceOverdue = AssetStatsUtility.isServiceOverdue(tractor.lastServiceDate)
     const isVerified =
         typeof tractor.isVerified === 'function'
             ? tractor.isVerified(tractor.latestHistoryDate)
-            : TractorUtility.isVerified(
-                  tractor.updatedLast,
-                  tractor.updatedAt,
-                  tractor.updatedBy,
-                  tractor.latestHistoryDate
-              )
+            : VerifiedUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy)
     let statusColor = 'var(--accent)'
     if (tractor.status === 'Active') statusColor = 'var(--status-active)'
     else if (tractor.status === 'Spare') statusColor = 'var(--status-spare)'
     else if (tractor.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (tractor.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (TractorUtility.isServiceOverdue(tractor.lastServiceDate)) statusColor = 'var(--error)'
+    else if (AssetStatsUtility.isServiceOverdue(tractor.lastServiceDate)) statusColor = 'var(--error)'
     const verificationTooltip =
         !tractor.updatedLast || !tractor.updatedBy
             ? 'Tractor never verified'

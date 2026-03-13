@@ -6,7 +6,7 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { OperatorService } from '../../../services/OperatorService'
 import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
-import UserUtility from '../../../utils/UserUtility'
+import ValidationUtility from '../../../utils/ValidationUtility'
 /**
  * Slide-in form for creating a new operator record. Supports name, phone,
  * plant assignment (region-scoped), status (with permission-gated Training/
@@ -117,18 +117,19 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
         setIsSaving(true)
         try {
             let userId = sessionStorage.getItem('userId')
-            if (!UserUtility.isValidUUID(userId)) throw new Error('Invalid or missing User ID. Please log in again.')
+            if (!ValidationUtility.isValidUUID(userId))
+                throw new Error('Invalid or missing User ID. Please log in again.')
             const now = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
             const normalizedPending =
                 status === 'Pending Start' && pendingStartDate ? pendingStartDate.slice(0, 10) : null
             const newOperator = {
                 assigned_trainer:
                     ['Training', 'Pending Start'].includes(status) && !isTrainer
-                        ? UserUtility.safeUUID(assignedTrainer)
+                        ? ValidationUtility.safeUUID(assignedTrainer)
                         : null,
                 automatic_restriction: automaticRestriction,
                 created_at: now,
-                employee_id: UserUtility.generateUUID(),
+                employee_id: ValidationUtility.generateUUID(),
                 is_trainer: isTrainer,
                 name: name.trim(),
                 pending_start_date: normalizedPending,

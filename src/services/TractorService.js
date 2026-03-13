@@ -16,8 +16,8 @@ import {
     uppercaseVin
 } from '../utils/BaseAssetUtility'
 import CleanupUtility from '../utils/CleanupUtility'
-import { TractorUtility } from '../utils/TractorUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import VerifiedUtility from '../utils/VerifiedUtility'
 const SERVICE_PREFIX = '/tractor-service'
 /** Fields that are allowed in the tractor history audit trail. */
 const ALLOWED_HISTORY_FIELDS = [
@@ -41,8 +41,7 @@ function toSnakeCase(fieldName) {
 /** Attaches an isVerified() method and uppercases VIN on a tractor instance. */
 function enrichTractorWithVerification(tractor) {
     tractor.vin = (tractor.vin || '').toUpperCase()
-    tractor.isVerified = () =>
-        TractorUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy, tractor.latestHistoryDate)
+    tractor.isVerified = () => VerifiedUtility.isVerified(tractor.updatedLast, tractor.updatedAt, tractor.updatedBy)
     return tractor
 }
 /**
@@ -66,13 +65,8 @@ export class TractorService {
         ValidationUtility.requireUUID(id, 'Invalid tractor ID')
         const tractor = await this.getTractorById(id)
         if (!tractor) return null
-        tractor.isVerified = function (latestHistoryDate) {
-            return TractorUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        tractor.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
         return tractor
     }
@@ -222,7 +216,7 @@ export class TractorService {
     static async searchTractorsByVinProcessed(query) {
         const vinTractors = await this.searchTractorsByVin(query)
         return vinTractors.map((t) => {
-            t.isVerified = () => TractorUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy, t.latestHistoryDate)
+            t.isVerified = () => VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)
             if (typeof t.openIssuesCount !== 'number') t.openIssuesCount = 0
             if (typeof t.commentsCount !== 'number') t.commentsCount = 0
             return t

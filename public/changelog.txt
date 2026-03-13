@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.1] - 2026-03-13
+
+- Created AssetStatsUtility to consolidate duplicated stats logic (cleanliness averages, service-overdue checks, plant/status distribution counts) shared across fleet utilities
+- Refactored MixerUtility, TractorUtility, EquipmentUtility, and TrailerUtility to delegate generic stats to AssetStatsUtility, keeping only asset-specific logic inline
+- Removed unused formatDate methods from MixerUtility, TractorUtility, and EquipmentUtility
+- Deleted APIErrorHandler that was suppressing CORS and fetch-related console errors globally
+- Deleted ConsoleLogger that was capturing console errors/warnings and reporting them to Supabase
+- Removed APIErrorHandler and ConsoleLogger imports from the app entry point
+- Deleted LookupUtility (operator name/ID resolution, plant name lookup, tractor truck number lookup, multi-assignment detection)
+- Moved resolveEntityId out of BaseAssetUtility into its own EntityIdUtility module and re-exported it for backwards compatibility
+
 ## [32.0] - 2026-03-13
 
 - Reordered navigation menu items to place Reports before List in both the menu items array and the Productivity dropdown group

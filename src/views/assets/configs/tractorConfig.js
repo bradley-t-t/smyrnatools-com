@@ -1,8 +1,8 @@
 import { TractorService } from '../../../services/TractorService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import CleanupUtility from '../../../utils/CleanupUtility'
-import FormatUtility from '../../../utils/FormatUtility'
-import { TractorUtility } from '../../../utils/TractorUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 import TractorAddView from '../tractors/TractorAddView'
 import TractorCard from '../tractors/TractorCard'
 import TractorDetailView from '../tractors/TractorDetailView'
@@ -17,13 +17,8 @@ const tractorConfig = {
     addViewPassesPlants: true,
     attachIsVerified: (obj) => {
         if (!obj) return obj
-        obj.isVerified = function (latestHistoryDate) {
-            return TractorUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        obj.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
         return obj
     },
@@ -41,7 +36,7 @@ const tractorConfig = {
             return String(aVal).localeCompare(String(bVal))
         },
         'Truck #': (a, b) => (parseFloat(a.truckNumber) || 0) - (parseFloat(b.truckNumber) || 0),
-        VIN: (a, b) => FormatUtility.compareVINs(a.vinNumber, b.vinNumber),
+        VIN: (a, b) => ValidationUtility.compareVINs(a.vinNumber, b.vinNumber),
         Verified: (a, b) => {
             const aVal = a.status === 'Retired' ? 0 : a.isVerified?.() ? 2 : 1
             const bVal = b.status === 'Retired' ? 0 : b.isVerified?.() ? 2 : 1
@@ -74,7 +69,7 @@ const tractorConfig = {
         {
             getValue: (item) =>
                 item.lastServiceDate ? new Date(item.lastServiceDate).toLocaleDateString() : 'Unknown',
-            isOverdue: (item) => TractorUtility.isServiceOverdue(item.lastServiceDate),
+            isOverdue: (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
             label: 'Last Service'
         },
         { getValue: (item) => (item.hasBlower ? 'Yes' : 'No'), label: 'Has Blower' },
@@ -214,7 +209,7 @@ const tractorConfig = {
     specialStatusFilters: {
         'Not Verified': (item) => !item.isVerified?.() && item.status !== 'Retired',
         'Open Issues': (item) => Number(item.openIssuesCount || 0) > 0,
-        'Past Due Service': (item) => TractorUtility.isServiceOverdue(item.lastServiceDate),
+        'Past Due Service': (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
         Verified: (item) => item.isVerified?.()
     },
 
@@ -262,7 +257,7 @@ const tractorConfig = {
             ...(!item.year ? ['Year'] : [])
         ],
         hasLastChipDate: false,
-        isServiceOverdueFn: TractorUtility.isServiceOverdue,
+        isServiceOverdueFn: AssetStatsUtility.isServiceOverdue,
         itemType: 'tractor',
         updateFn: (id, updates) => TractorService.updateTractor(id, updates),
         verifyFn: (id) => TractorService.verifyTractor(id)

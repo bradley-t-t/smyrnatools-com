@@ -1,5 +1,5 @@
 import { DateUtility } from '../../utils/DateUtility'
-import MixerUtility from '../../utils/MixerUtility'
+import VerifiedUtility from '../../utils/VerifiedUtility'
 /**
  * Mixer domain model. Maps snake_case API data to camelCase properties,
  * provides serialization (toApiFormat), status/operator mutations,
@@ -97,8 +97,8 @@ export class Mixer {
     getFormattedChipDate() {
         return this.lastChipDate ? new Date(this.lastChipDate).toLocaleDateString() : 'Not available'
     }
-    isVerified(latestHistoryDate) {
-        return MixerUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
+    isVerified() {
+        return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
     }
     verify(userId) {
         const now = new Date().toISOString()

@@ -11,8 +11,8 @@ import { EquipmentService } from '../../../services/EquipmentService'
 import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import DateUtility from '../../../utils/DateUtility'
-import EquipmentUtility from '../../../utils/EquipmentUtility'
 import EquipmentCommentModal from './EquipmentCommentModal'
 import EquipmentHistoryView from './EquipmentHistoryView'
 import EquipmentIssueModal from './EquipmentIssueModal'
@@ -792,7 +792,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                 className="form-control"
                                 readOnly={!canEditEquipment}
                             />
-                            {lastServiceDate && EquipmentUtility.isServiceOverdue(lastServiceDate) && (
+                            {lastServiceDate && AssetStatsUtility.isServiceOverdue(lastServiceDate) && (
                                 <div className="warning-text">Service overdue</div>
                             )}
                             <div

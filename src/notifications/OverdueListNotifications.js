@@ -1,6 +1,6 @@
 import { ListService } from '../services/ListService'
 import { UserService } from '../services/UserService'
-import RegionPlantScopeUtility from '../utils/RegionPlantScopeUtility'
+import { getRegionScopedPlantCodes, resolveUserPlantCode } from '../utils/BaseAssetUtility'
 /**
  * Overdue task-list notification provider.
  * Detects incomplete overdue list items per plant and produces
@@ -48,7 +48,7 @@ async function getNotifications({ userId, selectedRegion }) {
     await fetchListItemsWithRetry()
     const allItems = ListService.listItems || []
     if (hasMultiple) {
-        const scopedPlants = await RegionPlantScopeUtility.getRegionScopedPlantCodes(userId, selectedRegion)
+        const scopedPlants = await getRegionScopedPlantCodes(userId, selectedRegion)
         if (scopedPlants.size === 0) return []
         const byPlant = new Map()
         for (const item of allItems) {
@@ -64,7 +64,7 @@ async function getNotifications({ userId, selectedRegion }) {
         })
         return notifications
     }
-    const userPlantCode = await RegionPlantScopeUtility.resolveUserPlantCode(userId)
+    const userPlantCode = await resolveUserPlantCode(userId)
     if (!userPlantCode) return []
     const overdueCount = allItems.filter((item) => {
         const itemPlantCode = String(item.plant_code || '').toUpperCase()

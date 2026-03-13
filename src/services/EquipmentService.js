@@ -13,20 +13,15 @@ import {
     resolveEntityId,
     resolveUserIdOrAnonymous
 } from '../utils/BaseAssetUtility'
-import EquipmentUtility from '../utils/EquipmentUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import VerifiedUtility from '../utils/VerifiedUtility'
 const SERVICE_PREFIX = '/equipment-service'
-/** Attaches a lazy isVerified() method to an equipment instance using EquipmentUtility logic. */
+/** Attaches a lazy isVerified() method to an equipment instance using VerifiedUtility logic. */
 function attachIsVerified(equipment) {
     if (!equipment) return equipment
     if (typeof equipment.isVerified !== 'function') {
-        equipment.isVerified = function (latestHistoryDate) {
-            return EquipmentUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        equipment.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
     }
     return equipment

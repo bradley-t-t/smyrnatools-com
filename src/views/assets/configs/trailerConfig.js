@@ -1,7 +1,7 @@
 import { TractorService } from '../../../services/TractorService'
 import { TrailerService } from '../../../services/TrailerService'
-import FormatUtility from '../../../utils/FormatUtility'
-import { TrailerUtility } from '../../../utils/TrailerUtility'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
+import { ValidationUtility } from '../../../utils/ValidationUtility'
 import TrailerAddView from '../trailers/TrailerAddView'
 import TrailerCard from '../trailers/TrailerCard'
 import TrailerDetailView from '../trailers/TrailerDetailView'
@@ -39,7 +39,7 @@ const trailerConfig = {
             return (tractorA?.truckNumber || '').localeCompare(tractorB?.truckNumber || '')
         },
         'Trailer #': (a, b) => (parseFloat(a.trailerNumber) || 0) - (parseFloat(b.trailerNumber) || 0),
-        VIN: (a, b) => FormatUtility.compareVINs(a.vinNumber, b.vinNumber)
+        VIN: (a, b) => ValidationUtility.compareVINs(a.vinNumber, b.vinNumber)
     },
     defaultSortFields: { numberField: 'trailerNumber', statusField: 'status' },
 
@@ -69,7 +69,7 @@ const trailerConfig = {
         {
             getValue: (item) =>
                 item.lastServiceDate ? new Date(item.lastServiceDate).toLocaleDateString() : 'Unknown',
-            isOverdue: (item) => TrailerUtility.isServiceOverdue(item.lastServiceDate),
+            isOverdue: (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate, 90),
             label: 'Last Service'
         },
         {
@@ -204,7 +204,7 @@ const trailerConfig = {
         Cement: (item) => item.trailerType === 'Cement',
         'End Dump': (item) => item.trailerType === 'End Dump',
         'Open Issues': (item) => Number(item.openIssuesCount || 0) > 0,
-        'Past Due Service': (item) => TrailerUtility.isServiceOverdue(item.lastServiceDate)
+        'Past Due Service': (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate, 90)
     },
 
     statusBadgeClasses: {

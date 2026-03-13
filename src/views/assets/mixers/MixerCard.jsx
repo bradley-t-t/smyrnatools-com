@@ -1,7 +1,8 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
-import MixerUtility from '../../../utils/MixerUtility'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 /**
  * Grid-mode card for a single mixer. Displays plant, operator, status
  * (with In Shop sub-statuses), service/chip overdue warnings, cleanliness
@@ -16,12 +17,12 @@ function MixerCard({
     onShowCommentModal,
     onShowIssueModal
 }) {
-    const isServiceOverdue = MixerUtility.isServiceOverdue(mixer.lastServiceDate)
-    const isChipOverdue = MixerUtility.isChipOverdue(mixer.lastChipDate)
+    const isServiceOverdue = AssetStatsUtility.isServiceOverdue(mixer.lastServiceDate)
+    const isChipOverdue = AssetStatsUtility.isChipOverdue(mixer.lastChipDate)
     const isVerified =
         typeof mixer.isVerified === 'function'
             ? mixer.isVerified(mixer.latestHistoryDate)
-            : MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
+            : VerifiedUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy)
     let statusColor = 'var(--accent)'
     if (mixer.status === 'Active') statusColor = 'var(--status-active)'
     else if (mixer.status === 'Spare') statusColor = 'var(--status-spare)'
@@ -30,7 +31,7 @@ function MixerCard({
     else if (mixer.status === 'In Shop' && mixer.shopStatus === 'third_party') statusColor = '#7c3aed'
     else if (mixer.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (mixer.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (MixerUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)'
+    else if (AssetStatsUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)'
     const getDisplayStatus = () => {
         if (mixer.status !== 'In Shop') return mixer.status || 'Unknown'
         switch (mixer.shopStatus) {

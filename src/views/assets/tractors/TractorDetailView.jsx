@@ -12,8 +12,8 @@ import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
 import { TractorService } from '../../../services/TractorService'
 import { UserService } from '../../../services/UserService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import DateUtility from '../../../utils/DateUtility'
-import { TractorUtility } from '../../../utils/TractorUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
 import OperatorSelectModal from '../mixers/OperatorSelectModal'
 import TractorCommentModal from './TractorCommentModal'
@@ -765,7 +765,7 @@ function TractorDetailView({ tractorId, onClose }) {
                                 setYear={setYear}
                                 setLastServiceDate={setLastServiceDate}
                                 onSaveAndVerify={handleSaveMissingFields}
-                                isServiceOverdue={TractorUtility.isServiceOverdue}
+                                isServiceOverdue={AssetStatsUtility.isServiceOverdue}
                                 assignedOperator={assignedOperator}
                                 itemType="Tractor"
                                 itemId={tractor?.id}
@@ -1047,7 +1047,7 @@ function TractorDetailView({ tractorId, onClose }) {
                                 className="form-control"
                                 readOnly={!canEditTractor}
                             />
-                            {lastServiceDate && TractorUtility.isServiceOverdue(lastServiceDate) && (
+                            {lastServiceDate && AssetStatsUtility.isServiceOverdue(lastServiceDate) && (
                                 <div className="warning-text">Service overdue</div>
                             )}
                             <div

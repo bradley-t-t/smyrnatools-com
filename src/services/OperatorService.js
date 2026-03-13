@@ -9,7 +9,7 @@ import {
     filterByRegionCodes,
     getDuplicateFieldValues
 } from '../utils/BaseAssetUtility'
-import UserUtility from '../utils/UserUtility'
+import ValidationUtility from '../utils/ValidationUtility'
 import { supabase } from './DatabaseService'
 import { MixerService } from './MixerService'
 import { TractorService } from './TractorService'
@@ -51,7 +51,7 @@ class OperatorServiceImpl {
     }
     /** Fetches a single operator by employee ID, returning null if not found. */
     async getOperatorByEmployeeId(employeeId) {
-        if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
+        if (!employeeId || !ValidationUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
         const { res, json } = await apiPost(`${SERVICE_PREFIX}/get-by-employee-id`, { employeeId })
         if (!res.ok) return null
         const data = json?.data ?? null
@@ -62,7 +62,7 @@ class OperatorServiceImpl {
     /** Creates a new operator, auto-generating an employee ID if not valid. */
     async createOperator(operator) {
         const op = operator instanceof Operator ? operator : new Operator(operator)
-        if (!UserUtility.isValidUUID(op.employeeId)) op.employeeId = UserUtility.generateUUID()
+        if (!ValidationUtility.isValidUUID(op.employeeId)) op.employeeId = ValidationUtility.generateUUID()
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/create`,
             { operator: op.toApiFormat() },
@@ -75,7 +75,7 @@ class OperatorServiceImpl {
      * the operator from all active mixers and tractors at the old plant.
      */
     async updateOperator(operator) {
-        if (!operator.employeeId || !UserUtility.isValidUUID(operator.employeeId))
+        if (!operator.employeeId || !ValidationUtility.isValidUUID(operator.employeeId))
             throw new Error('Invalid Employee ID')
         const op = operator instanceof Operator ? operator : new Operator(operator)
         const update = op.toApiFormat()
@@ -104,7 +104,7 @@ class OperatorServiceImpl {
     }
     /** Deletes an operator by employee ID. */
     async deleteOperator(employeeId) {
-        if (!employeeId || !UserUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
+        if (!employeeId || !ValidationUtility.isValidUUID(employeeId)) throw new Error('Invalid Employee ID')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { employeeId }, 'Operator was not deleted')
     }
     /** Fetches all operators marked as trainers. */
@@ -215,7 +215,7 @@ class OperatorServiceImpl {
         return json?.data
     }
     async fetchComments(operatorId) {
-        if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
+        if (!operatorId || !ValidationUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/fetch-comments`,
             { operatorId },
@@ -224,9 +224,9 @@ class OperatorServiceImpl {
         return json?.data ?? []
     }
     async addComment(operatorId, text, userId) {
-        if (!operatorId || !UserUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
+        if (!operatorId || !ValidationUtility.isValidUUID(operatorId)) throw new Error('Invalid Operator ID')
         if (!text || !text.trim()) throw new Error('Comment text is required')
-        if (!userId || !UserUtility.isValidUUID(userId)) throw new Error('Invalid User ID')
+        if (!userId || !ValidationUtility.isValidUUID(userId)) throw new Error('Invalid User ID')
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/add-comment`,
             {
@@ -239,7 +239,7 @@ class OperatorServiceImpl {
         return json?.data
     }
     async deleteComment(commentId) {
-        if (!commentId || !UserUtility.isValidUUID(commentId)) throw new Error('Invalid Comment ID')
+        if (!commentId || !ValidationUtility.isValidUUID(commentId)) throw new Error('Invalid Comment ID')
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
     }
 }

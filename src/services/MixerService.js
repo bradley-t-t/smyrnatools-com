@@ -18,28 +18,22 @@ import {
     uppercaseVin
 } from '../utils/BaseAssetUtility'
 import CleanupUtility from '../utils/CleanupUtility'
-import MixerUtility from '../utils/MixerUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import VerifiedUtility from '../utils/VerifiedUtility'
 const SERVICE_PREFIX = '/mixer-service'
-/** Attaches a lazy isVerified() method to a mixer instance using MixerUtility logic. */
+/** Attaches a lazy isVerified() method to a mixer instance using VerifiedUtility logic. */
 function attachIsVerified(mixer) {
     if (!mixer) return mixer
     if (typeof mixer.isVerified !== 'function') {
-        mixer.isVerified = function (latestHistoryDate) {
-            return MixerUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        mixer.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
     }
     return mixer
 }
 /** Attaches an isVerified() method directly using current mixer field values. */
 function enrichMixerWithVerification(mixer) {
-    mixer.isVerified = () =>
-        MixerUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy, mixer.latestHistoryDate)
+    mixer.isVerified = () => VerifiedUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy)
     return mixer
 }
 /**

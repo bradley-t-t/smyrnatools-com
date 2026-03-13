@@ -15,9 +15,17 @@ import { supabase } from '../../services/DatabaseService'
 import { OperatorService } from '../../services/OperatorService'
 import { PlantService } from '../../services/PlantService'
 import { RegionService } from '../../services/RegionService'
-import AsyncUtility from '../../utils/AsyncUtility'
-import FleetUtility from '../../utils/FleetUtility'
+import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import AssetGridCard from './AssetGridCard'
+
+/** Creates a debounced wrapper that delays invocation until after `delay` ms of inactivity. */
+function debounce(fn, delay) {
+    let timer = null
+    return (...args) => {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => fn(...args), delay)
+    }
+}
 
 /**
  * Unified asset list/grid view driven by a config object.
@@ -504,7 +512,7 @@ function AssetView({
     // --- Debounced search ---
     const debouncedSetSearchText = useMemo(
         () =>
-            AsyncUtility.debounce((value) => {
+            debounce((value) => {
                 setSearchText(value)
                 updateFilterRef.current?.('searchText', value)
             }, 300),
@@ -583,7 +591,7 @@ function AssetView({
     // --- Unassigned operators count ---
     const unassignedActiveOperatorsCount = useMemo(() => {
         if (!config.operatorConfig) return 0
-        return FleetUtility.countUnassignedActiveOperators(items, operators, searchText, {
+        return AssetStatsUtility.countUnassignedActiveOperators(items, operators, searchText, {
             assignedOperatorField: config.operatorConfig.assignedField,
             assignedPlantField: 'assignedPlant',
             operatorIdField: 'employeeId',
@@ -698,7 +706,7 @@ function AssetView({
 
         const sortFn = (a, b) => {
             if (!sortKey) {
-                return FleetUtility.compareByStatusThenNumber(
+                return AssetStatsUtility.compareByStatusThenNumber(
                     a,
                     b,
                     config.defaultSortFields.statusField,
@@ -725,8 +733,8 @@ function AssetView({
         }
 
         return {
-            filtered: FleetUtility.sortWithRetiredLast(filtered, sortFn, 'status'),
-            potentialMatches: FleetUtility.sortWithRetiredLast(potentialMatches, sortFn, 'status')
+            filtered: AssetStatsUtility.sortWithRetiredLast(filtered, sortFn, 'status'),
+            potentialMatches: AssetStatsUtility.sortWithRetiredLast(potentialMatches, sortFn, 'status')
         }
     }, [
         items,

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { FormatUtility } from '../../../utils/FormatUtility'
+import { DateUtility } from '../../../utils/DateUtility'
 import { CHART_HEIGHT, CHART_PADDING, CHART_WIDTH, MAX_STAR_RATING } from '../../constants/historyConstants'
 import HistoryEmptyState from './HistoryEmptyState'
 import StatCard from './StatCard'
@@ -80,7 +80,7 @@ export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) 
                                         fill="var(--text-secondary)"
                                         transform={`rotate(-45, ${x}, ${CHART_HEIGHT + 20})`}
                                     >
-                                        {FormatUtility.formatDate(point.timestamp)}
+                                        {DateUtility.formatDate(point.timestamp)}
                                     </text>
                                 </g>
                             )

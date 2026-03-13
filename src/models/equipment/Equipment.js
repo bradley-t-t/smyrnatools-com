@@ -1,4 +1,4 @@
-import EquipmentUtility from '../../utils/EquipmentUtility'
+import VerifiedUtility from '../../utils/VerifiedUtility'
 /**
  * Equipment domain model with heuristic field resolution.
  * Maps snake_case API fields to camelCase properties and applies
@@ -84,8 +84,8 @@ export class Equipment {
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
-    isVerified(latestHistoryDate) {
-        return EquipmentUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
+    isVerified() {
+        return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
     }
     verify(userId) {
         const now = new Date().toISOString()

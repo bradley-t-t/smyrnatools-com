@@ -7,7 +7,7 @@ import { useAccentColor } from '../../../app/hooks/useAccentColor'
 import { useDocumentsData } from '../../../app/hooks/useDocumentsData'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 import { usePagination } from '../../../app/hooks/usePagination'
-import { FormatUtility } from '../../../utils/FormatUtility'
+import { DateUtility } from '../../../utils/DateUtility'
 
 /** Icon class mapping for each document file type. */
 const FILE_TYPE_ICONS = {
@@ -110,7 +110,7 @@ function DocumentRow({ doc, uploaderName, canDelete, onDelete, onPreview, isMobi
                 <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-slate-800 truncate">{doc.name}</div>
                     <div className="text-xs text-slate-400 mt-0.5">
-                        {formatFileSize(doc.file_size)} &middot; {FormatUtility.formatDate(doc.created_at)}
+                        {formatFileSize(doc.file_size)} &middot; {DateUtility.formatDate(doc.created_at)}
                         {uploaderName ? ` \u00b7 ${uploaderName}` : ''}
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -160,7 +160,7 @@ function DocumentRow({ doc, uploaderName, canDelete, onDelete, onPreview, isMobi
                 <span className="text-sm font-medium text-slate-800 truncate">{doc.name}</span>
             </div>
             <div className="text-xs text-slate-500">{formatFileSize(doc.file_size)}</div>
-            <div className="text-xs text-slate-500">{FormatUtility.formatDate(doc.created_at)}</div>
+            <div className="text-xs text-slate-500">{DateUtility.formatDate(doc.created_at)}</div>
             <div className="text-xs text-slate-500 truncate">{uploaderName || '\u2014'}</div>
             <div className="flex items-center justify-end gap-1.5">
                 {previewable && (

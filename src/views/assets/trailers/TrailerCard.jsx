@@ -1,7 +1,7 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
-import { TrailerUtility } from '../../../utils/TrailerUtility'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 /**
  * Grid-mode card for a single trailer. Displays plant, trailer type, status,
  * service overdue warning, assigned tractor/operator with multi-assignment
@@ -20,13 +20,13 @@ function TrailerCard({
 }) {
     const actualTractorName = tractorName || operatorName
     const actualShowWarning = showTractorWarning || showOperatorWarning
-    const isServiceOverdue = TrailerUtility.isServiceOverdue(trailer.lastServiceDate)
+    const isServiceOverdue = AssetStatsUtility.isServiceOverdue(trailer.lastServiceDate, 90)
     let statusColor = 'var(--accent)'
     if (trailer.status === 'Active') statusColor = 'var(--status-active)'
     else if (trailer.status === 'Spare') statusColor = 'var(--status-spare)'
     else if (trailer.status === 'In Shop') statusColor = 'var(--status-inshop)'
     else if (trailer.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (TrailerUtility.isServiceOverdue(trailer.lastServiceDate)) statusColor = 'var(--error)'
+    else if (AssetStatsUtility.isServiceOverdue(trailer.lastServiceDate, 90)) statusColor = 'var(--error)'
     return (
         <CardSection
             item={trailer}

@@ -6,7 +6,7 @@ import { useIsMobile } from '../../../app/hooks/useIsMobile'
 import { useVersion } from '../../../app/hooks/useVersion'
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { supabase } from '../../../services/DatabaseService'
-import AuthUtility from '../../../utils/AuthUtility'
+import ValidationUtility from '../../../utils/ValidationUtility'
 const ChangelogView = lazy(() => import('./ChangelogView'))
 const PasswordRecoveryView = lazy(() => import('./PasswordRecoveryView'))
 const VideoBackground = lazy(() => import('../../../app/components/common/VideoBackground'))
@@ -169,7 +169,7 @@ function LoginView() {
         if (strengthCheckRef.current) clearTimeout(strengthCheckRef.current)
         if (password && isSignUp) {
             strengthCheckRef.current = setTimeout(async () => {
-                const strengthValue = await AuthUtility.passwordStrength(password)
+                const strengthValue = await ValidationUtility.passwordStrength(password)
                 const colorMap = { medium: '#f59e0b', strong: '#22c55e', weak: '#ef4444' }
                 setPasswordStrength({
                     color: colorMap[strengthValue] || '',
@@ -213,8 +213,8 @@ function LoginView() {
                         setIsSubmitting(false)
                         return
                     }
-                    const normFirst = await AuthUtility.normalizeName(firstName)
-                    const normLast = await AuthUtility.normalizeName(lastName)
+                    const normFirst = await ValidationUtility.normalizeName(firstName)
+                    const normLast = await ValidationUtility.normalizeName(lastName)
                     await signUp(email, password, normFirst, normLast)
                     if (timeoutRef.current) clearTimeout(timeoutRef.current)
                     setSuccessMessage('Account created successfully.')

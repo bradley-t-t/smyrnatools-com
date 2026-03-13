@@ -1,4 +1,4 @@
-import UserUtility from '../../utils/UserUtility'
+import ValidationUtility from '../../utils/ValidationUtility'
 /**
  * Operator domain model. Handles dual snake_case/camelCase field resolution,
  * UUID-based employee IDs, trainer assignments, and API serialization
@@ -6,7 +6,7 @@ import UserUtility from '../../utils/UserUtility'
  */
 export class Operator {
     constructor(data = {}) {
-        this.employeeId = data.employee_id ?? data.employeeId ?? UserUtility.generateUUID()
+        this.employeeId = data.employee_id ?? data.employeeId ?? ValidationUtility.generateUUID()
         this.smyrnaId = data.smyrna_id ?? data.smyrnaId ?? null
         this.name = data.name?.trim() ?? ''
         this.plantCode = data.plant_code ?? data.plantCode ?? null
@@ -25,7 +25,7 @@ export class Operator {
             assigned_trainer: data.assigned_trainer ?? data.assignedTrainer ?? null,
             automatic_restriction: data.automatic_restriction ?? data.automaticRestriction ?? false,
             created_at: data.created_at ?? data.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-            employee_id: data.employee_id ?? data.employeeId ?? UserUtility.generateUUID(),
+            employee_id: data.employee_id ?? data.employeeId ?? ValidationUtility.generateUUID(),
             is_trainer: data.is_trainer ?? data.isTrainer ?? false,
             name: data.name ?? '',
             pending_start_date: data.pending_start_date ?? data.pendingStartDate ?? null,
@@ -41,14 +41,14 @@ export class Operator {
         return this.fromApiFormat(row)
     }
     toApiFormat() {
-        if (!UserUtility.isValidUUID(this.employeeId)) {
+        if (!ValidationUtility.isValidUUID(this.employeeId)) {
             throw new Error('Invalid employee_id: Must be a valid UUID')
         }
-        if (this.smyrnaId && UserUtility.isValidUUID(this.smyrnaId)) {
+        if (this.smyrnaId && ValidationUtility.isValidUUID(this.smyrnaId)) {
             throw new Error('smyrna_id cannot be a UUID')
         }
         return {
-            assigned_trainer: UserUtility.safeUUID(this.assignedTrainer),
+            assigned_trainer: ValidationUtility.safeUUID(this.assignedTrainer),
             automatic_restriction: this.automaticRestriction ?? false,
             created_at: this.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             employee_id: this.employeeId,

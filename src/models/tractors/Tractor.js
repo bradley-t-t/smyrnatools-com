@@ -1,5 +1,5 @@
 import { DateUtility } from '../../utils/DateUtility'
-import { TractorUtility } from '../../utils/TractorUtility'
+import VerifiedUtility from '../../utils/VerifiedUtility'
 /**
  * Tractor domain model. Maps snake_case API data to camelCase properties,
  * provides serialization (toApiFormat), status/operator mutations,
@@ -89,7 +89,7 @@ export class Tractor {
     getFormattedServiceDate() {
         return this.lastServiceDate ? new Date(this.lastServiceDate).toLocaleDateString() : 'Not available'
     }
-    isVerified(latestHistoryDate) {
-        return TractorUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy, latestHistoryDate)
+    isVerified() {
+        return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
     }
 }

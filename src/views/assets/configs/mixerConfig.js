@@ -1,8 +1,8 @@
 import { MixerService } from '../../../services/MixerService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import CleanupUtility from '../../../utils/CleanupUtility'
-import FormatUtility from '../../../utils/FormatUtility'
-import MixerUtility from '../../../utils/MixerUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
+import VerifiedUtility from '../../../utils/VerifiedUtility'
 import MixerAddView from '../mixers/MixerAddView'
 import MixerCard from '../mixers/MixerCard'
 import MixerDetailView from '../mixers/MixerDetailView'
@@ -29,13 +29,8 @@ const mixerConfig = {
     // Attach isVerified method to each item
     attachIsVerified: (obj) => {
         if (!obj) return obj
-        obj.isVerified = function (latestHistoryDate) {
-            return MixerUtility.isVerified(
-                this.updatedLast,
-                this.updatedAt,
-                this.updatedBy,
-                latestHistoryDate ?? this.latestHistoryDate
-            )
+        obj.isVerified = function () {
+            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
         }
         return obj
     },
@@ -86,7 +81,7 @@ const mixerConfig = {
             return 0
         },
         'Truck #': (a, b) => (parseFloat(a.truckNumber) || 0) - (parseFloat(b.truckNumber) || 0),
-        VIN: (a, b) => FormatUtility.compareVINs(a.vinNumber, b.vinNumber),
+        VIN: (a, b) => ValidationUtility.compareVINs(a.vinNumber, b.vinNumber),
         Verified: (a, b) => {
             const aVal = a.status === 'Retired' ? 0 : a.isVerified?.() ? 2 : 1
             const bVal = b.status === 'Retired' ? 0 : b.isVerified?.() ? 2 : 1
@@ -133,12 +128,12 @@ const mixerConfig = {
         {
             getValue: (item) =>
                 item.lastServiceDate ? new Date(item.lastServiceDate).toLocaleDateString() : 'Unknown',
-            isOverdue: (item) => MixerUtility.isServiceOverdue(item.lastServiceDate),
+            isOverdue: (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
             label: 'Last Service'
         },
         {
             getValue: (item) => (item.lastChipDate ? new Date(item.lastChipDate).toLocaleDateString() : 'Unknown'),
-            isOverdue: (item) => MixerUtility.isChipOverdue(item.lastChipDate),
+            isOverdue: (item) => AssetStatsUtility.isChipOverdue(item.lastChipDate),
             label: 'Last Chip'
         },
         {
@@ -325,7 +320,7 @@ const mixerConfig = {
         'In Shop': (item) => item.status === 'In Shop' && (item.shopStatus === 'in_shop' || !item.shopStatus),
         'Not Verified': (item) => !item.isVerified?.() && item.status !== 'Retired',
         'Open Issues': (item) => Number(item.openIssuesCount || 0) > 0,
-        'Past Due Service': (item) => MixerUtility.isServiceOverdue(item.lastServiceDate),
+        'Past Due Service': (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
         'Third Party Work': (item) => item.status === 'In Shop' && item.shopStatus === 'third_party',
         Verified: (item) => item.isVerified?.(),
         'Waiting For Shop': (item) => item.status === 'In Shop' && item.shopStatus === 'waiting_for_shop'
@@ -387,7 +382,7 @@ const mixerConfig = {
             ...(!item.year ? ['Year'] : [])
         ],
         hasLastChipDate: true,
-        isServiceOverdueFn: MixerUtility.isServiceOverdue,
+        isServiceOverdueFn: AssetStatsUtility.isServiceOverdue,
         itemType: 'mixer',
         updateFn: (id, updates) => MixerService.updateMixer(id, updates),
         verifyFn: (id) => MixerService.verifyMixer(id)

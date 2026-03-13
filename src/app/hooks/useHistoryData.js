@@ -6,19 +6,6 @@ import { OperatorService } from '../../services/OperatorService'
 import { UserService } from '../../services/UserService'
 import { HistoryUtility } from '../../utils/HistoryUtility'
 import {
-    daysBetween,
-    filterAndSortByFieldKey,
-    getEntryChangedBy,
-    getEntryFieldName,
-    getEntryNewValue,
-    getEntryOldValue,
-    getEntryTimestamp,
-    loadServiceModule,
-    normalizeFieldToSnakeCase,
-    resolveAssetId,
-    resolveAssetIdentifier
-} from '../../utils/HistoryViewHelpersUtility'
-import {
     AI_CACHE_DURATION_MS,
     AI_HISTORY_CACHE_KEY,
     HISTORY_SERVICE_MAP,
@@ -54,7 +41,7 @@ export default function useHistoryData(item, type) {
     const [aiSummary, setAiSummary] = useState(null)
     const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
     const [aiSummaryError, setAiSummaryError] = useState(false)
-    const assetId = resolveAssetId(type, item)
+    const assetId = HistoryUtility.resolveAssetId(type, item)
     const assetCacheKey = `${type}-${assetId}`
     const fetchOperators = useCallback(async () => {
         try {
@@ -72,7 +59,7 @@ export default function useHistoryData(item, type) {
         const serviceName = ISSUE_SERVICE_MAP[type]
         if (!serviceName) return
         try {
-            const Service = await loadServiceModule(serviceName)
+            const Service = await HistoryUtility.loadServiceModule(serviceName)
             const fetchedIssues = await Service.fetchIssues(item.id)
             const issuesList = Array.isArray(fetchedIssues) ? fetchedIssues : []
             setIssues(issuesList)
@@ -94,7 +81,7 @@ export default function useHistoryData(item, type) {
         const config = HISTORY_SERVICE_MAP[type]
         if (!config) return
         try {
-            const Service = await loadServiceModule(config.service)
+            const Service = await HistoryUtility.loadServiceModule(config.service)
             const historyData = await Service[config.method](assetId)
             setHistory(filterEquivalentEntries(historyData ?? []))
             setError(null)
@@ -148,8 +135,8 @@ export default function useHistoryData(item, type) {
     const sortedHistory = useMemo(
         () =>
             [...history].sort((a, b) => {
-                const aVal = getEntryTimestamp(a)
-                const bVal = getEntryTimestamp(b)
+                const aVal = HistoryUtility.getEntryTimestamp(a)
+                const bVal = HistoryUtility.getEntryTimestamp(b)
                 if (aVal < bVal) return 1
                 if (aVal > bVal) return -1
                 return 0
@@ -158,11 +145,11 @@ export default function useHistoryData(item, type) {
     )
     const buildRatingData = useCallback(
         (fieldKey) =>
-            filterAndSortByFieldKey(history, (key) => key === fieldKey)
+            HistoryUtility.filterAndSortByFieldKey(history, (key) => key === fieldKey)
                 .map((entry) => ({
-                    date: new Date(getEntryTimestamp(entry)),
-                    rating: parseInt(getEntryNewValue(entry), 10),
-                    timestamp: getEntryTimestamp(entry)
+                    date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                    rating: parseInt(HistoryUtility.getEntryNewValue(entry), 10),
+                    timestamp: HistoryUtility.getEntryTimestamp(entry)
                 }))
                 .filter((d) => !isNaN(d.rating) && d.rating > 0),
         [history]
@@ -171,18 +158,18 @@ export default function useHistoryData(item, type) {
     const conditionData = useMemo(() => buildRatingData('condition_rating'), [buildRatingData])
     const operatorData = useMemo(
         () =>
-            filterAndSortByFieldKey(history, (key) => key === 'assigned_operator')
+            HistoryUtility.filterAndSortByFieldKey(history, (key) => key === 'assigned_operator')
                 .map((entry) => {
-                    const operatorId = getEntryNewValue(entry)
+                    const operatorId = HistoryUtility.getEntryNewValue(entry)
                     const operatorName = getOperatorName(operatorId)
                     const isEmpty =
                         !operatorId || operatorId === '0' || operatorId === 'null' || operatorName === 'None'
                     return {
-                        date: new Date(getEntryTimestamp(entry)),
+                        date: new Date(HistoryUtility.getEntryTimestamp(entry)),
                         isEmpty,
                         operator: isEmpty ? 'Empty' : operatorName,
                         operatorId,
-                        timestamp: getEntryTimestamp(entry)
+                        timestamp: HistoryUtility.getEntryTimestamp(entry)
                     }
                 })
                 .filter((entry) => entry.operator !== 'Unknown'),
@@ -190,15 +177,18 @@ export default function useHistoryData(item, type) {
     )
     const serviceData = useMemo(
         () =>
-            filterAndSortByFieldKey(history, (key) => key === 'last_service_date' || key === 'last_chip_date')
+            HistoryUtility.filterAndSortByFieldKey(
+                history,
+                (key) => key === 'last_service_date' || key === 'last_chip_date'
+            )
                 .map((entry) => {
-                    const key = normalizeFieldToSnakeCase(getEntryFieldName(entry))
+                    const key = HistoryUtility.normalizeFieldToSnakeCase(HistoryUtility.getEntryFieldName(entry))
                     return {
-                        changedBy: getEntryChangedBy(entry),
-                        date: new Date(getEntryTimestamp(entry)),
-                        serviceDate: getEntryNewValue(entry),
+                        changedBy: HistoryUtility.getEntryChangedBy(entry),
+                        date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                        serviceDate: HistoryUtility.getEntryNewValue(entry),
                         serviceType: key === 'last_chip_date' ? 'Chip' : 'Service',
-                        timestamp: getEntryTimestamp(entry)
+                        timestamp: HistoryUtility.getEntryTimestamp(entry)
                     }
                 })
                 .filter((entry) => entry.serviceDate),
@@ -206,12 +196,12 @@ export default function useHistoryData(item, type) {
     )
     const buildSimpleFieldData = useCallback(
         (fieldKey, valueKey) =>
-            filterAndSortByFieldKey(history, (key) => key === fieldKey)
+            HistoryUtility.filterAndSortByFieldKey(history, (key) => key === fieldKey)
                 .map((entry) => ({
-                    changedBy: getEntryChangedBy(entry),
-                    date: new Date(getEntryTimestamp(entry)),
-                    timestamp: getEntryTimestamp(entry),
-                    [valueKey]: getEntryNewValue(entry)
+                    changedBy: HistoryUtility.getEntryChangedBy(entry),
+                    date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                    timestamp: HistoryUtility.getEntryTimestamp(entry),
+                    [valueKey]: HistoryUtility.getEntryNewValue(entry)
                 }))
                 .filter((entry) => {
                     const val = entry[valueKey]
@@ -224,70 +214,71 @@ export default function useHistoryData(item, type) {
     const positionData = useMemo(() => buildSimpleFieldData('position', 'position'), [buildSimpleFieldData])
     const ratingsData = useMemo(
         () =>
-            filterAndSortByFieldKey(history, (key) => key === 'rating')
+            HistoryUtility.filterAndSortByFieldKey(history, (key) => key === 'rating')
                 .map((entry) => ({
-                    changedBy: getEntryChangedBy(entry),
-                    date: new Date(getEntryTimestamp(entry)),
-                    rating: parseInt(getEntryNewValue(entry), 10),
-                    timestamp: getEntryTimestamp(entry)
+                    changedBy: HistoryUtility.getEntryChangedBy(entry),
+                    date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                    rating: parseInt(HistoryUtility.getEntryNewValue(entry), 10),
+                    timestamp: HistoryUtility.getEntryTimestamp(entry)
                 }))
                 .filter((d) => !isNaN(d.rating) && d.rating >= 0),
         [history]
     )
     const mileageData = useMemo(
         () =>
-            filterAndSortByFieldKey(history, (key) => key === 'mileage')
+            HistoryUtility.filterAndSortByFieldKey(history, (key) => key === 'mileage')
                 .map((entry) => ({
-                    changedBy: getEntryChangedBy(entry),
-                    date: new Date(getEntryTimestamp(entry)),
-                    mileage: parseInt(getEntryNewValue(entry), 10),
-                    timestamp: getEntryTimestamp(entry)
+                    changedBy: HistoryUtility.getEntryChangedBy(entry),
+                    date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                    mileage: parseInt(HistoryUtility.getEntryNewValue(entry), 10),
+                    timestamp: HistoryUtility.getEntryTimestamp(entry)
                 }))
                 .filter((entry) => !isNaN(entry.mileage) && entry.mileage >= 0),
         [history]
     )
     const assignmentsData = useMemo(
         () =>
-            filterAndSortByFieldKey(history, (key) => key === 'assigned_mixer' || key === 'assigned_tractor').map(
-                (entry) => {
-                    const key = normalizeFieldToSnakeCase(getEntryFieldName(entry))
-                    const newValue = getEntryNewValue(entry)
-                    const oldValue = getEntryOldValue(entry)
-                    const hasValue = newValue && newValue !== 'null' && newValue !== ''
-                    return {
-                        assignmentType: key === 'assigned_mixer' ? 'Mixer' : 'Tractor',
-                        changedBy: getEntryChangedBy(entry),
-                        date: new Date(getEntryTimestamp(entry)),
-                        isAssignment: hasValue,
-                        isUnassignment: !hasValue,
-                        previousVehicleNumber: oldValue && oldValue !== 'null' && oldValue !== '' ? oldValue : null,
-                        timestamp: getEntryTimestamp(entry),
-                        vehicleNumber: hasValue ? newValue : null
-                    }
+            HistoryUtility.filterAndSortByFieldKey(
+                history,
+                (key) => key === 'assigned_mixer' || key === 'assigned_tractor'
+            ).map((entry) => {
+                const key = HistoryUtility.normalizeFieldToSnakeCase(HistoryUtility.getEntryFieldName(entry))
+                const newValue = HistoryUtility.getEntryNewValue(entry)
+                const oldValue = HistoryUtility.getEntryOldValue(entry)
+                const hasValue = newValue && newValue !== 'null' && newValue !== ''
+                return {
+                    assignmentType: key === 'assigned_mixer' ? 'Mixer' : 'Tractor',
+                    changedBy: HistoryUtility.getEntryChangedBy(entry),
+                    date: new Date(HistoryUtility.getEntryTimestamp(entry)),
+                    isAssignment: hasValue,
+                    isUnassignment: !hasValue,
+                    previousVehicleNumber: oldValue && oldValue !== 'null' && oldValue !== '' ? oldValue : null,
+                    timestamp: HistoryUtility.getEntryTimestamp(entry),
+                    vehicleNumber: hasValue ? newValue : null
                 }
-            ),
+            }),
         [history]
     )
     const allStatusPeriodsData = useMemo(() => {
-        const statusEntries = filterAndSortByFieldKey(history, (key) => key === 'status')
+        const statusEntries = HistoryUtility.filterAndSortByFieldKey(history, (key) => key === 'status')
         const statusPeriods = []
         if (statusEntries.length > 0) {
             const firstEntry = statusEntries[0]
-            const oldStatus = getEntryOldValue(firstEntry)
+            const oldStatus = HistoryUtility.getEntryOldValue(firstEntry)
             if (oldStatus && oldStatus !== 'null' && oldStatus !== '') {
                 const oldestHistoryDate =
                     history.length > 0
-                        ? new Date(Math.min(...history.map((h) => new Date(getEntryTimestamp(h)))))
-                        : new Date(getEntryTimestamp(firstEntry))
-                const firstChangeDate = new Date(getEntryTimestamp(firstEntry))
-                const initialDays = daysBetween(oldestHistoryDate, firstChangeDate)
+                        ? new Date(Math.min(...history.map((h) => new Date(HistoryUtility.getEntryTimestamp(h)))))
+                        : new Date(HistoryUtility.getEntryTimestamp(firstEntry))
+                const firstChangeDate = new Date(HistoryUtility.getEntryTimestamp(firstEntry))
+                const initialDays = HistoryUtility.daysBetween(oldestHistoryDate, firstChangeDate)
                 if (initialDays > 0) {
                     statusPeriods.push({
                         changedBy: null,
                         days: initialDays,
-                        endChangedBy: getEntryChangedBy(firstEntry),
+                        endChangedBy: HistoryUtility.getEntryChangedBy(firstEntry),
                         endDate: firstChangeDate,
-                        endTimestamp: getEntryTimestamp(firstEntry),
+                        endTimestamp: HistoryUtility.getEntryTimestamp(firstEntry),
                         isCurrent: false,
                         startDate: oldestHistoryDate,
                         startTimestamp: oldestHistoryDate.toISOString(),
@@ -297,17 +288,17 @@ export default function useHistoryData(item, type) {
             }
         }
         statusEntries.forEach((entry, index) => {
-            const status = getEntryNewValue(entry)
-            const timestamp = getEntryTimestamp(entry)
-            const changedBy = getEntryChangedBy(entry)
+            const status = HistoryUtility.getEntryNewValue(entry)
+            const timestamp = HistoryUtility.getEntryTimestamp(entry)
+            const changedBy = HistoryUtility.getEntryChangedBy(entry)
             const startDate = new Date(timestamp)
             const nextEntry = statusEntries[index + 1]
-            const endDate = nextEntry ? new Date(getEntryTimestamp(nextEntry)) : new Date()
-            const endTimestamp = nextEntry ? getEntryTimestamp(nextEntry) : null
-            const endChangedBy = nextEntry ? getEntryChangedBy(nextEntry) : null
+            const endDate = nextEntry ? new Date(HistoryUtility.getEntryTimestamp(nextEntry)) : new Date()
+            const endTimestamp = nextEntry ? HistoryUtility.getEntryTimestamp(nextEntry) : null
+            const endChangedBy = nextEntry ? HistoryUtility.getEntryChangedBy(nextEntry) : null
             statusPeriods.push({
                 changedBy,
-                days: daysBetween(startDate, endDate),
+                days: HistoryUtility.daysBetween(startDate, endDate),
                 endChangedBy,
                 endDate,
                 endTimestamp,
@@ -370,7 +361,7 @@ export default function useHistoryData(item, type) {
             setAiSummaryError(false)
             try {
                 const historyContext = {
-                    assetIdentifier: resolveAssetIdentifier(type, item),
+                    assetIdentifier: HistoryUtility.resolveAssetIdentifier(type, item),
                     assetType: type,
                     cleanlinessHistory:
                         cleanlinessData.length > 0
@@ -394,10 +385,10 @@ export default function useHistoryData(item, type) {
                     operatorChanges: type === 'mixer' || type === 'tractor' ? operatorData.length : 0,
                     plantChanges: plantData?.length ?? 0,
                     recentChanges: history.slice(0, 10).map((h) => ({
-                        date: getEntryTimestamp(h),
-                        field: getEntryFieldName(h),
-                        from: getEntryOldValue(h),
-                        to: getEntryNewValue(h)
+                        date: HistoryUtility.getEntryTimestamp(h),
+                        field: HistoryUtility.getEntryFieldName(h),
+                        from: HistoryUtility.getEntryOldValue(h),
+                        to: HistoryUtility.getEntryNewValue(h)
                     })),
                     resolvedIssues: issues.filter((i) => i.status === 'Resolved').length,
                     serviceHistory:
@@ -408,7 +399,10 @@ export default function useHistoryData(item, type) {
                                           ? Math.round(
                                                 serviceData.reduce((sum, s, i) => {
                                                     if (i === 0) return 0
-                                                    return sum + daysBetween(serviceData[i - 1].date, s.date)
+                                                    return (
+                                                        sum +
+                                                        HistoryUtility.daysBetween(serviceData[i - 1].date, s.date)
+                                                    )
                                                 }, 0) /
                                                     (serviceData.length - 1)
                                             )
@@ -465,7 +459,7 @@ export default function useHistoryData(item, type) {
     const handleAddIssue = async (newIssue, severity) => {
         const serviceName = ISSUE_SERVICE_MAP[type]
         if (!serviceName) throw new Error('Invalid item type')
-        const Service = await loadServiceModule(serviceName)
+        const Service = await HistoryUtility.loadServiceModule(serviceName)
         const currentUser = await UserService.getCurrentUser()
         if (!currentUser?.id) throw new Error('You must be logged in to add an issue')
         await Service.addIssue(item.id, newIssue, severity, currentUser.id)
@@ -474,14 +468,14 @@ export default function useHistoryData(item, type) {
     const handleDeleteIssue = async (issueId) => {
         const serviceName = ISSUE_SERVICE_MAP[type]
         if (!serviceName) throw new Error('Invalid item type')
-        const Service = await loadServiceModule(serviceName)
+        const Service = await HistoryUtility.loadServiceModule(serviceName)
         await Service.deleteIssue(issueId)
         fetchIssues()
     }
     const handleCompleteIssue = async (issueId) => {
         const serviceName = ISSUE_SERVICE_MAP[type]
         if (!serviceName) throw new Error('Invalid item type')
-        const Service = await loadServiceModule(serviceName)
+        const Service = await HistoryUtility.loadServiceModule(serviceName)
         await Service.completeIssue(issueId)
         fetchIssues()
     }

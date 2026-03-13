@@ -1,3 +1,4 @@
+import { DAYS_IN_MS, DEFAULT_STATUS_COLOR, MILEAGE_MILESTONES, STATUS_COLORS } from '../app/constants/historyConstants'
 import { DateUtility } from './DateUtility'
 const HistoryUtility = {
     areEquivalent(fieldName, oldValue, newValue) {
@@ -104,6 +105,141 @@ const HistoryUtility = {
             }
             return acc
         }, [])
+    },
+    buildConsolidatedTimeline(data, valueKey, getValue) {
+        const timeline = []
+        let index = 0
+        while (index < data.length) {
+            const entry = data[index]
+            const currentValue = getValue(entry)
+            let endIndex = index + 1
+            while (endIndex < data.length && getValue(data[endIndex]) === currentValue) {
+                endIndex++
+            }
+            const startDate = entry.date
+            const endDate = endIndex < data.length ? data[endIndex].date : new Date()
+            const days = this.daysBetween(startDate, endDate)
+            timeline.push({
+                ...entry,
+                days,
+                isCurrent: endIndex >= data.length,
+                startDate: entry.timestamp,
+                [valueKey]: currentValue
+            })
+            index = endIndex
+        }
+        return timeline
+    },
+    buildFieldNameMap(type) {
+        const base = {
+            assigned_operator: 'Operator',
+            assigned_plant: 'Plant',
+            cleanliness_rating: 'Cleanliness',
+            created: 'Created',
+            last_chip_date: 'Chip Date',
+            last_service_date: 'Service Date',
+            status: 'Status',
+            truck_number: 'Truck Number',
+            verification: 'Verification'
+        }
+        if (type === 'tractor') base['has_blower'] = 'Has Blower'
+        if (type === 'operator') {
+            base['assigned_mixer'] = 'Assigned Mixer'
+            base['assigned_tractor'] = 'Assigned Tractor'
+            base['assigned_trainer'] = 'Assigned Trainer'
+        }
+        return base
+    },
+    countByKey(data, keyExtractor) {
+        return data.reduce((acc, entry) => {
+            const key = keyExtractor(entry)
+            acc[key] = (acc[key] || 0) + 1
+            return acc
+        }, {})
+    },
+    daysBetween(startDate, endDate) {
+        return Math.round((endDate - startDate) / DAYS_IN_MS)
+    },
+    filterAndSortByFieldKey(history, matchFn) {
+        return history
+            .filter((entry) => matchFn(this.normalizeFieldToSnakeCase(this.getEntryFieldName(entry))))
+            .sort((a, b) => new Date(this.getEntryTimestamp(a)) - new Date(this.getEntryTimestamp(b)))
+    },
+    findMostFrequent(counts) {
+        const entries = Object.entries(counts)
+        if (entries.length === 0) return null
+        return entries.reduce((a, b) => (a[1] > b[1] ? a : b))[0]
+    },
+    formatDuration(days) {
+        if (days === 0) return 'Less than a day'
+        if (days === 1) return '1 day'
+        if (days < 30) return `${days} days`
+        if (days < 365) return `${Math.round(days / 30.44)} months`
+        return `${(days / 365.25).toFixed(1)} years`
+    },
+    formatFieldName(fieldName, type) {
+        const snakeCaseField = this.normalizeFieldToSnakeCase(fieldName)
+        const fieldMap = this.buildFieldNameMap(type)
+        return fieldMap[snakeCaseField] ?? snakeCaseField.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    },
+    formatHistoryDate(dateString) {
+        return dateString ? DateUtility.formatDateTime(dateString) : 'Not completed'
+    },
+    formatHistoryTimestamp(dateString) {
+        return dateString ? DateUtility.formatDateTime(dateString) : 'Not Assigned'
+    },
+    getEntryChangedBy(entry) {
+        return this.getEntryField(entry, 'changedBy', 'changed_by')
+    },
+    getEntryField(entry, camelKey, snakeKey) {
+        return entry[camelKey] ?? entry[snakeKey]
+    },
+    getEntryFieldName(entry) {
+        return this.getEntryField(entry, 'fieldName', 'field_name')
+    },
+    getEntryNewValue(entry) {
+        return this.getEntryField(entry, 'newValue', 'new_value')
+    },
+    getEntryOldValue(entry) {
+        return this.getEntryField(entry, 'oldValue', 'old_value')
+    },
+    getEntryTimestamp(entry) {
+        return this.getEntryField(entry, 'changedAt', 'changed_at')
+    },
+    getMaintenanceMilestone(miles) {
+        return MILEAGE_MILESTONES.find((m) => miles >= m.threshold) ?? MILEAGE_MILESTONES[MILEAGE_MILESTONES.length - 1]
+    },
+    getStatusColor(status) {
+        return STATUS_COLORS[status] ?? DEFAULT_STATUS_COLOR
+    },
+    async loadServiceModule(serviceName) {
+        const { [serviceName]: Service } = await import(`../services/${serviceName}`)
+        return Service
+    },
+    normalizeFieldToSnakeCase(fieldName) {
+        if (!fieldName) return ''
+        return fieldName.includes('_')
+            ? fieldName
+            : String(fieldName)
+                  .replace(/([A-Z])/g, '_$1')
+                  .toLowerCase()
+    },
+    pluralizeDays(days) {
+        return `${days} ${days === 1 ? 'day' : 'days'}`
+    },
+    resolveAssetId(type, item) {
+        return type === 'operator' ? item.employeeId : item.id
+    },
+    resolveAssetIdentifier(type, item) {
+        if (type === 'mixer' || type === 'tractor') return item.truckNumber
+        if (type === 'operator') return item.name
+        if (type === 'pickup-truck') return `${item.make} ${item.model}`
+        return item.identifyingNumber ?? item.name ?? 'Unknown'
+    },
+    resolveItemName(type, item) {
+        if (type === 'mixer' || type === 'tractor') return `Truck #${item.truckNumber}`
+        if (type === 'pickup-truck') return `${item.make ?? ''} ${item.model ?? ''} (${item.vin ?? 'Unknown'})`.trim()
+        return item.name ?? 'Item'
     }
 }
 export default HistoryUtility

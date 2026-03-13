@@ -1,5 +1,5 @@
 import { PickupTruckService } from '../../../services/PickupTruckService'
-import FormatUtility from '../../../utils/FormatUtility'
+import { ValidationUtility } from '../../../utils/ValidationUtility'
 import PickupTrucksAddView from '../pickup-trucks/PickupTrucksAddView'
 import PickupTrucksDetailView from '../pickup-trucks/PickupTrucksDetailView'
 
@@ -63,7 +63,7 @@ const pickupTruckConfig = {
             const bVal = `${b.make || ''} ${b.model || ''}`.trim().toLowerCase()
             return aVal.localeCompare(bVal)
         },
-        VIN: (a, b) => FormatUtility.compareVINs(a.vin, b.vin)
+        VIN: (a, b) => ValidationUtility.compareVINs(a.vin, b.vin)
     },
 
     defaultSortFields: { numberField: 'assigned', statusField: 'status' },

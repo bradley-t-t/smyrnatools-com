@@ -12,8 +12,8 @@ import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
 import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
+import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import { DateUtility } from '../../../utils/DateUtility'
-import MixerUtility from '../../../utils/MixerUtility'
 import { ValidationUtility } from '../../../utils/ValidationUtility'
 import MixerCommentModal from './MixerCommentModal'
 import MixerHistoryView from './MixerHistoryView'
@@ -811,7 +811,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 setLastServiceDate={setLastServiceDate}
                                 setLastChipDate={setLastChipDate}
                                 onSaveAndVerify={handleSaveMissingFields}
-                                isServiceOverdue={MixerUtility.isServiceOverdue}
+                                isServiceOverdue={AssetStatsUtility.isServiceOverdue}
                                 assignedOperator={assignedOperator}
                                 itemType="Mixer"
                                 itemId={mixer?.id}
@@ -1162,7 +1162,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 className="form-control"
                                 readOnly={!canEditMixer}
                             />
-                            {lastServiceDate && MixerUtility.isServiceOverdue(lastServiceDate) && (
+                            {lastServiceDate && AssetStatsUtility.isServiceOverdue(lastServiceDate) && (
                                 <div className="warning-text">Service overdue</div>
                             )}
                             <div
@@ -1188,7 +1188,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 className="form-control"
                                 readOnly={!canEditMixer}
                             />
-                            {lastChipDate && MixerUtility.isChipOverdue(lastChipDate) && (
+                            {lastChipDate && AssetStatsUtility.isChipOverdue(lastChipDate) && (
                                 <div className="warning-text">Chip overdue</div>
                             )}
                         </div>

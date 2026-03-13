@@ -1,21 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { FormatUtility } from '../../../utils/FormatUtility'
-import {
-    buildConsolidatedTimeline,
-    countByKey,
-    daysBetween,
-    findMostFrequent,
-    formatDuration,
-    formatFieldName,
-    formatHistoryDate,
-    formatHistoryTimestamp,
-    getMaintenanceMilestone,
-    getStatusColor,
-    pluralizeDays,
-    resolveItemName
-} from '../../../utils/HistoryViewHelpersUtility'
+import { DateUtility } from '../../../utils/DateUtility'
+import { HistoryUtility } from '../../../utils/HistoryUtility'
 import {
     ASSET_TYPES_WITH_CLEANLINESS,
     ASSET_TYPES_WITH_OPERATORS,
@@ -129,7 +116,7 @@ function HistoryViewSection({ item, type, onClose }) {
         }, 10)
         return () => clearInterval(interval)
     }, [aiSummary])
-    const itemName = resolveItemName(type, item)
+    const itemName = HistoryUtility.resolveItemName(type, item)
     const formatValue = (fieldName, value) => {
         const key = fieldName?.includes('_')
             ? fieldName
@@ -144,9 +131,9 @@ function HistoryViewSection({ item, type, onClose }) {
             return Number.isFinite(n) && n > 0 ? '\u2605'.repeat(n) : String(value)
         }
         if (key === 'last_service_date' || key === 'last_chip_date')
-            return value ? FormatUtility.formatDate(value) : 'Not Assigned'
+            return value ? DateUtility.formatDate(value) : 'Not Assigned'
         if (type === 'tractor' && key === 'has_blower') return value ? 'Yes' : 'No'
-        if (key.includes('date') && value) return FormatUtility.formatDate(value)
+        if (key.includes('date') && value) return DateUtility.formatDate(value)
         if (key === 'assigned_trainer') return getUserName(value)
         return value
     }
@@ -267,12 +254,12 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-        const operatorCounts = countByKey(operatorData, (e) => e.operator)
+        const operatorCounts = HistoryUtility.countByKey(operatorData, (e) => e.operator)
         const calculateDuration = (startIndex, operatorName) => {
             let endIndex = startIndex + 1
             while (endIndex < operatorData.length && operatorData[endIndex].operator === operatorName) endIndex++
             return {
-                days: daysBetween(
+                days: HistoryUtility.daysBetween(
                     operatorData[startIndex].date,
                     endIndex < operatorData.length ? operatorData[endIndex].date : new Date()
                 ),
@@ -291,8 +278,9 @@ function HistoryViewSection({ item, type, onClose }) {
         const lastEntry = operatorData[operatorData.length - 1]
         const currentOperator = lastEntry ? (lastEntry.isEmpty ? 'Empty' : lastEntry.operator) : null
         const mostFrequentOperator =
-            findMostFrequent(Object.fromEntries(Object.entries(operatorDurations).filter(([op]) => op !== 'Empty'))) ??
-            'Not Assigned'
+            HistoryUtility.findMostFrequent(
+                Object.fromEntries(Object.entries(operatorDurations).filter(([op]) => op !== 'Empty'))
+            ) ?? 'Not Assigned'
         const consolidatedTimeline = []
         let j = 0
         while (j < operatorData.length) {
@@ -315,12 +303,13 @@ function HistoryViewSection({ item, type, onClose }) {
                         const nextStatus = statusChangesInPeriod[k]
                         const statusEnd = new Date(nextStatus.timestamp)
                         statusDaysMap[currentStatus.status] =
-                            (statusDaysMap[currentStatus.status] ?? 0) + daysBetween(statusStart, statusEnd)
+                            (statusDaysMap[currentStatus.status] ?? 0) +
+                            HistoryUtility.daysBetween(statusStart, statusEnd)
                         currentStatus = nextStatus
                         statusStart = statusEnd
                     }
                     statusDaysMap[currentStatus.status] =
-                        (statusDaysMap[currentStatus.status] ?? 0) + daysBetween(statusStart, periodEnd)
+                        (statusDaysMap[currentStatus.status] ?? 0) + HistoryUtility.daysBetween(statusStart, periodEnd)
                     statusPeriods = Object.entries(statusDaysMap).map(([status, totalDays]) => ({
                         days: totalDays,
                         status
@@ -370,8 +359,8 @@ function HistoryViewSection({ item, type, onClose }) {
                                     }
                                 />
                                 <TimelineMeta>
-                                    <TimelineDate date={FormatUtility.formatDate(entry.startDate)} />
-                                    <TimelineDuration text={pluralizeDays(entry.days)} />
+                                    <TimelineDate date={DateUtility.formatDate(entry.startDate)} />
+                                    <TimelineDuration text={HistoryUtility.pluralizeDays(entry.days)} />
                                 </TimelineMeta>
                                 {entry.isEmpty && entry.statusPeriods?.length > 0 && (
                                     <div className="mt-2 pt-2 border-t border-gray-100">
@@ -386,7 +375,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                                 >
                                                     <span className="font-medium">{sp.status}</span>
                                                     <span className="text-slate-400 ml-1">
-                                                        ({pluralizeDays(sp.days)})
+                                                        ({HistoryUtility.pluralizeDays(sp.days)})
                                                     </span>
                                                 </div>
                                             ))}
@@ -405,7 +394,7 @@ function HistoryViewSection({ item, type, onClose }) {
             history.length > 0
                 ? new Date(Math.min(...history.map((h) => new Date(h.changedAt ?? h.changed_at))))
                 : new Date()
-        const totalDaysSinceCreation = daysBetween(oldestEntry, new Date())
+        const totalDaysSinceCreation = HistoryUtility.daysBetween(oldestEntry, new Date())
         let statusDaysMap = {}
         let statusPercentages
         let totalShopDays = 0
@@ -440,7 +429,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                             key={idx}
                                             className="flex items-center justify-center text-white text-xs font-semibold min-w-[30px] transition-all"
                                             style={{
-                                                background: getStatusColor(sp.status),
+                                                background: HistoryUtility.getStatusColor(sp.status),
                                                 width: `${sp.percentage}%`
                                             }}
                                             title={`${sp.status}: ${sp.percentage}%`}
@@ -454,7 +443,10 @@ function HistoryViewSection({ item, type, onClose }) {
                     <div className="flex flex-wrap gap-4">
                         {statusPercentages.map((sp, idx) => (
                             <div key={idx} className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded" style={{ background: getStatusColor(sp.status) }} />
+                                <div
+                                    className="w-3 h-3 rounded"
+                                    style={{ background: HistoryUtility.getStatusColor(sp.status) }}
+                                />
                                 <div className="flex flex-col">
                                     <div className="text-xs font-semibold text-slate-800">{sp.status}</div>
                                     <div className="text-[11px] text-slate-500">
@@ -474,11 +466,11 @@ function HistoryViewSection({ item, type, onClose }) {
                 <TimelineSectionTitle title="Status Timeline" />
                 <div className="flex flex-col gap-0">
                     {allStatusPeriodsData.length === 0 ? (
-                        <TimelineItem dotColor={getStatusColor(currentStatus)} isLast>
+                        <TimelineItem dotColor={HistoryUtility.getStatusColor(currentStatus)} isLast>
                             <TimelineHeader label={currentStatus} isCurrent />
                             <TimelineMeta>
                                 <TimelineDate date="Since Creation" />
-                                <TimelineDuration text={pluralizeDays(statusDaysMap[currentStatus])} />
+                                <TimelineDuration text={HistoryUtility.pluralizeDays(statusDaysMap[currentStatus])} />
                             </TimelineMeta>
                             <TimelineMeta>
                                 <span className="text-xs text-slate-500 italic">No status changes recorded</span>
@@ -491,19 +483,19 @@ function HistoryViewSection({ item, type, onClose }) {
                             .map((period, index) => (
                                 <TimelineItem
                                     key={index}
-                                    dotColor={getStatusColor(period.status)}
+                                    dotColor={HistoryUtility.getStatusColor(period.status)}
                                     isLast={index >= allStatusPeriodsData.length - 1}
                                 >
                                     <TimelineHeader label={period.status} isCurrent={period.isCurrent} />
                                     <TimelineMeta>
                                         <TimelineDate
-                                            date={`${FormatUtility.formatDate(period.startTimestamp)}${
+                                            date={`${DateUtility.formatDate(period.startTimestamp)}${
                                                 period.endTimestamp
-                                                    ? ` - ${FormatUtility.formatDate(period.endTimestamp)}`
+                                                    ? ` - ${DateUtility.formatDate(period.endTimestamp)}`
                                                     : ' - Present'
                                             }`}
                                         />
-                                        <TimelineDuration text={pluralizeDays(period.days)} />
+                                        <TimelineDuration text={HistoryUtility.pluralizeDays(period.days)} />
                                     </TimelineMeta>
                                     <div className="flex items-center gap-3 flex-wrap mt-1">
                                         <span className="text-xs text-slate-500">
@@ -536,7 +528,9 @@ function HistoryViewSection({ item, type, onClose }) {
         }
         const actualServices = serviceData.filter((s) => s.serviceType === 'Service')
         const lastService = actualServices[actualServices.length - 1] ?? null
-        const daysSinceLastService = lastService ? daysBetween(new Date(lastService.serviceDate), new Date()) : null
+        const daysSinceLastService = lastService
+            ? HistoryUtility.daysBetween(new Date(lastService.serviceDate), new Date())
+            : null
         const combinedTimeline = [
             ...serviceData.map((s) => ({
                 changedBy: s.changedBy,
@@ -563,8 +557,7 @@ function HistoryViewSection({ item, type, onClose }) {
                             <div>
                                 <div className="text-xs text-slate-500">Last Service</div>
                                 <div className="text-sm font-semibold text-slate-800">
-                                    {FormatUtility.formatDate(lastService.serviceDate)} ({daysSinceLastService} days
-                                    ago)
+                                    {DateUtility.formatDate(lastService.serviceDate)} ({daysSinceLastService} days ago)
                                 </div>
                             </div>
                         </div>
@@ -603,7 +596,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                         }
                                     />
                                     <TimelineMeta>
-                                        <TimelineDate date={FormatUtility.formatDate(entry.date)} />
+                                        <TimelineDate date={DateUtility.formatDate(entry.date)} />
                                     </TimelineMeta>
                                 </TimelineItem>
                             )
@@ -670,13 +663,13 @@ function HistoryViewSection({ item, type, onClose }) {
                                             </span>
                                             <span>
                                                 <i className="fas fa-calendar-plus mr-1" />{' '}
-                                                {formatHistoryDate(issue.time_created)}
+                                                {HistoryUtility.formatHistoryDate(issue.time_created)}
                                             </span>
                                         </div>
                                         {entry.isCompleted && entry.completedDate && (
                                             <span className="text-xs text-green-600">
                                                 <i className="fas fa-check mr-1" /> Completed:{' '}
-                                                {formatHistoryDate(issue.time_completed)}
+                                                {HistoryUtility.formatHistoryDate(issue.time_completed)}
                                             </span>
                                         )}
                                         {!entry.isCompleted && (
@@ -701,8 +694,8 @@ function HistoryViewSection({ item, type, onClose }) {
         if (data.length === 0) {
             return <HistoryEmptyState title={emptyTitle} subtitle={emptySubtitle} />
         }
-        const counts = countByKey(data, (e) => e[valueKey])
-        const timeline = buildConsolidatedTimeline(data, valueKey, (e) => e[valueKey])
+        const counts = HistoryUtility.countByKey(data, (e) => e[valueKey])
+        const timeline = HistoryUtility.buildConsolidatedTimeline(data, valueKey, (e) => e[valueKey])
         const currentValue = data[data.length - 1][valueKey]
         return (
             <div className="flex flex-col gap-2.5">
@@ -724,8 +717,8 @@ function HistoryViewSection({ item, type, onClose }) {
                             <TimelineItem key={index} dotClassName="bg-accent" isLast={index >= timeline.length - 1}>
                                 <TimelineHeader label={entry[valueKey]} isCurrent={entry.isCurrent} />
                                 <TimelineMeta>
-                                    <TimelineDate date={FormatUtility.formatDate(entry.startDate)} />
-                                    <TimelineDuration text={pluralizeDays(entry.days)} />
+                                    <TimelineDate date={DateUtility.formatDate(entry.startDate)} />
+                                    <TimelineDuration text={HistoryUtility.pluralizeDays(entry.days)} />
                                 </TimelineMeta>
                             </TimelineItem>
                         ))}
@@ -744,7 +737,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 { label: 'Current Plant', value: ({ currentValue }) => currentValue },
                 { label: 'Total Transfers', value: ({ data }) => data.length },
                 { label: 'Unique Plants', value: ({ counts }) => Object.keys(counts).length },
-                { label: 'Most Frequent', value: ({ counts }) => findMostFrequent(counts) }
+                { label: 'Most Frequent', value: ({ counts }) => HistoryUtility.findMostFrequent(counts) }
             ]
         )
     const renderStatusHistory = () =>
@@ -758,7 +751,7 @@ function HistoryViewSection({ item, type, onClose }) {
                 { label: 'Current Status', value: ({ currentValue }) => currentValue },
                 { label: 'Total Changes', value: ({ data }) => data.length },
                 { label: 'Unique Statuses', value: ({ counts }) => Object.keys(counts).length },
-                { label: 'Most Frequent', value: ({ counts }) => findMostFrequent(counts) }
+                { label: 'Most Frequent', value: ({ counts }) => HistoryUtility.findMostFrequent(counts) }
             ]
         )
     const renderPositionHistory = () => {
@@ -770,13 +763,13 @@ function HistoryViewSection({ item, type, onClose }) {
                 />
             )
         }
-        const positionCounts = countByKey(positionData, (e) => e.position)
+        const positionCounts = HistoryUtility.countByKey(positionData, (e) => e.position)
         const totalChanges = positionData.length
         const currentPosition = positionData[positionData.length - 1].position
         const chartData = Object.entries(positionCounts)
             .map(([position, count]) => ({ count, percentage: ((count / totalChanges) * 100).toFixed(1), position }))
             .sort((a, b) => b.count - a.count)
-        const timeline = buildConsolidatedTimeline(positionData, 'position', (e) => e.position)
+        const timeline = HistoryUtility.buildConsolidatedTimeline(positionData, 'position', (e) => e.position)
         return (
             <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -803,7 +796,7 @@ function HistoryViewSection({ item, type, onClose }) {
                             Most Frequent
                         </div>
                         <div className="text-sm font-bold text-slate-800 truncate">
-                            {findMostFrequent(positionCounts)}
+                            {HistoryUtility.findMostFrequent(positionCounts)}
                         </div>
                     </div>
                 </div>
@@ -842,14 +835,14 @@ function HistoryViewSection({ item, type, onClose }) {
                                         <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                                             <span>
                                                 <i className="fas fa-calendar-alt mr-1" />
-                                                {FormatUtility.formatDate(entry.startDate)}
+                                                {DateUtility.formatDate(entry.startDate)}
                                                 {entry.endDate
-                                                    ? ` - ${FormatUtility.formatDate(entry.endDate)}`
+                                                    ? ` - ${DateUtility.formatDate(entry.endDate)}`
                                                     : ' - Present'}
                                             </span>
                                             <span>
                                                 <i className="fas fa-hourglass-half mr-1" />(
-                                                {formatDuration(entry.duration)})
+                                                {HistoryUtility.formatDuration(entry.duration)})
                                             </span>
                                         </div>
                                     </div>
@@ -925,7 +918,7 @@ function HistoryViewSection({ item, type, onClose }) {
                                     isCurrent={index === 0}
                                 />
                                 <TimelineMeta>
-                                    <TimelineDate date={FormatUtility.formatDate(entry.timestamp)} />
+                                    <TimelineDate date={DateUtility.formatDate(entry.timestamp)} />
                                     <UserLabel userId={entry.changedBy} showIcon />
                                 </TimelineMeta>
                             </TimelineItem>
@@ -946,7 +939,7 @@ function HistoryViewSection({ item, type, onClose }) {
         const currentMileage = mileageData[mileageData.length - 1].mileage
         const totalMileageChange = currentMileage - mileageData[0].mileage
         const avgMileage = mileageData.reduce((sum, d) => sum + d.mileage, 0) / mileageData.length
-        const milestone = getMaintenanceMilestone(currentMileage)
+        const milestone = HistoryUtility.getMaintenanceMilestone(currentMileage)
         return (
             <div className="flex flex-col gap-4">
                 <StatCardGrid>
@@ -973,7 +966,9 @@ function HistoryViewSection({ item, type, onClose }) {
                             const milesDriven =
                                 reversedIndex > 0 ? entry.mileage - mileageData[reversedIndex - 1].mileage : 0
                             const daysSince =
-                                reversedIndex > 0 ? daysBetween(mileageData[reversedIndex - 1].date, entry.date) : 0
+                                reversedIndex > 0
+                                    ? HistoryUtility.daysBetween(mileageData[reversedIndex - 1].date, entry.date)
+                                    : 0
                             return (
                                 <TimelineItem
                                     key={index}
@@ -985,10 +980,10 @@ function HistoryViewSection({ item, type, onClose }) {
                                         isCurrent={index === 0}
                                     />
                                     <TimelineMeta>
-                                        <TimelineDate date={FormatUtility.formatDate(entry.timestamp)} />
+                                        <TimelineDate date={DateUtility.formatDate(entry.timestamp)} />
                                         {milesDriven > 0 && daysSince > 0 && (
                                             <TimelineDuration
-                                                text={`+${milesDriven.toLocaleString()} miles in ${pluralizeDays(daysSince)}`}
+                                                text={`+${milesDriven.toLocaleString()} miles in ${HistoryUtility.pluralizeDays(daysSince)}`}
                                             />
                                         )}
                                     </TimelineMeta>
@@ -1018,7 +1013,7 @@ function HistoryViewSection({ item, type, onClose }) {
             let currentMixerEntry = null
             let currentTractorEntry = null
             const calcDuration = (startDate, endDate) =>
-                daysBetween(new Date(startDate), endDate ? new Date(endDate) : new Date())
+                HistoryUtility.daysBetween(new Date(startDate), endDate ? new Date(endDate) : new Date())
             const finalizeEntry = (current, newTimestamp) => {
                 if (!current?.vehicleNumber) return null
                 current.endDate = newTimestamp
@@ -1124,14 +1119,14 @@ function HistoryViewSection({ item, type, onClose }) {
                                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                                         <span>
                                             <i className="fas fa-calendar-alt mr-1" />
-                                            {FormatUtility.formatDate(entry.startDate)}
+                                            {DateUtility.formatDate(entry.startDate)}
                                             {entry.endDate
-                                                ? ` - ${FormatUtility.formatDate(entry.endDate)}`
+                                                ? ` - ${DateUtility.formatDate(entry.endDate)}`
                                                 : ' - Present'}
                                         </span>
                                         <span>
                                             <i className="fas fa-hourglass-half mr-1" />(
-                                            {formatDuration(entry.duration)})
+                                            {HistoryUtility.formatDuration(entry.duration)})
                                         </span>
                                     </div>
                                     <div className="mt-2">
@@ -1198,10 +1193,12 @@ function HistoryViewSection({ item, type, onClose }) {
                                         >
                                             <div className="flex justify-between items-center mb-2.5">
                                                 <div className="text-sm font-bold text-slate-800 capitalize">
-                                                    {formatFieldName(fieldName, type)}
+                                                    {HistoryUtility.formatFieldName(fieldName, type)}
                                                 </div>
                                                 <div className="text-xs text-slate-500 font-medium">
-                                                    {formatHistoryTimestamp(entry.changedAt ?? entry.changed_at)}
+                                                    {HistoryUtility.formatHistoryTimestamp(
+                                                        entry.changedAt ?? entry.changed_at
+                                                    )}
                                                 </div>
                                             </div>
                                             {isCreatedEntry ? (
