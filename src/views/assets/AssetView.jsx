@@ -456,15 +456,10 @@ function AssetView({
 
     // --- View mode ---
     function handleViewModeChange(mode) {
-        if (viewMode === mode) {
-            setViewMode(null)
-            updateFilter?.('viewMode', null)
-            localStorage.removeItem(config.viewModeStorageKey)
-        } else {
-            setViewMode(mode)
-            updateFilter?.('viewMode', mode)
-            localStorage.setItem(config.viewModeStorageKey, mode)
-        }
+        if (viewMode === mode) return
+        setViewMode(mode)
+        updateFilter?.('viewMode', mode)
+        localStorage.setItem(config.viewModeStorageKey, mode)
     }
 
     // --- Export issues ---

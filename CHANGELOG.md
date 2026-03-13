@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [32.7] - 2026-03-13
+
+- Fixed horizontal overflow in DashboardSidebar by replacing inline minWidth styles with Tailwind overflow-hidden classes
+- Changed asset view mode toggle to no-op when selecting the already-active mode instead of deselecting it
+
 ## [32.6] - 2026-03-13
 
 - Redesigned dashboard layout from single-column to a sidebar + main content split

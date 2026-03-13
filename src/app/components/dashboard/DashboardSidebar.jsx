@@ -581,8 +581,8 @@ const DashboardSidebar = memo(function DashboardSidebar({
             ) : (
                 <>
                     {/* Expanded header */}
-                    <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
-                        <div className="flex items-center gap-2" style={{ minWidth: EXPANDED_WIDTH - 32 }}>
+                    <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0 overflow-hidden">
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={() => setMinimized(true)}
@@ -624,8 +624,8 @@ const DashboardSidebar = memo(function DashboardSidebar({
                     </div>
 
                     {/* Expanded content */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-5">
-                        <div style={{ minWidth: EXPANDED_WIDTH - 32 }}>
+                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-5">
+                        <div>
                             {!dataReady ? (
                                 <SidebarSkeleton />
                             ) : (
