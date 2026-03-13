@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.8] - 2026-03-13
+
+- Consolidated all asset views (mixers, tractors, trailers, equipment, pickup trucks) into a unified AssetView component driven by config objects, replacing five separate ~1000+ line view files with a single shared implementation
+- Added per-asset-type config files (mixerConfig, tractorConfig, trailerConfig, equipmentConfig, pickupTruckConfig) that define fields, statuses, sorting, filtering, grid card layouts, and service methods for each asset type
+- Added shared AssetGridCard and AssetCard components for config-driven rendering across all asset types
+- Reorganized asset views into src/views/assets/ directory structure, moving all asset-specific subviews (add, detail, card, comment, issue, history) under the new hierarchy
+- Added grid card HTML templates (grid-card-1, grid-card-2, grid-card-3)
+- Improved the Lost Load Report modal plant select with custom dropdown styling and chevron icon
+- Updated lost loads banner text to direct users to submit reports on Smyrna Tools instead of emailing GM and DM
+- Removed unused migration files (create_client_errors_table, create_messages_table)
+
 ## [31.7] - 2026-03-12
 
 - Added changelog entry for v31.6 documenting the claude-remote-loop.sh script, scoped Claude Code settings, and session logging

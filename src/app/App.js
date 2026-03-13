@@ -8,7 +8,7 @@ import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 
 import { supabase } from '../services/DatabaseService'
 import { UserService } from '../services/UserService'
 import { NetworkUtility } from '../utils/NetworkUtility'
-import LoginView from '../views/login/LoginView'
+import LoginView from '../views/common/login/LoginView'
 import LockedOverlay from './components/common/LockedOverlay'
 import Navigation from './components/common/Navigation'
 import OfflineOverlay from './components/common/OfflineOverlay'
@@ -35,28 +35,28 @@ const lazyWithRetry = (importer) =>
         })
     )
 const AppInstallPromptModal = lazyWithRetry(() => import('./components/common/AppInstallPromptModal'))
-const CalculatorView = lazyWithRetry(() => import('../views/calculator/CalculatorView'))
-const DashboardView = lazyWithRetry(() => import('../views/dashboard/DashboardView'))
-const DocumentsView = lazyWithRetry(() => import('../views/documents/DocumentsView'))
+const CalculatorView = lazyWithRetry(() => import('../views/productivity/calculator/CalculatorView'))
+const DashboardView = lazyWithRetry(() => import('../views/common/dashboard/DashboardView'))
+const DocumentsView = lazyWithRetry(() => import('../views/productivity/documents/DocumentsView'))
 const EquipmentsView = lazyWithRetry(() => import('../views/assets/equipment/EquipmentsView'))
-const LeaderboardsView = lazyWithRetry(() => import('../views/leaderboards/LeaderboardsView'))
-const ListDetailView = lazyWithRetry(() => import('../views/list/ListDetailView'))
-const ListView = lazyWithRetry(() => import('../views/list/ListView'))
-const MaintenanceView = lazyWithRetry(() => import('../views/maintenance/MaintenanceView'))
-const ManagersView = lazyWithRetry(() => import('../views/managers/ManagersView'))
+const LeaderboardsView = lazyWithRetry(() => import('../views/productivity/leaderboards/LeaderboardsView'))
+const ListDetailView = lazyWithRetry(() => import('../views/productivity/list/ListDetailView'))
+const ListView = lazyWithRetry(() => import('../views/productivity/list/ListView'))
+const MaintenanceView = lazyWithRetry(() => import('../views/productivity/maintenance/MaintenanceView'))
+const ManagersView = lazyWithRetry(() => import('../views/people/managers/ManagersView'))
 const MixerDetailView = lazyWithRetry(() => import('../views/assets/mixers/MixerDetailView'))
 const MixersView = lazyWithRetry(() => import('../views/assets/mixers/MixersView'))
-const MyAccountView = lazyWithRetry(() => import('../views/myaccount/MyAccountView'))
-const OperatorsView = lazyWithRetry(() => import('../views/operators/OperatorsView'))
+const MyAccountView = lazyWithRetry(() => import('../views/common/myaccount/MyAccountView'))
+const OperatorsView = lazyWithRetry(() => import('../views/people/operators/OperatorsView'))
 const PickupTrucksView = lazyWithRetry(() => import('../views/assets/pickup-trucks/PickupTrucksView'))
-const PlanView = lazyWithRetry(() => import('../views/plan/PlanView'))
-const PlantsView = lazyWithRetry(() => import('../views/plants/PlantsView'))
-const RegionsView = lazyWithRetry(() => import('../views/regions/RegionsView'))
-const ReportsView = lazyWithRetry(() => import('../views/reports/ReportsView'))
-const RolesView = lazyWithRetry(() => import('../views/roles/RolesView'))
+const PlanView = lazyWithRetry(() => import('../views/productivity/plan/PlanView'))
+const PlantsView = lazyWithRetry(() => import('../views/admin/plants/PlantsView'))
+const RegionsView = lazyWithRetry(() => import('../views/admin/regions/RegionsView'))
+const ReportsView = lazyWithRetry(() => import('../views/productivity/reports/ReportsView'))
+const RolesView = lazyWithRetry(() => import('../views/admin/roles/RolesView'))
 const TractorsView = lazyWithRetry(() => import('../views/assets/tractors/TractorsView'))
 const TrailersView = lazyWithRetry(() => import('../views/assets/trailers/TrailersView'))
-const NotificationsView = lazyWithRetry(() => import('../views/notifications/NotificationsView'))
+const NotificationsView = lazyWithRetry(() => import('../views/common/notifications/NotificationsView'))
 /** Views only available when region type is "Office". */
 const OFFICE_VISIBLE_VIEWS = new Set(['Reports', 'Dashboard', 'Managers', 'Plants', 'Regions', 'Roles'])
 /** Views hidden when region type is "Aggregate". */

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.9] - 2026-03-13
+
+- Reorganized views directory into categorical subdirectories: admin (plants, regions, roles), common (dashboard, login, myaccount, notifications), people (managers, operators), and productivity (calculator, documents, leaderboards, list, maintenance, plan, reports)
+- Updated all lazy import paths in App.js to reflect the new view directory structure
+- Updated EmbeddedViewModal to import OperatorsView from its new people/operators location
+- Updated all internal import paths across relocated view files to use correct relative paths to services, hooks, components, and utilities
+- Added v31.8 changelog entry documenting the unified AssetView consolidation, asset config system, grid card templates, and lost load report improvements
+
 ## [31.8] - 2026-03-13
 
 - Consolidated all asset views (mixers, tractors, trailers, equipment, pickup trucks) into a unified AssetView component driven by config objects, replacing five separate ~1000+ line view files with a single shared implementation

@@ -705,4 +705,102 @@ spawn claude --dangerously-skip-permissions
 
 
 
+[?2026l[?2026h[40C[1A                     [38;5;74m⧉ In PlanView.jsx[39m
+[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
+[?2026l[?2026h[54C[2A[38;5;74m⧉ In Maintenance[39m
+
+[?2026l[?2026h[50C[2A[38;5;74m⧉ In MaintenanceForm[39m
+
+[?2026l[?2026h[44C[2A[38;5;74m⧉ In Mainten[1CnceCreat[39m
+
+[?2026l[?2026h[44C[2A                 [38;5;74m⧉ In List[39m
+
+[?2026l[?2026h[58C[2A[38;5;74m⧉ In[1CListAdd[39m
+
+[?2026l[?2026h[55C[2A[38;5;74m⧉ In[1CListDe[1Cail[39m
+
+[?2026l[?2026h[55C[2A [38;5;74m⧉ In Documents[39m
+
+[?2026l[?2026h[53C[2A[38;5;74m⧉ In[1CSetTimeCalculator.js[39m
+
+[?2026l[?2026h[49C[2A[38;5;74m⧉ In Propor[1Cions[39m
+
+[?2026l[?2026h[54C[2A[38;5;74mWaterCeme[1Ct[39m
+
+[?2026l[?2026h[46C[2A[38;5;74m⧉ In[1CYard[1Cg[1CPerHour[39m
+
+[?2026l[?2026h[45C[2A[38;5;74m⧉ In SlumpAdjustment[39m
+
+[?2026l[?2026h[45C[2A          [38;5;74m⧉ In Calcul[1CtorView.jsx[39m
+
+[?2026l[?2026h[53C[2A[38;5;74m⧉ In Leaderbo[1Crds[39m
+
+[?2026l[?2026h[53C[2A            [38;5;74m⧉ In index.js[39m
+
+[?2026l[?2026h[57C[2A[38;5;74m⧉ In useReportData[39m
+
+[?2026l[?2026h[53C[2A[38;5;74m⧉ In ReportCom[2Cnents.jsx[39m
+
+[?2026l[?2026h[58C[2A[38;5;74museReportVariance.js[39m
+
+[?2026l[?2026h[47C[2A[38;5;74m⧉ In WeeklyEfficiencyReport.jsx[39m
+
+[?2026l[?2026h[45C[2A[38;5;74m⧉ In WeeklyPlantManager[39m
+
+[?2026l[?2026h[44C[2A[38;5;74m⧉ In We[1CklySafety[39m
+
+[?2026l[?2026h[43C[2A[38;5;74m⧉ In We[1CklyGeneral[39m
+
+[?2026l[?2026h[42C[2A[38;5;74m⧉ In We[1CklyDistrict[39m
+
+[?2026l[?2026h[40C[2A[38;5;74m⧉ In WeeklyReadyMixInstructorReport.j…[39m
+
+[?2026l[?2026h[51C[2A[38;5;74mAggregateProd[3CionReport.[39m
+
+[?2026l[?2026h[40C[2A                  [38;5;74m⧉ In ReportsView.jsx[39m
+
+[?2026l[?2026h[52C[2A[38;5;74m⧉ In ReportsReview[39m
+
+[?2026l[?2026h[64C[2A[38;5;74mSubmit[39m
+
+[?2026l[?2026h[52C[2A       [38;5;74m⧉ In Plants[39m
+
+[?2026l[?2026h[56C[2A[38;5;74m⧉ In[1CPlantsAdd[39m
+
+[?2026l[?2026h[53C[2A[38;5;74m⧉ In[1CPlantsDetail[39m
+
+[?2026l[?2026h[53C[2A     [38;5;74m⧉ I[1C Regions[39m
+
+[?2026l[?2026h[58C[2A  [38;5;74m⧉ In Role[39m
+
+[?2026l[?2026h[65C[2A[38;5;74mL[1Cgin[39m
+
+[?2026l[?2026h[56C[2A[38;5;74m⧉ In Changelog[39m
+
+[?2026l[?2026h[49C[2A[38;5;74m⧉ In PasswordRecovery[39m
+
+[?2026l[?2026h[49C[2A       [38;5;74m⧉ In Dashboa[1Cd[39m
+
+[?2026l[?2026h[61C[2A[38;5;74mMyAcc[1Cunt[39m
+
+[?2026l[?2026h[52C[2A[38;5;74m⧉ In Notificatio[1Cs[39m
+
+[?2026l[?2026h[52C[2A     [38;5;74m⧉ In OperatorCard[39m
+
+[?2026l[?2026h[56C[2A[38;5;74m⧉ In OperatorsView[39m
+
+[?2026l[?2026h[54C[2A[38;5;74m⧉ In OperatorAdd[39m
+
+[?2026l[?2026h[51C[2A[38;5;74m⧉ In[1COperatorDetail[39m
+
+[?2026l[?2026h[50C[2A[38;5;74m⧉ In OperatorHis[1Cory[39m
+
+[?2026l[?2026h[49C[2A[38;5;74m⧉ In OperatorCommentModal[39m
+
+[?2026l[?2026h[49C[2A         [38;5;74m⧉ In ManagerCard[39m
+
+[?2026l[?2026h[57C[2A[38;5;74m⧉ In ManagersView[39m
+
+[?2026l[?2026h[52C[2A[38;5;74m⧉ In ManagerDetail[39m
+
 [?2026l
