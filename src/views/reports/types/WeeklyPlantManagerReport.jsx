@@ -5,7 +5,7 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { supabase } from '../../../services/DatabaseService'
 import { UserService } from '../../../services/UserService'
 import { ReportUtility } from '../../../utils/ReportUtility'
-import OperatorSelectModal from '../../mixers/OperatorSelectModal'
+import OperatorSelectModal from '../../assets/mixers/OperatorSelectModal'
 const GRADE_COLORS = { average: 'bg-amber-500', excellent: 'bg-emerald-600', good: 'bg-sky-500', poor: 'bg-red-500' }
 const PM_TH =
     'bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 border-b border-gray-200 whitespace-nowrap'

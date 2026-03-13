@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid Card Template 1 — Compact Stat Card</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:32px;transition:background .3s,color .3s}
+:root{--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--text:#0f172a;--text2:#64748b;--text3:#94a3b8;--accent:#1e3a5f;--shadow:0 1px 3px rgba(0,0,0,.08);--hover-shadow:0 8px 24px rgba(0,0,0,.12)}
+html.dark{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--accent:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.3);--hover-shadow:0 8px 24px rgba(0,0,0,.4)}
+body{background:var(--bg);color:var(--text)}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 32px;gap:12px}
+.toolbar h2{font-size:18px;font-weight:700;color:var(--text)}
+.toolbar-btns{display:flex;gap:8px}
+.toolbar-btns button{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.toolbar-btns button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.toolbar-btns button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+
+/* TEMPLATE 1: Compact stat card with top color band */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s ease;box-shadow:var(--shadow);position:relative}
+.card:hover{transform:translateY(-3px);box-shadow:var(--hover-shadow)}
+.card-band{height:4px;width:100%}
+.card-band.active{background:#22c55e}
+.card-band.spare{background:#8b5cf6}
+.card-band.inshop{background:#3b82f6}
+.card-band.retired{background:#94a3b8}
+
+.card-body{padding:20px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.card-id{display:flex;align-items:center;gap:8px}
+.card-id .number{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.02em}
+.card-id .type-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.card-verify{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
+.card-verify.yes{background:#dcfce7;color:#16a34a}
+.card-verify.no{background:#fef3c7;color:#d97706}
+
+.card-operator{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.card-operator .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.card-operator .op-info{flex:1;min-width:0}
+.card-operator .op-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-operator .op-sub{font-size:11px;color:var(--text3)}
+.op-actions{display:flex;gap:4px}
+.op-actions button{position:relative;border:1px solid var(--border);background:var(--card);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:10px;transition:all .15s}
+.op-actions button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.op-actions .badge{position:absolute;top:-5px;right:-5px;min-width:14px;height:14px;border-radius:7px;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;color:#fff}
+.op-actions .badge.blue{background:#3b82f6}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:color-mix(in srgb,var(--border) 40%,transparent);border-radius:8px;padding:8px 10px;text-align:center}
+.stat .stat-val{font-size:16px;font-weight:700;color:var(--text)}
+.stat .stat-label{font-size:10px;color:var(--text3);font-weight:500;margin-top:2px}
+.stat.warn .stat-val{color:#dc2626}
+
+.card-meta{display:flex;align-items:center;justify-content:space-between}
+.card-meta .plant{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.card-meta .status-pill{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+.status-pill.active{background:#dcfce7;color:#166534}
+.status-pill.spare{background:#f3e8ff;color:#7c3aed}
+.status-pill.inshop{background:#dbeafe;color:#1e40af}
+.status-pill.retired{background:#f1f5f9;color:#64748b}
+html.dark .status-pill.active{background:#052e16;color:#4ade80}
+html.dark .status-pill.spare{background:#2e1065;color:#c084fc}
+html.dark .status-pill.inshop{background:#172554;color:#93c5fd}
+html.dark .status-pill.retired{background:#1e293b;color:#94a3b8}
+
+.card-actions{display:flex;gap:6px;padding:12px 20px;border-top:1px solid var(--border);background:color-mix(in srgb,var(--border) 20%,transparent)}
+.card-actions button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;padding:6px;border-radius:6px;transition:all .15s;position:relative}
+.card-actions button:hover{background:var(--accent);color:#fff}
+.card-actions .act-badge{min-width:16px;height:16px;border-radius:8px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;color:#fff}
+.card-actions .act-badge.blue{background:#3b82f6}
+.card-actions .act-badge.red{background:#ef4444}
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <h2>Template 1 — Compact Stat Card</h2>
+    <div class="toolbar-btns">
+        <button onclick="document.documentElement.classList.toggle('dark');this.textContent=document.documentElement.classList.contains('dark')?'Light Mode':'Dark Mode'">Dark Mode</button>
+        <a href="grid-card-2.html"><button>Next &rarr;</button></a>
+    </div>
+</div>
+<div class="grid">
+
+    <div class="card">
+        <div class="card-band active"></div>
+        <div class="card-body">
+            <div class="card-top">
+                <div class="card-id">
+                    <span class="number">#1042</span>
+                    <span class="type-badge">Mixer</span>
+                </div>
+                <div class="card-verify yes"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="card-operator">
+                <div class="avatar">JD</div>
+                <div class="op-info">
+                    <div class="op-name">John Davis</div>
+                    <div class="op-sub">Mixer Operator</div>
+                </div>
+                <div class="op-actions">
+                    <button title="Comments"><i class="fas fa-comment"></i><span class="badge blue">3</span></button>
+                    <button title="History"><i class="fas fa-history"></i></button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat"><div class="stat-val">4</div><div class="stat-label">Cleanliness</div></div>
+                <div class="stat"><div class="stat-val">127</div><div class="stat-label">Days Active</div></div>
+                <div class="stat"><div class="stat-val">3/14</div><div class="stat-label">Last Service</div></div>
+            </div>
+            <div class="card-meta">
+                <span class="plant"><i class="fas fa-map-marker-alt"></i> Nashville #4</span>
+                <span class="status-pill active">Active</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button><i class="fas fa-comments"></i> Comments <span class="act-badge blue">5</span></button>
+            <button><i class="fas fa-tools"></i> Issues <span class="act-badge red">2</span></button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-band inshop"></div>
+        <div class="card-body">
+            <div class="card-top">
+                <div class="card-id">
+                    <span class="number">#1087</span>
+                    <span class="type-badge">Mixer</span>
+                </div>
+                <div class="card-verify no"><i class="fas fa-exclamation-circle"></i></div>
+            </div>
+            <div class="card-operator">
+                <div class="avatar">SM</div>
+                <div class="op-info">
+                    <div class="op-name">Sarah Mitchell</div>
+                    <div class="op-sub">Mixer Operator</div>
+                </div>
+                <div class="op-actions">
+                    <button title="Comments"><i class="fas fa-comment"></i></button>
+                    <button title="History"><i class="fas fa-history"></i></button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat"><div class="stat-val">2</div><div class="stat-label">Cleanliness</div></div>
+                <div class="stat"><div class="stat-val">43</div><div class="stat-label">Days In Shop</div></div>
+                <div class="stat warn"><div class="stat-val">11/02</div><div class="stat-label">Last Service</div></div>
+            </div>
+            <div class="card-meta">
+                <span class="plant"><i class="fas fa-map-marker-alt"></i> Chattanooga #2</span>
+                <span class="status-pill inshop">In Shop</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button><i class="fas fa-comments"></i> Comments</button>
+            <button><i class="fas fa-tools"></i> Issues <span class="act-badge red">1</span></button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-band spare"></div>
+        <div class="card-body">
+            <div class="card-top">
+                <div class="card-id">
+                    <span class="number">#2205</span>
+                    <span class="type-badge">Tractor</span>
+                </div>
+                <div class="card-verify yes"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="card-operator">
+                <div class="avatar">RW</div>
+                <div class="op-info">
+                    <div class="op-name">Robert Williams</div>
+                    <div class="op-sub">Tractor Operator</div>
+                </div>
+                <div class="op-actions">
+                    <button title="Comments"><i class="fas fa-comment"></i><span class="badge blue">1</span></button>
+                    <button title="History"><i class="fas fa-history"></i></button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat"><div class="stat-val">5</div><div class="stat-label">Cleanliness</div></div>
+                <div class="stat"><div class="stat-val">12</div><div class="stat-label">Days Spare</div></div>
+                <div class="stat"><div class="stat-val">2/28</div><div class="stat-label">Last Service</div></div>
+            </div>
+            <div class="card-meta">
+                <span class="plant"><i class="fas fa-map-marker-alt"></i> Knoxville #1</span>
+                <span class="status-pill spare">Spare</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button><i class="fas fa-comments"></i> Comments <span class="act-badge blue">1</span></button>
+            <button><i class="fas fa-tools"></i> Issues</button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-band retired"></div>
+        <div class="card-body">
+            <div class="card-top">
+                <div class="card-id">
+                    <span class="number">#0899</span>
+                    <span class="type-badge">Trailer</span>
+                </div>
+            </div>
+            <div class="card-operator">
+                <div class="avatar" style="background:linear-gradient(135deg,#94a3b8,#cbd5e1)">—</div>
+                <div class="op-info">
+                    <div class="op-name" style="color:var(--text3);font-style:italic">Not Assigned</div>
+                    <div class="op-sub">Tractor: #3301</div>
+                </div>
+                <div class="op-actions">
+                    <button title="Comments"><i class="fas fa-comment"></i></button>
+                    <button title="History"><i class="fas fa-history"></i></button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat"><div class="stat-val">—</div><div class="stat-label">Cleanliness</div></div>
+                <div class="stat"><div class="stat-val">210</div><div class="stat-label">Days Retired</div></div>
+                <div class="stat"><div class="stat-val">—</div><div class="stat-label">Last Service</div></div>
+            </div>
+            <div class="card-meta">
+                <span class="plant"><i class="fas fa-map-marker-alt"></i> Memphis #7</span>
+                <span class="status-pill retired">Retired</span>
+            </div>
+        </div>
+        <div class="card-actions">
+            <button><i class="fas fa-comments"></i> Comments</button>
+            <button><i class="fas fa-tools"></i> Issues</button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

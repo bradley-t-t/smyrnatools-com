@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid Card Template 2 — Dashboard Panel</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:32px;transition:background .3s,color .3s}
+:root{--bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--text:#0f172a;--text2:#64748b;--text3:#94a3b8;--accent:#1e3a5f;--shadow:0 1px 3px rgba(0,0,0,.08);--hover-shadow:0 12px 32px rgba(0,0,0,.1)}
+html.dark{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--accent:#3b82f6;--shadow:0 1px 3px rgba(0,0,0,.3);--hover-shadow:0 12px 32px rgba(0,0,0,.5)}
+body{background:var(--bg);color:var(--text)}
+
+.toolbar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 32px;gap:12px}
+.toolbar h2{font-size:18px;font-weight:700;color:var(--text)}
+.toolbar-btns{display:flex;gap:8px}
+.toolbar-btns button,.toolbar-btns a button{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.toolbar-btns button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+
+/* TEMPLATE 2: Horizontal header with inline status, detail grid below */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s ease;box-shadow:var(--shadow)}
+.card:hover{transform:translateY(-2px);box-shadow:var(--hover-shadow)}
+
+.card-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0}
+.card-icon.mixer{background:linear-gradient(135deg,#1e3a5f,#3b82f6)}
+.card-icon.tractor{background:linear-gradient(135deg,#065f46,#10b981)}
+.card-icon.trailer{background:linear-gradient(135deg,#7c2d12,#f97316)}
+.card-icon.equipment{background:linear-gradient(135deg,#581c87,#a855f7)}
+.card-title-group{flex:1;min-width:0}
+.card-number{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.card-type{font-size:11px;color:var(--text3);font-weight:500}
+.header-status{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0}
+.header-status.active{background:#dcfce7;color:#166534}
+.header-status.inshop{background:#dbeafe;color:#1e40af}
+.header-status.spare{background:#f3e8ff;color:#7c3aed}
+.header-status.retired{background:#f1f5f9;color:#64748b}
+html.dark .header-status.active{background:#052e16;color:#4ade80}
+html.dark .header-status.inshop{background:#172554;color:#93c5fd}
+html.dark .header-status.spare{background:#2e1065;color:#c084fc}
+html.dark .header-status.retired{background:#1e293b;color:#94a3b8}
+
+.card-operator-bar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.op-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0}
+.op-name{font-size:12px;font-weight:600;color:var(--text);flex:1}
+.op-btns{display:flex;gap:3px}
+.op-btns button{position:relative;border:none;background:transparent;color:var(--text3);cursor:pointer;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
+.op-btns button:hover{background:var(--accent);color:#fff}
+.op-btns .cnt{position:absolute;top:-4px;right:-4px;min-width:13px;height:13px;border-radius:7px;background:#3b82f6;color:#fff;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+
+.card-details{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0}
+.detail-cell{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.detail-cell:nth-child(odd){border-right:1px solid var(--border)}
+.detail-cell:nth-last-child(-n+2){border-bottom:none}
+.detail-cell .d-label{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.detail-cell .d-value{font-size:13px;font-weight:600;color:var(--text)}
+.detail-cell .d-value.overdue{color:#dc2626}
+.detail-cell .d-value .stars{color:#facc15;font-size:11px;letter-spacing:1px}
+.detail-cell .d-value .stars .empty{color:var(--border)}
+.detail-cell .d-value .dirty-tag{background:#fee2e2;color:#dc2626;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px}
+
+.card-footer{display:flex;border-top:1px solid var(--border)}
+.card-footer button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;padding:10px;transition:all .15s;position:relative}
+.card-footer button:not(:last-child){border-right:1px solid var(--border)}
+.card-footer button:hover{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
+.card-footer .f-badge{min-width:16px;height:16px;border-radius:8px;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;color:#fff}
+.card-footer .f-badge.blue{background:#3b82f6}
+.card-footer .f-badge.red{background:#ef4444}
+.verify-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;font-size:10px;font-weight:700;flex-shrink:0}
+.verify-tag.yes{background:#f0fdf4;color:#15803d}
+.verify-tag.no{background:#fffbeb;color:#a16207}
+html.dark .verify-tag.yes{background:#052e16;color:#4ade80}
+html.dark .verify-tag.no{background:#422006;color:#fbbf24}
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <h2>Template 2 — Dashboard Panel</h2>
+    <div class="toolbar-btns">
+        <button onclick="document.documentElement.classList.toggle('dark');this.textContent=document.documentElement.classList.contains('dark')?'Light Mode':'Dark Mode'">Dark Mode</button>
+        <a href="grid-card-1.html"><button>&larr; Prev</button></a>
+        <a href="grid-card-3.html"><button>Next &rarr;</button></a>
+    </div>
+</div>
+<div class="grid">
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon mixer"><i class="fas fa-truck"></i></div>
+            <div class="card-title-group">
+                <div class="card-number">#1042</div>
+                <div class="card-type">Mixer</div>
+            </div>
+            <span class="verify-tag yes"><i class="fas fa-check-circle"></i> Verified</span>
+            <span class="header-status active">Active (127d)</span>
+        </div>
+        <div class="card-operator-bar">
+            <div class="op-avatar">JD</div>
+            <span class="op-name">John Davis</span>
+            <div class="op-btns">
+                <button title="Operator Comments"><i class="fas fa-comment"></i><span class="cnt">3</span></button>
+                <button title="Operator History"><i class="fas fa-history"></i></button>
+            </div>
+        </div>
+        <div class="card-details">
+            <div class="detail-cell">
+                <span class="d-label">Plant</span>
+                <span class="d-value">Nashville #4</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Last Service</span>
+                <span class="d-value">3/14/2026</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Last Chip</span>
+                <span class="d-value">2/20/2026</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Cleanliness</span>
+                <span class="d-value"><span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star empty"></i></span></span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button><i class="fas fa-comments"></i> Comments <span class="f-badge blue">5</span></button>
+            <button><i class="fas fa-tools"></i> Issues <span class="f-badge red">2</span></button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon mixer"><i class="fas fa-truck"></i></div>
+            <div class="card-title-group">
+                <div class="card-number">#1087</div>
+                <div class="card-type">Mixer</div>
+            </div>
+            <span class="verify-tag no"><i class="fas fa-exclamation-circle"></i> Unverified</span>
+            <span class="header-status inshop">In Shop (43d)</span>
+        </div>
+        <div class="card-operator-bar">
+            <div class="op-avatar">SM</div>
+            <span class="op-name">Sarah Mitchell</span>
+            <div class="op-btns">
+                <button title="Operator Comments"><i class="fas fa-comment"></i></button>
+                <button title="Operator History"><i class="fas fa-history"></i></button>
+            </div>
+        </div>
+        <div class="card-details">
+            <div class="detail-cell">
+                <span class="d-label">Plant</span>
+                <span class="d-value">Chattanooga #2</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Last Service</span>
+                <span class="d-value overdue">11/02/2025</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Last Chip</span>
+                <span class="d-value">1/15/2026</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Cleanliness</span>
+                <span class="d-value"><span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star empty"></i><i class="fas fa-star empty"></i><i class="fas fa-star empty"></i></span><span class="dirty-tag">DIRTY</span></span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button><i class="fas fa-comments"></i> Comments</button>
+            <button><i class="fas fa-tools"></i> Issues <span class="f-badge red">1</span></button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon tractor"><i class="fas fa-tractor"></i></div>
+            <div class="card-title-group">
+                <div class="card-number">#2205</div>
+                <div class="card-type">Tractor</div>
+            </div>
+            <span class="verify-tag yes"><i class="fas fa-check-circle"></i> Verified</span>
+            <span class="header-status spare">Spare (12d)</span>
+        </div>
+        <div class="card-operator-bar">
+            <div class="op-avatar">RW</div>
+            <span class="op-name">Robert Williams</span>
+            <div class="op-btns">
+                <button title="Operator Comments"><i class="fas fa-comment"></i><span class="cnt">1</span></button>
+                <button title="Operator History"><i class="fas fa-history"></i></button>
+            </div>
+        </div>
+        <div class="card-details">
+            <div class="detail-cell">
+                <span class="d-label">Plant</span>
+                <span class="d-value">Knoxville #1</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Last Service</span>
+                <span class="d-value">2/28/2026</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">VIN</span>
+                <span class="d-value" style="font-family:monospace;font-size:11px">1HGBH41...X109186</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Cleanliness</span>
+                <span class="d-value"><span class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></span></span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button><i class="fas fa-comments"></i> Comments <span class="f-badge blue">1</span></button>
+            <button><i class="fas fa-tools"></i> Issues</button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon trailer"><i class="fas fa-trailer"></i></div>
+            <div class="card-title-group">
+                <div class="card-number">#0899</div>
+                <div class="card-type">End Dump Trailer</div>
+            </div>
+            <span class="header-status retired">Retired</span>
+        </div>
+        <div class="card-operator-bar" style="opacity:.5">
+            <div class="op-avatar" style="background:linear-gradient(135deg,#94a3b8,#cbd5e1)">—</div>
+            <span class="op-name" style="font-style:italic;color:var(--text3)">Not Assigned</span>
+        </div>
+        <div class="card-details">
+            <div class="detail-cell">
+                <span class="d-label">Plant</span>
+                <span class="d-value">Memphis #7</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Tractor</span>
+                <span class="d-value">#3301</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">VIN</span>
+                <span class="d-value" style="font-family:monospace;font-size:11px">3BPFL6...K102847</span>
+            </div>
+            <div class="detail-cell">
+                <span class="d-label">Cleanliness</span>
+                <span class="d-value" style="color:var(--text3)">N/A</span>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button><i class="fas fa-comments"></i> Comments</button>
+            <button><i class="fas fa-tools"></i> Issues</button>
+            <button><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [31.7] - 2026-03-12
+
+- Added changelog entry for v31.6 documenting the claude-remote-loop.sh script, scoped Claude Code settings, and session logging
+- Updated claude-loop.log with additional remote session restart activity
+
 ## [31.6] - 2026-03-12
 
 - Added claude-remote-loop.sh script that auto-restarts Claude remote sessions using expect to handle the permissions prompt

@@ -327,17 +327,18 @@ function ReportsView() {
                     <i className="fas fa-exclamation-triangle text-amber-500 shrink-0" />
                     <span className="flex-1 flex flex-wrap items-center gap-x-1">
                         <strong>Lost loads:</strong>
+                        <span>
+                            You no longer need to email lost load reports to your General Manager or District Manager.
+                            Instead, complete the report on
+                        </span>
                         <button
                             onClick={() => setShowLostLoadModal(true)}
                             className="underline font-semibold hover:text-amber-900 border-none bg-transparent text-amber-800 cursor-pointer p-0 text-xs"
                             type="button"
                         >
-                            Submit report
+                            Smyrna Tools
                         </button>
-                        <span className="text-amber-300 hidden sm:inline">•</span>
-                        <span>Write reason on ticket & scan in to O: Drive</span>
-                        <span className="text-amber-300 hidden sm:inline">•</span>
-                        <span>Email GM &amp; DM with details</span>
+                        <span>, write the reason on the ticket, and scan it into the O: Drive.</span>
                     </span>
                     <button
                         onClick={() => setBannerDismissed(true)}

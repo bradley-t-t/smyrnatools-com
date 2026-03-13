@@ -366,3 +366,35 @@ Visit https://react.dev/link/error-boundaries to learn more about error boundari
 [2026-03-12T17:00:17.721Z] [error] Realtime subscription error
 [2026-03-12T17:00:17.721Z] [error] Realtime subscription error
 [2026-03-12T17:00:55.112Z] [error] Realtime subscription error
+[2026-03-12T22:57:30.449Z] [error] Realtime subscription error
+[2026-03-12T23:01:08.394Z] [error] Realtime subscription error
+[2026-03-12T23:06:05.471Z] [error] Realtime subscription error
+[2026-03-12T23:06:32.070Z] [error] Trailers realtime subscription error
+[2026-03-12T23:50:33.765Z] [error] Pickup trucks realtime subscription error
+[2026-03-12T23:50:33.765Z] [error] Pickup trucks realtime subscription error
+[2026-03-13T00:55:18.774Z] [error] lazy: Expected the result of a dynamic import() call. Instead received: %s
+
+Your code should look like: 
+  const MyComponent = lazy(() => import('./MyComponent')) {}
+[2026-03-13T00:55:18.774Z] [error] lazy: Expected the result of a dynamic import() call. Instead received: %s
+
+Your code should look like: 
+  const MyComponent = lazy(() => import('./MyComponent')) {}
+[2026-03-13T00:55:18.774Z] [error] lazy: Expected the result of a dynamic import() call. Instead received: %s
+
+Your code should look like: 
+  const MyComponent = lazy(() => import('./MyComponent')) {}
+[2026-03-13T00:55:18.774Z] [error] lazy: Expected the result of a dynamic import() call. Instead received: %s
+
+Your code should look like: 
+  const MyComponent = lazy(() => import('./MyComponent')) {}
+[2026-03-13T00:55:18.774Z] [uncaught] Error: Element type is invalid. Received a promise that resolves to: undefined. Lazy element type must resolve to a class or function. at http://localhost:3000/static/js/bundle.js:25138:22
+[2026-03-13T00:55:18.774Z] [warn] %s
+
+%s
+ An error occurred in one of your React components. Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+[2026-03-13T00:57:31.918Z] [error] The final argument passed to %s changed size between renders. The order and size of this array must remain constant.
+
+Previous: %s
+Incoming: %s useEffect [, [object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object], [object Set], true, query => _services_MixerService__WEBPACK_IMPORTED_MODULE_0__.MixerService.searchMixersByVinProcessed(query)] [, [object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object

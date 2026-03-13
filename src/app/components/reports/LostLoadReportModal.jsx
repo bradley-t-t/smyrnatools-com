@@ -177,25 +177,31 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         >
                             Plant
                         </label>
-                        <select
-                            value={plant}
-                            onChange={(e) => {
-                                setPlant(e.target.value)
-                            }}
-                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none"
-                            style={{
-                                backgroundColor: 'var(--bg-primary)',
-                                border: '1px solid var(--border-light)',
-                                color: 'var(--text-primary)'
-                            }}
-                        >
-                            <option value="">Select plant...</option>
-                            {plants.map((p) => (
-                                <option key={p.plant_code} value={p.plant_code}>
-                                    ({p.plant_code}) {p.plant_name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={plant}
+                                onChange={(e) => {
+                                    setPlant(e.target.value)
+                                }}
+                                className="w-full appearance-none rounded-lg pl-3 pr-9 py-2.5 text-sm font-medium focus:outline-none cursor-pointer transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border-light)',
+                                    color: plant ? 'var(--text-primary)' : 'var(--text-secondary)'
+                                }}
+                            >
+                                <option value="">Select plant...</option>
+                                {plants.map((p) => (
+                                    <option key={p.plant_code} value={p.plant_code}>
+                                        ({p.plant_code}) {p.plant_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <i
+                                className="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+                                style={{ color: 'var(--text-secondary)' }}
+                            />
+                        </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <label
