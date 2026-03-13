@@ -4,7 +4,7 @@ import { supabase } from '../../services/DatabaseService'
 import { EquipmentService } from '../../services/EquipmentService'
 import { MixerService } from '../../services/MixerService'
 import { OperatorService } from '../../services/OperatorService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import { TractorService } from '../../services/TractorService'
 import { TrailerService } from '../../services/TrailerService'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
@@ -67,7 +67,7 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-                const selectedRegion = RegionService.getRegionByCode(selectedRegionCode)
+                const selectedRegion = PlantService.getRegionByCode(selectedRegionCode)
                 if (selectedRegion?.type !== 'Concrete') {
                     if (mounted.current) {
                         setPlantMetrics([])
@@ -75,7 +75,7 @@ export function useLeaderboardData(selectedRegionCode, selectedYear) {
                     }
                     return
                 }
-                const plantsInRegion = await RegionService.fetchRegionPlants(selectedRegionCode)
+                const plantsInRegion = await PlantService.fetchRegionPlants(selectedRegionCode)
                 if (!plantsInRegion?.length) {
                     if (mounted.current) {
                         setPlantMetrics([])

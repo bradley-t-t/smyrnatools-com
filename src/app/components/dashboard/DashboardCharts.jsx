@@ -18,7 +18,7 @@ import {
 } from 'recharts'
 
 import { supabase } from '../../../services/DatabaseService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 /** Semantic color palette used across all dashboard chart series. */
 const COLORS = {
     active: '#22c55e',
@@ -174,7 +174,7 @@ export default function DashboardCharts({
                 return
             }
             try {
-                const region = RegionService.getRegionByCode(dashboardRegionCode)
+                const region = PlantService.getRegionByCode(dashboardRegionCode)
                 const isOffice = region?.type === 'Office'
                 const plantCodes = isOffice
                     ? allPlants.map((p) => p.plantCode || p.plant_code).filter(Boolean)

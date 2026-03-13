@@ -265,8 +265,8 @@ html.dark .unassign-operator-button:hover { background: #4c1d21; border-color: #
         if (!showTransfer || !hasTransferPerm) return
         const loadRegions = async () => {
             try {
-                const { RegionService } = await import('../../../services/RegionService')
-                setRegions((await RegionService.fetchRegions()) || [])
+                const { PlantService } = await import('../../../services/PlantService')
+                setRegions((await PlantService.fetchRegions()) || [])
             } catch {
                 setTransferErr('Failed to load regions')
             }
@@ -280,8 +280,8 @@ html.dark .unassign-operator-button:hover { background: #4c1d21; border-color: #
         }
         const loadPlants = async () => {
             try {
-                const { RegionService } = await import('../../../services/RegionService')
-                setPlants((await RegionService.fetchRegionPlants(targetRegion)) || [])
+                const { PlantService } = await import('../../../services/PlantService')
+                setPlants((await PlantService.fetchRegionPlants(targetRegion)) || [])
                 setTargetPlant('')
             } catch {
                 setPlants([])

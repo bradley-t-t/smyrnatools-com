@@ -5,7 +5,6 @@ import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { PickupTruckService } from '../../../services/PickupTruckService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 /**
  * Slide-in form for creating a new pickup truck record. Supports VIN
  * (with I/O/Q letter stripping), make, model, year, assigned person,
@@ -54,7 +53,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                 return
             }
             try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
+                const regionPlants = await PlantService.fetchRegionPlants(code)
                 if (cancelled) return
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)

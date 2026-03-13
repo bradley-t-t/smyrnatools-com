@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import DashboardUtility from '../../utils/DashboardUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
 import { INITIAL_STATS } from '../constants/dashboardConstants'
@@ -30,7 +30,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
     const allPickupsRef = useRef([])
     const allOperatorsRef = useRef([])
     const computeStats = useCallback(() => {
-        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const region = PlantService.getRegionByCode(dashboardRegionCode)
         const isAggregate = region?.type === 'Aggregate'
         const plantSet = updatePlantSet(region?.type)
         const consider = createFilterFn(plantSet)

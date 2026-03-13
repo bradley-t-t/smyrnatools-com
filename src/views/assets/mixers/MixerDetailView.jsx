@@ -10,7 +10,6 @@ import { supabase } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import { DateUtility } from '../../../utils/DateUtility'
@@ -161,7 +160,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -171,7 +170,7 @@ function MixerDetailView({ mixerId, onClose }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants
@@ -248,7 +247,7 @@ function MixerDetailView({ mixerId, onClose }) {
         if (!mixer?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid mixer, region, or plant')
         }
-        const regionService = RegionService
+        const regionService = PlantService
         const newRegion = await regionService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
@@ -591,7 +590,7 @@ function MixerDetailView({ mixerId, onClose }) {
     }, [mixerId])
     useEffect(() => {
         if (mixer?.assignedPlant) {
-            RegionService.fetchRegionsByPlantCode(mixer.assignedPlant)
+            PlantService.fetchRegionsByPlantCode(mixer.assignedPlant)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)

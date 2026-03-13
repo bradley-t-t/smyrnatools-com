@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 
 import { ListService } from '../../../services/ListService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import { usePreferences } from '../../context/PreferencesContext'
@@ -202,7 +201,7 @@ function QuickAddForm({ accentColor, onCreated }) {
     useEffect(() => {
         async function loadPlants() {
             const regionCode = preferences?.selectedRegion?.code || ''
-            const allowedCodes = await RegionService.getAllowedPlantCodes(regionCode)
+            const allowedCodes = await PlantService.getAllowedPlantCodes(regionCode)
             if (!allowedCodes) return
             const allPlants = await PlantService.fetchAllPlants()
             setPlants(

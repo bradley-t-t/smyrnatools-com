@@ -4,7 +4,7 @@ import PlantDropdownModal from '../../../app/components/common/PlantDropdownModa
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Tractor } from '../../../app/models/tractors/Tractor'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
 /**
  * Slide-in form for creating a new tractor record. Requires truck number,
@@ -39,7 +39,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                 return
             }
             try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
+                const regionPlants = await PlantService.fetchRegionPlants(code)
                 if (cancelled) return
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)

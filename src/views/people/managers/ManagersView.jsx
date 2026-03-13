@@ -6,7 +6,6 @@ import TopSection from '../../../app/components/sections/TopSection'
 import AssetListSkeleton from '../../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import ManagerCard from './ManagerCard'
 import ManagerDetailView from './ManagerDetailView'
@@ -93,7 +92,7 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         let cancelled = false
         async function loadRegionPlants() {
             try {
-                const codes = await RegionService.getAllowedPlantCodes(code)
+                const codes = await PlantService.getAllowedPlantCodes(code)
                 if (cancelled) return
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '')

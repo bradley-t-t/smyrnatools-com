@@ -2,25 +2,35 @@ import PickupTruck from '../app/models/pickup-trucks/PickupTruck'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
-    fetchAllCountsFromTable,
-    fetchAllOpenIssueCountsFromTable,
     fetchWithDetailsBase,
     getDuplicateFieldValues,
     requireUserId,
     resolveEntityId
 } from '../utils/BaseAssetUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import BaseAssetService from './BaseAssetService'
+
 const SERVICE_PREFIX = '/pickup-truck-service'
+
+const baseService = new BaseAssetService({
+    commentsTable: 'pickup_trucks_comments',
+    entityIdParam: 'pickupId',
+    entityName: 'Pickup Truck',
+    idColumn: 'truck_id',
+    issuesTable: 'pickup_trucks_maintenance',
+    servicePrefix: SERVICE_PREFIX
+})
+
 /**
  * Pickup truck CRUD, comments, issues, history, and verification service.
- * Delegates shared asset operations to BaseAssetUtility.
+ * Delegates shared asset operations to BaseAssetService.
  */
 class PickupTruckServiceImpl {
     static async fetchAllCommentsCounts(pickupTruckIds) {
-        return fetchAllCountsFromTable('pickup_trucks_comments', 'truck_id', pickupTruckIds)
+        return baseService.fetchAllCommentsCounts(pickupTruckIds)
     }
     static async fetchAllIssuesCounts(pickupTruckIds) {
-        return fetchAllOpenIssueCountsFromTable('pickup_trucks_maintenance', 'truck_id', pickupTruckIds)
+        return baseService.fetchAllIssuesCounts(pickupTruckIds)
     }
     static async getAll() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-all`, {}, 'Failed to fetch pickup trucks')
@@ -112,9 +122,7 @@ class PickupTruckServiceImpl {
         })
     }
     static async fetchComments(pickupId) {
-        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { pickupId }, 'Failed to fetch comments')
-        return json?.data ?? []
+        return baseService.fetchComments(pickupId)
     }
     static async addComment(pickupId, text, author) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
@@ -133,13 +141,10 @@ class PickupTruckServiceImpl {
         return json?.success ?? false
     }
     static async fetchIssues(pickupId) {
-        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { pickupId }, 'Failed to fetch issues')
-        return json?.data ?? []
+        return baseService.fetchIssues(pickupId)
     }
     static async completeIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
+        return baseService.completeIssue(issueId)
     }
     static async addIssue(pickupId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
@@ -158,8 +163,7 @@ class PickupTruckServiceImpl {
         return json?.data
     }
     static async deleteIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
+        return baseService.deleteIssue(issueId)
     }
     static async fetchHistory(pickupId, limit = null) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')

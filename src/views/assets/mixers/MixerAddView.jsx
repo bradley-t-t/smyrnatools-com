@@ -5,7 +5,7 @@ import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Mixer } from '../../../app/models/mixers/Mixer'
 import { MixerService } from '../../../services/MixerService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 /**
  * Slide-in form for creating a new mixer (concrete truck) record.
  * Requires truck number and assigned plant. Defaults cleanliness to 5
@@ -41,7 +41,7 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                 return
             }
             try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
+                const regionPlants = await PlantService.fetchRegionPlants(code)
                 if (cancelled) return
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)

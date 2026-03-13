@@ -26,7 +26,7 @@ import {
     useRegionalAISummary
 } from '../../../app/hooks/usePlantNotifications'
 import { useStatusHistory } from '../../../app/hooks/useStatusHistory'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import DateUtility from '../../../utils/DateUtility'
 /**
  * Primary dashboard view. Orchestrates region/plant-scoped fleet, operator,
@@ -238,7 +238,7 @@ export default function DashboardView() {
     useEffect(() => {
         if (!loading) fetchIssueCommentCounts()
     }, [stats.fleetTotal, loading, fetchIssueCommentCounts])
-    const selectedRegion = RegionService.getRegionByCode(dashboardRegionCode)
+    const selectedRegion = PlantService.getRegionByCode(dashboardRegionCode)
     const isAggregate = selectedRegion?.type === 'Aggregate'
     const showSkeleton = !dataReady
     const wasLoadingRef = useRef(true)

@@ -62,10 +62,10 @@ async function fetchUserPlantCode(userId) {
 async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
     const allowed = new Set()
     if (hasBypass && userPlantCode) {
-        const { RegionService } = await import('./RegionService')
-        const regions = await RegionService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
+        const { PlantService } = await import('./PlantService')
+        const regions = await PlantService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
         for (const region of regions) {
-            const plants = await RegionService.fetchRegionPlants(region.code).catch(() => [])
+            const plants = await PlantService.fetchRegionPlants(region.code).catch(() => [])
             plants.forEach((p) => {
                 const code = p.plantCode || p.plant_code
                 if (code) allowed.add(code)

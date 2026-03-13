@@ -5,7 +5,6 @@ import DetailViewSection from '../../../app/components/sections/DetailViewSectio
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { PickupTruckService } from '../../../services/PickupTruckService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import PickupTruckCommentModal from './PickupTruckCommentModal'
 import PickupTruckHistoryView from './PickupTruckHistoryView'
@@ -107,7 +106,7 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -117,7 +116,7 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants
@@ -168,7 +167,7 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
     }, [vin, make, model, year, assigned, assignedPlant, status, mileage, comments, originalValues])
     useEffect(() => {
         if (pickup?.assignedPlant) {
-            RegionService.fetchRegionsByPlantCode(pickup.assignedPlant)
+            PlantService.fetchRegionsByPlantCode(pickup.assignedPlant)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)
@@ -184,7 +183,7 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         if (!pickup?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid pickup truck, region, or plant')
         }
-        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }

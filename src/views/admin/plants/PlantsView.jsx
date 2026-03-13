@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import LoadingScreen from '../../../app/components/common/LoadingScreen'
 import TopSection from '../../../app/components/sections/TopSection'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import PlantsAddView from './PlantsAddView'
 import PlantsDetailView from './PlantsDetailView'
 /** Maps region types to human-readable plant type labels. */
@@ -58,12 +57,12 @@ function PlantsView({ title = 'Plants' }) {
             try {
                 const [plantsData, regionsData] = await Promise.all([
                     PlantService.fetchPlants(),
-                    RegionService.fetchRegions()
+                    PlantService.fetchRegions()
                 ])
                 setPlants(plantsData)
                 setRegions(regionsData)
                 const regionPlantsResults = await Promise.all(
-                    regionsData.map((r) => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
+                    regionsData.map((r) => PlantService.fetchRegionPlants(r.regionCode).catch(() => []))
                 )
                 const map = {}
                 regionsData.forEach((region, index) => {

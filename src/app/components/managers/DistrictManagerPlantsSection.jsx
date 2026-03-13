@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
-import { DistrictManagerService } from '../../../services/DistrictManagerService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
+import { UserService } from '../../../services/UserService'
 import DetailViewSection from '../sections/DetailViewSection'
 /**
  * Plant-responsibility picker for eligible roles (District Manager, etc.).
@@ -28,7 +28,7 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
             setLoading(true)
             try {
                 const [userPlants, resolvedPlants] = await Promise.all([
-                    DistrictManagerService.fetchUserPlants(userId),
+                    UserService.fetchUserPlants(userId),
                     resolveRegionPlants(userPlantCode)
                 ])
                 if (cancelled) return
@@ -54,11 +54,11 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
     async function resolveRegionPlants(plantCode) {
         if (!plantCode) return []
         try {
-            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
             if (!regions?.length) return []
             const regionCode = regions[0].regionCode || regions[0].region_code
             if (!regionCode) return []
-            return await RegionService.fetchRegionPlants(regionCode)
+            return await PlantService.fetchRegionPlants(regionCode)
         } catch {
             return []
         }
@@ -66,7 +66,7 @@ function DistrictManagerPlantsSection({ userId, userPlantCode, readOnly, onMessa
     const handleSave = async () => {
         setSaving(true)
         try {
-            await DistrictManagerService.updateUserPlants(userId, assignedCodes)
+            await UserService.updateUserPlants(userId, assignedCodes)
             setOriginalCodes(assignedCodes)
             setHasChanges(false)
             onMessage?.('Responsible plants saved')

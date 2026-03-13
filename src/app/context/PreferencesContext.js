@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 import { logSupabaseError, supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
 /**
@@ -228,7 +228,7 @@ export const PreferencesProvider = ({ children }) => {
                             typeof plant === 'string' ? plant : plant?.plant_code || plant?.plantCode || ''
                         ).trim()
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             if (cancelled) return
                             if (regions && regions.length > 0) {
                                 const region = regions[0]

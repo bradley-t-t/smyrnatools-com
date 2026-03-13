@@ -1,9 +1,9 @@
 import React from 'react'
 
+import { reportTypeMap } from '../../../../app/types/ReportTypes'
 import { AIService } from '../../../../services/AIService'
 import { supabase } from '../../../../services/DatabaseService'
 import { ReportService } from '../../../../services/ReportService'
-import { reportTypeMap } from '../../../../app/types/ReportTypes'
 import { ReportUtility } from '../../../../utils/ReportUtility'
 import { RPT_INPUT, RPT_TEXTAREA, TD_STYLE, TH_STYLE, useReportForWeek } from './shared'
 import { ReadyMixInstructorReviewPlugin } from './WeeklyReadyMixInstructorReport'

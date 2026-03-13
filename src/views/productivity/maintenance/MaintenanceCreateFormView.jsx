@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { MaintenanceService } from '../../../services/MaintenanceService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
 import { getFieldTypeIcon, getFieldTypeName } from '../../../utils/MaintenanceUtility'
 /**
@@ -56,7 +56,7 @@ export default function MaintenanceCreateFormView({ editingForm, onBack, onSaved
         try {
             const regionCode = preferences.selectedRegion?.code
             if (regionCode) {
-                const plants = await RegionService.fetchRegionPlants(regionCode)
+                const plants = await PlantService.fetchRegionPlants(regionCode)
                 setAvailablePlants(plants || [])
             } else {
                 setAvailablePlants([])

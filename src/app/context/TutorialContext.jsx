@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import TutorialService from '../../services/TutorialService'
+import { UserPreferencesService } from '../../services/UserPreferencesService'
 /**
  * Tutorial dismissal context managing which in-app tutorials have been seen.
  * Supports delayed triggering, per-tutorial reset, and respects the user's
@@ -18,7 +18,7 @@ const TutorialContext = createContext({
     triggerTutorial: () => {}
 })
 /**
- * Tutorial provider that loads dismissed state from TutorialService on mount,
+ * Tutorial provider that loads dismissed state from UserPreferencesService on mount,
  * persists dismissals to both localStorage and the database, and provides
  * show/dismiss/trigger/reset methods to the component tree.
  */
@@ -32,7 +32,6 @@ export function TutorialProvider({ children }) {
     useEffect(() => {
         const checkTutorialsEnabled = async () => {
             try {
-                const { UserPreferencesService } = await import('../../services/UserPreferencesService')
                 const { UserService } = await import('../../services/UserService')
                 const user = await UserService.getCurrentUser()
                 if (user?.id) {
@@ -63,7 +62,7 @@ export function TutorialProvider({ children }) {
     useEffect(() => {
         const loadDismissed = async () => {
             try {
-                const dismissed = await TutorialService.getDismissedTutorials()
+                const dismissed = await UserPreferencesService.getDismissedTutorials()
                 setDismissedTutorials(dismissed || [])
                 dismissedRef.current = dismissed || []
             } catch {
@@ -80,7 +79,7 @@ export function TutorialProvider({ children }) {
         [dismissedTutorials]
     )
     const dismissTutorial = useCallback(async (tutorialId) => {
-        await TutorialService.dismissTutorial(tutorialId)
+        await UserPreferencesService.dismissTutorial(tutorialId)
         setDismissedTutorials((prev) => [...prev, tutorialId])
         dismissedRef.current = [...dismissedRef.current, tutorialId]
         setActiveTutorial(null)
@@ -116,12 +115,12 @@ export function TutorialProvider({ children }) {
         [isLoaded]
     )
     const resetTutorial = useCallback(async (tutorialId) => {
-        await TutorialService.resetTutorial(tutorialId)
+        await UserPreferencesService.resetTutorial(tutorialId)
         setDismissedTutorials((prev) => prev.filter((id) => id !== tutorialId))
         dismissedRef.current = dismissedRef.current.filter((id) => id !== tutorialId)
     }, [])
     const resetAllTutorials = useCallback(async () => {
-        await TutorialService.resetAllTutorials()
+        await UserPreferencesService.resetAllTutorials()
         setDismissedTutorials([])
         dismissedRef.current = []
     }, [])

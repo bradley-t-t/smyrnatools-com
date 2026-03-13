@@ -6,7 +6,6 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { AIService } from '../../../services/AIService'
 import { ListService } from '../../../services/ListService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 /**
@@ -65,7 +64,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     useEffect(() => {
         async function fetchPlants() {
             const selectedRegionCode = preferences?.selectedRegion?.code || ''
-            const allowedCodes = await RegionService.getAllowedPlantCodes(selectedRegionCode)
+            const allowedCodes = await PlantService.getAllowedPlantCodes(selectedRegionCode)
             if (allowedCodes) {
                 const allPlants = await PlantService.fetchAllPlants()
                 setPlants(

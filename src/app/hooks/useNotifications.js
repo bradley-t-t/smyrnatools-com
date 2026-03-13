@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import NotificationsService from '../../services/NotificationsService'
-import UserNotificationsService from '../../services/UserNotificationsService'
 import { useMultiTableSubscription } from './useRealtimeSubscription'
 const NOTIFICATION_TABLES = ['list_items', 'mixers', 'equipment', 'tractors', 'notifications', 'notification_reads']
 /**
@@ -88,7 +87,7 @@ export function useNotifications(userId, selectedRegion) {
     const markAsRead = useCallback(
         async (dbId) => {
             if (!userId || !dbId) return
-            await UserNotificationsService.markAsRead(userId, dbId)
+            await NotificationsService.markAsRead(userId, dbId)
             setNotifications((prev) => {
                 const updated = prev.map((n) => (n.dbId === dbId ? { ...n, isRead: true } : n))
                 setCount(computeCount(updated))
@@ -103,7 +102,7 @@ export function useNotifications(userId, selectedRegion) {
         setNotifications((prev) => {
             const unreadDbIds = prev.filter((n) => n.source === 'db' && !n.isRead).map((n) => n.dbId)
             if (!unreadDbIds.length) return prev
-            UserNotificationsService.markAllRead(userId, unreadDbIds).catch(() => {})
+            NotificationsService.markAllRead(userId, unreadDbIds).catch(() => {})
             const updated = prev.map((n) => (n.source === 'db' ? { ...n, isRead: true } : n))
             setCount(computeCount(updated))
             return updated
@@ -113,7 +112,7 @@ export function useNotifications(userId, selectedRegion) {
     const deleteNotification = useCallback(
         async (dbId) => {
             if (!userId || !dbId) return
-            await UserNotificationsService.deleteNotification(userId, dbId)
+            await NotificationsService.deleteNotification(userId, dbId)
             setNotifications((prev) => {
                 const updated = prev.filter((n) => n.dbId !== dbId)
                 setCount(computeCount(updated))

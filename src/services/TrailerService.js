@@ -2,18 +2,27 @@ import Trailer from '../app/models/trailers/Trailer'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
-    fetchAllCountsFromTable,
-    fetchAllOpenIssueCountsFromTable,
     fetchWithDetailsBase,
     normalizeSeverity,
-    resolveEntityId,
-    resolveUserIdOrAnonymous
+    resolveEntityId
 } from '../utils/BaseAssetUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
+import BaseAssetService from './BaseAssetService'
+
 const SERVICE_PREFIX = '/trailer-service'
+
+const baseService = new BaseAssetService({
+    commentsTable: 'trailers_comments',
+    entityIdParam: 'trailerId',
+    entityName: 'Trailer',
+    idColumn: 'trailer_id',
+    issuesTable: 'trailers_maintenance',
+    servicePrefix: SERVICE_PREFIX
+})
+
 /**
  * Trailer CRUD, comments, issues, history, and search service.
- * Uses a plain object pattern (vs class) and delegates shared operations to BaseAssetUtility.
+ * Uses a plain object pattern (vs class) and delegates shared operations to BaseAssetService.
  */
 const TrailerService = {
     /** Adds a text comment to a trailer record. */
@@ -50,26 +59,11 @@ const TrailerService = {
     },
     /** Marks an issue as completed/resolved. */
     async completeIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, `Invalid issue ID format: ${issueId}`)
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
+        return baseService.completeIssue(issueId)
     },
     /** Records a field-level change in the trailer history audit trail. */
     async createHistoryEntry(trailerId, fieldName, oldValue, newValue, changedBy) {
-        ValidationUtility.requireUUID(trailerId, 'Trailer ID is required')
-        if (!fieldName) throw new Error('Field name required')
-        const userId = await resolveUserIdOrAnonymous(changedBy)
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-history`,
-            {
-                changedBy: userId,
-                fieldName,
-                newValue,
-                oldValue,
-                trailerId
-            },
-            'Failed to create history entry'
-        )
-        return json?.data
+        return baseService.createHistoryEntry(trailerId, fieldName, oldValue, newValue, changedBy)
     },
     /** Creates a new trailer record. */
     async createTrailer(trailer, userId) {
@@ -89,10 +83,10 @@ const TrailerService = {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete`, { id }, 'Failed to delete trailer')
     },
     async fetchAllCommentsCounts(trailerIds) {
-        return fetchAllCountsFromTable('trailers_comments', 'trailer_id', trailerIds)
+        return baseService.fetchAllCommentsCounts(trailerIds)
     },
     async fetchAllIssuesCounts(trailerIds) {
-        return fetchAllOpenIssueCountsFromTable('trailers_maintenance', 'trailer_id', trailerIds)
+        return baseService.fetchAllIssuesCounts(trailerIds)
     },
     async fetchComments(trailerId) {
         ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
@@ -100,9 +94,7 @@ const TrailerService = {
         return json?.data ?? []
     },
     async fetchIssues(trailerId) {
-        ValidationUtility.requireUUID(trailerId, `Invalid trailer ID format: ${trailerId}`)
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { trailerId }, 'Failed to fetch issues')
-        return json?.data ?? []
+        return baseService.fetchIssues(trailerId)
     },
 
     /** Fetches a single trailer by ID, handling both string and object ID arguments. */

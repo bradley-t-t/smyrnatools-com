@@ -6,7 +6,7 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import supabase, { DatabaseService } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
 import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
@@ -166,7 +166,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     }
     useEffect(() => {
         if (operator?.plant_code) {
-            RegionService.fetchRegionsByPlantCode(operator.plant_code)
+            PlantService.fetchRegionsByPlantCode(operator.plant_code)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)
@@ -182,7 +182,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         if (!operator?.employeeId || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid operator, region, or plant')
         }
-        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }

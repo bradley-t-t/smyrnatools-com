@@ -9,18 +9,28 @@ import {
     apiPostRequireSuccess,
     dispatchNotificationsRefresh,
     ensureSpareIfNoOperatorBase,
-    fetchAllCountsFromTable,
-    fetchAllOpenIssueCountsFromTable,
     fetchWithDetailsBase,
     requireUserId,
     resolveEntityId,
-    resolveUserIdOrAnonymous,
     uppercaseVin
 } from '../utils/BaseAssetUtility'
 import CleanupUtility from '../utils/CleanupUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
 import VerifiedUtility from '../utils/VerifiedUtility'
+import BaseAssetService from './BaseAssetService'
+
 const SERVICE_PREFIX = '/mixer-service'
+
+const baseService = new BaseAssetService({
+    commentModelFn: MixerComment.fromRow,
+    commentsTable: 'mixers_comments',
+    entityIdParam: 'mixerId',
+    entityName: 'Mixer',
+    idColumn: 'mixer_id',
+    issuesTable: 'mixers_maintenance',
+    servicePrefix: SERVICE_PREFIX
+})
+
 /** Attaches a lazy isVerified() method to a mixer instance using VerifiedUtility logic. */
 function attachIsVerified(mixer) {
     if (!mixer) return mixer
@@ -38,7 +48,7 @@ function enrichMixerWithVerification(mixer) {
 }
 /**
  * Mixer CRUD, history, comments, issues, images, and verification service.
- * Delegates shared asset operations to BaseAssetUtility.
+ * Delegates shared asset operations to BaseAssetService.
  */
 class MixerServiceImpl {
     static async getAllMixers() {
@@ -62,14 +72,7 @@ class MixerServiceImpl {
     }
     /** Fetches the most recent history entry date for a mixer. */
     static async getLatestHistoryDate(mixerId) {
-        if (!mixerId) return null
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/fetch-history`,
-            { limit: 1, mixerId },
-            'Failed to fetch history'
-        ).catch(() => null)
-        if (!json) return null
-        return (json?.data ?? [])[0]?.changed_at ?? null
+        return baseService.getLatestHistoryDate(mixerId)
     }
     static async getActiveMixers() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active mixers')
@@ -120,22 +123,7 @@ class MixerServiceImpl {
     }
     /** Records a field-level change in the mixer history audit trail. Uppercases VIN values. */
     static async createHistoryEntry(mixerId, fieldName, oldValue, newValue, changedBy) {
-        ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
-        if (!fieldName) throw new Error('Field name required')
-        const userId = await resolveUserIdOrAnonymous(changedBy)
-        const finalNewValue = fieldName === 'vin' ? (newValue || '').toUpperCase() : newValue
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-history`,
-            {
-                changedBy: userId,
-                fieldName,
-                mixerId,
-                newValue: finalNewValue,
-                oldValue
-            },
-            'Failed to create history entry'
-        )
-        return json?.data
+        return baseService.createHistoryEntry(mixerId, fieldName, oldValue, newValue, changedBy)
     }
     static async getCleanlinessHistory(mixerId = null, months = 6) {
         const payload = {}
@@ -196,34 +184,19 @@ class MixerServiceImpl {
         return (json?.data ?? []).map((mixer) => new Mixer(mixer))
     }
     static async fetchAllCommentsCounts(mixerIds) {
-        return fetchAllCountsFromTable('mixers_comments', 'mixer_id', mixerIds)
+        return baseService.fetchAllCommentsCounts(mixerIds)
     }
     static async fetchAllIssuesCounts(mixerIds) {
-        return fetchAllOpenIssueCountsFromTable('mixers_maintenance', 'mixer_id', mixerIds)
+        return baseService.fetchAllIssuesCounts(mixerIds)
     }
     static async fetchComments(mixerId) {
-        ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { mixerId }, 'Failed to fetch comments')
-        return (json?.data ?? []).map((row) => MixerComment.fromRow(row))
+        return baseService.fetchComments(mixerId)
     }
     static async addComment(mixerId, text, author) {
-        ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
-        if (!text?.trim()) throw new Error('Comment text is required')
-        if (!author?.trim()) throw new Error('Author is required')
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-comment`,
-            {
-                author: author.trim(),
-                mixerId,
-                text: text.trim()
-            },
-            'Failed to add comment'
-        )
-        return json?.data ? MixerComment.fromRow(json.data) : null
+        return baseService.addComment(mixerId, text, author)
     }
     static async deleteComment(commentId) {
-        ValidationUtility.requireUUID(commentId, 'Comment ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
+        return baseService.deleteComment(commentId)
     }
     static async _fetchHistoryDates() {
         const mixers = await this.getAllMixers()
@@ -276,13 +249,10 @@ class MixerServiceImpl {
         return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-image`, { imageId }, 'Failed to delete mixer image')
     }
     static async fetchIssues(mixerId) {
-        ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { mixerId }, 'Failed to fetch issues')
-        return json?.data ?? []
+        return baseService.fetchIssues(mixerId)
     }
     static async completeIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
+        return baseService.completeIssue(issueId)
     }
     static async addIssue(mixerId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
@@ -301,8 +271,7 @@ class MixerServiceImpl {
         return json?.data
     }
     static async deleteIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
+        return baseService.deleteIssue(issueId)
     }
     /**
      * Fetches all mixers with enriched details (comments count, issues count, status history, verification).

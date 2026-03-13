@@ -234,23 +234,23 @@ export function useReportForWeek(weekIso, reportName, extraFilters = {}) {
     return { loading, report }
 }
 /** Resolves the set of plant codes the current user's region is allowed to access. */
-export function useAllowedPlantCodes(regionCode, RegionService) {
+export function useAllowedPlantCodes(regionCode, service) {
     const [allowedCodes, setAllowedCodes] = useState(null)
     useEffect(() => {
         let mounted = true
         async function loadCodes() {
-            if (!RegionService || !regionCode) {
+            if (!service || !regionCode) {
                 setAllowedCodes(null)
                 return
             }
-            const codes = await RegionService.getAllowedPlantCodes(regionCode)
+            const codes = await service.getAllowedPlantCodes(regionCode)
             if (mounted) setAllowedCodes(codes)
         }
         loadCodes()
         return () => {
             mounted = false
         }
-    }, [regionCode, RegionService])
+    }, [regionCode, service])
     return allowedCodes
 }
 /** Filters maintenance items to only those belonging to plants within the allowed plant code set. */

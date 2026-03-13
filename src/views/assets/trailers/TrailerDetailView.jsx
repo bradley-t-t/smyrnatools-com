@@ -6,7 +6,6 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import Trailer from '../../../app/models/trailers/Trailer'
 import { supabase } from '../../../services/DatabaseService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { TractorService } from '../../../services/TractorService'
 import { TrailerService } from '../../../services/TrailerService'
 import { UserService } from '../../../services/UserService'
@@ -137,7 +136,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -147,7 +146,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants
@@ -215,7 +214,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
     }, [hasUnsavedChanges])
     useEffect(() => {
         if (trailer?.assignedPlant) {
-            RegionService.fetchRegionsByPlantCode(trailer.assignedPlant)
+            PlantService.fetchRegionsByPlantCode(trailer.assignedPlant)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)
@@ -230,7 +229,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         if (!trailer?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid trailer, region, or plant')
         }
-        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }

@@ -9,7 +9,6 @@ import { Tractor } from '../../../app/models/tractors/Tractor'
 import { supabase } from '../../../services/DatabaseService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { TractorService } from '../../../services/TractorService'
 import { UserService } from '../../../services/UserService'
 import AssetStatsUtility from '../../../utils/AssetStatsUtility'
@@ -140,7 +139,7 @@ function TractorDetailView({ tractorId, onClose }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -150,7 +149,7 @@ function TractorDetailView({ tractorId, onClose }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants
@@ -229,7 +228,7 @@ function TractorDetailView({ tractorId, onClose }) {
     }, [hasUnsavedChanges])
     useEffect(() => {
         if (tractor?.assignedPlant) {
-            RegionService.fetchRegionsByPlantCode(tractor.assignedPlant)
+            PlantService.fetchRegionsByPlantCode(tractor.assignedPlant)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)
@@ -244,7 +243,7 @@ function TractorDetailView({ tractorId, onClose }) {
         if (!tractor?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid tractor, region, or plant')
         }
-        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }

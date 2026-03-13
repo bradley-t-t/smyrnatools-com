@@ -1,5 +1,5 @@
 import { supabase } from '../services/DatabaseService'
-import { RegionService } from '../services/RegionService'
+import { PlantService } from '../services/PlantService'
 import { UserService } from '../services/UserService'
 import APIUtility from './APIUtility'
 /** Resolves an entity object or raw ID string to its `id` property. */
@@ -199,12 +199,12 @@ export async function getRegionScopedPlantCodes(userId, selectedRegion) {
         for (const region of Array.isArray(regions) ? regions : []) {
             const regionCode = region.regionCode || region.region_code
             if (!regionCode) continue
-            const plantCodes = await RegionService.getAllowedPlantCodes(regionCode).catch(() => null)
+            const plantCodes = await PlantService.getAllowedPlantCodes(regionCode).catch(() => null)
             normalizePlantCodes(plantCodes).forEach((p) => allCodes.add(p))
         }
         return allCodes
     }
-    const plantCodes = await RegionService.getAllowedPlantCodes(code).catch(() => null)
+    const plantCodes = await PlantService.getAllowedPlantCodes(code).catch(() => null)
     return normalizePlantCodes(plantCodes)
 }
 /** Resolves the user's assigned plant code as an uppercase string. */

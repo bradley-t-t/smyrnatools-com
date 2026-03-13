@@ -9,7 +9,6 @@ import { Equipment } from '../../../app/models/equipment/Equipment'
 import { supabase } from '../../../services/DatabaseService'
 import { EquipmentService } from '../../../services/EquipmentService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { UserService } from '../../../services/UserService'
 import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import DateUtility from '../../../utils/DateUtility'
@@ -120,7 +119,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plantCode) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plantCode)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -130,7 +129,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants
@@ -205,7 +204,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
     }, [hasUnsavedChanges])
     useEffect(() => {
         if (equipment?.assignedPlant) {
-            RegionService.fetchRegionsByPlantCode(equipment.assignedPlant)
+            PlantService.fetchRegionsByPlantCode(equipment.assignedPlant)
                 .then((regions) => {
                     if (regions && regions.length > 0) {
                         setCurrentRegion(regions[0].regionCode)
@@ -220,7 +219,7 @@ function EquipmentDetailView({ equipmentId, onClose, onSaved }) {
         if (!equipment?.id || !newRegionCode || !newPlantCode) {
             throw new Error('Invalid equipment, region, or plant')
         }
-        const newRegion = await RegionService.fetchRegionByCode(newRegionCode)
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
         if (!newRegion) {
             throw new Error('Target region not found')
         }

@@ -5,7 +5,7 @@ import DetailViewSection from '../../../app/components/sections/DetailViewSectio
 import { useAuth } from '../../../app/context/AuthContext'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { supabase } from '../../../services/DatabaseService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
 import APIUtility from '../../../utils/APIUtility'
 /**
@@ -187,7 +187,7 @@ function ManagerDetailView({ managerId, onClose }) {
                                 ? profilePlant
                                 : profilePlant?.plant_code || profilePlant?.plantCode || ''
                         if (plant) {
-                            const regions = await RegionService.fetchRegionsByPlantCode(plant)
+                            const regions = await PlantService.fetchRegionsByPlantCode(plant)
                             const r = Array.isArray(regions) && regions.length ? regions[0] : null
                             regionCode = r ? r.regionCode || r.region_code || '' : ''
                         }
@@ -197,7 +197,7 @@ function ManagerDetailView({ managerId, onClose }) {
                     if (!cancelled) setRegionPlantCodes(new Set())
                     return
                 }
-                const regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
                 if (cancelled) return
                 const codes = new Set(
                     regionPlants

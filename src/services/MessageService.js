@@ -77,7 +77,7 @@ const MessageService = {
         const [allUsers, allowedPlants] = await Promise.all([
             UserService.getAllUsersWithProfilesAndRoles(),
             regionCode
-                ? (await import('./RegionService')).RegionService.getAllowedPlantCodes(regionCode)
+                ? (await import('./PlantService')).PlantService.getAllowedPlantCodes(regionCode)
                 : Promise.resolve(null)
         ])
         return allUsers

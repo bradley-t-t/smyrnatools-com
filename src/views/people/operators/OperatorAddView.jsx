@@ -4,7 +4,7 @@ import PlantDropdownModal from '../../../app/components/common/PlantDropdownModa
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { OperatorService } from '../../../services/OperatorService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
 import ValidationUtility from '../../../utils/ValidationUtility'
 /**
@@ -61,7 +61,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                 return
             }
             try {
-                const regionPlants = await RegionService.fetchRegionPlants(code)
+                const regionPlants = await PlantService.fetchRegionPlants(code)
                 if (cancelled) return
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)

@@ -12,8 +12,8 @@ import ReviewReportsList from '../../../app/components/reports/ReviewReportsList
 import { usePagination } from '../../../app/hooks/usePagination'
 import { useReportsData } from '../../../app/hooks/useReportsData'
 import { useReportSubmission } from '../../../app/hooks/useReportSubmission'
-import { supabase } from '../../../services/DatabaseService'
 import { reportTypeMap, reportTypes } from '../../../app/types/ReportTypes'
+import { supabase } from '../../../services/DatabaseService'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
 /**

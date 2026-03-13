@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { DASHBOARD_REFRESH_INTERVAL_MS } from '../constants/dashboardConstants'
@@ -46,7 +46,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 const allPerm = await UserService.hasPermission(uid, 'region.select.all').catch(() => false)
                 if (cancelled) return
                 setHasAllRegionsPermission(!!allPerm)
-                const allFetched = await RegionService.fetchRegions().catch(() => [])
+                const allFetched = await PlantService.fetchRegions().catch(() => [])
                 let regionsList = await UserService.getPermittedRegions(uid).catch(() => [])
                 if (!regionsList?.length && allFetched.length) regionsList = allFetched
                 if (cancelled) return
@@ -54,7 +54,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                 setTotalRegionsExcludingOffice(allFetched.filter((r) => r.type !== 'Office').length)
                 const aggregateRegions = allFetched.filter((r) => r.type === 'Aggregate')
                 const aggregatePlantsArrays = await Promise.all(
-                    aggregateRegions.map((r) => RegionService.fetchRegionPlants(r.regionCode).catch(() => []))
+                    aggregateRegions.map((r) => PlantService.fetchRegionPlants(r.regionCode).catch(() => []))
                 )
                 const totalAggLocs = aggregatePlantsArrays.flat().length
                 setTotalAggregateLocations(totalAggLocs)
@@ -102,7 +102,7 @@ export function useDashboardInit({ plantSetRef, preferences }) {
             setRegionPlantsLoaded(false)
             setRefreshing(true)
             try {
-                const list = await RegionService.fetchRegionPlants(dashboardRegionCode).catch(() => [])
+                const list = await PlantService.fetchRegionPlants(dashboardRegionCode).catch(() => [])
                 if (cancelled) return
                 setRegionPlants(list)
                 setRegionPlantsLoaded(true)

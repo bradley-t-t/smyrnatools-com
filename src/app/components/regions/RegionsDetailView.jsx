@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import DetailViewSection from '../sections/DetailViewSection'
 /**
  * Detail/edit view for a single region.
@@ -52,7 +51,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                 normalizedAll = []
             }
             try {
-                regionPlants = await RegionService.fetchRegionPlants(regionCode)
+                regionPlants = await PlantService.fetchRegionPlants(regionCode)
             } catch {
                 regionPlants = []
             }
@@ -79,7 +78,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         setSaving(true)
         setMessage('')
         try {
-            await RegionService.updateRegion(regionCode, regionName, plantCodes, regionType, plantDistricts)
+            await PlantService.updateRegion(regionCode, regionName, plantCodes, regionType, plantDistricts)
             setMessage('Changes saved')
             if (onUpdate) onUpdate(regionCode, regionName)
             setTimeout(() => setMessage(''), 2000)
@@ -92,7 +91,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
     }
     const handleDelete = async () => {
         try {
-            await RegionService.deleteRegion(regionCode)
+            await PlantService.deleteRegion(regionCode)
             if (onDelete) onDelete(regionCode)
             else onClose()
         } catch {

@@ -12,7 +12,6 @@ import { supabase } from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
-import { RegionService } from '../../../services/RegionService'
 import { TractorService } from '../../../services/TractorService'
 import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
@@ -273,7 +272,7 @@ function OperatorsView({
     const fetchAllData = useCallback(async () => {
         setIsLoading(true)
         try {
-            const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+            const codes = await PlantService.getAllowedPlantCodes(preferences.selectedRegion?.code)
             setRegionPlantCodes(codes)
             await Promise.all([
                 fetchOperators(codes),
@@ -322,7 +321,7 @@ function OperatorsView({
         let cancelled = false
         async function loadRegionPlants() {
             try {
-                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                const codes = await PlantService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 if (cancelled) return
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '')

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import { UserService } from '../../services/UserService'
-import { reportTypeMap, reportTypes } from '../types/ReportTypes'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
+import { reportTypeMap, reportTypes } from '../types/ReportTypes'
 const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
 const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
@@ -154,7 +154,7 @@ export function useReportsData() {
         if (!user?.id) return
         async function loadUserPlants() {
             const [mainPlant, additional] = await Promise.all([
-                UserService.getMainAssignedPlant(user.id).catch(() => ''),
+                UserService.getUserPlant(user.id).catch(() => ''),
                 UserService.getAdditionalAssignedPlants(user.id).catch(() => [])
             ])
             setUserPlantCode(mainPlant || '')
@@ -223,9 +223,9 @@ export function useReportsData() {
                 return
             }
             try {
-                const region = await RegionService.fetchRegionByCode(code)
+                const region = await PlantService.fetchRegionByCode(code)
                 setRegionType(region?.type || null)
-                const list = await RegionService.fetchRegionPlants(code)
+                const list = await PlantService.fetchRegionPlants(code)
                 if (cancelled) return
                 setRegionPlantCodes(new Set(list.map((p) => p.plantCode)))
                 setRegionPlantsWithDistricts(list)

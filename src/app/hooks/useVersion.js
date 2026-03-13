@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { AppService } from '../../services/AppService'
+import { AppService } from '../../services/AppInstallPromptService'
 /** Fetches the current app version string from AppService on mount. */
 export function useVersion() {
     const [version, setVersion] = useState('')

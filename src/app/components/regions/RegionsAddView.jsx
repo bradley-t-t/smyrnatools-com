@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import AddViewSection from '../sections/AddViewSection'
 /**
  * Modal form for creating a new region with code, name, and type fields.
@@ -23,8 +23,8 @@ function RegionsAddView({ onClose, onRegionAdded }) {
         if (!regionType) return setError('Region type is required')
         setIsSaving(true)
         try {
-            await RegionService.createRegion(regionCode, regionName, regionType)
-            const allRegions = await RegionService.fetchRegions()
+            await PlantService.createRegion(regionCode, regionName, regionType)
+            const allRegions = await PlantService.fetchRegions()
             const newRegion = allRegions.find((r) => (r.region_code || r.regionCode) === regionCode.trim())
             if (newRegion) {
                 onRegionAdded(newRegion)

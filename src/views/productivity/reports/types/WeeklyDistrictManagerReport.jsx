@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { usePreferences } from '../../../../app/context/PreferencesContext'
-import { RegionService } from '../../../../services/RegionService'
+import { PlantService } from '../../../../services/PlantService'
 import { ReportUtility } from '../../../../utils/ReportUtility'
 import { filterMaintenanceItemsByPlant, useAllowedPlantCodes } from './shared'
 const WEEKDAYS = [
@@ -158,7 +158,7 @@ function MaintenanceItemsTable({ items, plants }) {
 function DistrictManagerPlugin({ maintenanceItems, plants, form, setForm, readOnly }) {
     const { preferences } = usePreferences()
     const regionCode = preferences?.selectedRegion?.code || ''
-    const allowedCodes = useAllowedPlantCodes(regionCode, RegionService)
+    const allowedCodes = useAllowedPlantCodes(regionCode, PlantService)
     const filteredItems = filterMaintenanceItemsByPlant(maintenanceItems, plants, allowedCodes)
     const completedCount = filteredItems.length
     const overdueCount = filteredItems.filter((item) => item.isOverdue).length

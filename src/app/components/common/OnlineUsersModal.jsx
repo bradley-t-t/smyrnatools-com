@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 
-import { OnlineUsersService } from '../../../services/OnlineUsersService'
+import { UserPresenceService } from '../../../services/UserPresenceService'
 const MILLISECONDS_PER_MINUTE = 60000
 const MILLISECONDS_PER_HOUR = 3600000
 const MILLISECONDS_PER_DAY = 86400000
@@ -16,25 +16,25 @@ function formatLastActivity(lastActivity) {
     return `${Math.floor(diffMs / MILLISECONDS_PER_DAY)}d ago`
 }
 function OnlineUsersModal({ isOpen, onClose, anchorRect }) {
-    const [onlineUsers, setOnlineUsers] = useState(() => OnlineUsersService.getUsers())
-    const [regionNames, setRegionNames] = useState(() => OnlineUsersService.getRegionNames())
-    const [roleColorMap, setRoleColorMap] = useState(() => OnlineUsersService.getRoleColorMap())
-    const [isLoading, setIsLoading] = useState(() => OnlineUsersService.getIsLoading())
+    const [onlineUsers, setOnlineUsers] = useState(() => UserPresenceService.getOnlineUsers())
+    const [regionNames, setRegionNames] = useState(() => UserPresenceService.getRegionNames())
+    const [roleColorMap, setRoleColorMap] = useState(() => UserPresenceService.getRoleColorMap())
+    const [isLoading, setIsLoading] = useState(() => UserPresenceService.getIsLoading())
     useEffect(() => {
         if (!isOpen) return
-        setOnlineUsers(OnlineUsersService.getUsers())
-        setRegionNames(OnlineUsersService.getRegionNames())
-        setRoleColorMap(OnlineUsersService.getRoleColorMap())
-        setIsLoading(OnlineUsersService.getIsLoading())
-        OnlineUsersService.refresh(true)
+        setOnlineUsers(UserPresenceService.getOnlineUsers())
+        setRegionNames(UserPresenceService.getRegionNames())
+        setRoleColorMap(UserPresenceService.getRoleColorMap())
+        setIsLoading(UserPresenceService.getIsLoading())
+        UserPresenceService.refreshOnlineUsers(true)
         const handleUpdate = (snapshot) => {
             setOnlineUsers(snapshot.users)
             setRegionNames(snapshot.regionNames)
             setRoleColorMap(snapshot.roleColorMap)
             setIsLoading(snapshot.isLoading)
         }
-        OnlineUsersService.addListener(handleUpdate)
-        return () => OnlineUsersService.removeListener(handleUpdate)
+        UserPresenceService.addOnlineUsersListener(handleUpdate)
+        return () => UserPresenceService.removeOnlineUsersListener(handleUpdate)
     }, [isOpen])
     if (!isOpen) return null
     const modalStyle = {

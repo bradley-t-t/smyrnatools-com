@@ -4,7 +4,7 @@ import LoadingScreen from '../../../app/components/common/LoadingScreen'
 import RegionsAddView from '../../../app/components/regions/RegionsAddView'
 import RegionsDetailView from '../../../app/components/regions/RegionsDetailView'
 import TopSection from '../../../app/components/sections/TopSection'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 /**
  * List view for all regions. Supports search by name/code/type, type filter
  * (Concrete/Aggregate/Office), and drill-down into RegionsDetailView for
@@ -22,7 +22,7 @@ function RegionsView({ title = 'Regions' }) {
         async function fetchRegions() {
             setIsLoading(true)
             try {
-                const data = await RegionService.fetchRegions()
+                const data = await PlantService.fetchRegions()
                 setRegions(data)
             } finally {
                 setIsLoading(false)
@@ -42,7 +42,7 @@ function RegionsView({ title = 'Regions' }) {
         setSelectedRegion(null)
     }
     async function handleRegionUpdated(regionCode) {
-        const updatedRegions = await RegionService.fetchRegions()
+        const updatedRegions = await PlantService.fetchRegions()
         setRegions(updatedRegions)
         setSelectedRegion(updatedRegions.find((r) => (r.region_code || r.regionCode) === regionCode) || null)
     }

@@ -1,5 +1,7 @@
 import { supabase } from './DatabaseService'
+import { PlantService } from './PlantService'
 import { UserService } from './UserService'
+
 function detectDeviceType() {
     if (typeof navigator === 'undefined') return 'desktop'
     const ua = navigator.userAgent || ''
@@ -11,6 +13,7 @@ function detectDeviceType() {
     if (window.matchMedia?.('(pointer: coarse)')?.matches && window.innerWidth < 1024) return 'mobile'
     return 'desktop'
 }
+
 let _hasActiveDevicesCol = null
 async function checkActiveDevicesCol() {
     if (_hasActiveDevicesCol !== null) return _hasActiveDevicesCol
@@ -22,6 +25,7 @@ async function checkActiveDevicesCol() {
     }
     return _hasActiveDevicesCol
 }
+
 async function mergeActiveDevice(userId, device, now) {
     const hasCol = await checkActiveDevicesCol()
     if (!hasCol) return
@@ -37,14 +41,59 @@ async function mergeActiveDevice(userId, device, now) {
         await supabase.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
     } catch {}
 }
+
+/* ── Online users helpers (read side) ── */
+
+const STALE_THRESHOLD = 5 * 60 * 1000
+
+function buildRoleColorMap(roles) {
+    if (!roles?.length) return {}
+    const sorted = [...roles].sort((a, b) => (b.weight || 0) - (a.weight || 0))
+    return Object.fromEntries(
+        sorted.map((role, index) => {
+            const hue = sorted.length === 1 ? 0 : Math.round((index / (sorted.length - 1)) * 120)
+            return [role.name.toLowerCase(), `hsl(${hue}, 72%, 42%)`]
+        })
+    )
+}
+
+function extractRegionCode(profile) {
+    if (!profile) return null
+    if (Array.isArray(profile.regions) && profile.regions.length > 0) return profile.regions[0]
+    return profile.region_code || profile.regionCode || null
+}
+
+function extractRoleNames(rolesData) {
+    if (!Array.isArray(rolesData)) return []
+    return rolesData.map((r) => (typeof r === 'string' ? r : (r?.name ?? null))).filter(Boolean)
+}
+
+function getActiveDevices(activeDevices, isSelf) {
+    const now = Date.now()
+    const devices = []
+    if (activeDevices && typeof activeDevices === 'object') {
+        for (const [type, timestamp] of Object.entries(activeDevices)) {
+            if (timestamp && now - new Date(timestamp).getTime() < STALE_THRESHOLD) {
+                devices.push(type)
+            }
+        }
+    }
+    if (isSelf) {
+        const current = detectDeviceType()
+        if (!devices.includes(current)) devices.push(current)
+    }
+    if (devices.length === 0) devices.push('desktop')
+    return devices.sort()
+}
+
 /**
- * Real-time user presence tracking service using Supabase.
- * Maintains online status via heartbeats (30s), detects stale sessions (5min),
- * tracks user activity (click/keydown/mousemove), and broadcasts presence changes
- * to registered listeners via Supabase realtime subscriptions.
+ * Unified presence service combining write-side tracking (heartbeats, activity,
+ * online/offline status) with read-side online-users list (fetching, caching,
+ * role colors, region names).
  */
 class UserPresenceService {
     constructor() {
+        /* ── Write-side (presence tracking) state ── */
         this.listeners = []
         this.subscriptions = []
         this.isSetup = false
@@ -59,7 +108,22 @@ class UserPresenceService {
         this.onOnline = this.handleOnlineStatusChange.bind(this, true)
         this.onOffline = this.handleOnlineStatusChange.bind(this, false)
         this.onUserActivity = this.handleUserActivity.bind(this)
+
+        /* ── Read-side (online users list) state ── */
+        this.onlineUsers = []
+        this.regionNames = {}
+        this.roleColorMap = {}
+        this.onlineUsersListeners = []
+        this.isOnlineUsersInitialized = false
+        this.isOnlineUsersLoading = true
+        this._refreshing = false
+        this._userMetaCache = {}
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+     *  Write-side: presence tracking
+     * ════════════════════════════════════════════════════════════════════ */
+
     async setup() {
         if (this.isSetup) return true
         try {
@@ -93,20 +157,24 @@ class UserPresenceService {
             return false
         }
     }
+
     setupActivityTracking() {
         document.addEventListener('click', this.onUserActivity)
         document.addEventListener('keydown', this.onUserActivity)
         document.addEventListener('mousemove', this.onUserActivity, { passive: true })
     }
+
     handlePresenceChange() {
         this.notifyListeners()
     }
+
     handleUserActivity() {
         const now = Date.now()
         if (now - this.lastActivityUpdate < 30000) return
         this.lastActivityUpdate = now
         this.updateActivity()
     }
+
     async updateActivity() {
         if (!this.currentUserId) return false
         try {
@@ -131,12 +199,14 @@ class UserPresenceService {
             return false
         }
     }
+
     startActivityRefresh() {
         if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
         this.activityRefreshInterval = setInterval(() => {
             this.notifyListeners()
         }, 60000)
     }
+
     async setUserOnline(userId) {
         if (!userId) return false
         try {
@@ -166,6 +236,7 @@ class UserPresenceService {
             return false
         }
     }
+
     async setUserBackOnline(userId) {
         if (!userId) return false
         try {
@@ -180,6 +251,7 @@ class UserPresenceService {
             return false
         }
     }
+
     async setUserOffline(userId) {
         if (!userId) return false
         try {
@@ -193,6 +265,7 @@ class UserPresenceService {
             return false
         }
     }
+
     async updateHeartbeat() {
         if (!this.currentUserId) return false
         try {
@@ -206,10 +279,12 @@ class UserPresenceService {
             return false
         }
     }
+
     startHeartbeat() {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
         this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), 30000)
     }
+
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
@@ -224,6 +299,7 @@ class UserPresenceService {
             } catch {}
         }, 60000)
     }
+
     handleBeforeUnload() {
         if (this.currentUserId) {
             const now = new Date().toISOString()
@@ -239,6 +315,7 @@ class UserPresenceService {
             }).catch(() => {})
         }
     }
+
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
         if (isOnline) {
@@ -252,6 +329,7 @@ class UserPresenceService {
             }
         }
     }
+
     async getOnlineCount() {
         try {
             const { count, error } = await supabase
@@ -264,12 +342,16 @@ class UserPresenceService {
             return 0
         }
     }
+
+    /** Presence-change listeners (write side) */
     addListener(callback) {
         if (typeof callback === 'function') this.listeners.push(callback)
     }
+
     removeListener(callback) {
         this.listeners = this.listeners.filter((listener) => listener !== callback)
     }
+
     notifyListeners() {
         this.listeners.forEach((listener) => {
             try {
@@ -277,6 +359,7 @@ class UserPresenceService {
             } catch {}
         })
     }
+
     cleanup() {
         if (this.heartbeatInterval) {
             clearInterval(this.heartbeatInterval)
@@ -303,10 +386,176 @@ class UserPresenceService {
         }
         this.subscriptions = []
         this.listeners = []
+        this.onlineUsersListeners = []
         this.isSetup = false
         this.currentUserId = null
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+     *  Read-side: online users list (merged from OnlineUsersService)
+     * ════════════════════════════════════════════════════════════════════ */
+
+    async initOnlineUsers() {
+        if (this.isOnlineUsersInitialized) return
+        this.isOnlineUsersInitialized = true
+        try {
+            const [currentUser, allRoles] = await Promise.all([
+                UserService.getCurrentUser(),
+                UserService.getAllRoles().catch(() => [])
+            ])
+            this.currentUserId = currentUser?.id || null
+            this.roleColorMap = buildRoleColorMap(allRoles)
+        } catch {}
+        await this.refreshOnlineUsers(true)
+        this.addListener(() => this.refreshOnlineUsers())
+    }
+
+    async refreshOnlineUsers(force = false) {
+        if (this._refreshing && !force) return
+        this._refreshing = true
+        try {
+            const fiveMinutesAgo = new Date(Date.now() - STALE_THRESHOLD).toISOString()
+            const hasDevicesCol = await checkActiveDevicesCol()
+            const cols = hasDevicesCol
+                ? 'user_id, last_seen, last_activity, is_online, active_devices'
+                : 'user_id, last_seen, last_activity, is_online'
+            const { data: presences, error } = await supabase
+                .from('users_presence')
+                .select(cols)
+                .or(`is_online.eq.true,last_activity.gte.${fiveMinutesAgo}`)
+                .order('last_activity', { ascending: false })
+            if (error) {
+                this.isOnlineUsersLoading = false
+                this._notifyOnlineUsersListeners()
+                return
+            }
+            let presenceList = presences || []
+            if (this.currentUserId && !presenceList.some((p) => p.user_id === this.currentUserId)) {
+                presenceList = [
+                    ...presenceList,
+                    {
+                        active_devices: { [detectDeviceType()]: new Date().toISOString() },
+                        is_online: true,
+                        last_activity: new Date().toISOString(),
+                        last_seen: new Date().toISOString(),
+                        user_id: this.currentUserId
+                    }
+                ]
+            }
+            const uncached = presenceList.filter((p) => !this._userMetaCache[p.user_id])
+            if (uncached.length > 0) {
+                await Promise.all(uncached.map((p) => this._fetchAndCacheMeta(p.user_id)))
+            }
+            this.onlineUsers = presenceList
+                .map((p) => {
+                    const meta = this._userMetaCache[p.user_id] || {}
+                    const isSelf = p.user_id === this.currentUserId
+                    return {
+                        activeDevices: getActiveDevices(p.active_devices, isSelf),
+                        id: p.user_id,
+                        isCurrentUser: isSelf,
+                        lastActivity: p.last_activity,
+                        lastSeen: p.last_seen,
+                        name: meta.name || 'Unknown User',
+                        regionCode: meta.regionCode || null,
+                        roleWeight: meta.roleWeight || 0,
+                        roles: meta.roles || []
+                    }
+                })
+                .sort((a, b) => (b.roleWeight || 0) - (a.roleWeight || 0))
+            this.isOnlineUsersLoading = false
+            await this._resolveRegionNames(this.onlineUsers)
+            this._notifyOnlineUsersListeners()
+        } catch {
+            this.isOnlineUsersLoading = false
+            this._notifyOnlineUsersListeners()
+        } finally {
+            this._refreshing = false
+        }
+    }
+
+    async _fetchAndCacheMeta(userId) {
+        try {
+            const [name, rolesData, profile, roleWeight] = await Promise.all([
+                UserService.getUserDisplayName(userId),
+                UserService.getUserRoles(userId),
+                UserService.getUserProfile(userId).catch(() => null),
+                UserService.getUserWeight(userId).catch(() => 0)
+            ])
+            let regionCode = extractRegionCode(profile)
+            if (!regionCode && profile?.plant_code) {
+                try {
+                    const regions = await PlantService.fetchRegionsByPlantCode(profile.plant_code)
+                    if (regions?.length > 0) regionCode = regions[0].regionCode || regions[0].region_code
+                } catch {}
+            }
+            this._userMetaCache[userId] = {
+                name,
+                regionCode,
+                roleWeight: roleWeight || 0,
+                roles: extractRoleNames(rolesData)
+            }
+        } catch {
+            this._userMetaCache[userId] = { name: 'Unknown User', regionCode: null, roleWeight: 0, roles: [] }
+        }
+    }
+
+    async _resolveRegionNames(users) {
+        const codes = [...new Set(users.map((u) => u.regionCode).filter(Boolean))]
+        let changed = false
+        for (const code of codes) {
+            if (this.regionNames[code]) continue
+            try {
+                const region = await PlantService.fetchRegionByCode(code)
+                this.regionNames[code] = region?.regionName || region?.region_name || code
+            } catch {
+                this.regionNames[code] = code
+            }
+            changed = true
+        }
+        if (changed) this._notifyOnlineUsersListeners()
+    }
+
+    getOnlineUsers() {
+        return this.onlineUsers
+    }
+
+    getRegionNames() {
+        return this.regionNames
+    }
+
+    getRoleColorMap() {
+        return this.roleColorMap
+    }
+
+    getIsLoading() {
+        return this.isOnlineUsersLoading
+    }
+
+    /** Online-users-list listeners (read side) */
+    addOnlineUsersListener(cb) {
+        if (typeof cb === 'function') this.onlineUsersListeners.push(cb)
+    }
+
+    removeOnlineUsersListener(cb) {
+        this.onlineUsersListeners = this.onlineUsersListeners.filter((l) => l !== cb)
+    }
+
+    _notifyOnlineUsersListeners() {
+        const snapshot = {
+            isLoading: this.isOnlineUsersLoading,
+            regionNames: this.regionNames,
+            roleColorMap: this.roleColorMap,
+            users: this.onlineUsers
+        }
+        this.onlineUsersListeners.forEach((cb) => {
+            try {
+                cb(snapshot)
+            } catch {}
+        })
+    }
 }
+
 const instance = new UserPresenceService()
 export { instance as UserPresenceService }
 export default instance

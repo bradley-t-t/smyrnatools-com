@@ -5,17 +5,27 @@ import {
     apiPostOrThrow,
     apiPostRequireSuccess,
     dispatchNotificationsRefresh,
-    fetchAllCountsFromTable,
-    fetchAllOpenIssueCountsFromTable,
     fetchWithDetailsBase,
     normalizeSeverity,
     requireUserId,
-    resolveEntityId,
-    resolveUserIdOrAnonymous
+    resolveEntityId
 } from '../utils/BaseAssetUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
 import VerifiedUtility from '../utils/VerifiedUtility'
+import BaseAssetService from './BaseAssetService'
+
 const SERVICE_PREFIX = '/equipment-service'
+
+const baseService = new BaseAssetService({
+    commentModelFn: EquipmentComment.fromRow,
+    commentsTable: 'heavy_equipment_comments',
+    entityIdParam: 'equipmentId',
+    entityName: 'Equipment',
+    idColumn: 'equipment_id',
+    issuesTable: 'heavy_equipment_maintenance',
+    servicePrefix: SERVICE_PREFIX
+})
+
 /** Attaches a lazy isVerified() method to an equipment instance using VerifiedUtility logic. */
 function attachIsVerified(equipment) {
     if (!equipment) return equipment
@@ -28,16 +38,16 @@ function attachIsVerified(equipment) {
 }
 /**
  * Heavy equipment CRUD, history, comments, issues, and verification service.
- * Delegates shared asset operations to BaseAssetUtility.
+ * Delegates shared asset operations to BaseAssetService.
  */
 class EquipmentServiceImpl {
     /** Fetches comment counts for multiple equipment IDs in a single query. */
     static async fetchAllCommentsCounts(equipmentIds) {
-        return fetchAllCountsFromTable('heavy_equipment_comments', 'equipment_id', equipmentIds)
+        return baseService.fetchAllCommentsCounts(equipmentIds)
     }
     /** Fetches open issue counts for multiple equipment IDs in a single query. */
     static async fetchAllIssuesCounts(equipmentIds) {
-        return fetchAllOpenIssueCountsFromTable('heavy_equipment_maintenance', 'equipment_id', equipmentIds)
+        return baseService.fetchAllIssuesCounts(equipmentIds)
     }
     /** Fetches all equipment records. */
     static async getAllEquipments() {
@@ -118,21 +128,7 @@ class EquipmentServiceImpl {
     }
     /** Records a field-level change in the equipment history audit trail. */
     static async createHistoryEntry(equipmentId, fieldName, oldValue, newValue, changedBy) {
-        ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
-        if (!fieldName) throw new Error('Field name required')
-        const userId = await resolveUserIdOrAnonymous(changedBy)
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-history`,
-            {
-                changedBy: userId,
-                equipmentId,
-                fieldName,
-                newValue,
-                oldValue
-            },
-            'Failed to create history entry'
-        )
-        return json?.data
+        return baseService.createHistoryEntry(equipmentId, fieldName, oldValue, newValue, changedBy)
     }
     /** Fetches cleanliness rating history, optionally filtered by equipment ID and time range. */
     static async getCleanlinessHistory(equipmentId = null, months = 6) {
@@ -189,40 +185,19 @@ class EquipmentServiceImpl {
     }
     /** Fetches all comments for a specific equipment record. */
     static async fetchComments(equipmentId) {
-        ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/fetch-comments`,
-            { equipmentId },
-            'Failed to fetch comments'
-        )
-        return (json?.data ?? []).map((row) => EquipmentComment.fromRow(row))
+        return baseService.fetchComments(equipmentId)
     }
     /** Adds a text comment to an equipment record. */
     static async addComment(equipmentId, text, author) {
-        ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
-        if (!text?.trim()) throw new Error('Comment text is required')
-        if (!author?.trim()) throw new Error('Author is required')
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-comment`,
-            {
-                author: author.trim(),
-                equipmentId,
-                text: text.trim()
-            },
-            'Failed to add comment'
-        )
-        return json?.data ? EquipmentComment.fromRow(json.data) : null
+        return baseService.addComment(equipmentId, text, author)
     }
     /** Deletes a comment by its UUID. */
     static async deleteComment(commentId) {
-        ValidationUtility.requireUUID(commentId, 'Comment ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
+        return baseService.deleteComment(commentId)
     }
     /** Fetches all open issues for a specific equipment record. */
     static async fetchIssues(equipmentId) {
-        ValidationUtility.requireUUID(equipmentId, 'Equipment ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { equipmentId }, 'Failed to fetch issues')
-        return json?.data ?? []
+        return baseService.fetchIssues(equipmentId)
     }
     /** Reports a new maintenance issue with severity classification. */
     static async addIssue(equipmentId, issueText, severity, createdBy = null) {
@@ -242,13 +217,11 @@ class EquipmentServiceImpl {
     }
     /** Deletes an issue by its UUID. */
     static async deleteIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
+        return baseService.deleteIssue(issueId)
     }
     /** Marks an issue as completed/resolved. */
     static async completeIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
+        return baseService.completeIssue(issueId)
     }
     /**
      * Fetches all equipment with enriched details (comments count, issues count, status history).

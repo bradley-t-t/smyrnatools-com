@@ -2,7 +2,7 @@ import { reportTypes } from '../app/types/ReportTypes'
 import CacheUtility from '../utils/CacheUtility'
 import { ReportUtility } from '../utils/ReportUtility'
 import { supabase } from './DatabaseService'
-import { RegionService } from './RegionService'
+import { PlantService } from './PlantService'
 import { UserService } from './UserService'
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
@@ -332,13 +332,13 @@ class ReportServiceImpl {
                 CacheUtility.set(cacheKey, [], TTL_SHORT)
                 return []
             }
-            const regions = await RegionService.fetchRegionsByPlantCode(userPlant)
+            const regions = await PlantService.fetchRegionsByPlantCode(userPlant)
             const regionCodes = Array.isArray(regions) ? regions.map((r) => r.regionCode).filter(Boolean) : []
             if (regionCodes.length === 0) {
                 CacheUtility.set(cacheKey, [], TTL_SHORT)
                 return []
             }
-            const results = await Promise.all(regionCodes.map((rc) => RegionService.fetchRegionPlants(rc)))
+            const results = await Promise.all(regionCodes.map((rc) => PlantService.fetchRegionPlants(rc)))
             const allowedCodes = new Set()
             results.forEach((list) => {
                 const listArr = list || []

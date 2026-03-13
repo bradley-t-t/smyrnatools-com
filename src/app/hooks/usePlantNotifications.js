@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AIService } from '../../services/AIService'
 import { supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import DashboardUtility from '../../utils/DashboardUtility'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
@@ -199,7 +199,7 @@ export function useLeaderboardMetrics({
         async function fetchLeaderboardMetrics() {
             try {
                 const selectedYear = new Date().getFullYear()
-                const plantsInRegion = await RegionService.fetchRegionPlants(dashboardRegionCode)
+                const plantsInRegion = await PlantService.fetchRegionPlants(dashboardRegionCode)
                 if (cancelled || !plantsInRegion?.length) return
                 const plantCodesInRegion = plantsInRegion.map((p) => p.plantCode)
                 const isMultiPlant = dashboardPlant === 'MY_PLANTS' || dashboardPlant?.startsWith('DISTRICT:')

@@ -14,7 +14,6 @@ import { usePreferences } from '../../app/context/PreferencesContext'
 import { supabase } from '../../services/DatabaseService'
 import { OperatorService } from '../../services/OperatorService'
 import { PlantService } from '../../services/PlantService'
-import { RegionService } from '../../services/RegionService'
 import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import AssetGridCard from './AssetGridCard'
 
@@ -253,7 +252,7 @@ function AssetView({
             try {
                 const result = await config.verification.cleanupCheck(itemsToCheck, operatorsRef.current)
                 if (result.fixed > 0) {
-                    const codes = await RegionService.getAllowedPlantCodes(regionCodeRef.current)
+                    const codes = await PlantService.getAllowedPlantCodes(regionCodeRef.current)
                     const refreshed = config.fetchItems ? await config.fetchItems(codes) : await service.fetchAll(codes)
                     setItems(refreshed)
                     if (config.hasVinSearch) setAllItems(refreshed)
@@ -351,7 +350,7 @@ function AssetView({
         async function fetchAllData() {
             setIsLoading(true)
             try {
-                const codes = await RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code)
+                const codes = await PlantService.getAllowedPlantCodes(preferences.selectedRegion?.code)
                 setRegionPlantCodes(codes)
                 const promises = [fetchAllItems(codes), fetchPlants(codes)]
                 if (config.hasOperatorAssignment) promises.push(fetchOperators())
@@ -394,7 +393,7 @@ function AssetView({
             const code = preferences.selectedRegion?.code
             if (code) setIsRegionLoading(true)
             try {
-                const codes = await RegionService.getAllowedPlantCodes(code)
+                const codes = await PlantService.getAllowedPlantCodes(code)
                 if (cancelled) return
                 setRegionPlantCodes(codes)
                 const sel = String(selectedPlant || '')
@@ -1401,7 +1400,7 @@ function AssetView({
         }
         setSelectedId(null)
         // Refetch all items
-        RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code).then((codes) => {
+        PlantService.getAllowedPlantCodes(preferences.selectedRegion?.code).then((codes) => {
             setIsLoading(true)
             fetchAllItems(codes).finally(() => setIsLoading(false))
         })
@@ -1412,7 +1411,7 @@ function AssetView({
         setSelectedId(null)
         if (config.refetchOnDetailClose) {
             setIsLoading(true)
-            RegionService.getAllowedPlantCodes(preferences.selectedRegion?.code).then((codes) =>
+            PlantService.getAllowedPlantCodes(preferences.selectedRegion?.code).then((codes) =>
                 fetchAllItems(codes).finally(() => setIsLoading(false))
             )
         }

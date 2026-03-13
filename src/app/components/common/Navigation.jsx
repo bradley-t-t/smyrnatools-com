@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import SrmLogo from '../../../assets/images/srm-logo.svg'
-import { OnlineUsersService } from '../../../services/OnlineUsersService'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
 import { usePreferences } from '../../context/PreferencesContext'
@@ -154,8 +153,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         const setupAndInit = async () => {
             try {
                 await UserPresenceService.setup()
-                await OnlineUsersService.init()
-                setOnlineUsersCount(OnlineUsersService.getUsers().length)
+                await UserPresenceService.initOnlineUsers()
+                setOnlineUsersCount(UserPresenceService.getOnlineUsers().length)
             } catch {
                 setOnlineUsersCount(0)
             }
@@ -164,8 +163,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
         const handleUpdate = (snapshot) => {
             setOnlineUsersCount(snapshot.users?.length || 0)
         }
-        OnlineUsersService.addListener(handleUpdate)
-        return () => OnlineUsersService.removeListener(handleUpdate)
+        UserPresenceService.addOnlineUsersListener(handleUpdate)
+        return () => UserPresenceService.removeOnlineUsersListener(handleUpdate)
     }, [])
 
     /* ── Close dropdown on outside click (top-bar mode) ── */

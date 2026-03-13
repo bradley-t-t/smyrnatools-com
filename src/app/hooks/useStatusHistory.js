@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { supabase } from '../../services/DatabaseService'
-import { RegionService } from '../../services/RegionService'
+import { PlantService } from '../../services/PlantService'
 import DashboardUtility from '../../utils/DashboardUtility'
 const HISTORY_TABLES = [
     { idField: 'mixer_id', key: 'mixers', table: 'mixers_history' },
@@ -69,7 +69,7 @@ export function useStatusHistory({
     const [historyLoaded, setHistoryLoaded] = useState(false)
     const historyRecordsRef = useRef(EMPTY_HISTORY)
     const getFilteredAssets = useCallback(() => {
-        const region = RegionService.getRegionByCode(dashboardRegionCode)
+        const region = PlantService.getRegionByCode(dashboardRegionCode)
         const plantSet = updatePlantSet(region?.type)
         const consider = createFilterFn(plantSet)
         const filterAssets = (assets) => assets.filter((a) => a.status !== 'Retired' && consider(a.plantCode))

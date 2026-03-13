@@ -7,7 +7,7 @@ import { TaskListSkeleton } from '../../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
 import { ListService } from '../../../services/ListService'
-import { RegionService } from '../../../services/RegionService'
+import { PlantService } from '../../../services/PlantService'
 import { UserService } from '../../../services/UserService'
 import ListAddView from './ListAddView'
 /** Maps internal status keys to their user-facing display labels. */
@@ -269,8 +269,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
             const regionCode = preferences?.selectedRegion?.code || ''
             try {
                 const [codes, rPlants] = await Promise.all([
-                    RegionService.getAllowedPlantCodes(regionCode),
-                    regionCode ? RegionService.fetchRegionPlants(regionCode).catch(() => []) : Promise.resolve([])
+                    PlantService.getAllowedPlantCodes(regionCode),
+                    regionCode ? PlantService.fetchRegionPlants(regionCode).catch(() => []) : Promise.resolve([])
                 ])
                 if (cancelled) return
                 setRegionPlantCodes(codes)

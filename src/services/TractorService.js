@@ -6,8 +6,6 @@ import {
     apiPostRequireSuccess,
     dispatchNotificationsRefresh,
     ensureSpareIfNoOperatorBase,
-    fetchAllCountsFromTable,
-    fetchAllOpenIssueCountsFromTable,
     fetchWithDetailsBase,
     normalizeSeverity,
     requireUserId,
@@ -18,7 +16,20 @@ import {
 import CleanupUtility from '../utils/CleanupUtility'
 import { ValidationUtility } from '../utils/ValidationUtility'
 import VerifiedUtility from '../utils/VerifiedUtility'
+import BaseAssetService from './BaseAssetService'
+
 const SERVICE_PREFIX = '/tractor-service'
+
+const baseService = new BaseAssetService({
+    commentModelFn: TractorComment.fromRow,
+    commentsTable: 'tractors_comments',
+    entityIdParam: 'tractorId',
+    entityName: 'Tractor',
+    idColumn: 'tractor_id',
+    issuesTable: 'tractors_maintenance',
+    servicePrefix: SERVICE_PREFIX
+})
+
 /** Fields that are allowed in the tractor history audit trail. */
 const ALLOWED_HISTORY_FIELDS = [
     'truck_number',
@@ -46,7 +57,7 @@ function enrichTractorWithVerification(tractor) {
 }
 /**
  * Tractor CRUD, history, comments, issues, and verification service.
- * Delegates shared asset operations to BaseAssetUtility.
+ * Delegates shared asset operations to BaseAssetService.
  */
 export class TractorService {
     static async getAllTractors() {
@@ -72,14 +83,7 @@ export class TractorService {
     }
     /** Fetches the most recent history entry date for a tractor. */
     static async getLatestHistoryDate(tractorId) {
-        if (!tractorId) return null
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/fetch-history`,
-            { limit: 1, tractorId },
-            'Failed to fetch history'
-        ).catch(() => null)
-        if (!json) return null
-        return (json?.data ?? [])[0]?.changed_at ?? null
+        return baseService.getLatestHistoryDate(tractorId)
     }
     static async getActiveTractors() {
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-active`, {}, 'Failed to fetch active tractors')
@@ -151,8 +155,10 @@ export class TractorService {
         if (!fieldName) throw new Error('Field name required')
         const snakeCaseField = toSnakeCase(fieldName)
         if (!ALLOWED_HISTORY_FIELDS.includes(snakeCaseField)) return null
-        const userId = await resolveUserIdOrAnonymous(changedBy)
         const finalNewValue = snakeCaseField === 'vin' ? (newValue || '').toUpperCase() : newValue
+        // Tractor has custom field filtering logic, so we call the API directly
+        // rather than delegating to baseService.createHistoryEntry
+        const userId = await resolveUserIdOrAnonymous(changedBy)
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/add-history`,
             {
@@ -231,34 +237,19 @@ export class TractorService {
         return (json?.data ?? []).map(Tractor.fromApiFormat)
     }
     static async fetchAllCommentsCounts(tractorIds) {
-        return fetchAllCountsFromTable('tractors_comments', 'tractor_id', tractorIds)
+        return baseService.fetchAllCommentsCounts(tractorIds)
     }
     static async fetchAllIssuesCounts(tractorIds) {
-        return fetchAllOpenIssueCountsFromTable('tractors_maintenance', 'tractor_id', tractorIds)
+        return baseService.fetchAllIssuesCounts(tractorIds)
     }
     static async fetchComments(tractorId) {
-        ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-comments`, { tractorId }, 'Failed to fetch comments')
-        return (json?.data ?? []).map(TractorComment.fromRow)
+        return baseService.fetchComments(tractorId)
     }
     static async addComment(tractorId, text, author) {
-        ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
-        if (!text?.trim()) throw new Error('Comment text is required')
-        if (!author?.trim()) throw new Error('Author is required')
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-comment`,
-            {
-                author: author.trim(),
-                text: text.trim(),
-                tractorId
-            },
-            'Failed to add comment'
-        )
-        return json?.data ? TractorComment.fromRow(json.data) : null
+        return baseService.addComment(tractorId, text, author)
     }
     static async deleteComment(commentId) {
-        ValidationUtility.requireUUID(commentId, 'Comment ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
+        return baseService.deleteComment(commentId)
     }
     static async _fetchHistoryDates() {
         const tractors = await this.getAllTractors()
@@ -269,9 +260,7 @@ export class TractorService {
         return map
     }
     static async fetchIssues(tractorId) {
-        ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/fetch-issues`, { tractorId }, 'Failed to fetch issues')
-        return json?.data ?? []
+        return baseService.fetchIssues(tractorId)
     }
     static async addIssue(tractorId, issueText, severity, createdBy = null) {
         ValidationUtility.requireUUID(tractorId, 'Tractor ID is required')
@@ -289,12 +278,10 @@ export class TractorService {
         return json?.data
     }
     static async deleteIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/delete-issue`, { issueId }, 'Failed to delete issue')
+        return baseService.deleteIssue(issueId)
     }
     static async completeIssue(issueId) {
-        ValidationUtility.requireUUID(issueId, 'Issue ID is required')
-        return apiPostRequireSuccess(`${SERVICE_PREFIX}/complete-issue`, { issueId }, 'Failed to complete issue')
+        return baseService.completeIssue(issueId)
     }
     /**
      * Fetches all tractors with enriched details (comments count, issues count, status history, verification).
