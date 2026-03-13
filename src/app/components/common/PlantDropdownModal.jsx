@@ -128,10 +128,7 @@ function PlantDropdownModal({
                     )}
                     {!allowMultiple && districtGroups.length > 0 && (
                         <>
-                            <div
-                                className="mx-4 my-1"
-                                style={{ borderTop: '1px solid var(--border-light, #e2e8f0)' }}
-                            />
+                            <div className="mx-4 my-1 border-t border-border-light" />
                             {userDistrict && (
                                 <div
                                     className="mb-1 flex cursor-pointer items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-medium text-gray-700 hover:bg-slate-100"
@@ -159,10 +156,7 @@ function PlantDropdownModal({
                                     <span className="text-xs text-slate-400">{district.plantCodes.length}</span>
                                 </div>
                             ))}
-                            <div
-                                className="mx-4 my-1"
-                                style={{ borderTop: '1px solid var(--border-light, #e2e8f0)' }}
-                            />
+                            <div className="mx-4 my-1 border-t border-border-light" />
                         </>
                     )}
                     {sortedPlants.map((plant) => {

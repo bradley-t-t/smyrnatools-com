@@ -1,5 +1,6 @@
 import APIUtility from '../utils/APIUtility'
 import { CacheUtility } from '../utils/CacheUtility'
+import { detectPlatformType } from '../utils/DeviceUtility'
 import { supabase } from './DatabaseService'
 
 const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
@@ -250,10 +251,7 @@ class UserPreferencesService {
 
     /** Detects the user's device type from the user-agent string. */
     static detectDeviceType() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera
-        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'ios'
-        if (/android/i.test(ua)) return 'android'
-        return 'desktop'
+        return detectPlatformType()
     }
 
     /** Returns true if the app is running in standalone (installed PWA) mode. */

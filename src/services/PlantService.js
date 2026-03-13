@@ -2,7 +2,7 @@ import { Plant } from '../app/models/plants/Plant'
 import Region from '../app/models/regions/Region'
 import APIUtility from '../utils/APIUtility'
 import { UserService } from './UserService'
-const AUTH_FUNCTION = 'plant-service'
+const SERVICE_PREFIX = 'plant-service'
 /**
  * Unified plant and region service with in-memory caches for both entities.
  * Handles CRUD operations, plant-to-region mappings, and access control.
@@ -12,11 +12,9 @@ class PlantServiceImpl {
     allPlants = []
     allRegions = []
 
-    // ── Plant Methods ──────────────────────────────────────────────────
-
     /** Fetches all plants from the API and updates the local cache. */
     async fetchAllPlants() {
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/fetch-all`)
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-all`)
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch plants')
         const data = json?.data ?? []
         this.allPlants = data
@@ -41,14 +39,14 @@ class PlantServiceImpl {
         if (!plantCode) throw new Error('Plant code is required')
         const cached = this.getPlantByCode(plantCode)
         if (cached) return cached
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/fetch-by-code`, { plantCode })
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-by-code`, { plantCode })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch plant')
         return json?.data ? Plant.fromRow(json.data) : null
     }
     /** Creates a new plant and refreshes the cache. */
     async createPlant(plantCode, plantName) {
         if (!plantCode?.trim() || !plantName?.trim()) throw new Error('Plant code and name are required')
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/create`, { plantCode, plantName })
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/create`, { plantCode, plantName })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to create plant')
         await this.fetchAllPlants()
         return true
@@ -56,7 +54,7 @@ class PlantServiceImpl {
     /** Updates a plant's name and refreshes the cache. */
     async updatePlant(plantCode, plantName) {
         if (!plantCode?.trim() || !plantName?.trim()) throw new Error('Plant code and name are required')
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/update`, { plantCode, plantName })
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/update`, { plantCode, plantName })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update plant')
         await this.fetchAllPlants()
         return true
@@ -64,7 +62,7 @@ class PlantServiceImpl {
     /** Deletes a plant and refreshes the cache. */
     async deletePlant(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/delete`, { plantCode })
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/delete`, { plantCode })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete plant')
         await this.fetchAllPlants()
         return true
@@ -81,7 +79,7 @@ class PlantServiceImpl {
     /** Fetches a plant with its associated region memberships. */
     async getPlantWithRegions(plantCode) {
         if (!plantCode) throw new Error('Plant code is required')
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/get-with-regions`, { plantCode })
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/get-with-regions`, { plantCode })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch plant with regions')
         const plantRow = json?.plant || null
         if (!plantRow) return null
@@ -89,8 +87,6 @@ class PlantServiceImpl {
         const regions = Array.isArray(json?.regions) ? json.regions : []
         return { ...plant, regions }
     }
-
-    // ── Region Methods ─────────────────────────────────────────────────
 
     /** Fetches all regions from the API and updates the local cache. */
     async fetchRegions() {
@@ -166,7 +162,9 @@ class PlantServiceImpl {
                         plantName: row.plant_name
                     }))
                 }
-            } catch (e) {}
+            } catch (err) {
+                console.error(`Failed to fetch region plants (attempt ${attempt + 1}/${maxAttempts}):`, err)
+            }
             attempt += 1
             const delay = Math.min(4000, 500 * 2 ** (attempt - 1))
             await new Promise((r) => setTimeout(r, delay))
@@ -195,26 +193,10 @@ class PlantServiceImpl {
      * Returns null if no restrictions apply.
      */
     async getAllowedPlantCodes(selectedRegionCode) {
-        let regionCode = selectedRegionCode || ''
-        if (!regionCode) {
-            const user = await UserService.getCurrentUser()
-            const uid = user?.id || ''
-            if (uid) {
-                const profilePlant = await UserService.getUserPlant(uid)
-                const plantCode =
-                    typeof profilePlant === 'string'
-                        ? profilePlant
-                        : profilePlant?.plant_code || profilePlant?.plantCode || ''
-                if (plantCode) {
-                    const regions = await this.fetchRegionsByPlantCode(plantCode)
-                    const r = Array.isArray(regions) && regions.length ? regions[0] : null
-                    regionCode = r ? r.regionCode || r.region_code || '' : ''
-                }
-            }
-        }
+        const regionCode = selectedRegionCode || (await this._resolveRegionCodeFromProfile())
         if (!regionCode) return null
         const regionPlants = await this.fetchRegionPlants(regionCode)
-        const codes = new Set(
+        return new Set(
             regionPlants
                 .map((p) =>
                     String(p.plantCode || p.plant_code || '')
@@ -223,7 +205,18 @@ class PlantServiceImpl {
                 )
                 .filter(Boolean)
         )
-        return codes
+    }
+    /** Resolves a region code from the current user's profile plant assignment. */
+    async _resolveRegionCodeFromProfile() {
+        const user = await UserService.getCurrentUser()
+        if (!user?.id) return ''
+        const profilePlant = await UserService.getUserPlant(user.id)
+        const plantCode =
+            typeof profilePlant === 'string' ? profilePlant : profilePlant?.plant_code || profilePlant?.plantCode || ''
+        if (!plantCode) return ''
+        const regions = await this.fetchRegionsByPlantCode(plantCode)
+        const firstRegion = Array.isArray(regions) && regions.length ? regions[0] : null
+        return firstRegion?.regionCode || firstRegion?.region_code || ''
     }
 }
 export const PlantService = new PlantServiceImpl()

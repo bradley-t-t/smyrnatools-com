@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AIService } from '../../services/AIService'
 import { supabase } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
+import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import DashboardUtility from '../../utils/DashboardUtility'
 import LeaderboardsUtility from '../../utils/LeaderboardsUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
@@ -82,7 +83,7 @@ export function usePlantNotifications({
                     (a) =>
                         a.status !== 'Retired' &&
                         consider(a.plantCode) &&
-                        DashboardUtility.isServiceOverdue(a.lastServiceDate)
+                        AssetStatsUtility.isServiceOverdue(a.lastServiceDate)
                 )
                 .map((a) => ({
                     id: a.id,
@@ -381,7 +382,9 @@ export function useLeaderboardMetrics({
                           }
                         : null
                 }))
-            } catch {}
+            } catch (e) {
+                console.error('Failed to fetch leaderboard metrics:', e)
+            }
         }
         fetchLeaderboardMetrics()
         return () => {
@@ -488,7 +491,8 @@ export function useAISummary({
                         if (!cancelled) setPlantNotifications((prev) => ({ ...prev, aiSummaryFailed: false }))
                     }, 3000)
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to generate plant AI summary:', e)
                 if (!cancelled) {
                     updateAISummaryState(setPlantNotifications, null, true)
                     failResetTimerId = setTimeout(() => {
@@ -613,7 +617,8 @@ export function useRegionalAISummary({
                 } else {
                     setFailed()
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to generate regional AI summary:', e)
                 if (!cancelled) setFailed()
             }
         }

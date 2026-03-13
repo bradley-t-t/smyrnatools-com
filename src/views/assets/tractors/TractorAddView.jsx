@@ -6,6 +6,7 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Tractor } from '../../../app/models/tractors/Tractor'
 import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
+import DateUtility from '../../../utils/DateUtility'
 /**
  * Slide-in form for creating a new tractor record. Requires truck number,
  * region-scoped plant assignment, and freight type (Cement/Aggregate/Flat Bed).
@@ -26,7 +27,9 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
         async function loadTractors() {
             try {
                 await TractorService.fetchTractors()
-            } catch (error) {}
+            } catch (e) {
+                console.error('Failed to prefetch tractors:', e)
+            }
         }
         loadTractors()
     }, [])
@@ -44,7 +47,8 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)
                 if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
-            } catch {
+            } catch (e) {
+                console.error('Failed to load region plants for tractor add view:', e)
                 setRegionPlantCodes(new Set())
             }
         }
@@ -80,13 +84,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-            const formatDateForDb = (date) => {
-                if (!date) return null
-                const d = new Date(date)
-                if (isNaN(d.getTime())) return null
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
-            }
-            const now = formatDateForDb(new Date())
+            const now = DateUtility.formatDateForDb(new Date())
             const newTractor = new Tractor({
                 assigned_operator: '0',
                 assigned_plant: assignedPlant,
@@ -114,13 +112,13 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
         <>
             <AddViewSection title="Add New Tractor" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-truck-moving"></i>
                             <span>Basic Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="truckNumber">Truck Number*</label>
                                 <input
                                     id="truckNumber"
@@ -134,13 +132,13 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
                             <span>Assignment & Status</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
                                     type="button"
@@ -150,7 +148,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="status">Status</label>
                                 <select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
                                     <option value="">Select Status</option>
@@ -161,13 +159,13 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-cogs"></i>
                             <span>Equipment Details</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="hasBlower">Has Blower</label>
                                 <select
                                     id="hasBlower"
@@ -178,7 +176,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                                     <option value="Yes">Yes</option>
                                 </select>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="freight">Freight*</label>
                                 <select
                                     id="freight"
@@ -194,7 +192,7 @@ function TractorAddView({ plants, onClose, onTractorAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Tractor'}
                         </button>

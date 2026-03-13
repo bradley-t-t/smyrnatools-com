@@ -1,5 +1,5 @@
 import APIUtility from '../utils/APIUtility'
-const AUTH_FUNCTION = 'plan-service'
+const SERVICE_PREFIX = 'plan-service'
 /**
  * Daily dispatch planning service managing inter-plant travel times
  * and per-user daily assignment plans.
@@ -8,7 +8,7 @@ class PlanServiceImpl {
     travelTimesCache = null
     /** Fetches all configured travel times between plants. */
     async fetchTravelTimes() {
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/fetch-travel-times`)
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-travel-times`)
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch travel times')
         const data = json?.data ?? []
         this.travelTimesCache = data
@@ -19,7 +19,7 @@ class PlanServiceImpl {
         if (!fromPlantCode || !toPlantCode || typeof travelMinutes !== 'number') {
             throw new Error('fromPlantCode, toPlantCode, and travelMinutes are required')
         }
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/upsert-travel-time`, {
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/upsert-travel-time`, {
             fromPlantCode,
             toPlantCode,
             travelMinutes
@@ -33,7 +33,7 @@ class PlanServiceImpl {
         if (!fromPlantCode || !toPlantCode) {
             throw new Error('fromPlantCode and toPlantCode are required')
         }
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/delete-travel-time`, {
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/delete-travel-time`, {
             fromPlantCode,
             toPlantCode
         })
@@ -62,7 +62,7 @@ class PlanServiceImpl {
     /** Fetches a user's saved plan for a specific date. */
     async fetchUserPlan(userId, planDate) {
         if (!userId || !planDate) return null
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/fetch-user-plan`, {
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-user-plan`, {
             planDate,
             userId
         })
@@ -74,7 +74,7 @@ class PlanServiceImpl {
         if (!userId || !planDate) {
             throw new Error('userId and planDate are required')
         }
-        const { res, json } = await APIUtility.post(`/${AUTH_FUNCTION}/save-user-plan`, {
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/save-user-plan`, {
             assignments: assignments || [],
             notes: notes || '',
             planDate,

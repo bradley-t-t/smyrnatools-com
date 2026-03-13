@@ -1,9 +1,6 @@
 import React, { memo, useState } from 'react'
 
-const getAssetViewType = (assetType) => {
-    const viewMap = { Equipment: 'equipment', Mixer: 'mixers', Tractor: 'tractors', Trailer: 'trailers' }
-    return viewMap[assetType] || 'equipment'
-}
+import { getAssetViewType } from './shared/DashboardSharedComponents'
 
 /* ── Skeleton ── */
 
@@ -533,8 +530,7 @@ const DashboardSidebar = memo(function DashboardSidebar({
                     <button
                         type="button"
                         onClick={() => setMinimized(false)}
-                        className="flex items-center justify-center w-full h-11 border-none bg-transparent cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors flex-shrink-0"
-                        style={{ borderBottom: '1px solid #e5e7eb' }}
+                        className="flex items-center justify-center w-full h-11 border-0 border-b border-solid border-gray-200 bg-transparent cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors flex-shrink-0"
                         title="Expand sidebar"
                     >
                         <i className="fas fa-chevron-left text-[10px]" />

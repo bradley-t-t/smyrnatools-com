@@ -39,133 +39,52 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
     }
     const modalContent = open ? (
         <div
-            style={{
-                alignItems: 'center',
-                background: 'rgba(0,0,0,0.5)',
-                bottom: 0,
-                display: 'flex',
-                justifyContent: 'center',
-                left: 0,
-                padding: 16,
-                position: 'fixed',
-                right: 0,
-                top: 0,
-                zIndex: 10000
-            }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4"
             onClick={() => setOpen(false)}
         >
             <div
-                style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: 12,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    maxHeight: '80vh',
-                    maxWidth: 400,
-                    overflow: 'hidden',
-                    width: '100%'
-                }}
+                className="flex w-full max-w-[400px] max-h-[80vh] flex-col overflow-hidden rounded-xl bg-[var(--bg-primary)] shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: 'var(--bg-secondary)',
-                        borderBottom: '1px solid var(--border-light)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '16px 20px'
-                    }}
-                >
-                    <h3 style={{ color: 'var(--text-primary)', fontSize: 18, fontWeight: 600, margin: 0 }}>
-                        Select Categories
-                    </h3>
+                <div className="flex items-center justify-between border-b border-[var(--border-light)] bg-[var(--bg-secondary)] px-5 py-4">
+                    <h3 className="m-0 text-lg font-semibold text-[var(--text-primary)]">Select Categories</h3>
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            fontSize: 16,
-                            padding: 8
-                        }}
+                        className="border-none bg-transparent p-2 text-base text-[var(--text-secondary)] cursor-pointer"
                     >
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
-                <div style={{ borderBottom: '1px solid var(--border-light)', display: 'flex', gap: 8, padding: 12 }}>
+                <div className="flex gap-2 border-b border-[var(--border-light)] p-3">
                     <button
                         type="button"
                         onClick={selectAll}
-                        style={{
-                            alignItems: 'center',
-                            background: 'var(--bg-tertiary)',
-                            border: '1px solid var(--border-light)',
-                            borderRadius: 6,
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            fontSize: 13,
-                            fontWeight: 500,
-                            gap: 6,
-                            padding: '8px 12px'
-                        }}
+                        className="flex items-center gap-1.5 rounded-md border border-[var(--border-light)] bg-[var(--bg-tertiary)] px-3 py-2 text-[0.8125rem] font-medium text-[var(--text-secondary)] cursor-pointer"
                     >
                         <i className="fas fa-check-double"></i> Select All
                     </button>
                     <button
                         type="button"
                         onClick={clearAll}
-                        style={{
-                            alignItems: 'center',
-                            background: 'var(--bg-tertiary)',
-                            border: '1px solid var(--border-light)',
-                            borderRadius: 6,
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            fontSize: 13,
-                            fontWeight: 500,
-                            gap: 6,
-                            padding: '8px 12px'
-                        }}
+                        className="flex items-center gap-1.5 rounded-md border border-[var(--border-light)] bg-[var(--bg-tertiary)] px-3 py-2 text-[0.8125rem] font-medium text-[var(--text-secondary)] cursor-pointer"
                     >
                         <i className="fas fa-times"></i> Clear All
                     </button>
                 </div>
-                <div style={{ borderBottom: '1px solid var(--border-light)', padding: 12 }}>
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border-light)',
-                            borderRadius: 8,
-                            display: 'flex',
-                            gap: 10,
-                            padding: '10px 12px'
-                        }}
-                    >
-                        <i className="fas fa-search" style={{ color: 'var(--text-secondary)', fontSize: 14 }}></i>
+                <div className="border-b border-[var(--border-light)] p-3">
+                    <div className="flex items-center gap-2.5 rounded-lg border border-[var(--border-light)] bg-[var(--bg-secondary)] px-3 py-2.5">
+                        <i className="fas fa-search text-sm text-[var(--text-secondary)]"></i>
                         <input
                             type="text"
                             placeholder="Search tags..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            style={{
-                                background: 'transparent',
-                                border: 'none',
-                                color: 'var(--text-primary)',
-                                flex: 1,
-                                fontSize: 14,
-                                outline: 'none'
-                            }}
+                            className="flex-1 border-none bg-transparent text-sm text-[var(--text-primary)] outline-none"
                         />
                     </div>
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                <div className="flex-1 overflow-y-auto p-2">
                     {filtered.map((opt) => {
                         const tagStyle = TAG_COLORS[opt] || {
                             bg: 'var(--bg-tertiary)',
@@ -177,41 +96,17 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                             <div
                                 key={opt}
                                 onClick={() => toggle(opt)}
-                                style={{
-                                    alignItems: 'center',
-                                    background: isSelected ? 'var(--bg-secondary)' : 'transparent',
-                                    borderRadius: 8,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    gap: 12,
-                                    marginBottom: 4,
-                                    padding: '12px 14px'
-                                }}
+                                className={`flex items-center gap-3 rounded-lg cursor-pointer mb-1 px-3.5 py-3 ${isSelected ? 'bg-[var(--bg-secondary)]' : 'bg-transparent'}`}
                             >
                                 <div
-                                    style={{
-                                        alignItems: 'center',
-                                        background: isSelected ? 'var(--accent)' : 'var(--bg-primary)',
-                                        border: isSelected ? 'none' : '2px solid var(--border-light)',
-                                        borderRadius: 6,
-                                        color: 'white',
-                                        display: 'flex',
-                                        fontSize: 11,
-                                        height: 22,
-                                        justifyContent: 'center',
-                                        width: 22
-                                    }}
+                                    className={`flex items-center justify-center rounded-md text-[0.6875rem] h-[22px] w-[22px] text-white ${isSelected ? 'bg-[var(--accent)] border-none' : 'bg-[var(--bg-primary)] border-2 border-[var(--border-light)]'}`}
                                 >
                                     {isSelected && <i className="fas fa-check"></i>}
                                 </div>
-                                <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
+                                <div className="flex items-center gap-2">
                                     <i className={tagStyle.icon} style={{ color: tagStyle.color, fontSize: 14 }}></i>
                                     <span
-                                        style={{
-                                            color: 'var(--text-primary)',
-                                            fontSize: 15,
-                                            fontWeight: isSelected ? 600 : 400
-                                        }}
+                                        className={`text-[0.9375rem] text-[var(--text-primary)] ${isSelected ? 'font-semibold' : 'font-normal'}`}
                                     >
                                         {opt}
                                     </span>
@@ -220,36 +115,17 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         )
                     })}
                     {filtered.length === 0 && (
-                        <div style={{ color: 'var(--text-secondary)', padding: 32, textAlign: 'center' }}>
-                            <i
-                                className="fas fa-search"
-                                style={{ display: 'block', fontSize: 24, marginBottom: 8 }}
-                            ></i>
+                        <div className="p-8 text-center text-[var(--text-secondary)]">
+                            <i className="fas fa-search block text-2xl mb-2"></i>
                             <span>No matching tags</span>
                         </div>
                     )}
                 </div>
-                <div
-                    style={{
-                        background: 'var(--bg-secondary)',
-                        borderTop: '1px solid var(--border-light)',
-                        padding: 16
-                    }}
-                >
+                <div className="border-t border-[var(--border-light)] bg-[var(--bg-secondary)] p-4">
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
-                        style={{
-                            background: 'var(--accent)',
-                            border: 'none',
-                            borderRadius: 8,
-                            color: 'white',
-                            cursor: 'pointer',
-                            fontSize: 14,
-                            fontWeight: 600,
-                            padding: '12px 20px',
-                            width: '100%'
-                        }}
+                        className="w-full rounded-lg border-none bg-[var(--accent)] px-5 py-3 text-sm font-semibold text-white cursor-pointer"
                     >
                         Done ({value.length} selected)
                     </button>
@@ -273,7 +149,7 @@ function TagPicker({ value, options, disabled, placeholder, onChange }) {
                         ? `${value.length} tag${value.length > 1 ? 's' : ''} selected`
                         : placeholder || 'Select tags'}
                 </span>
-                <i className="fas fa-chevron-down" style={{ fontSize: '0.75rem' }}></i>
+                <i className="fas fa-chevron-down text-xs"></i>
             </button>
             {typeof document !== 'undefined' && ReactDOM.createPortal(modalContent, document.body)}
         </div>

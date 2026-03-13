@@ -207,7 +207,7 @@ function OperatorSelectModal({
                             </div>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-gray-100">
                             {filteredOperators.map((operator) => {
                                 const isAssigned = isOperatorAssigned(operator.employeeId)
                                 const isInactive = operator.status !== 'Active'

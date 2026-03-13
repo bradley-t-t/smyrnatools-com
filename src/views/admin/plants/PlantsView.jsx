@@ -20,21 +20,8 @@ const PLANT_TYPE_BADGE_CLASSES = {
     'Concrete Plant': 'bg-blue-100 text-blue-700',
     'Office Location': 'bg-purple-100 text-purple-700'
 }
-const SELECT_STYLE = {
-    appearance: 'none',
-    backgroundColor: 'var(--bg-secondary)',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-    backgroundPosition: 'right 12px center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '18px',
-    border: '1px solid var(--border-light)',
-    borderRadius: '12px',
-    color: 'var(--text-primary)',
-    cursor: 'pointer',
-    fontSize: '14px',
-    minWidth: '140px',
-    padding: '12px 40px 12px 16px'
-}
+const CUSTOM_SELECT_CLS =
+    'appearance-none bg-bg-secondary bg-[url("data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20fill=%27none%27%20viewBox=%270%200%2024%2024%27%20stroke=%27%2364748b%27%3E%3Cpath%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%272%27%20d=%27M19%209l-7%207-7-7%27%3E%3C/path%3E%3C/svg%3E")] bg-[length:18px] bg-[position:right_12px_center] bg-no-repeat border border-border-light rounded-xl text-text-primary cursor-pointer text-sm min-w-[140px] py-3 pl-4 pr-10'
 /**
  * List view for all plants. Builds a plant-to-region map on load to display
  * each plant's type (Concrete/Aggregate/Office). Supports search by code/name,
@@ -111,7 +98,11 @@ function PlantsView({ title = 'Plants' }) {
     }
     const customFilters = (
         <>
-            <select style={SELECT_STYLE} value={selectedRegion} onChange={(e) => setSelectedRegion(e.target.value)}>
+            <select
+                className={CUSTOM_SELECT_CLS}
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+            >
                 <option value="">All Regions</option>
                 {regions.map((r) => (
                     <option key={r.regionCode} value={r.regionCode}>
@@ -120,7 +111,7 @@ function PlantsView({ title = 'Plants' }) {
                 ))}
             </select>
             <select
-                style={SELECT_STYLE}
+                className={CUSTOM_SELECT_CLS}
                 value={selectedPlantType}
                 onChange={(e) => setSelectedPlantType(e.target.value)}
             >

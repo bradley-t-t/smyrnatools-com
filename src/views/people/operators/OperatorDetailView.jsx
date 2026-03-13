@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import DetailViewSection from '../../../app/components/sections/DetailViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import supabase, { DatabaseService } from '../../../services/DatabaseService'
+import supabase from '../../../services/DatabaseService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
@@ -89,7 +89,9 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             setRating(typeof data.rating === 'number' ? data.rating : Number(data.rating) || 0)
             setPhone(data.phone || '')
             setAutomaticRestriction(data.automatic_restriction === true)
-        } catch (error) {}
+        } catch (error) {
+            console.error('Failed to fetch operator details:', error)
+        }
         setIsLoading(false)
     }, [operatorId])
     const fetchPlants = useCallback(async () => {
@@ -256,27 +258,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             }
             const { error } = await supabase.from('operators').update(updateObj).eq('employee_id', operatorId)
             if (error) {
-                if (
-                    String(error?.code) === '42703' ||
-                    /column\s+"?phone"?\s+does not exist/i.test(String(error?.message))
-                ) {
-                    try {
-                        await DatabaseService.executeMigration(
-                            'alter table public.operators add column if not exists phone text'
-                        )
-                        const retry = await supabase.from('operators').update(updateObj).eq('employee_id', operatorId)
-                        if (retry?.error) {
-                            setMessage('Error saving changes. Please try again.')
-                        } else {
-                            setMessage('Changes saved successfully!')
-                            fetchData()
-                        }
-                    } catch (e) {
-                        setMessage('Error saving changes. Please try again.')
-                    }
-                } else {
-                    setMessage('Error saving changes. Please try again.')
-                }
+                setMessage('Error saving changes. Please try again.')
             } else {
                 setMessage('Changes saved successfully!')
                 fetchData()
@@ -320,11 +302,17 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             onBack={handleBackClick}
             headerActions={
                 <>
-                    <button className="global-button-secondary" onClick={() => setShowComments(true)}>
+                    <button
+                        className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
+                        onClick={() => setShowComments(true)}
+                    >
                         <i className="fas fa-comments"></i>
                         <span>Comments</span>
                     </button>
-                    <button className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                    <button
+                        className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
+                        onClick={() => setShowHistory(true)}
+                    >
                         <i className="fas fa-history"></i>
                         <span>History</span>
                     </button>
@@ -347,20 +335,18 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     {canEditOperator ? (
                         <>
                             <button
-                                className="global-button-secondary"
+                                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                                 onClick={handleSave}
                                 disabled={isSaving || !canEditOperator}
-                                style={{ flex: 1, justifyContent: 'center' }}
                             >
                                 <i className="fas fa-save"></i>
                                 <span>{isSaving ? 'Saving...' : 'Save'}</span>
                             </button>
                             {canDeleteOperator && (
                                 <button
-                                    className="global-button-secondary"
+                                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                                     onClick={() => setShowDeleteConfirmation(true)}
                                     disabled={isSaving || !canEditOperator}
-                                    style={{ flex: 1, justifyContent: 'center' }}
                                 >
                                     <i className="fas fa-trash-alt"></i>
                                     <span>Delete</span>
@@ -368,7 +354,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             )}
                         </>
                     ) : (
-                        <div className="sidebar-readonly-notice">
+                        <div className="flex items-center gap-2 text-text-secondary text-sm font-medium">
                             <i className="fas fa-lock"></i>
                             <span>View-Only Mode</span>
                         </div>
@@ -404,71 +390,70 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
         >
             <DetailViewSection.Section id="basic" title="Basic Information" icon="fas fa-user">
                 <DetailViewSection.Card title="Personal Details" icon="fas fa-id-card">
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Employee ID</label>
                         <input
                             type="text"
                             value={smyrnaId}
                             onChange={(e) => setSmyrnaId(e.target.value)}
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         />
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Name</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         />
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Phone</label>
                         <input
                             type="tel"
                             value={GrammarUtility.formatPhone(phone)}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             placeholder="(555) 555-5555"
                             disabled={!canEditOperator}
                         />
                     </div>
                 </DetailViewSection.Card>
                 <DetailViewSection.Card title="Rating" icon="fas fa-star">
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Rating</label>
-                        <div className="cleanliness-rating-editor">
-                            <div className="star-input">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-0.5">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
                                         type="button"
-                                        className={`star-button ${star <= rating ? 'active' : ''} ${!canEditOperator ? 'disabled' : ''}`}
+                                        className={`p-1 bg-transparent border-none text-xl transition-colors ${!canEditOperator ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                         onClick={() => canEditOperator && setRating(star === rating ? 0 : star)}
                                         aria-label={`Rate ${star} of 5 stars`}
                                         disabled={!canEditOperator}
                                     >
                                         <i
-                                            className={`fas fa-star ${star <= rating ? 'filled' : ''}`}
-                                            style={star <= rating ? { color: '#f59e0b' } : {}}
+                                            className={`fas fa-star ${star <= rating ? 'text-amber-400' : 'text-border-light'}`}
                                         ></i>
                                     </button>
                                 ))}
                             </div>
                             {rating > 0 && (
-                                <div className="rating-value-display">
-                                    <span className="rating-label">
-                                        {[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}
-                                    </span>
-                                </div>
+                                <span className="text-sm font-medium text-text-secondary">
+                                    {[null, 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}
+                                </span>
                             )}
                         </div>
                     </div>
-                    <div className="down-in-yard-container">
-                        <div className="down-in-yard-toggle">
-                            <label className={`toggle-label ${!canEditOperator ? 'disabled' : ''}`}>
+                    <div className="mt-2">
+                        <label
+                            className={`flex items-center gap-3 ${!canEditOperator ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <div className="relative inline-flex items-center">
                                 <input
                                     type="checkbox"
                                     checked={automaticRestriction}
@@ -478,24 +463,23 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                                         }
                                     }}
                                     disabled={!canEditOperator}
-                                    className="toggle-checkbox"
+                                    className="sr-only peer"
                                 />
-                                <span className="toggle-switch">
-                                    <span className="toggle-slider"></span>
-                                </span>
-                                <span className="toggle-text">Automatic Only (CDL)</span>
-                            </label>
-                        </div>
-                        <div className="down-in-yard-note">
+                                <div className="w-11 h-6 bg-slate-200 rounded-full peer-checked:bg-accent transition-colors"></div>
+                                <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"></div>
+                            </div>
+                            <span className="text-sm font-medium text-text-primary">Automatic Only (CDL)</span>
+                        </label>
+                        <p className="text-xs text-text-secondary mt-2">
                             Enable this if the operator has a CDL restriction that only allows them to drive automatic
                             transmission trucks
-                        </div>
+                        </p>
                     </div>
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
             <DetailViewSection.Section id="assignment" title="Assignment" icon="fas fa-building">
                 <DetailViewSection.Card title="Assignment Information" icon="fas fa-map-marker-alt">
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Status</label>
                         <select
                             value={status}
@@ -504,7 +488,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                                 setStatus(value)
                                 if (value === 'Active') setAssignedTrainer('')
                             }}
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         >
                             <option value="Active">Active</option>
@@ -516,42 +500,34 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                         </select>
                     </div>
                     {status === 'Pending Start' && (
-                        <div className="form-group">
+                        <div className="flex flex-col gap-1.5">
                             <label>Pending Start Date</label>
                             <input
                                 type="date"
                                 value={pendingStartDate || ''}
                                 onChange={(e) => setPendingStartDate(e.target.value)}
-                                className="form-control"
+                                className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                 disabled={!canEditOperator}
                             />
                         </div>
                     )}
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Assigned Plant</label>
                         <button
-                            className="operator-select-button form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary text-left outline-none transition-colors focus:border-accent"
                             onClick={() => setShowPlantModal(true)}
                             type="button"
                             disabled={!canEditOperator}
                         >
-                            <span
-                                style={{
-                                    display: 'block',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }}
-                            >
-                                {plantDisplayText}
-                            </span>
+                            <span className="block overflow-hidden text-ellipsis">{plantDisplayText}</span>
                         </button>
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Position</label>
                         <select
                             value={position}
                             onChange={(e) => setPosition(e.target.value)}
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         >
                             <option value="">Select Position</option>
@@ -564,11 +540,11 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             {hasTrainingPermission && (
                 <DetailViewSection.Section id="training" title="Training" icon="fas fa-graduation-cap">
                     <DetailViewSection.Card title="Training Details" icon="fas fa-chalkboard-teacher">
-                        <div className="form-group">
+                        <div className="flex flex-col gap-1.5">
                             <label>Trainer Status</label>
                             <select
                                 id="trainer-status"
-                                className="form-control"
+                                className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                 value={isTrainer ? 'true' : 'false'}
                                 onChange={(e) => {
                                     const isTrainerValue = e.target.value === 'true'
@@ -584,12 +560,12 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             </select>
                         </div>
                         {(status === 'Training' || status === 'Pending Start') && (
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1.5">
                                 <label>Assigned Trainer</label>
                                 <select
                                     value={assignedTrainer}
                                     onChange={(e) => setAssignedTrainer(e.target.value)}
-                                    className="form-control"
+                                    className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                     disabled={isTrainer || !canEditOperator}
                                 >
                                     <option value="">None</option>

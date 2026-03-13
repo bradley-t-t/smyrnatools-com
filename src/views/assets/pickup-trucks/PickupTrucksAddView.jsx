@@ -127,13 +127,13 @@ function PickupTrucksAddView({ onClose, onAdded }) {
         <>
             <AddViewSection title="Add Pickup Truck" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
                             <span>Assignment & Status</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label>Plant*</label>
                                 <button
                                     type="button"
@@ -143,7 +143,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label>Status</label>
                                 <select value={status} onChange={(e) => setStatus(e.target.value)}>
                                     <option value="Active">Active</option>
@@ -156,13 +156,13 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-car"></i>
                             <span>Vehicle Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label>VIN</label>
                                 <input
                                     type="text"
@@ -170,9 +170,9 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                     onChange={(e) => setVin(e.target.value.toUpperCase().replace(/[IOQ]/g, ''))}
                                     placeholder="Enter VIN (no I, O, Q)"
                                 />
-                                <span className="form-hint">Letters I, O, and Q are not used.</span>
+                                <span className="text-xs text-gray-500">Letters I, O, and Q are not used.</span>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label>Year</label>
                                 <input
                                     type="text"
@@ -182,8 +182,8 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                 />
                             </div>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label>Make</label>
                                 <input
                                     type="text"
@@ -192,7 +192,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                     placeholder="Enter make"
                                 />
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label>Model</label>
                                 <input
                                     type="text"
@@ -203,13 +203,13 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-user"></i>
                             <span>Usage Details</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label>Assigned</label>
                                 <input
                                     type="text"
@@ -218,7 +218,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                     placeholder="Enter name"
                                 />
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label>Mileage</label>
                                 <input
                                     type="number"
@@ -228,8 +228,8 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                                 />
                             </div>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1 col-span-full">
                                 <label>Comments</label>
                                 <textarea
                                     rows={3}
@@ -240,7 +240,7 @@ function PickupTrucksAddView({ onClose, onAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Pickup'}
                         </button>

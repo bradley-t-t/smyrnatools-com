@@ -167,19 +167,17 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             footerActions={
                 <>
                     <button
-                        className="global-button-secondary"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                         onClick={handleSave}
                         disabled={saving || loading}
-                        style={{ flex: 1, justifyContent: 'center' }}
                     >
                         <i className="fas fa-save"></i>
                         <span>{saving ? 'Saving...' : 'Save'}</span>
                     </button>
                     <button
-                        className="global-button-secondary"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                         onClick={() => setShowDeleteConfirmation(true)}
                         disabled={saving || loading}
-                        style={{ flex: 1, justifyContent: 'center' }}
                     >
                         <i className="fas fa-trash-alt"></i>
                         <span>Delete</span>
@@ -194,23 +192,28 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
         >
             <DetailViewSection.Section id="info" title="Region Information" icon="fas fa-map-marker-alt">
                 <DetailViewSection.Card title="Basic Information" icon="fas fa-id-card">
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Region Code</label>
-                        <input type="text" className="form-control" value={regionCode} disabled />
+                        <input
+                            type="text"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
+                            value={regionCode}
+                            disabled
+                        />
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Region Name</label>
                         <input
                             type="text"
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             value={regionName}
                             onChange={(e) => setRegionName(e.target.value)}
                         />
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Type</label>
                         <select
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             value={regionType}
                             onChange={(e) => setRegionType(e.target.value)}
                         >
@@ -227,20 +230,13 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             <DetailViewSection.Section id="plants" title="Assigned Plants" icon="fas fa-industry">
                 <DetailViewSection.Card title={`Plants (${plantCodes.length} selected)`} icon="fas fa-sitemap">
                     {noPlantsAvailable ? (
-                        <div
-                            style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: 14,
-                                padding: '16px 0',
-                                textAlign: 'center'
-                            }}
-                        >
+                        <div className="text-text-secondary text-sm py-4 text-center">
                             No plants available. Please add plants to the system.
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div className="flex flex-col gap-3">
                             {plantCodes.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                <div className="flex flex-wrap gap-1.5">
                                     {plantCodes.map((code) => {
                                         const p = visiblePlants.find((pl) => pl.plant_code === code)
                                         return (
@@ -270,36 +266,29 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     </button>
                                 </div>
                             )}
-                            <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
+                            <div className="flex items-center gap-2">
                                 <input
                                     type="text"
-                                    className="form-control"
+                                    className="flex-1 w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                     placeholder="Search by code or name"
                                     value={plantQuery}
                                     onChange={(e) => setPlantQuery(e.target.value)}
                                     aria-label="Search plants"
-                                    style={{ flex: 1 }}
                                 />
                                 <span className="text-xs text-slate-500 whitespace-nowrap">
                                     {filteredPlants.length} results
                                 </span>
                                 <button
                                     type="button"
-                                    className="global-button-secondary"
+                                    className="flex items-center gap-2 rounded-xl border border-border-light bg-bg-primary px-3 py-2 text-[13px] font-semibold text-text-primary whitespace-nowrap transition-colors hover:bg-bg-hover"
                                     onClick={selectAllFiltered}
                                     disabled={!filteredPlants.length}
-                                    style={{ fontSize: 13, padding: '8px 12px', whiteSpace: 'nowrap' }}
                                 >
                                     Select All
                                 </button>
                             </div>
                             <div
-                                style={{
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: 10,
-                                    maxHeight: 280,
-                                    overflowY: 'auto'
-                                }}
+                                className="border border-slate-200 rounded-[10px] max-h-[280px] overflow-y-auto"
                                 role="listbox"
                                 aria-label="All plants"
                             >
@@ -308,10 +297,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     return (
                                         <label
                                             key={p.plant_code}
-                                            className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}
-                                            style={{
-                                                borderBottom: '1px solid #f1f5f9'
-                                            }}
+                                            className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100 ${isSelected ? 'bg-blue-50/50' : ''}`}
                                         >
                                             <input
                                                 type="checkbox"
@@ -326,16 +312,7 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                     )
                                 })}
                                 {!filteredPlants.length && (
-                                    <div
-                                        style={{
-                                            color: 'var(--text-secondary)',
-                                            fontSize: 14,
-                                            padding: '16px 0',
-                                            textAlign: 'center'
-                                        }}
-                                    >
-                                        No matches
-                                    </div>
+                                    <div className="text-text-secondary text-sm py-4 text-center">No matches</div>
                                 )}
                             </div>
                         </div>
@@ -345,11 +322,11 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
             {plantCodes.length > 0 && (
                 <DetailViewSection.Section id="districts" title="Districts" icon="fas fa-layer-group">
                     <DetailViewSection.Card title={`Districts (${allDistrictNames.length})`} icon="fas fa-object-group">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <div style={{ alignItems: 'center', display: 'flex', gap: 8 }}>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
                                 <input
                                     type="text"
-                                    className="form-control"
+                                    className="flex-1 w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                     placeholder="New district name..."
                                     value={newDistrictName}
                                     onChange={(e) => setNewDistrictName(e.target.value)}
@@ -359,34 +336,25 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                             addNewDistrict()
                                         }
                                     }}
-                                    style={{ flex: 1 }}
                                 />
                                 <button
                                     type="button"
-                                    className="global-button-secondary"
+                                    className="flex items-center gap-1 rounded-xl border border-border-light bg-bg-primary px-3 py-2 text-[13px] font-semibold text-text-primary whitespace-nowrap transition-colors hover:bg-bg-hover"
                                     onClick={addNewDistrict}
                                     disabled={
                                         !newDistrictName.trim() || allDistrictNames.includes(newDistrictName.trim())
                                     }
-                                    style={{ fontSize: 13, padding: '8px 12px', whiteSpace: 'nowrap' }}
                                 >
                                     <i className="fas fa-plus mr-1" />
                                     Add District
                                 </button>
                             </div>
                             {allDistrictNames.length === 0 ? (
-                                <div
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        fontSize: 14,
-                                        padding: '16px 0',
-                                        textAlign: 'center'
-                                    }}
-                                >
+                                <div className="text-text-secondary text-sm py-4 text-center">
                                     No districts defined. Add a district to group plants.
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                <div className="flex flex-col gap-4">
                                     {allDistrictNames.sort().map((districtName) => {
                                         const districtPlantCodes = plantCodes.filter((code) =>
                                             plantDistricts[code]?.includes(districtName)
@@ -397,43 +365,21 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                         return (
                                             <div
                                                 key={districtName}
-                                                style={{
-                                                    border: '1px solid var(--border-light)',
-                                                    borderRadius: 10,
-                                                    overflow: 'hidden'
-                                                }}
+                                                className="border border-border-light rounded-[10px] overflow-hidden"
                                             >
-                                                <div
-                                                    className="flex items-center justify-between px-4 py-3"
-                                                    style={{
-                                                        backgroundColor: 'var(--bg-tertiary)',
-                                                        borderBottom: '1px solid var(--border-light)'
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="text-sm font-semibold"
-                                                        style={{ color: 'var(--text-primary)' }}
-                                                    >
-                                                        <i
-                                                            className="fas fa-layer-group mr-2 text-xs"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        />
+                                                <div className="flex items-center justify-between px-4 py-3 bg-bg-tertiary border-b border-border-light">
+                                                    <span className="text-sm font-semibold text-text-primary">
+                                                        <i className="fas fa-layer-group mr-2 text-xs text-text-secondary" />
                                                         {districtName}
                                                     </span>
-                                                    <span
-                                                        className="text-xs"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
+                                                    <span className="text-xs text-text-secondary">
                                                         {districtPlantCodes.length} plant
                                                         {districtPlantCodes.length !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
-                                                <div
-                                                    className="px-4 py-3"
-                                                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-                                                >
+                                                <div className="flex flex-col gap-2 px-4 py-3">
                                                     {districtPlantCodes.length > 0 && (
-                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                                        <div className="flex flex-wrap gap-1.5">
                                                             {districtPlantCodes.map((code) => {
                                                                 const p = visiblePlants.find(
                                                                     (pl) => pl.plant_code === code
@@ -469,13 +415,12 @@ function RegionsDetailView({ region, onClose, onDelete, onUpdate }) {
                                                     )}
                                                     {unassignedPlants.length > 0 && (
                                                         <select
-                                                            className="form-control"
+                                                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-[13px] text-text-primary outline-none transition-colors focus:border-accent"
                                                             value=""
                                                             onChange={(e) => {
                                                                 if (e.target.value)
                                                                     addDistrictToPlant(e.target.value, districtName)
                                                             }}
-                                                            style={{ fontSize: 13 }}
                                                         >
                                                             <option value="">Add plant to {districtName}...</option>
                                                             {unassignedPlants.map((code) => {

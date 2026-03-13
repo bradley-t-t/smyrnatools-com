@@ -3,6 +3,15 @@ import React from 'react'
 import CardSection from '../../../app/components/sections/CardSection'
 import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import VerifiedUtility from '../../../utils/VerifiedUtility'
+
+/** Maps equipment status to card accent color. */
+const STATUS_COLORS = {
+    Active: 'var(--status-active)',
+    'In Shop': 'var(--status-inshop)',
+    Retired: 'var(--status-retired)',
+    Spare: 'var(--status-spare)'
+}
+
 /**
  * Grid-mode card for a single equipment item. Displays key details
  * (plant, status, type, service date, hours/mileage, cleanliness, condition)
@@ -16,12 +25,11 @@ function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onS
         typeof equipment.isVerified === 'function'
             ? equipment.isVerified(equipment.latestHistoryDate)
             : VerifiedUtility.isVerified(equipment.updatedLast, equipment.updatedAt, equipment.updatedBy)
-    let statusColor = 'var(--accent)'
-    if (equipment.status === 'Active') statusColor = 'var(--status-active)'
-    else if (equipment.status === 'Spare') statusColor = 'var(--status-spare)'
-    else if (equipment.status === 'In Shop') statusColor = 'var(--status-inshop)'
-    else if (equipment.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (AssetStatsUtility.isServiceOverdue(equipment.lastServiceDate)) statusColor = 'var(--error)'
+
+    const statusColor =
+        STATUS_COLORS[equipment.status] ??
+        (AssetStatsUtility.isServiceOverdue(equipment.lastServiceDate) ? 'var(--error)' : 'var(--accent)')
+
     const verificationTooltip =
         !equipment.updatedLast || !equipment.updatedBy
             ? 'Equipment never verified'
@@ -40,37 +48,41 @@ function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onS
             isVerified={isVerified}
             verificationTooltip={verificationTooltip}
         >
-            <div className="detail-row">
-                <div className="detail-label">Plant</div>
-                <div className="detail-value">{plantName}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Plant</div>
+                <div className="text-sm font-medium">{plantName}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Status</div>
-                <div className="detail-value">{equipment.status || 'Unknown'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>
+                <div className="text-sm font-medium">{equipment.status || 'Unknown'}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Type</div>
-                <div className="detail-value">{equipment.equipmentType || 'Not Assigned'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Type</div>
+                <div className="text-sm font-medium">{equipment.equipmentType || 'Not Assigned'}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Last Service</div>
-                <div className={`detail-value ${equipment.lastServiceDate && isServiceOverdue ? 'overdue' : ''}`}>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Last Service</div>
+                <div
+                    className={`text-sm font-medium ${equipment.lastServiceDate && isServiceOverdue ? 'text-red-600' : ''}`}
+                >
                     {equipment.lastServiceDate ? new Date(equipment.lastServiceDate).toLocaleDateString() : 'Unknown'}
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Hours/Mileage</div>
-                <div className="detail-value">{equipment.hoursMileage ? equipment.hoursMileage : 'Not Recorded'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Hours/Mileage</div>
+                <div className="text-sm font-medium">
+                    {equipment.hoursMileage ? equipment.hoursMileage : 'Not Recorded'}
+                </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Cleanliness</div>
-                <div className="detail-value">
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Cleanliness</div>
+                <div className="text-sm font-medium">
                     {equipment.cleanlinessRating ? (
-                        <div className="stars-container">
+                        <div className="flex gap-0.5">
                             {[...Array(5)].map((_, i) => (
                                 <i
                                     key={i}
-                                    className={`fas fa-star ${i < equipment.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
+                                    className={`fas fa-star ${i < equipment.cleanlinessRating ? 'text-yellow-400' : 'text-gray-300'}`}
                                     aria-hidden="true"
                                 ></i>
                             ))}
@@ -80,15 +92,15 @@ function EquipmentCard({ equipment, plantName, onSelect, onShowCommentModal, onS
                     )}
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Condition</div>
-                <div className="detail-value">
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Condition</div>
+                <div className="text-sm font-medium">
                     {equipment.conditionRating ? (
-                        <div className="stars-container">
+                        <div className="flex gap-0.5">
                             {[...Array(5)].map((_, i) => (
                                 <i
                                     key={i}
-                                    className={`fas fa-star ${i < equipment.conditionRating ? 'filled-star' : 'empty-star'}`}
+                                    className={`fas fa-star ${i < equipment.conditionRating ? 'text-yellow-400' : 'text-gray-300'}`}
                                     aria-hidden="true"
                                 ></i>
                             ))}

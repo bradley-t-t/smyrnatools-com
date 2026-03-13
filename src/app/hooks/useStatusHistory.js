@@ -132,7 +132,9 @@ export function useStatusHistory({
                 buildStatusDistribution(filteredAssetSets, historyData, (a) => a, startFilter, endFilter)
             )
             setHistoryLoaded(true)
-        } catch {}
+        } catch (e) {
+            console.error('Failed to fetch status history:', e)
+        }
     }, [
         historyStartDate,
         historyEndDate,

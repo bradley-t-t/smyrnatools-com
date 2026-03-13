@@ -1,3 +1,5 @@
+import HistoryDisplayUtility from '../../../utils/HistoryDisplayUtility'
+
 /** Operator field-change history entry with snake_case API mapping. */
 export class OperatorHistory {
     constructor(data = {}) {
@@ -42,17 +44,15 @@ export class OperatorHistory {
     }
 }
 /**
- * Display formatting helpers for operator history values:
- * date localization and status label normalization.
+ * Display formatting helpers for operator history values.
+ * Delegates shared logic to HistoryDisplayUtility; handles operator-specific status normalization.
  */
 export class OperatorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''
         if (['hire_date', 'termination_date'].includes(fieldName)) {
-            try {
-                const date = new Date(value)
-                if (!isNaN(date.getTime())) return date.toLocaleDateString()
-            } catch (error) {}
+            const formatted = HistoryDisplayUtility.formatDateValue(value)
+            if (formatted) return formatted
         }
         if (fieldName === 'status') {
             if (value === 'active') return 'Active'
@@ -61,12 +61,6 @@ export class OperatorHistoryUtils {
         return value
     }
     static areSameDates(date1, date2) {
-        if (!date1 && !date2) return true
-        if (!date1 || !date2) return false
-        try {
-            return new Date(date1).toISOString().split('T')[0] === new Date(date2).toISOString().split('T')[0]
-        } catch {
-            return false
-        }
+        return HistoryDisplayUtility.areSameDates(date1, date2)
     }
 }

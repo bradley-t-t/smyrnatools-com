@@ -7,6 +7,8 @@ import { useMessages } from '../../../app/hooks/useMessages'
 import { useNotifications } from '../../../app/hooks/useNotifications'
 import MessageService from '../../../services/MessageService'
 import { UserService } from '../../../services/UserService'
+import DateUtility from '../../../utils/DateUtility'
+import UserUtility from '../../../utils/UserUtility'
 
 const COMPUTED_TYPE_META = {
     'equipment.verifications': { icon: 'fas fa-snowplow', label: 'Equipment Verifications' },
@@ -54,19 +56,6 @@ function getSeverityStyle(severity) {
                 text: 'text-sky-700'
             }
     }
-}
-
-function formatTimeAgo(dateString) {
-    if (!dateString) return ''
-    const diffMs = Date.now() - new Date(dateString).getTime()
-    const mins = Math.floor(diffMs / 60000)
-    if (mins < 1) return 'just now'
-    if (mins < 60) return `${mins}m ago`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    if (days < 30) return `${days}d ago`
-    return new Date(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatMessageTime(dateString) {
@@ -118,13 +107,6 @@ function resolveAttachmentView(type, meta) {
     }
     const viewKey = ATTACHMENT_VIEW_MAP[type]
     return viewKey ? { search: meta?.itemNumber || '', viewKey } : null
-}
-
-function getInitials(name) {
-    if (!name || name === 'Unknown' || name === 'Loading...') return '?'
-    const parts = name.trim().split(' ')
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-    return name.slice(0, 2).toUpperCase()
 }
 
 /**
@@ -242,7 +224,7 @@ function NotificationsView({ userId, initialConversationId = null }) {
                         className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                         style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)` }}
                     >
-                        {getInitials(userNames[activeConversation.otherId] || '')}
+                        {UserUtility.getInitials(userNames[activeConversation.otherId] || '')}
                     </div>
                     <div className="flex-1 min-w-0">
                         <h2 className="text-sm font-bold m-0 truncate" style={{ color: 'var(--text-primary)' }}>
@@ -387,7 +369,7 @@ function NotificationsView({ userId, initialConversationId = null }) {
 /** Scrollable chat messages area. */
 function ChatMessages({ conversation, userNames, accentColor, resolvedUserId, onAttachmentClick }) {
     const scrollRef = useRef(null)
-    const otherInitials = getInitials(userNames[conversation.otherId] || '')
+    const otherInitials = UserUtility.getInitials(userNames[conversation.otherId] || '')
 
     const chronological = useMemo(
         () => [...conversation.messages].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
@@ -647,7 +629,7 @@ function ConversationList({ conversations, userNames, accentColor, onSelect }) {
         >
             {conversations.map((conv) => {
                 const name = userNames[conv.otherId] || 'Loading...'
-                const initials = getInitials(name)
+                const initials = UserUtility.getInitials(name)
                 const latest = conv.lastMessage
                 const hasUnread = conv.unread > 0
                 return (
@@ -700,7 +682,7 @@ function ConversationList({ conversations, userNames, accentColor, onSelect }) {
                                     className="text-xs ml-auto flex-shrink-0"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
-                                    {formatTimeAgo(latest.createdAt)}
+                                    {DateUtility.formatTimeAgo(latest.createdAt)}
                                 </span>
                             </div>
                             {latest.subject && (
@@ -926,7 +908,7 @@ function ComposeModal({ accentColor, onSend, onClose }) {
                                                     background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`
                                                 }}
                                             >
-                                                {getInitials(
+                                                {UserUtility.getInitials(
                                                     `${selectedRecipient.firstName} ${selectedRecipient.lastName}`
                                                 )}
                                             </div>
@@ -1012,7 +994,9 @@ function ComposeModal({ accentColor, onSend, onClose }) {
                                                                         background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`
                                                                     }}
                                                                 >
-                                                                    {getInitials(`${r.firstName} ${r.lastName}`)}
+                                                                    {UserUtility.getInitials(
+                                                                        `${r.firstName} ${r.lastName}`
+                                                                    )}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="text-sm font-medium">
@@ -1315,7 +1299,7 @@ function DbNotificationCard({ notification: n, onMarkRead, onDelete, accentColor
                                 {n.type?.replace(/_/g, ' ') || 'System'}
                             </span>
                             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                {formatTimeAgo(n.createdAt)}
+                                {DateUtility.formatTimeAgo(n.createdAt)}
                             </span>
                         </div>
                     </div>

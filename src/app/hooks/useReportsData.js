@@ -6,9 +6,7 @@ import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
 import { reportTypeMap, reportTypes } from '../types/ReportTypes'
-const HARDCODED_TODAY = new Date()
 const REPORTS_START_DATE = new Date('2025-07-20')
-const totalMyWeeks = ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, HARDCODED_TODAY)
 /**
  * Loads all reports data: user's own reports, review permissions, assigned report types,
  * region-scoped plant lists, and reporter-to-plant mappings.
@@ -205,7 +203,11 @@ export function useReportsData() {
     }, [])
     useEffect(() => {
         if (!user || isLoadingPermissions) return
-        const initialMyWeeks = ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY)
+        const now = new Date()
+        const initialMyWeeks = ReportUtility.getLastNWeekIsos(
+            ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, now),
+            now
+        )
         async function loadInitial() {
             setIsLoadingMy(true)
             await fetchReportsBatch({ scope: 'my', weeks: initialMyWeeks })
@@ -290,7 +292,10 @@ export function useReportsData() {
                       .map((rt) => rt.name)
         return allowedReviewTypes.length > 0
     }, [hasReviewPermission, regionType, isLoadingPermissions])
-    const weeksToShow = useMemo(() => ReportUtility.getLastNWeekIsos(totalMyWeeks, HARDCODED_TODAY), [])
+    const weeksToShow = useMemo(() => {
+        const now = new Date()
+        return ReportUtility.getLastNWeekIsos(ReportUtility.getTotalWeeksSince(REPORTS_START_DATE, now), now)
+    }, [refreshKey])
     const myReportsByWeek = useMemo(() => {
         const grouped = {}
         weeksToShow.forEach((weekIso) => {
@@ -331,7 +336,7 @@ export function useReportsData() {
     )
     const loadReviewReports = useCallback(async () => {
         if (!user || isLoadingPermissions) return
-        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(52, HARDCODED_TODAY))
+        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(52, new Date()))
         const toLoad = Array.from(desiredWeeks).filter((w) => !reviewLoadedWeeks.has(w))
         if (toLoad.length === 0) {
             if (isLoadingReview) setIsLoadingReview(false)

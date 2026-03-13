@@ -343,8 +343,7 @@ export default function DashboardCharts({
         ].filter(Boolean)
     return (
         <div
-            className={`grid gap-3 md:gap-4 mt-4 ${isMobile ? 'grid-cols-1' : ''}`}
-            style={isMobile ? undefined : { gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}
+            className={`grid gap-3 md:gap-4 mt-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-[repeat(auto-fit,minmax(340px,1fr))]'}`}
         >
             {weeklyData.length > 0 && (
                 <ChartCard

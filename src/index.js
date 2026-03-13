@@ -42,10 +42,9 @@ runWhenIdle(() => {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         runWhenIdle(() => {
-            navigator.serviceWorker
-                .register('/sw.js')
-                .then(() => {})
-                .catch(() => {})
+            navigator.serviceWorker.register('/sw.js').catch((error) => {
+                console.error('Service worker registration failed:', error)
+            })
         })
     })
 }

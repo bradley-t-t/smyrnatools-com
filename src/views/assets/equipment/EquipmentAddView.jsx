@@ -73,13 +73,13 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
         <>
             <AddViewSection title="Add New Equipment" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-tools"></i>
-                            <span>Basic Information</span>
+                            <span> Basic Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="identifyingNumber">Identifying Number*</label>
                                 <input
                                     id="identifyingNumber"
@@ -93,13 +93,13 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
-                            <span>Assignment & Classification</span>
+                            <span> Assignment & Classification</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
                                     type="button"
@@ -109,7 +109,7 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="equipmentType">Equipment Type*</label>
                                 <select
                                     id="equipmentType"
@@ -144,8 +144,8 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                                 </select>
                             </div>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="status">Status</label>
                                 <select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
                                     <option value="Active">Active</option>
@@ -156,7 +156,7 @@ function EquipmentAddView({ plants, onClose, onEquipmentAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Equipment'}
                         </button>

@@ -351,20 +351,9 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="status"
+                                    className="w-full appearance-none cursor-pointer rounded-xl border border-border-light bg-bg-secondary py-3 pl-4 pr-10 text-sm text-text-primary bg-[length:18px] bg-[position:right_12px_center] bg-no-repeat"
                                     style={{
-                                        appearance: 'none',
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                        backgroundPosition: 'right 12px center',
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundSize: '18px',
-                                        border: '1px solid var(--border-light)',
-                                        borderRadius: '12px',
-                                        color: 'var(--text-primary)',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        padding: '12px 40px 12px 16px',
-                                        width: '100%'
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`
                                     }}
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
@@ -382,20 +371,9 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="responsibleRole"
+                                    className="w-full appearance-none cursor-pointer rounded-xl border border-border-light bg-bg-secondary py-3 pl-4 pr-10 text-sm text-text-primary bg-[length:18px] bg-[position:right_12px_center] bg-no-repeat"
                                     style={{
-                                        appearance: 'none',
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                        backgroundPosition: 'right 12px center',
-                                        backgroundRepeat: 'no-repeat',
-                                        backgroundSize: '18px',
-                                        border: '1px solid var(--border-light)',
-                                        borderRadius: '12px',
-                                        color: 'var(--text-primary)',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        padding: '12px 40px 12px 16px',
-                                        width: '100%'
+                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`
                                     }}
                                     value={responsibleRole}
                                     onChange={(e) => setResponsibleRole(e.target.value)}

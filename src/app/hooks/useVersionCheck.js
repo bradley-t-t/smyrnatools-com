@@ -7,7 +7,7 @@ async function fetchDeployedVersion() {
     return data.version ?? null
 }
 /**
- * Polls /nit.json every 5 minutes and signals when the deployed version
+ * Polls /nit.json every 1 minute and signals when the deployed version
  * has changed since the page was first loaded.
  * @returns {{ hasUpdate: boolean, dismiss: () => void }}
  */

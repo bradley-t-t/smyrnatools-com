@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react'
 
 import { useIsMobile } from '../../../../app/hooks/useIsMobile'
+import { WATER_LBS_PER_GALLON } from './calculatorConstants'
+
+/** Color mappings for W/C ratio quality tiers. */
+const STATUS_STYLES = {
+    error: { badge: 'bg-red-100 text-red-500', bg: 'bg-red-50', border: 'border-red-500' },
+    info: { badge: 'bg-blue-100 text-blue-500', bg: 'bg-blue-50', border: 'border-blue-500' },
+    success: { badge: 'bg-green-100 text-green-600', bg: 'bg-green-50', border: 'border-green-600' },
+    warning: { badge: 'bg-amber-100 text-amber-500', bg: 'bg-amber-50', border: 'border-amber-500' }
+}
+
 /**
  * Water-to-cementitious (W/C) ratio calculator. Converts water from gallons
  * to pounds (at 8.34 lbs/gal) and divides by total cementitious content
@@ -17,8 +27,6 @@ const WaterCementCalculator = () => {
         waterGallons: ''
     })
     const [result, setResult] = useState(null)
-    /** Standard weight of water: 8.34 lbs per gallon at 60°F. */
-    const WATER_LBS_PER_GALLON = 8.34
     const handleChange = (field, value) => {
         setValues((prev) => ({ ...prev, [field]: value }))
     }
@@ -66,395 +74,153 @@ const WaterCementCalculator = () => {
     const waterLbs = waterGal * WATER_LBS_PER_GALLON
     const totalCite = (parseFloat(values.cementLbs) || 0) + (parseFloat(values.supplementalLbs) || 0)
     const hasData = waterGal > 0 && totalCite > 0
-    const styles = {
-        breakdown: {
-            alignItems: 'center',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            gap: '1rem',
-            justifyContent: 'center',
-            padding: '1rem'
-        },
-        constant: {
-            background: '#eff6ff',
-            border: '1px solid #dbeafe',
-            borderRadius: '6px',
-            color: 'var(--accent)',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 700,
-            padding: isMobile ? '0.375rem 0.625rem' : '0.5rem 0.75rem'
-        },
-        container: {
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-light)',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        formulaInputBlock: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            minWidth: isMobile ? '90px' : '120px'
-        },
-        formulaLayout: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-        },
-        formulaOp: {
-            color: 'var(--accent)',
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            fontWeight: 700
-        },
-        formulaRow: {
-            alignItems: 'center',
-            background: 'var(--bg-secondary)',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            flexWrap: 'wrap',
-            gap: isMobile ? '1rem' : '2rem',
-            justifyContent: 'center',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        fraction: {
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: isMobile ? '100%' : '300px',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fractionBar: {
-            background: 'var(--accent)',
-            height: '3px'
-        },
-        fractionBottom: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            justifyContent: 'center',
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
-        fractionTop: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            gap: isMobile ? '0.5rem' : '0.75rem',
-            justifyContent: 'center',
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
-        input: {
-            border: '2px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            outline: 'none',
-            padding: isMobile ? '0.5rem 2.5rem 0.5rem 0.625rem' : '0.625rem 3rem 0.625rem 0.75rem',
-            transition: 'all 0.2s',
-            width: '100%'
-        },
-        inputLarge: {
-            border: '2px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            outline: 'none',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
-            transition: 'all 0.2s',
-            width: '100%'
-        },
-        inputRow: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        inputUnit: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            position: 'absolute',
-            right: '0.75rem'
-        },
-        inputWrap: {
-            alignItems: 'center',
-            display: 'flex',
-            position: 'relative'
-        },
-        label: {
-            color: 'var(--text-secondary)',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textAlign: 'center',
-            textTransform: 'uppercase'
-        },
-        perYardDisplay: {
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            marginTop: '1rem'
-        },
-        perYardItem: {
-            background: '#f0fdf4',
-            border: '2px solid #dcfce7',
-            borderRadius: '8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            padding: '1rem'
-        },
-        perYardLabel: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        perYardValue: {
-            color: '#16a34a',
-            fontSize: '1.25rem',
-            fontWeight: 700
-        },
-        resetButton: {
-            alignItems: 'center',
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            outline: 'none',
-            padding: '0.75rem 1.5rem',
-            transition: 'all 0.2s'
-        },
-        resultBadge: (color) => ({
-            background:
-                color === 'success'
-                    ? '#dcfce7'
-                    : color === 'info'
-                      ? '#dbeafe'
-                      : color === 'warning'
-                        ? '#fef3c7'
-                        : color === 'error'
-                          ? '#fee2e2'
-                          : 'var(--bg-tertiary)',
-            borderRadius: '6px',
-            color:
-                color === 'success'
-                    ? '#16a34a'
-                    : color === 'info'
-                      ? '#3b82f6'
-                      : color === 'warning'
-                        ? '#f59e0b'
-                        : color === 'error'
-                          ? '#ef4444'
-                          : 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            letterSpacing: '0.5px',
-            padding: '0.375rem 0.75rem',
-            textTransform: 'uppercase'
-        }),
-        resultBlock: (hasData, statusColor) => ({
-            alignItems: 'center',
-            background: hasData
-                ? statusColor === 'success'
-                    ? '#f0fdf4'
-                    : statusColor === 'info'
-                      ? '#eff6ff'
-                      : statusColor === 'warning'
-                        ? '#fffbeb'
-                        : statusColor === 'error'
-                          ? '#fef2f2'
-                          : 'var(--card-background)'
-                : 'var(--card-background)',
-            border: `3px solid ${
-                hasData
-                    ? statusColor === 'success'
-                        ? '#16a34a'
-                        : statusColor === 'info'
-                          ? '#3b82f6'
-                          : statusColor === 'warning'
-                            ? '#f59e0b'
-                            : statusColor === 'error'
-                              ? '#ef4444'
-                              : 'var(--border-color)'
-                    : 'var(--border-color)'
-            }`,
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            minWidth: isMobile ? '100%' : '200px',
-            padding: isMobile ? '1rem' : '1.5rem',
-            width: isMobile ? '100%' : 'auto'
-        }),
-        resultNum: {
-            color: 'var(--accent)',
-            fontSize: '3rem',
-            fontWeight: 700,
-            lineHeight: 1
-        },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        sectionHeader: {
-            alignItems: 'center',
-            borderBottom: '2px solid var(--border-light)',
-            color: 'var(--text-primary)',
-            display: 'flex',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem'
-        }
-    }
-    const inputFocusHandlers = {
-        onBlur: (e) => {
-            e.target.style.borderColor = 'var(--border-color)'
-            e.target.style.boxShadow = 'none'
-        },
-        onFocus: (e) => {
-            e.target.style.borderColor = 'var(--accent)'
-            e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-        }
-    }
+
+    const containerClass = `bg-[var(--card-background)] border border-[var(--border-light)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ${isMobile ? 'rounded-lg p-4' : 'rounded-xl p-8'}`
+    const sectionClass = isMobile ? 'mb-6' : 'mb-8'
+    const sectionHeaderClass = `flex items-center gap-3 font-bold border-b-2 border-[var(--border-light)] pb-4 text-[var(--text-primary)] ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`
+    const labelClass = `text-[var(--text-secondary)] font-semibold uppercase tracking-wide text-center ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`
+    const inputClass = `w-full border-2 border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-semibold outline-none transition-all duration-200 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(30,58,95,0.1)] ${isMobile ? 'text-sm py-2 pl-2.5 pr-10' : 'text-base py-2.5 pl-3 pr-12'}`
+    const inputLargeClass = `w-full border-2 border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-semibold outline-none transition-all duration-200 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(30,58,95,0.1)] ${isMobile ? 'text-sm py-2.5 pl-3 pr-12' : 'text-base py-3 pl-4 pr-14'}`
+    const inputUnitClass = 'absolute right-3 text-[var(--text-tertiary)] font-semibold text-[0.625rem] md:text-xs'
+    const formulaOpClass = `text-accent font-bold ${isMobile ? 'text-base' : 'text-xl'}`
+
+    const statusStyle = status ? STATUS_STYLES[status.color] : null
+    const resultBlockClass =
+        hasData && statusStyle
+            ? `${statusStyle.bg} border-[3px] ${statusStyle.border}`
+            : 'bg-[var(--card-background)] border-[3px] border-[var(--border-color)]'
+
     return (
-        <div style={styles.container}>
-            <div style={styles.section}>
-                <div style={styles.sectionHeader}>
-                    <i className="fas fa-percentage" style={{ color: 'var(--accent)' }}></i>
+        <div className={containerClass}>
+            <div className={sectionClass}>
+                <div className={sectionHeaderClass}>
+                    <i className="fas fa-percentage text-accent"></i>
                     <span>W/C Ratio Formula</span>
                 </div>
-                <div style={styles.formulaLayout}>
-                    <div style={styles.formulaRow}>
-                        <div style={styles.fraction}>
-                            <div style={styles.fractionTop}>
-                                <div style={styles.formulaInputBlock}>
-                                    <label style={styles.label}>Water</label>
-                                    <div style={styles.inputWrap}>
+                <div className="flex flex-col gap-4">
+                    <div
+                        className={`flex items-center justify-center rounded-xl bg-[var(--bg-secondary)] ${isMobile ? 'flex-col gap-4 p-4' : 'flex-row flex-wrap gap-8 p-8'}`}
+                    >
+                        <div className={`flex flex-col ${isMobile ? 'min-w-full w-full' : 'min-w-[300px] w-auto'}`}>
+                            <div
+                                className={`flex items-center justify-center flex-wrap gap-2 md:gap-3 ${isMobile ? 'p-3' : 'p-4'}`}
+                            >
+                                <div className={`flex flex-col gap-2 ${isMobile ? 'min-w-[90px]' : 'min-w-[120px]'}`}>
+                                    <label className={labelClass}>Water</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={values.waterGallons}
                                             onChange={(e) => handleChange('waterGallons', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            {...inputFocusHandlers}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>gal</span>
+                                        <span className={inputUnitClass}>gal</span>
                                     </div>
                                 </div>
-                                <span style={styles.formulaOp}>×</span>
-                                <div style={styles.constant}>
+                                <span className={formulaOpClass}>&times;</span>
+                                <div className="rounded-md bg-blue-50 border border-blue-100 text-accent font-bold py-2 px-3 text-sm md:text-base">
                                     <span>8.34</span>
                                 </div>
                             </div>
-                            <div style={styles.fractionBar}></div>
-                            <div style={styles.fractionBottom}>
-                                <div style={styles.formulaInputBlock}>
-                                    <label style={styles.label}>Primary Powder</label>
-                                    <div style={styles.inputWrap}>
+                            <div className="h-[3px] bg-accent"></div>
+                            <div
+                                className={`flex items-center justify-center flex-wrap gap-2 md:gap-3 ${isMobile ? 'p-3' : 'p-4'}`}
+                            >
+                                <div className={`flex flex-col gap-2 ${isMobile ? 'min-w-[90px]' : 'min-w-[120px]'}`}>
+                                    <label className={labelClass}>Primary Powder</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={values.cementLbs}
                                             onChange={(e) => handleChange('cementLbs', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            {...inputFocusHandlers}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
-                                <span style={styles.formulaOp}>+</span>
-                                <div style={styles.formulaInputBlock}>
-                                    <label style={styles.label}>Supplemental</label>
-                                    <div style={styles.inputWrap}>
+                                <span className={formulaOpClass}>+</span>
+                                <div className={`flex flex-col gap-2 ${isMobile ? 'min-w-[90px]' : 'min-w-[120px]'}`}>
+                                    <label className={labelClass}>Supplemental</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={values.supplementalLbs}
                                             onChange={(e) => handleChange('supplementalLbs', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            {...inputFocusHandlers}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <span style={{ ...styles.formulaOp, fontSize: '2rem' }}>=</span>
-                        <div style={styles.resultBlock(hasData, status?.color)}>
-                            <span style={styles.resultNum}>{hasData ? result?.ratio : '—'}</span>
-                            {hasData && status && <span style={styles.resultBadge(status.color)}>{status.label}</span>}
+                        <span className="text-accent font-bold text-3xl">=</span>
+                        <div
+                            className={`flex flex-col items-center gap-2 rounded-xl ${resultBlockClass} ${isMobile ? 'min-w-full p-4' : 'min-w-[200px] p-6'}`}
+                        >
+                            <span className="text-accent text-5xl font-bold leading-none">
+                                {hasData ? result?.ratio : '\u2014'}
+                            </span>
+                            {hasData && status && (
+                                <span
+                                    className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${statusStyle.badge}`}
+                                >
+                                    {status.label}
+                                </span>
+                            )}
                         </div>
                     </div>
                     {hasData && (
-                        <div style={styles.breakdown}>
+                        <div className="flex items-center justify-center gap-4 text-[var(--text-secondary)] text-[0.9375rem] font-semibold p-4">
                             <span>{Math.round(waterLbs)} lbs</span>
-                            <span>÷</span>
+                            <span>&divide;</span>
                             <span>{Math.round(totalCite)} lbs</span>
                         </div>
                     )}
                 </div>
             </div>
-            <div style={styles.section}>
-                <div style={styles.sectionHeader}>
-                    <i className="fas fa-truck" style={{ color: 'var(--accent)' }}></i>
+            <div className={sectionClass}>
+                <div className={sectionHeaderClass}>
+                    <i className="fas fa-truck text-accent"></i>
                     <span>Per Yard (optional)</span>
                 </div>
-                <div style={styles.inputRow}>
-                    <label style={{ ...styles.label, textAlign: 'left' }}>Batch Size</label>
-                    <div style={styles.inputWrap}>
+                <div className="flex flex-col gap-2">
+                    <label className={`${labelClass} !text-left`}>Batch Size</label>
+                    <div className="flex items-center relative">
                         <input
                             type="number"
                             value={values.batchSize}
                             onChange={(e) => handleChange('batchSize', e.target.value)}
                             placeholder="10"
                             step="0.5"
-                            style={styles.inputLarge}
-                            {...inputFocusHandlers}
+                            className={inputLargeClass}
                         />
-                        <span style={styles.inputUnit}>yd</span>
+                        <span className={inputUnitClass}>yd</span>
                     </div>
                 </div>
                 {result?.batchSize && (
-                    <div style={styles.perYardDisplay}>
-                        <div style={styles.perYardItem}>
-                            <span style={styles.perYardLabel}>Water</span>
-                            <span style={styles.perYardValue}>{result.waterPerYd} lbs/yd</span>
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mt-4">
+                        <div className="flex flex-col gap-2 rounded-lg bg-green-50 border-2 border-green-200 p-4">
+                            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wide">
+                                Water
+                            </span>
+                            <span className="text-green-600 text-xl font-bold">{result.waterPerYd} lbs/yd</span>
                         </div>
-                        <div style={styles.perYardItem}>
-                            <span style={styles.perYardLabel}>Cementitious</span>
-                            <span style={styles.perYardValue}>{result.citePerYd} lbs/yd</span>
+                        <div className="flex flex-col gap-2 rounded-lg bg-green-50 border-2 border-green-200 p-4">
+                            <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wide">
+                                Cementitious
+                            </span>
+                            <span className="text-green-600 text-xl font-bold">{result.citePerYd} lbs/yd</span>
                         </div>
                     </div>
                 )}
             </div>
-            <div style={styles.footer}>
+            <div className="flex justify-center">
                 <button
                     onClick={clearForm}
-                    style={styles.resetButton}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-secondary)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--card-background)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
+                    className="flex items-center gap-2 bg-[var(--card-background)] border border-[var(--border-color)] rounded-lg text-[var(--text-secondary)] cursor-pointer text-[0.9375rem] font-semibold outline-none py-3 px-6 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
                 >
                     <i className="fas fa-redo"></i>
                     <span>Reset</span>

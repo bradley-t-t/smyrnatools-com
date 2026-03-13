@@ -58,11 +58,6 @@ const slimOperator = (operator) => ({
     plantCode: operator.plantCode,
     status: operator.status
 })
-const isServiceOverdue = (date) => {
-    if (!date) return false
-    const diff = Math.ceil((Date.now() - new Date(date).getTime()) / 86400000)
-    return diff > SERVICE_OVERDUE_DAYS
-}
 const normalizeDate = (dateStr, endOfDay = false) => {
     if (!dateStr) return null
     const parts = dateStr.split('-')
@@ -186,7 +181,8 @@ const getAISummaryFromCache = (plantCode) => {
             return null
         }
         return plantCache.summary
-    } catch {
+    } catch (error) {
+        console.error('Failed to read AI summary from localStorage cache:', error)
         return null
     }
 }
@@ -199,7 +195,9 @@ const setAISummaryToCache = (plantCode, summary) => {
             timestamp: Date.now()
         }
         localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cacheData))
-    } catch {}
+    } catch (error) {
+        console.error('Failed to write AI summary to localStorage cache:', error)
+    }
 }
 const clearAISummaryCache = (plantCode = null) => {
     try {
@@ -213,7 +211,9 @@ const clearAISummaryCache = (plantCode = null) => {
         } else {
             localStorage.removeItem(AI_CACHE_KEY)
         }
-    } catch {}
+    } catch (error) {
+        console.error('Failed to clear AI summary localStorage cache:', error)
+    }
 }
 const getLongTermShopAssets = (assets, history, type, identifierField, considerFn, daysThreshold = 6) => {
     const thresholdDate = new Date()
@@ -283,7 +283,6 @@ const DashboardUtility = {
     formatDateForDisplay,
     getAISummaryFromCache,
     getLongTermShopAssets,
-    isServiceOverdue,
     normalizeDate,
     setAISummaryToCache,
     slimEquipment,

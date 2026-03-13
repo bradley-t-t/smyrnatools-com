@@ -1,3 +1,5 @@
+import HistoryDisplayUtility from '../../../utils/HistoryDisplayUtility'
+
 /**
  * Mixer field-change history entry. Strips time components from date fields
  * during deserialization for cleaner display.
@@ -20,7 +22,9 @@ export class MixerHistory {
             try {
                 if (oldValue?.includes('T')) oldValue = oldValue.split('T')[0]
                 if (newValue?.includes('T')) newValue = newValue.split('T')[0]
-            } catch (error) {}
+            } catch (error) {
+                console.error('Failed to strip time from mixer history date field:', error)
+            }
         }
         return new MixerHistory({
             changed_at: data.changed_at,
@@ -51,49 +55,28 @@ export class MixerHistory {
     }
 }
 /**
- * Display formatting helpers for mixer history values:
- * date localization, cleanliness rating labels, and null-operator normalization.
+ * Display formatting helpers for mixer history values.
+ * Delegates shared logic to HistoryDisplayUtility; handles mixer-specific date fields.
  */
 export class MixerHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''
         if (['last_service_date', 'last_chip_date'].includes(fieldName)) {
-            try {
-                const parts = value.split('-')
-                if (parts.length === 3) {
-                    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
-                    if (!isNaN(date.getTime())) return date.toLocaleDateString()
-                }
-                const date = new Date(value)
-                if (!isNaN(date.getTime())) return date.toLocaleDateString()
-            } catch {}
+            const formatted = HistoryDisplayUtility.formatDateValue(value)
+            if (formatted) return formatted
         }
         if (fieldName === 'cleanliness_rating') {
-            const rating = parseInt(value, 10)
-            if (!isNaN(rating)) {
-                const ratingLabels = {
-                    1: 'Poor (1)',
-                    2: 'Fair (2)',
-                    3: 'Good (3)',
-                    4: 'Very Good (4)',
-                    5: 'Excellent (5)'
-                }
-                return ratingLabels[rating] || `${rating}`
-            }
+            const formatted = HistoryDisplayUtility.formatCleanlinessRating(value)
+            if (formatted) return formatted
         }
         if (['assigned_operator', 'assigned_plant'].includes(fieldName)) {
-            if (['0', 'null', 'undefined'].includes(value)) return 'None'
+            const formatted = HistoryDisplayUtility.formatAssignmentValue(value)
+            if (formatted) return formatted
         }
         if (fieldName === 'status' && value === '0') return 'None'
         return value
     }
     static areSameDates(date1, date2) {
-        if (!date1 && !date2) return true
-        if (!date1 || !date2) return false
-        try {
-            return new Date(date1).toISOString().split('T')[0] === new Date(date2).toISOString().split('T')[0]
-        } catch {
-            return false
-        }
+        return HistoryDisplayUtility.areSameDates(date1, date2)
     }
 }

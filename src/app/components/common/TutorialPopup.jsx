@@ -132,91 +132,91 @@ function TutorialPopup({ tutorialId, onDismiss }) {
         }
     }, [tutorial, tutorialId, isReady])
     if (!tutorial) return null
+    /* Arrow border-colors depend on runtime accentColor -- must stay inline */
     const getArrowStyle = () => {
-        const base = {
-            borderStyle: 'solid',
-            height: 0,
-            position: 'absolute',
-            width: 0
-        }
+        const base = 'absolute h-0 w-0 border-solid'
         switch (tutorial.arrowPosition) {
             case 'top':
                 return {
-                    ...base,
-                    borderColor: `transparent transparent ${accentColor} transparent`,
-                    borderWidth: '0 8px 8px 8px',
-                    left: '50%',
-                    top: -8,
-                    transform: 'translateX(-50%)'
+                    className: base,
+                    style: {
+                        borderColor: `transparent transparent ${accentColor} transparent`,
+                        borderWidth: '0 8px 8px 8px',
+                        left: '50%',
+                        top: -8,
+                        transform: 'translateX(-50%)'
+                    }
                 }
             case 'top-right':
                 return {
-                    ...base,
-                    borderColor: `transparent transparent ${accentColor} transparent`,
-                    borderWidth: '0 8px 8px 8px',
-                    right: 16,
-                    top: -8
+                    className: base,
+                    style: {
+                        borderColor: `transparent transparent ${accentColor} transparent`,
+                        borderWidth: '0 8px 8px 8px',
+                        right: 16,
+                        top: -8
+                    }
                 }
             case 'top-left':
                 return {
-                    ...base,
-                    borderColor: `transparent transparent ${accentColor} transparent`,
-                    borderWidth: '0 8px 8px 8px',
-                    left: 16,
-                    top: -8
+                    className: base,
+                    style: {
+                        borderColor: `transparent transparent ${accentColor} transparent`,
+                        borderWidth: '0 8px 8px 8px',
+                        left: 16,
+                        top: -8
+                    }
                 }
             case 'bottom':
                 return {
-                    ...base,
-                    borderColor: `var(--bg-primary) transparent transparent transparent`,
-                    borderWidth: '8px 8px 0 8px',
-                    bottom: -8,
-                    left: '50%',
-                    transform: 'translateX(-50%)'
+                    className: base,
+                    style: {
+                        borderColor: 'var(--bg-primary) transparent transparent transparent',
+                        borderWidth: '8px 8px 0 8px',
+                        bottom: -8,
+                        left: '50%',
+                        transform: 'translateX(-50%)'
+                    }
                 }
             case 'left':
                 return {
-                    ...base,
-                    borderColor: `transparent ${accentColor} transparent transparent`,
-                    borderWidth: '8px 8px 8px 0',
-                    left: -8,
-                    top: '50%',
-                    transform: 'translateY(-50%)'
+                    className: base,
+                    style: {
+                        borderColor: `transparent ${accentColor} transparent transparent`,
+                        borderWidth: '8px 8px 8px 0',
+                        left: -8,
+                        top: '50%',
+                        transform: 'translateY(-50%)'
+                    }
                 }
             case 'right':
                 return {
-                    ...base,
-                    borderColor: `transparent transparent transparent var(--bg-primary)`,
-                    borderWidth: '8px 0 8px 8px',
-                    right: -8,
-                    top: '50%',
-                    transform: 'translateY(-50%)'
+                    className: base,
+                    style: {
+                        borderColor: 'transparent transparent transparent var(--bg-primary)',
+                        borderWidth: '8px 0 8px 8px',
+                        right: -8,
+                        top: '50%',
+                        transform: 'translateY(-50%)'
+                    }
                 }
             default:
-                return base
+                return { className: base, style: {} }
         }
     }
+    const arrow = getArrowStyle()
     return ReactDOM.createPortal(
         <>
             {isReady && (
                 <>
+                    {/* Pulse keyframe uses runtime accentColor -- must stay as injected style */}
                     <style>{`
                         @keyframes tutorial-pulse {
                             0%, 100% { box-shadow: 0 0 0 0 ${accentColor}66; }
                             50% { box-shadow: 0 0 0 8px ${accentColor}00; }
                         }
                     `}</style>
-                    <svg
-                        style={{
-                            height: '100%',
-                            left: 0,
-                            pointerEvents: 'none',
-                            position: 'fixed',
-                            top: 0,
-                            width: '100%',
-                            zIndex: 9997
-                        }}
-                    >
+                    <svg className="pointer-events-none fixed inset-0 z-[9997] h-full w-full">
                         <defs>
                             <mask id="tutorial-mask">
                                 <rect fill="white" height="100%" width="100%" x="0" y="0" />
@@ -243,18 +243,14 @@ function TutorialPopup({ tutorialId, onDismiss }) {
                     </svg>
                     {targetRect && (
                         <div
+                            className="pointer-events-none fixed z-[9998] box-border rounded-xl"
                             style={{
                                 animation: 'tutorial-pulse 2s ease-in-out infinite',
                                 border: `3px solid ${accentColor}`,
-                                borderRadius: 12,
-                                boxSizing: 'border-box',
                                 height: targetRect.height + 16,
                                 left: targetRect.left - 8,
-                                pointerEvents: 'none',
-                                position: 'fixed',
                                 top: targetRect.top - 8,
-                                width: targetRect.width + 16,
-                                zIndex: 9998
+                                width: targetRect.width + 16
                             }}
                         />
                     )}
@@ -262,71 +258,28 @@ function TutorialPopup({ tutorialId, onDismiss }) {
             )}
             <div
                 ref={popupRef}
+                className={`fixed z-[9999] w-[280px] overflow-hidden rounded-xl bg-bg-primary shadow-[0_20px_40px_rgba(0,0,0,0.3)] transition-[opacity,transform] duration-300 ease-in-out ${isReady ? 'visible scale-100 opacity-100' : 'invisible scale-95 opacity-0'}`}
                 style={{
-                    background: 'var(--bg-primary)',
-                    borderRadius: 12,
-                    boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
                     left: position ? position.left : -9999,
-                    opacity: isReady ? 1 : 0,
-                    overflow: 'hidden',
-                    position: 'fixed',
-                    top: position ? position.top : -9999,
-                    transform: isReady ? 'scale(1)' : 'scale(0.95)',
-                    transition: 'opacity 0.3s ease, transform 0.3s ease',
-                    visibility: isReady ? 'visible' : 'hidden',
-                    width: 280,
-                    zIndex: 9999
+                    top: position ? position.top : -9999
                 }}
             >
-                <div style={getArrowStyle()} />
-                <div
-                    style={{
-                        alignItems: 'center',
-                        background: accentColor,
-                        display: 'flex',
-                        gap: 10,
-                        padding: '14px 16px'
-                    }}
-                >
-                    <div
-                        style={{
-                            alignItems: 'center',
-                            background: 'rgba(255,255,255,0.2)',
-                            borderRadius: 8,
-                            display: 'flex',
-                            height: 28,
-                            justifyContent: 'center',
-                            width: 28
-                        }}
-                    >
-                        <i className="fas fa-lightbulb" style={{ color: 'white', fontSize: 14 }}></i>
+                <div className={arrow.className} style={arrow.style} />
+                <div className="flex items-center gap-2.5 px-4 py-3.5" style={{ background: accentColor }}>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20">
+                        <i className="fas fa-lightbulb text-sm text-white" />
                     </div>
-                    <span style={{ color: 'white', fontSize: 14, fontWeight: 600 }}>{tutorial.title}</span>
+                    <span className="text-sm font-semibold text-white">{tutorial.title}</span>
                 </div>
-                <div style={{ padding: 16 }}>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                        {tutorial.message}
-                    </p>
+                <div className="p-4">
+                    <p className="m-0 mb-4 text-[13px] leading-relaxed text-text-secondary">{tutorial.message}</p>
                     <button
                         onClick={onDismiss}
-                        style={{
-                            alignItems: 'center',
-                            background: accentColor,
-                            border: 'none',
-                            borderRadius: 8,
-                            color: 'white',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            fontSize: 13,
-                            fontWeight: 600,
-                            gap: 8,
-                            justifyContent: 'center',
-                            padding: '10px 16px',
-                            width: '100%'
-                        }}
+                        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-none px-4 py-2.5 text-[13px] font-semibold text-white"
+                        style={{ background: accentColor }}
                     >
                         <span>Got it</span>
-                        <i className="fas fa-check"></i>
+                        <i className="fas fa-check" />
                     </button>
                 </div>
             </div>

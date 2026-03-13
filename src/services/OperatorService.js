@@ -82,22 +82,21 @@ class OperatorServiceImpl {
         delete update.created_at
         const currentOperator = await this.getOperatorByEmployeeId(operator.employeeId)
         if (currentOperator?.plantCode !== op.plantCode) {
-            const assignedMixers = await MixerService.getMixersByOperator(operator.employeeId)
-            for (const mixer of assignedMixers) {
-                if (mixer.status === 'Active') {
-                    await MixerService.updateMixer(mixer.id, { ...mixer, assignedOperator: null, status: 'Spare' })
-                }
-            }
-            const assignedTractors = await TractorService.getTractorsByOperator(operator.employeeId)
-            for (const tractor of assignedTractors) {
-                if (tractor.status === 'Active') {
-                    await TractorService.updateTractor(tractor.id, {
-                        ...tractor,
-                        assignedOperator: null,
-                        status: 'Spare'
-                    })
-                }
-            }
+            const [assignedMixers, assignedTractors] = await Promise.all([
+                MixerService.getMixersByOperator(operator.employeeId),
+                TractorService.getTractorsByOperator(operator.employeeId)
+            ])
+            const mixerUpdates = assignedMixers
+                .filter((mixer) => mixer.status === 'Active')
+                .map((mixer) =>
+                    MixerService.updateMixer(mixer.id, { ...mixer, assignedOperator: null, status: 'Spare' })
+                )
+            const tractorUpdates = assignedTractors
+                .filter((tractor) => tractor.status === 'Active')
+                .map((tractor) =>
+                    TractorService.updateTractor(tractor.id, { ...tractor, assignedOperator: null, status: 'Spare' })
+                )
+            await Promise.all([...mixerUpdates, ...tractorUpdates])
         }
         const json = await apiPostOrThrow(`${SERVICE_PREFIX}/update`, { operator: update }, 'Failed to update operator')
         return new Operator(json?.data)
@@ -123,27 +122,18 @@ class OperatorServiceImpl {
             const operatorIds = (data || []).map((op) => op.employee_id).filter(Boolean)
             const statusHistoryMap = await fetchStatusHistoryMap('operators_history', 'operator_id', operatorIds)
             const formattedOperators = data.map((op) => {
-                const rawPending = op.pending_start_date || ''
-                const normalizedPending =
-                    typeof rawPending === 'string' && rawPending.includes('T') ? rawPending.slice(0, 10) : rawPending
+                const model = new Operator(op)
                 return {
-                    assignedTrainer: op.assigned_trainer,
-                    createdAt: op.created_at || null,
-                    employeeId: op.employee_id,
-                    isTrainer: op.is_trainer,
-                    name: op.name,
-                    pendingStartDate: normalizedPending,
-                    phone: op.phone || '',
-                    plantCode: op.plant_code,
-                    position: op.position,
+                    ...model,
+                    phone: model.phone || '',
                     rating: typeof op.rating === 'number' ? op.rating : Number(op.rating) || 0,
-                    smyrnaId: op.smyrna_id || '',
-                    status: op.status,
+                    smyrnaId: model.smyrnaId || '',
                     statusChangedAt: statusHistoryMap[op.employee_id] || op.created_at || null
                 }
             })
             return filterByRegionCodes(formattedOperators, regionCodes, 'plantCode')
-        } catch {
+        } catch (err) {
+            console.error('Failed to fetch operators:', err)
             return []
         }
     }
@@ -153,7 +143,8 @@ class OperatorServiceImpl {
             const { data, error } = await supabase.from('plants').select('*')
             if (error) throw error
             return data
-        } catch {
+        } catch (err) {
+            console.error('Failed to fetch plants:', err)
             return []
         }
     }
@@ -163,7 +154,8 @@ class OperatorServiceImpl {
             const { data, error } = await supabase.from('operators').select('employee_id, name').eq('is_trainer', true)
             if (error) throw error
             return data.map((t) => ({ employeeId: t.employee_id, name: t.name }))
-        } catch {
+        } catch (err) {
+            console.error('Failed to fetch trainers:', err)
             return []
         }
     }

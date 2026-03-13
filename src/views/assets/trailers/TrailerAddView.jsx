@@ -4,6 +4,7 @@ import PlantDropdownModal from '../../../app/components/common/PlantDropdownModa
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import Trailer from '../../../app/models/trailers/Trailer'
 import { TrailerService } from '../../../services/TrailerService'
+import DateUtility from '../../../utils/DateUtility'
 /**
  * Slide-in form for creating a new trailer record. Requires trailer number
  * and plant assignment. Supports trailer type selection (Cement/Aggregate/Flat Bed)
@@ -21,7 +22,9 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
         async function loadTrailers() {
             try {
                 await TrailerService.fetchTrailers()
-            } catch (error) {}
+            } catch (e) {
+                console.error('Failed to prefetch trailers:', e)
+            }
         }
         loadTrailers()
     }, [])
@@ -47,13 +50,7 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-            const formatDateForDb = (date) => {
-                if (!date) return null
-                const d = new Date(date)
-                if (isNaN(d.getTime())) return null
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
-            }
-            const now = formatDateForDb(new Date())
+            const now = DateUtility.formatDateForDb(new Date())
             const newTrailer = new Trailer({
                 assigned_plant: assignedPlant,
                 assigned_tractor: null,
@@ -79,13 +76,13 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
         <>
             <AddViewSection title="Add New Trailer" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-trailer"></i>
                             <span>Basic Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="trailerNumber">Trailer Number*</label>
                                 <input
                                     id="trailerNumber"
@@ -99,13 +96,13 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
                             <span>Assignment & Type</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
                                     type="button"
@@ -115,7 +112,7 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="trailerType">Trailer Type</label>
                                 <select
                                     id="trailerType"
@@ -128,13 +125,13 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-star"></i>
                             <span>Condition</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="cleanlinessRating">Cleanliness Rating</label>
                                 <select
                                     id="cleanlinessRating"
@@ -150,7 +147,7 @@ function TrailerAddView({ plants, onClose, onTrailerAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Trailer'}
                         </button>

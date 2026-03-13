@@ -23,40 +23,25 @@ function OfflineOverlay({ onRetry }) {
         }
     }
     return ReactDOM.createPortal(
-        <>
-            <style>{`
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-            `}</style>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                <div className="w-[90%] max-w-[400px] rounded-2xl bg-white p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
-                    <h1 className="mb-4 text-2xl font-bold" style={{ color: accentColor }}>
-                        Connection Lost
-                    </h1>
-                    <p className="mb-6 text-[15px] leading-relaxed text-slate-500">
-                        Your connection appears to be offline or unstable. Please check your network and try again.
-                    </p>
-                    <button
-                        className="inline-flex items-center justify-center gap-2.5 rounded-[10px] border-none px-7 py-3.5 text-[15px] font-semibold text-white transition-all"
-                        style={{
-                            backgroundColor: accentColor,
-                            cursor: isRetrying ? 'not-allowed' : 'pointer',
-                            opacity: isRetrying ? 0.7 : 1
-                        }}
-                        onClick={handleRetry}
-                        disabled={isRetrying}
-                    >
-                        <i
-                            className="fas fa-redo"
-                            style={{ animation: isRetrying ? 'spin 1s linear infinite' : 'none' }}
-                        />
-                        {isRetrying ? 'Checking Connection...' : 'Retry Connection'}
-                    </button>
-                </div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <div className="w-[90%] max-w-[400px] rounded-2xl bg-white p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+                <h1 className="mb-4 text-2xl font-bold" style={{ color: accentColor }}>
+                    Connection Lost
+                </h1>
+                <p className="mb-6 text-[15px] leading-relaxed text-slate-500">
+                    Your connection appears to be offline or unstable. Please check your network and try again.
+                </p>
+                <button
+                    className={`inline-flex items-center justify-center gap-2.5 rounded-[10px] border-none px-7 py-3.5 text-[15px] font-semibold text-white transition-all ${isRetrying ? 'cursor-not-allowed opacity-70' : 'cursor-pointer opacity-100'}`}
+                    style={{ backgroundColor: accentColor }}
+                    onClick={handleRetry}
+                    disabled={isRetrying}
+                >
+                    <i className={`fas fa-redo ${isRetrying ? 'animate-spin' : ''}`} />
+                    {isRetrying ? 'Checking Connection...' : 'Retry Connection'}
+                </button>
             </div>
-        </>,
+        </div>,
         document.body
     )
 }

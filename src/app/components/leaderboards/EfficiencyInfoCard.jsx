@@ -27,10 +27,8 @@ export default function EfficiencyInfoCard() {
             <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors md:px-6"
-                style={{ ['--hover-bg']: `${accent}10` }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = `${accent}10`)}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors md:px-6 hover:bg-[--hover-bg]"
+                style={{ '--hover-bg': `${accent}10` }}
             >
                 <div className="flex items-center gap-3">
                     <div

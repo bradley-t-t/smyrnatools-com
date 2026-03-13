@@ -6,7 +6,7 @@ import { MixerService } from '../../services/MixerService'
 import { OperatorService } from '../../services/OperatorService'
 import { PickupTruckService } from '../../services/PickupTruckService'
 import { TractorService } from '../../services/TractorService'
-import TrailerService from '../../services/TrailerService'
+import { TrailerService } from '../../services/TrailerService'
 import DashboardUtility from '../../utils/DashboardUtility'
 import GrammarUtility from '../../utils/GrammarUtility'
 import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL_MS } from '../constants/dashboardConstants'
@@ -61,7 +61,9 @@ export function useDashboardAssets({
                             setLoading(false)
                         }
                     }
-                } catch {}
+                } catch (e) {
+                    console.error('Failed to read dashboard cache from sessionStorage:', e)
+                }
             }
             setRefreshing(true)
             try {
@@ -134,7 +136,9 @@ export function useDashboardAssets({
                             trailers: allTrailersRef.current
                         })
                     )
-                } catch {}
+                } catch (e) {
+                    console.error('Failed to write dashboard cache to sessionStorage:', e)
+                }
             } catch (err) {
                 console.error('Dashboard data fetch error:', err)
                 if (!cancelled) setError('Failed to load dashboard data')
@@ -269,7 +273,9 @@ export function useIssueCommentCounts({
             countsRef.current = counts
             setAssetIssueDetails(issueDetails)
             computeStats()
-        } catch {}
+        } catch (e) {
+            console.error('Failed to fetch issue/comment counts:', e)
+        }
     }, [allMixersRef, allTractorsRef, allTrailersRef, allEquipmentRef, computeStats, countsRef])
     return { assetIssueDetails, countsRef, fetchIssueCommentCounts }
 }

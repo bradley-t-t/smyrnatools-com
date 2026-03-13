@@ -215,7 +215,9 @@ function LostLoadsList({
         if (!window.confirm('Are you sure you want to delete this lost load report?')) return
         try {
             await onDelete(report.id)
-        } catch {}
+        } catch (e) {
+            console.error('Failed to delete lost load report:', e)
+        }
     }
     if (items.length === 0 && !isLoading) {
         return (

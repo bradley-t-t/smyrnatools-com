@@ -26,7 +26,7 @@ function AssetGridCard({
     const statusBadgeClass = config.statusBadgeClasses?.[displayStatus] || 'bg-slate-100 text-slate-600'
 
     const getInitials = (name) => {
-        if (!name) return '—'
+        if (!name) return '\u2014'
         const parts = name.split(' ').filter(Boolean)
         return parts.length >= 2
             ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -54,13 +54,10 @@ function AssetGridCard({
                     <i className={`fas ${config.icon}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div
-                        className="text-lg font-extrabold tracking-tight truncate"
-                        style={{ color: 'var(--text-primary)' }}
-                    >
+                    <div className="text-lg font-extrabold tracking-tight truncate text-[color:var(--text-primary)]">
                         #{number}
                     </div>
-                    <div className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="text-[11px] font-medium text-[color:var(--text-secondary)]">
                         {config.singularLabel}
                     </div>
                 </div>
@@ -85,22 +82,21 @@ function AssetGridCard({
             {/* Operator / tractor bar */}
             {(config.hasOperatorAssignment || config.hasTractorAssignment) && (
                 <div
-                    className={`flex items-center gap-2.5 px-5 py-2.5 ${!subtitleName ? 'opacity-50' : ''}`}
-                    style={{ background: 'color-mix(in srgb, var(--accent) 5%, transparent)' }}
+                    className={`flex items-center gap-2.5 px-5 py-2.5 bg-[color-mix(in_srgb,var(--accent)_5%,transparent)] ${!subtitleName ? 'opacity-50' : ''}`}
                 >
                     <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-                        style={{
-                            background: subtitleName
-                                ? 'linear-gradient(135deg, var(--accent), #60a5fa)'
-                                : 'linear-gradient(135deg, #94a3b8, #cbd5e1)'
-                        }}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 ${
+                            subtitleName
+                                ? 'bg-gradient-to-br from-[color:var(--accent)] to-blue-400'
+                                : 'bg-gradient-to-br from-slate-400 to-slate-300'
+                        }`}
                     >
                         {getInitials(config.hasOperatorAssignment ? operator?.name : tractor?.truckNumber)}
                     </div>
                     <span
-                        className={`text-xs font-semibold flex-1 truncate ${!subtitleName ? 'italic' : ''}`}
-                        style={{ color: subtitleName ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                        className={`text-xs font-semibold flex-1 truncate ${!subtitleName ? 'italic' : ''} ${
+                            subtitleName ? 'text-[color:var(--text-primary)]' : 'text-[color:var(--text-secondary)]'
+                        }`}
                     >
                         {subtitleName || 'Not Assigned'}
                     </span>
@@ -113,8 +109,7 @@ function AssetGridCard({
                                     onShowOperatorCommentModal?.(operator)
                                 }}
                                 title="Operator comments"
-                                className="relative border-none bg-transparent rounded-md w-6 h-6 flex items-center justify-center cursor-pointer text-[10px] transition-all hover:bg-[color:var(--accent)] hover:text-white"
-                                style={{ color: 'var(--text-secondary)' }}
+                                className="relative border-none bg-transparent rounded-md w-6 h-6 flex items-center justify-center cursor-pointer text-[10px] text-[color:var(--text-secondary)] transition-all hover:bg-[color:var(--accent)] hover:text-white"
                             >
                                 <i className="fas fa-comment" />
                                 {operator.commentsCount > 0 && (
@@ -130,8 +125,7 @@ function AssetGridCard({
                                     onShowOperatorHistoryModal?.(operator)
                                 }}
                                 title="Operator history"
-                                className="border-none bg-transparent rounded-md w-6 h-6 flex items-center justify-center cursor-pointer text-[10px] transition-all hover:bg-[color:var(--accent)] hover:text-white"
-                                style={{ color: 'var(--text-secondary)' }}
+                                className="border-none bg-transparent rounded-md w-6 h-6 flex items-center justify-center cursor-pointer text-[10px] text-[color:var(--text-secondary)] transition-all hover:bg-[color:var(--accent)] hover:text-white"
                             >
                                 <i className="fas fa-history" />
                             </button>
@@ -156,15 +150,11 @@ function AssetGridCard({
                             key={field.label}
                             className={`flex flex-col gap-0.5 px-5 py-3 ${!isLastRow ? 'border-b border-[color:var(--border-light)]' : ''} ${isOdd ? 'border-r border-[color:var(--border-light)]' : ''}`}
                         >
-                            <span
-                                className="text-[10px] font-medium uppercase tracking-wide"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
+                            <span className="text-[10px] font-medium uppercase tracking-wide text-[color:var(--text-secondary)]">
                                 {field.label}
                             </span>
                             <span
-                                className={`text-[13px] font-semibold ${isOverdue ? 'text-red-600' : ''}`}
-                                style={!isOverdue ? { color: 'var(--text-primary)' } : undefined}
+                                className={`text-[13px] font-semibold ${isOverdue ? 'text-red-600' : 'text-[color:var(--text-primary)]'}`}
                             >
                                 {field.type === 'stars' ? (
                                     <span className="inline-flex items-center gap-1">
@@ -172,10 +162,7 @@ function AssetGridCard({
                                             {Array.from({ length: 5 }).map((_, i) => (
                                                 <i
                                                     key={i}
-                                                    className="fas fa-star"
-                                                    style={{
-                                                        color: i < (value || 0) ? '#facc15' : 'var(--border-light)'
-                                                    }}
+                                                    className={`fas fa-star ${i < (value || 0) ? 'text-yellow-400' : 'text-[color:var(--border-light)]'}`}
                                                 />
                                             ))}
                                         </span>
@@ -186,7 +173,7 @@ function AssetGridCard({
                                         )}
                                     </span>
                                 ) : field.type === 'monospace' ? (
-                                    <span className="font-mono text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    <span className="font-mono text-[11px] text-[color:var(--text-secondary)]">
                                         {value}
                                     </span>
                                 ) : (
@@ -213,8 +200,7 @@ function AssetGridCard({
                         e.stopPropagation()
                         onShowCommentModal?.()
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all border-r border-[color:var(--border-light)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
-                    style={{ borderRight: '1px solid var(--border-light)', color: 'var(--text-secondary)' }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all text-[color:var(--text-secondary)] border-r border-r-[color:var(--border-light)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
                 >
                     <i className="fas fa-comments" />
                     Comments
@@ -230,8 +216,7 @@ function AssetGridCard({
                         e.stopPropagation()
                         onShowIssueModal?.()
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
-                    style={{ borderRight: '1px solid var(--border-light)', color: 'var(--text-secondary)' }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all text-[color:var(--text-secondary)] border-r border-r-[color:var(--border-light)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
                 >
                     <i className="fas fa-tools" />
                     Issues
@@ -247,8 +232,7 @@ function AssetGridCard({
                         e.stopPropagation()
                         onShowHistoryModal?.()
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
-                    style={{ color: 'var(--text-secondary)' }}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border-none bg-transparent text-[11px] font-semibold cursor-pointer transition-all text-[color:var(--text-secondary)] hover:bg-[color-mix(in_srgb,var(--accent)_8%,transparent)]"
                 >
                     <i className="fas fa-history" />
                     History

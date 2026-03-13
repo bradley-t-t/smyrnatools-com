@@ -1,10 +1,12 @@
 import { getRoleContext, getToneModifier, PLANT_SUMMARY_BASE, PROMPTS } from '../app/ai'
-import { APIUtility } from '../utils/APIUtility'
+import APIUtility from '../utils/APIUtility'
 const DEFAULT_MODEL = 'grok-4'
 const FAST_MODEL = 'grok-3-mini-fast'
 const MAX_SUGGESTIONS = 5
 const MAX_RECENT_CHANGES = 10
 const EXCLUDED_AGGREGATE_KEYS = ['report_date', 'notes']
+/** Matches known plant codes in user questions for context scoping. */
+const PLANT_CODE_PATTERN = /\b(40[1-8]|410|45[35]|46[18]|455)\b/
 /** Formats fleet statistics (active/spare/in-shop counts) into readable summary lines. */
 const formatFleetStatLine = (label, stats) => {
     if (!stats) return []
@@ -29,7 +31,7 @@ const filterByTruckNumber = (list, truckNum) =>
  * Provides dashboard analysis, history summaries, report validation,
  * follow-up conversations, and content generation for fleet management.
  */
-class AIInsightsServiceClass {
+class AIServiceImpl {
     /**
      * Core API call routed through the ai-service edge function to avoid CORS restrictions.
      * @returns Parsed response content, or an error descriptor object.
@@ -365,7 +367,7 @@ class AIInsightsServiceClass {
     }
     appendPlantOperatorContext(q, ctx, parts) {
         if (!q.includes('operator')) return
-        const plantMatch = q.match(/\b(40[1-8]|410|45[35]|46[18]|455)\b/)
+        const plantMatch = q.match(PLANT_CODE_PATTERN)
         if (!plantMatch) return
         const plantCode = plantMatch[0]
         const ops = ctx.allOperatorsList?.filter((o) => String(o.plant) === plantCode) ?? []
@@ -377,7 +379,7 @@ class AIInsightsServiceClass {
     }
     appendReportContext(q, ctx, parts) {
         if (!q.includes('yard') && !q.includes('report') && !q.includes('production')) return
-        const plantMatch = q.match(/\b(40[1-8]|410|45[35]|46[18]|455)\b/)
+        const plantMatch = q.match(PLANT_CODE_PATTERN)
         if (plantMatch) {
             const reports = ctx.plantManagerReports?.filter((r) => String(r.plant) === plantMatch[0]).slice(0, 5) ?? []
             reports.forEach((r) =>
@@ -728,4 +730,4 @@ class AIInsightsServiceClass {
         return parts.join('\n')
     }
 }
-export const AIService = new AIInsightsServiceClass()
+export const AIService = new AIServiceImpl()

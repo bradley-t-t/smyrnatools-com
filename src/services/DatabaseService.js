@@ -12,6 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     }
 })
 export default supabase
+/** Prefer named import: `import { supabase } from './DatabaseService'` */
 export { supabase }
 /** Allowlisted tables for sanitized database operations to prevent injection. */
 const ALLOWED_TABLES = new Set([
@@ -128,35 +129,12 @@ export const formatDateForSupabase = (date) => {
         return null
     }
 }
-/**
- * Attempts to refresh the Supabase auth session using multiple strategies:
- * refreshSession → getSession → getUser, returning the first successful userId.
- */
-export const refreshAuth = async () => {
-    try {
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-        if (!refreshError && refreshData?.session?.user?.id) {
-            return { source: 'refreshSession', userId: refreshData.session.user.id }
-        }
-        const { data: sessionData } = await supabase.auth.getSession()
-        if (sessionData?.session?.user?.id) {
-            return { source: 'getSession', userId: sessionData.session.user.id }
-        }
-        const { data: userData } = await supabase.auth.getUser()
-        if (userData?.user?.id) {
-            return { source: 'getUser', userId: userData.user.id }
-        }
-        return { source: 'none', userId: null }
-    } catch (error) {
-        return { error, source: 'error', userId: null }
-    }
-}
 /** Validates that Supabase is properly configured with real (non-placeholder) credentials. */
-export const isSupabaseConfigured = (supabase) => {
-    if (!supabase) return false
+export const isSupabaseConfigured = (client) => {
+    if (!client) return false
     if (!process.env.REACT_APP_SUPABASE_URL || !process.env.REACT_APP_SUPABASE_ANON_KEY) return false
-    if (!supabase.supabaseUrl || supabase.supabaseUrl.includes('example.supabase.co')) return false
-    if (!supabase.supabaseKey || supabase.supabaseKey === 'your-public-anon-key') return false
+    if (!client.supabaseUrl || client.supabaseUrl.includes('example.supabase.co')) return false
+    if (!client.supabaseKey || client.supabaseKey === 'your-public-anon-key') return false
     return true
 }
 /** Extracts an error message from a Supabase response, or null if no error. */

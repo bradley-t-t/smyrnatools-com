@@ -65,7 +65,7 @@ async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
         const { PlantService } = await import('./PlantService')
         const regions = await PlantService.fetchRegionsByPlantCode(userPlantCode).catch(() => [])
         for (const region of regions) {
-            const plants = await PlantService.fetchRegionPlants(region.code).catch(() => [])
+            const plants = await PlantService.fetchRegionPlants(region.regionCode).catch(() => [])
             plants.forEach((p) => {
                 const code = p.plantCode || p.plant_code
                 if (code) allowed.add(code)
@@ -161,7 +161,8 @@ async function fetchReviewableSubmissions(statusFilter, orderField, orderAscendi
             filtered.push(submission)
         }
         return filtered
-    } catch {
+    } catch (err) {
+        console.error('Failed to fetch reviewable submissions:', err)
         return []
     }
 }
@@ -312,30 +313,37 @@ export class MaintenanceService {
                 }
                 if (!plantsToCheck.length) continue
                 const dueDates = this.calculateDueDates(form, today)
-                for (const plantCode of plantsToCheck) {
-                    for (const dueDate of dueDates) {
-                        const dueDateStr = toDateString(dueDate)
-                        let submissionQuery = supabase
+                // Build all plant/date combinations for this form to query in parallel
+                const combinations = plantsToCheck.flatMap((plantCode) =>
+                    dueDates.map((dueDate) => ({ dueDate, dueDateStr: toDateString(dueDate), plantCode }))
+                )
+                const submissionResults = await Promise.all(
+                    combinations.map(({ dueDateStr, plantCode }) => {
+                        let query = supabase
                             .from('maintenance_submissions')
                             .select('id, submitted_by')
                             .eq('form_id', form.id)
                             .eq('due_date', dueDateStr)
-                        if (plantCode) submissionQuery = submissionQuery.eq('plant_code', plantCode)
-                        const { data: existingSubmissions } = await submissionQuery
-                        const mySubmission = existingSubmissions?.find((s) => s.submitted_by === user.id)
-                        if (existingSubmissions?.length && !mySubmission) continue
-                        const isCompleted = !!mySubmission
-                        const isOverdue = dueDate <= today && !isCompleted
-                        dueItems.push({
-                            due_date: dueDateStr,
-                            form,
-                            form_id: form.id,
-                            id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
-                            plant_code: plantCode,
-                            status: isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending',
-                            submission_id: mySubmission?.id || null
-                        })
-                    }
+                        if (plantCode) query = query.eq('plant_code', plantCode)
+                        return query
+                    })
+                )
+                for (let i = 0; i < combinations.length; i++) {
+                    const { dueDate, dueDateStr, plantCode } = combinations[i]
+                    const existingSubmissions = submissionResults[i].data
+                    const mySubmission = existingSubmissions?.find((s) => s.submitted_by === user.id)
+                    if (existingSubmissions?.length && !mySubmission) continue
+                    const isCompleted = !!mySubmission
+                    const isOverdue = dueDate <= today && !isCompleted
+                    dueItems.push({
+                        due_date: dueDateStr,
+                        form,
+                        form_id: form.id,
+                        id: `${form.id}-${dueDateStr}-${plantCode || 'all'}`,
+                        plant_code: plantCode,
+                        status: isCompleted ? 'completed' : isOverdue ? 'overdue' : 'pending',
+                        submission_id: mySubmission?.id || null
+                    })
                 }
             }
             return dueItems.sort((a, b) => {
@@ -343,7 +351,8 @@ export class MaintenanceService {
                 if (b.status === 'overdue' && a.status !== 'overdue') return 1
                 return new Date(a.due_date) - new Date(b.due_date)
             })
-        } catch {
+        } catch (err) {
+            console.error('Failed to fetch my due items:', err)
             return []
         }
     }
@@ -545,7 +554,8 @@ export class MaintenanceService {
                 .eq('submitted_by', userId)
                 .order('submitted_at', { ascending: false })
             return error ? [] : data || []
-        } catch {
+        } catch (err) {
+            console.error('Failed to fetch my submissions:', err)
             return []
         }
     }
@@ -563,7 +573,8 @@ export class MaintenanceService {
                 UserService.hasPermission(user.id, PERMISSION_REVIEW).catch(() => false)
             ])
             return { canCreate, canReview }
-        } catch {
+        } catch (err) {
+            console.error('Failed to check maintenance permissions:', err)
             return { canCreate: false, canReview: false }
         }
     }

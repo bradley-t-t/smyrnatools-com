@@ -42,7 +42,9 @@ export function dispatchNotificationsRefresh(detail = null) {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('notifications-refresh', detail ? { detail } : undefined))
         }
-    } catch {}
+    } catch (error) {
+        console.error('Failed to dispatch notifications-refresh event:', error)
+    }
 }
 export async function apiPost(endpoint, payload = {}) {
     const { json, res } = await APIUtility.post(endpoint, payload)
@@ -102,7 +104,9 @@ export async function fetchStatusHistoryMap(historyTableName, idColumnName, enti
                 }
             }
         }
-    } catch {}
+    } catch (error) {
+        console.error(`Failed to fetch status history from ${historyTableName}:`, error)
+    }
     return statusHistoryMap
 }
 export function ensureDefaultCounts(item) {
@@ -143,6 +147,10 @@ export async function fetchWithDetailsBase({
     })
     return filterByRegionCodes(processed, regionCodes, plantField)
 }
+/** Converts camelCase field names to snake_case for API compatibility. */
+export function toSnakeCase(fieldName) {
+    return fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
+}
 export function normalizeSeverity(severity) {
     return VALID_SEVERITIES.includes(severity) ? severity : DEFAULT_SEVERITY
 }
@@ -159,21 +167,25 @@ export function getDuplicateFieldValues(items, fieldExtractor) {
     })
     return duplicates
 }
+/** Returns true when the item has no valid operator assignment. */
+export function hasNoOperator(item) {
+    return (
+        !item.assignedOperator ||
+        item.assignedOperator === '0' ||
+        item.assignedOperator === 0 ||
+        item.assignedOperator === null ||
+        item.assignedOperator === 'null'
+    )
+}
 export async function ensureSpareIfNoOperatorBase(items, updateFn) {
-    const needsUpdate = (items || []).filter((item) => {
-        const hasNoOperator =
-            !item.assignedOperator ||
-            item.assignedOperator === '0' ||
-            item.assignedOperator === 0 ||
-            item.assignedOperator === null ||
-            item.assignedOperator === 'null'
-        return item.status === 'Active' && hasNoOperator
-    })
+    const needsUpdate = (items || []).filter((item) => item.status === 'Active' && hasNoOperator(item))
     for (const item of needsUpdate) {
         try {
             await updateFn(item)
             item.status = 'Spare'
-        } catch {}
+        } catch (error) {
+            console.error(`Failed to set spare status for item ${item.id}:`, error)
+        }
     }
     return items
 }

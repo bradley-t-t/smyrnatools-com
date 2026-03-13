@@ -2,6 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import { usePreferences } from '../../../../app/context/PreferencesContext'
 import { useIsMobile } from '../../../../app/hooks/useIsMobile'
+
+/** Color mappings for performance status tiers. */
+const STATUS_STYLES = {
+    error: { badge: 'bg-red-100 text-red-500', bg: 'bg-red-50', border: 'border-red-500' },
+    info: { badge: 'bg-blue-100 text-blue-500', bg: 'bg-blue-50', border: 'border-blue-500' },
+    success: { badge: 'bg-green-100 text-green-600', bg: 'bg-green-50', border: 'border-green-600' },
+    warning: { badge: 'bg-amber-100 text-amber-500', bg: 'bg-amber-50', border: 'border-amber-500' }
+}
+
 /**
  * Real-time yardage production rate calculator. Supports two modes:
  * - Live: auto-updates current time every 60s to track in-progress pours.
@@ -106,348 +115,60 @@ const YardagePerHourCalculator = () => {
         return { color: 'error', label: 'Slow' }
     }
     const status = getPerformanceStatus()
-    const styles = {
-        container: {
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-light)',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        emptyIcon: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '2rem' : '3rem',
-            marginBottom: '1rem'
-        },
-        emptyState: {
-            background: 'var(--bg-secondary)',
-            border: '2px dashed var(--border-color)',
-            borderRadius: '12px',
-            marginBottom: isMobile ? '1.5rem' : '2rem',
-            padding: isMobile ? '2rem 1rem' : '3rem 2rem',
-            textAlign: 'center'
-        },
-        emptyText: {
-            color: 'var(--text-secondary)',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem'
-        },
-        equals: {
-            color: accentColor,
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700
-        },
-        equation: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            flexWrap: 'wrap',
-            gap: isMobile ? '1rem' : '2rem',
-            justifyContent: 'center',
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        fraction: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: isMobile ? '100%' : '300px',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fractionBar: {
-            background: accentColor,
-            height: '3px',
-            margin: '0.5rem 0',
-            width: '100%'
-        },
-        fractionPart: {
-            padding: isMobile ? '0.75rem' : '1rem',
-            width: '100%'
-        },
-        headerTitle: {
-            alignItems: 'center',
-            color: 'var(--text-primary)',
-            display: 'flex',
-            fontSize: isMobile ? '1rem' : '1.25rem',
-            fontWeight: 700,
-            gap: '0.75rem'
-        },
-        input: {
-            border: '2px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 600,
-            outline: 'none',
-            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem',
-            transition: 'all 0.2s',
-            width: '100%'
-        },
-        inputGroup: {
-            display: 'flex',
-            flex: 1,
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        inputUnit: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            position: 'absolute',
-            right: '1rem'
-        },
-        inputWrap: {
-            alignItems: 'center',
-            display: 'flex',
-            position: 'relative'
-        },
-        label: {
-            color: 'var(--text-secondary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        liveIcon: {
-            animation: 'pulse 2s infinite',
-            fontSize: '0.5rem'
-        },
-        liveTime: {
-            alignItems: 'center',
-            background: '#dcfce7',
-            borderRadius: '8px',
-            color: '#16a34a',
-            display: 'flex',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            gap: '0.5rem',
-            padding: isMobile ? '0.625rem 0.75rem' : '0.75rem 1rem'
-        },
-        mainLayout: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        modeButton: (active, _isLive) => ({
-            alignItems: 'center',
-            background: active ? accentColor : 'transparent',
-            border: 'none',
-            borderRadius: '6px',
-            color: active ? 'white' : 'var(--text-secondary)',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            transition: 'all 0.2s'
-        }),
-        modeToggle: {
-            background: 'var(--bg-secondary)',
-            borderRadius: '8px',
-            display: 'flex',
-            gap: '0.5rem',
-            padding: '0.25rem'
-        },
-        resetButton: {
-            alignItems: 'center',
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: isMobile ? '0.8125rem' : '0.9375rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            outline: 'none',
-            padding: isMobile ? '0.625rem 1rem' : '0.75rem 1.5rem',
-            transition: 'all 0.2s'
-        },
-        resultBox: (hasResult, statusColor) => ({
-            alignItems: 'center',
-            background: hasResult
-                ? statusColor === 'success'
-                    ? '#f0fdf4'
-                    : statusColor === 'info'
-                      ? '#eff6ff'
-                      : statusColor === 'warning'
-                        ? '#fffbeb'
-                        : statusColor === 'error'
-                          ? '#fef2f2'
-                          : 'var(--card-background)'
-                : 'var(--card-background)',
-            border: '3px solid',
-            borderColor: hasResult
-                ? statusColor === 'success'
-                    ? '#16a34a'
-                    : statusColor === 'info'
-                      ? '#3b82f6'
-                      : statusColor === 'warning'
-                        ? '#f59e0b'
-                        : statusColor === 'error'
-                          ? '#ef4444'
-                          : 'var(--border-color)'
-                : 'var(--border-color)',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            minWidth: isMobile ? '100%' : '200px',
-            padding: isMobile ? '1rem' : '1.5rem',
-            transition: 'all 0.3s',
-            width: isMobile ? '100%' : 'auto'
-        }),
-        resultEmpty: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '2rem' : '3rem'
-        },
-        resultUnit: {
-            color: 'var(--text-secondary)',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            marginTop: '0.5rem'
-        },
-        resultValue: {
-            color: accentColor,
-            fontSize: isMobile ? '2rem' : '3rem',
-            fontWeight: 700,
-            lineHeight: 1
-        },
-        sectionHeader: {
-            alignItems: isMobile ? 'flex-start' : 'center',
-            borderBottom: '2px solid var(--border-light)',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? '1rem' : '0',
-            justifyContent: 'space-between',
-            marginBottom: isMobile ? '1.5rem' : '2rem',
-            paddingBottom: '1rem'
-        },
-        statDivider: {
-            background: 'var(--border-color)',
-            display: isMobile ? 'none' : 'block',
-            height: isMobile ? '30px' : '40px',
-            width: '1px'
-        },
-        statItem: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem'
-        },
-        statLabel: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '0.625rem' : '0.75rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        statValue: {
-            color: accentColor,
-            fontSize: isMobile ? '1.125rem' : '1.5rem',
-            fontWeight: 700
-        },
-        statsRow: {
-            alignItems: 'center',
-            background: 'var(--bg-secondary)',
-            borderRadius: '12px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: isMobile ? '1rem' : '2rem',
-            justifyContent: 'center',
-            padding: isMobile ? '1rem' : '1.5rem'
-        },
-        statusBadge: (color) => ({
-            background:
-                color === 'success'
-                    ? '#dcfce7'
-                    : color === 'info'
-                      ? '#dbeafe'
-                      : color === 'warning'
-                        ? '#fef3c7'
-                        : color === 'error'
-                          ? '#fee2e2'
-                          : 'var(--bg-tertiary)',
-            borderRadius: '8px',
-            color:
-                color === 'success'
-                    ? '#16a34a'
-                    : color === 'info'
-                      ? '#3b82f6'
-                      : color === 'warning'
-                        ? '#f59e0b'
-                        : color === 'error'
-                          ? '#ef4444'
-                          : 'var(--text-secondary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 700,
-            letterSpacing: '0.5px',
-            padding: isMobile ? '0.375rem 0.75rem' : '0.5rem 1rem',
-            textTransform: 'uppercase'
-        }),
-        timeInputs: {
-            alignItems: 'center',
-            display: 'flex',
-            flexWrap: isMobile ? 'wrap' : 'nowrap',
-            gap: isMobile ? '0.5rem' : '1rem'
-        },
-        timeTo: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600
-        }
-    }
+
+    const containerClass = `bg-[var(--card-background)] border border-[var(--border-light)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ${isMobile ? 'rounded-lg p-4' : 'rounded-xl p-8'}`
+    const inputClass = `w-full border-2 border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-semibold outline-none transition-all duration-200 focus:border-[var(--calc-accent)] focus:shadow-[0_0_0_3px_var(--calc-accent-ring)] ${isMobile ? 'text-base py-2.5 px-3' : 'text-lg py-3 px-4'}`
+    const labelClass = `text-[var(--text-secondary)] font-semibold uppercase tracking-wide ${isMobile ? 'text-xs' : 'text-sm'}`
+
+    const statusStyle = status ? STATUS_STYLES[status.color] : null
+    const resultBoxClass =
+        result && statusStyle
+            ? `${statusStyle.bg} border-[3px] ${statusStyle.border}`
+            : 'bg-[var(--card-background)] border-[3px] border-[var(--border-color)]'
+
     return (
-        <div style={styles.container}>
-            <style>
-                {`
-                    @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.5; }
-                    }
-                `}
-            </style>
-            <div style={styles.sectionHeader}>
-                <div style={styles.headerTitle}>
+        <div
+            className={containerClass}
+            style={{ '--calc-accent': accentColor, '--calc-accent-ring': `${accentColor}1a` }}
+        >
+            <div
+                className={`flex border-b-2 border-[var(--border-light)] pb-4 ${isMobile ? 'flex-col items-start gap-4 mb-6' : 'flex-row items-center justify-between mb-8'}`}
+            >
+                <div
+                    className={`flex items-center gap-3 text-[var(--text-primary)] font-bold ${isMobile ? 'text-base' : 'text-xl'}`}
+                >
                     <i className="fas fa-tachometer-alt" style={{ color: accentColor }}></i>
                     <span>Yardage Per Hour</span>
                 </div>
-                <div style={styles.modeToggle}>
+                <div className="flex gap-2 rounded-lg bg-[var(--bg-secondary)] p-1">
                     <button
-                        style={styles.modeButton(!isOngoing, false)}
+                        className={`flex items-center gap-2 font-semibold rounded-md border-none cursor-pointer transition-all duration-200 ${isMobile ? 'text-xs py-1.5 px-3' : 'text-sm py-2 px-4'} ${!isOngoing ? 'text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'}`}
+                        style={!isOngoing ? { background: accentColor } : undefined}
                         onClick={() => setIsOngoing(false)}
-                        onMouseEnter={(e) => {
-                            if (isOngoing) e.currentTarget.style.background = 'var(--bg-tertiary)'
-                        }}
-                        onMouseLeave={(e) => {
-                            if (isOngoing) e.currentTarget.style.background = 'transparent'
-                        }}
                     >
                         Completed
                     </button>
                     <button
-                        style={styles.modeButton(isOngoing, true)}
+                        className={`flex items-center gap-2 font-semibold rounded-md border-none cursor-pointer transition-all duration-200 ${isMobile ? 'text-xs py-1.5 px-3' : 'text-sm py-2 px-4'} ${isOngoing ? 'text-white' : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'}`}
+                        style={isOngoing ? { background: accentColor } : undefined}
                         onClick={() => setIsOngoing(true)}
-                        onMouseEnter={(e) => {
-                            if (!isOngoing) e.currentTarget.style.background = 'var(--bg-tertiary)'
-                        }}
-                        onMouseLeave={(e) => {
-                            if (!isOngoing) e.currentTarget.style.background = 'transparent'
-                        }}
                     >
-                        <i className="fas fa-circle" style={{ fontSize: '0.5rem' }}></i>
+                        <i className="fas fa-circle text-[0.5rem]"></i>
                         Live
                     </button>
                 </div>
             </div>
-            <div style={styles.mainLayout}>
-                <div style={styles.equation}>
-                    <div style={styles.fraction}>
-                        <div style={styles.fractionPart}>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>{isOngoing ? 'Poured' : 'Total'}</label>
-                                <div style={styles.inputWrap}>
+            <div className={isMobile ? 'mb-6' : 'mb-8'}>
+                <div
+                    className={`flex items-center justify-center flex-wrap ${isMobile ? 'flex-col gap-4 mb-6' : 'flex-row gap-8 mb-8'}`}
+                >
+                    <div
+                        className={`flex flex-col items-center ${isMobile ? 'min-w-full w-full' : 'min-w-[300px] w-auto'}`}
+                    >
+                        <div className={`w-full ${isMobile ? 'p-3' : 'p-4'}`}>
+                            <div className="flex flex-col flex-1 gap-2">
+                                <label className={labelClass}>{isOngoing ? 'Poured' : 'Total'}</label>
+                                <div className="flex items-center relative">
                                     <input
                                         type="number"
                                         value={isOngoing ? values.yardsPoured : values.totalYards}
@@ -455,65 +176,51 @@ const YardagePerHourCalculator = () => {
                                             handleChange(isOngoing ? 'yardsPoured' : 'totalYards', e.target.value)
                                         }
                                         placeholder="0"
-                                        style={styles.input}
-                                        onFocus={(e) => {
-                                            e.target.style.borderColor = accentColor
-                                            e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
-                                        }}
-                                        onBlur={(e) => {
-                                            e.target.style.borderColor = 'var(--border-color)'
-                                            e.target.style.boxShadow = 'none'
-                                        }}
+                                        className={inputClass}
                                     />
-                                    <span style={styles.inputUnit}>yd</span>
+                                    <span
+                                        className={`absolute right-4 text-[var(--text-tertiary)] font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}
+                                    >
+                                        yd
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        <div style={styles.fractionBar}></div>
-                        <div style={styles.fractionPart}>
-                            <div style={styles.timeInputs}>
-                                <div style={styles.inputGroup}>
-                                    <label style={styles.label}>First Load</label>
-                                    <div style={styles.inputWrap}>
+                        <div className="w-full h-[3px] my-2" style={{ background: accentColor }}></div>
+                        <div className={`w-full ${isMobile ? 'p-3' : 'p-4'}`}>
+                            <div className={`flex items-center ${isMobile ? 'flex-wrap gap-2' : 'flex-nowrap gap-4'}`}>
+                                <div className="flex flex-col flex-1 gap-2">
+                                    <label className={labelClass}>First Load</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="time"
                                             value={values.firstLoadTime}
                                             onChange={(e) => handleChange('firstLoadTime', e.target.value)}
-                                            style={styles.input}
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = accentColor
-                                                e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
+                                            className={inputClass}
                                         />
                                     </div>
                                 </div>
-                                <span style={styles.timeTo}>to</span>
-                                <div style={styles.inputGroup}>
-                                    <label style={styles.label}>{isOngoing ? 'Now' : 'Last Poured'}</label>
+                                <span
+                                    className={`text-[var(--text-tertiary)] font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}
+                                >
+                                    to
+                                </span>
+                                <div className="flex flex-col flex-1 gap-2">
+                                    <label className={labelClass}>{isOngoing ? 'Now' : 'Last Poured'}</label>
                                     {isOngoing ? (
-                                        <div style={styles.liveTime}>
-                                            <i className="fas fa-circle" style={styles.liveIcon}></i>
+                                        <div
+                                            className={`flex items-center gap-2 rounded-lg bg-green-100 text-green-600 font-bold ${isMobile ? 'text-base py-2.5 px-3' : 'text-lg py-3 px-4'}`}
+                                        >
+                                            <i className="fas fa-circle text-[0.5rem] animate-pulse"></i>
                                             <span>{values.completionTime}</span>
                                         </div>
                                     ) : (
-                                        <div style={styles.inputWrap}>
+                                        <div className="flex items-center relative">
                                             <input
                                                 type="time"
                                                 value={values.completionTime}
                                                 onChange={(e) => handleChange('completionTime', e.target.value)}
-                                                style={styles.input}
-                                                onFocus={(e) => {
-                                                    e.target.style.borderColor = accentColor
-                                                    e.target.style.boxShadow = `0 0 0 3px ${accentColor}1a`
-                                                }}
-                                                onBlur={(e) => {
-                                                    e.target.style.borderColor = 'var(--border-color)'
-                                                    e.target.style.boxShadow = 'none'
-                                                }}
+                                                className={inputClass}
                                             />
                                         </div>
                                     )}
@@ -521,63 +228,111 @@ const YardagePerHourCalculator = () => {
                             </div>
                         </div>
                     </div>
-                    <span style={styles.equals}>=</span>
-                    <div style={styles.resultBox(!!result, status?.color)}>
+                    <span className="text-2xl md:text-3xl font-bold" style={{ color: accentColor }}>
+                        =
+                    </span>
+                    <div
+                        className={`flex flex-col items-center justify-center rounded-xl transition-all duration-300 ${resultBoxClass} ${isMobile ? 'min-w-full p-4' : 'min-w-[200px] p-6'}`}
+                    >
                         {result ? (
                             <>
-                                <span style={styles.resultValue}>{result.yardsPerHour}</span>
-                                <span style={styles.resultUnit}>yd/hr</span>
+                                <span
+                                    className="font-bold leading-none"
+                                    style={{ color: accentColor, fontSize: isMobile ? '2rem' : '3rem' }}
+                                >
+                                    {result.yardsPerHour}
+                                </span>
+                                <span
+                                    className={`text-[var(--text-secondary)] font-semibold mt-2 ${isMobile ? 'text-sm' : 'text-base'}`}
+                                >
+                                    yd/hr
+                                </span>
                             </>
                         ) : (
-                            <span style={styles.resultEmpty}>—</span>
+                            <span className={`text-[var(--text-tertiary)] ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+                                &mdash;
+                            </span>
                         )}
                     </div>
                 </div>
                 {result && (
-                    <div style={styles.statsRow}>
-                        <div style={styles.statItem}>
-                            <span style={styles.statValue}>{result.loadsPerHour}</span>
-                            <span style={styles.statLabel}>loads/hr</span>
+                    <div
+                        className={`flex items-center flex-wrap justify-center rounded-xl bg-[var(--bg-secondary)] ${isMobile ? 'gap-4 p-4' : 'gap-8 p-6'}`}
+                    >
+                        <div className="flex flex-col items-center gap-1">
+                            <span
+                                className="font-bold"
+                                style={{ color: accentColor, fontSize: isMobile ? '1.125rem' : '1.5rem' }}
+                            >
+                                {result.loadsPerHour}
+                            </span>
+                            <span
+                                className={`text-[var(--text-tertiary)] font-semibold uppercase tracking-wide ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
+                            >
+                                loads/hr
+                            </span>
                         </div>
-                        <div style={styles.statDivider}></div>
-                        <div style={styles.statItem}>
-                            <span style={styles.statValue}>{result.totalYards}</span>
-                            <span style={styles.statLabel}>{isOngoing ? 'poured' : 'total'}</span>
+                        <div className={`bg-[var(--border-color)] ${isMobile ? 'hidden' : 'block w-px h-10'}`}></div>
+                        <div className="flex flex-col items-center gap-1">
+                            <span
+                                className="font-bold"
+                                style={{ color: accentColor, fontSize: isMobile ? '1.125rem' : '1.5rem' }}
+                            >
+                                {result.totalYards}
+                            </span>
+                            <span
+                                className={`text-[var(--text-tertiary)] font-semibold uppercase tracking-wide ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
+                            >
+                                {isOngoing ? 'poured' : 'total'}
+                            </span>
                         </div>
-                        <div style={styles.statDivider}></div>
-                        <div style={styles.statItem}>
-                            <span style={styles.statValue}>{result.elapsedTime}</span>
-                            <span style={styles.statLabel}>elapsed</span>
+                        <div className={`bg-[var(--border-color)] ${isMobile ? 'hidden' : 'block w-px h-10'}`}></div>
+                        <div className="flex flex-col items-center gap-1">
+                            <span
+                                className="font-bold"
+                                style={{ color: accentColor, fontSize: isMobile ? '1.125rem' : '1.5rem' }}
+                            >
+                                {result.elapsedTime}
+                            </span>
+                            <span
+                                className={`text-[var(--text-tertiary)] font-semibold uppercase tracking-wide ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
+                            >
+                                elapsed
+                            </span>
                         </div>
                         {status && (
                             <>
-                                <div style={styles.statDivider}></div>
-                                <div style={styles.statusBadge(status.color)}>{status.label}</div>
+                                <div
+                                    className={`bg-[var(--border-color)] ${isMobile ? 'hidden' : 'block w-px h-10'}`}
+                                ></div>
+                                <div
+                                    className={`font-bold uppercase tracking-wide rounded-lg ${isMobile ? 'text-xs py-1.5 px-3' : 'text-sm py-2 px-4'} ${statusStyle.badge}`}
+                                >
+                                    {status.label}
+                                </div>
                             </>
                         )}
                     </div>
                 )}
             </div>
             {!result && (
-                <div style={styles.emptyState}>
-                    <div style={styles.emptyIcon}>
+                <div
+                    className={`bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-xl text-center ${isMobile ? 'mb-6 py-8 px-4' : 'mb-8 py-12 px-8'}`}
+                >
+                    <div className={`text-[var(--text-tertiary)] mb-4 ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
                         <i className="fas fa-truck-loading"></i>
                     </div>
-                    <span style={styles.emptyText}>Enter yardage and times to calculate production rate</span>
+                    <span
+                        className={`text-[var(--text-secondary)] ${isMobile ? 'text-[0.8125rem]' : 'text-[0.9375rem]'}`}
+                    >
+                        Enter yardage and times to calculate production rate
+                    </span>
                 </div>
             )}
-            <div style={styles.footer}>
+            <div className="flex justify-center">
                 <button
                     onClick={clearForm}
-                    style={styles.resetButton}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-secondary)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--card-background)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
+                    className={`flex items-center gap-2 bg-[var(--card-background)] border border-[var(--border-color)] rounded-lg text-[var(--text-secondary)] cursor-pointer font-semibold outline-none transition-all duration-200 hover:bg-[var(--bg-secondary)] ${isMobile ? 'text-[0.8125rem] py-2.5 px-4' : 'text-[0.9375rem] py-3 px-6'}`}
                 >
                     <i className="fas fa-redo"></i>
                     <span>Reset</span>

@@ -26,10 +26,10 @@ class AuthServiceImpl {
         let browser = 'Unknown'
         let os = 'Unknown'
         let device = 'Desktop'
-        if (ua.includes('Chrome')) browser = 'Chrome'
-        else if (ua.includes('Safari')) browser = 'Safari'
+        if (ua.includes('Edg')) browser = 'Edge'
+        else if (ua.includes('Chrome')) browser = 'Chrome'
         else if (ua.includes('Firefox')) browser = 'Firefox'
-        else if (ua.includes('Edge')) browser = 'Edge'
+        else if (ua.includes('Safari')) browser = 'Safari'
         if (ua.includes('Windows')) os = 'Windows'
         else if (ua.includes('Mac')) os = 'macOS'
         else if (ua.includes('Linux')) os = 'Linux'
@@ -68,14 +68,15 @@ class AuthServiceImpl {
             localStorage.setItem(SESSION_KEY, userId)
             localStorage.setItem(SESSION_ID_KEY, sessionId)
             sessionStorage.setItem('userId', userId)
-        } catch {
+        } catch (err) {
+            console.error('Failed to create DB session, falling back to local storage:', err)
             localStorage.setItem(SESSION_KEY, userId)
             sessionStorage.setItem('userId', userId)
         }
     }
     /**
      * Validates the current session against the database.
-     * Expires sessions older than 30 days and refreshes the last_active timestamp.
+     * Expires sessions older than SESSION_EXPIRY_DAYS (7) and refreshes the last_active timestamp.
      */
     async _validateDbSession() {
         const userId = localStorage.getItem(SESSION_KEY)
@@ -112,9 +113,10 @@ class AuthServiceImpl {
                 .update({ last_active: new Date().toISOString() })
                 .eq('id', sessionId)
                 .then(() => {})
-                .catch(() => {})
+                .catch((err) => console.error('Failed to update session last_active:', err))
             return { userId, valid: true }
-        } catch {
+        } catch (err) {
+            console.error('Session validation failed:', err)
             return { userId, valid: true }
         }
     }
@@ -169,7 +171,9 @@ class AuthServiceImpl {
                 },
                 { onConflict: 'user_id' }
             )
-        } catch {}
+        } catch (err) {
+            console.error('Failed to create default preferences row:', err)
+        }
     }
     /** Registers a new user, creates a session, and initializes default preferences. */
     async signUp(email, password, firstName, lastName) {
@@ -198,11 +202,15 @@ class AuthServiceImpl {
         if (sessionId) {
             try {
                 await supabase.from('users_sessions').delete().eq('id', sessionId)
-            } catch {}
+            } catch (err) {
+                console.error('Failed to delete session record on sign-out:', err)
+            }
         }
         try {
             await APIUtility.post(`${AUTH_SERVICE_FUNCTION}/sign-out`, {}, { skipAuthCheck: true })
-        } catch {}
+        } catch (err) {
+            console.error('Failed to call sign-out endpoint:', err)
+        }
         this.currentUser = null
         this.isAuthenticated = false
         this.sessionValidated = false

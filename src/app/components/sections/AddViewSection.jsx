@@ -4,6 +4,235 @@ import ReactDOM from 'react-dom'
 import { UserService } from '../../../services/UserService'
 import ErrorMessage from '../common/ErrorMessage'
 /**
+ * Shared CSS classes consumed by child form components (MixerAddView, TractorAddView, etc.).
+ * These must remain as a style block until all consumer components are migrated to Tailwind.
+ */
+const addViewFormStyles = `
+    .add-view-form {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow: hidden;
+        min-width: 0;
+    }
+    .add-view-form form {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 0;
+    }
+    .add-view-form * {
+        min-width: 0;
+    }
+    .add-view-form .form-section {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 0;
+    }
+    .add-view-form .form-section + .form-section {
+        margin-top: 0;
+    }
+    .add-view-form .form-section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+    .add-view-form .form-section-title i {
+        font-size: 0.875rem;
+        color: var(--accent);
+        opacity: 0.8;
+    }
+    .add-view-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    @media (min-width: 480px) {
+        .add-view-form .form-row {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+    .add-view-form .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .add-view-form label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .add-view-form input[type="text"],
+    .add-view-form input[type="tel"],
+    .add-view-form input[type="number"],
+    .add-view-form input[type="date"],
+    .add-view-form input[type="datetime-local"],
+    .add-view-form textarea {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+    .add-view-form input:focus,
+    .add-view-form textarea:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .add-view-form select {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .add-view-form select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .add-view-form button[type="button"]:not(.form-submit) {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .add-view-form button[type="button"]:not(.form-submit):hover {
+        background: var(--bg-secondary);
+    }
+    .add-view-form .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-light);
+        margin-top: 0.25rem;
+    }
+    .add-view-form button[type="submit"],
+    .add-view-form .form-submit {
+        padding: 0.75rem 1.5rem;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .add-view-form button[type="submit"]:hover,
+    .add-view-form .form-submit:hover {
+        filter: brightness(0.85);
+    }
+    .add-view-form button[type="submit"]:disabled,
+    .add-view-form .form-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    @media (max-width: 480px) {
+        .add-view-form {
+            gap: 4px !important;
+            padding: 0.75rem !important;
+        }
+        .add-view-form .form-section {
+            padding: 0.75rem !important;
+        }
+        .add-view-form input[type="datetime-local"],
+        .add-view-form input[type="date"] {
+            font-size: 0.8125rem !important;
+            padding: 0.625rem 0.5rem !important;
+        }
+    }
+    .add-view-form .form-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+    }
+    .add-view-form .form-warning {
+        font-size: 0.8125rem;
+        color: #d97706;
+        margin-top: 0.25rem;
+    }
+    .add-view-form .form-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+    .add-view-form .form-checkbox input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+    }
+    .add-view-form .selected-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .add-view-form .selected-item-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border-radius: 0.5rem;
+        font-size: 0.8125rem;
+    }
+    .add-view-form .selected-item-chip button {
+        width: 1.25rem;
+        height: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-hover);
+        border: none;
+        border-radius: 50%;
+        color: var(--text-primary);
+        cursor: pointer;
+        padding: 0;
+        font-size: 0.625rem;
+    }
+    .add-view-form .selected-item-chip button:hover {
+        background: var(--border-medium);
+    }
+`
+/**
  * Portal-rendered modal wrapper for add/create forms.
  * Checks user permissions (assets.add / list.add) before rendering the form.
  * Handles duplicate key errors with user-friendly messages.
@@ -70,123 +299,6 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
         }
         pointerDownTargetRef.current = null
     }
-    const styles = {
-        backdrop: {
-            alignItems: 'center',
-            animation: 'fadeIn 0.2s ease-out',
-            backdropFilter: 'blur(4px)',
-            background: 'rgba(0, 0, 0, 0.5)',
-            bottom: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            left: 0,
-            padding: '1rem',
-            position: 'fixed',
-            right: 0,
-            top: 0,
-            zIndex: 1000
-        },
-        closeButton: {
-            alignItems: 'center',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: '6px',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '1.25rem',
-            height: '2rem',
-            justifyContent: 'center',
-            padding: '0.5rem',
-            transition: 'all 0.2s',
-            width: '2rem'
-        },
-        content: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-            padding: '1.5rem'
-        },
-        contentScrollable: {
-            flex: 1,
-            minHeight: 0,
-            overflowY: 'auto'
-        },
-        header: {
-            alignItems: 'center',
-            background: 'var(--bg-secondary)',
-            borderBottom: '1px solid var(--border-light)',
-            borderRadius: '12px 12px 0 0',
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '1.25rem 1.5rem'
-        },
-        headerContent: {
-            alignItems: 'center',
-            display: 'flex',
-            gap: '0.875rem'
-        },
-        headerIcon: {
-            color: 'var(--accent)',
-            fontSize: '1.25rem'
-        },
-        modal: {
-            animation: 'popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            background: 'var(--bg-primary)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '12px',
-            boxShadow: 'var(--shadow-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            maxHeight: '90vh',
-            maxWidth: '650px',
-            overflow: 'hidden',
-            width: '100%'
-        },
-        permissionDenied: {
-            alignItems: 'center',
-            background: 'var(--bg-primary)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.875rem',
-            padding: '3rem 2rem',
-            textAlign: 'center'
-        },
-        permissionIcon: {
-            color: '#ef4444',
-            fontSize: '3rem',
-            marginBottom: '0.5rem',
-            opacity: 0.3
-        },
-        permissionSubtext: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.875rem',
-            fontWeight: 500
-        },
-        permissionText: {
-            color: 'var(--text-primary)',
-            fontSize: '1rem',
-            fontWeight: 600,
-            lineHeight: 1.5,
-            margin: 0
-        },
-        subtitle: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            fontWeight: 500,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        title: {
-            color: 'var(--text-primary)',
-            fontSize: '1.125rem',
-            fontWeight: 700,
-            lineHeight: 1.2,
-            margin: 0
-        }
-    }
     if (typeof document === 'undefined' || !document.body) {
         return null
     }
@@ -195,325 +307,85 @@ function AddViewSection({ title, onClose, children, error, isListItem = false })
     }
     if (!hasPermission) {
         return ReactDOM.createPortal(
-            <>
-                <style>{`
-                    @keyframes fadeIn {
-                        from { opacity: 0; }
-                        to { opacity: 1; }
-                    }
-                    @keyframes popIn {
-                        from { transform: scale(0.8); opacity: 0; }
-                        to { transform: scale(1); opacity: 1; }
-                    }
-                `}</style>
-                <div style={styles.backdrop} onPointerDown={handleBackdropPointerDown} onClick={handleBackdropClick}>
-                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <div style={styles.header}>
-                            <div style={styles.headerContent}>
-                                <i className="fas fa-lock" style={styles.headerIcon}></i>
-                                <div>
-                                    <h2 style={styles.title}>Permission Denied</h2>
-                                    <span style={styles.subtitle}>Access Restricted</span>
-                                </div>
+            <div
+                className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in-fast"
+                onPointerDown={handleBackdropPointerDown}
+                onClick={handleBackdropClick}
+            >
+                <div
+                    className="animate-pop-in bg-bg-primary border border-border-light rounded-card shadow-card flex flex-col max-h-[90vh] max-w-[650px] w-full overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex items-center justify-between bg-bg-secondary border-b border-border-light rounded-t-card py-5 px-6">
+                        <div className="flex items-center gap-3.5">
+                            <i className="fas fa-lock text-accent text-xl"></i>
+                            <div>
+                                <h2 className="text-text-primary text-lg font-bold leading-tight m-0">
+                                    Permission Denied
+                                </h2>
+                                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">
+                                    Access Restricted
+                                </span>
                             </div>
-                            <button
-                                style={styles.closeButton}
-                                onClick={onClose}
-                                aria-label="Close"
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = 'var(--border-light)'
-                                    e.currentTarget.style.color = 'var(--text-primary)'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = 'transparent'
-                                    e.currentTarget.style.color = 'var(--text-secondary)'
-                                }}
-                            >
-                                <i className="fas fa-times"></i>
-                            </button>
                         </div>
-                        <div style={styles.contentScrollable}>
-                            <div style={styles.content}>
-                                <div style={styles.permissionDenied}>
-                                    <i className="fas fa-ban" style={styles.permissionIcon}></i>
-                                    <p style={styles.permissionText}>
-                                        You are not permitted to create assets or items.
-                                    </p>
-                                    <span style={styles.permissionSubtext}>
-                                        Please contact your RMI or District Manager.
-                                    </span>
-                                </div>
+                        <button
+                            className="flex items-center justify-center w-8 h-8 bg-transparent border-none rounded-md text-text-secondary text-xl cursor-pointer transition-all duration-200 p-2 hover:bg-border-light hover:text-text-primary"
+                            onClick={onClose}
+                            aria-label="Close"
+                        >
+                            <i className="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-y-auto">
+                        <div className="flex flex-col gap-5 p-6">
+                            <div className="flex flex-col items-center gap-3.5 bg-bg-primary border border-border-light rounded-[10px] py-12 px-8 text-center">
+                                <i className="fas fa-ban text-red-500 text-5xl mb-2 opacity-30"></i>
+                                <p className="text-text-primary text-base font-semibold leading-relaxed m-0">
+                                    You are not permitted to create assets or items.
+                                </p>
+                                <span className="text-text-secondary text-sm font-medium">
+                                    Please contact your RMI or District Manager.
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </>,
+            </div>,
             document.body
         )
     }
     return ReactDOM.createPortal(
         <>
-            <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes popIn {
-                    from { transform: scale(0.8); opacity: 0; }
-                    to { transform: scale(1); opacity: 1; }
-                }
-                .add-view-form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    overflow: hidden;
-                    min-width: 0;
-                }
-                .add-view-form form {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 5px;
-                    min-width: 0;
-                }
-                .add-view-form * {
-                    min-width: 0;
-                }
-                .add-view-form .form-section {
-                    background: var(--bg-secondary);
-                    border: 1px solid var(--border-light);
-                    border-radius: 12px;
-                    padding: 1rem;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    margin-bottom: 0;
-                }
-                .add-view-form .form-section + .form-section {
-                    margin-top: 0;
-                }
-                .add-view-form .form-section-title {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.625rem;
-                    font-size: 0.8125rem;
-                    font-weight: 600;
-                    color: var(--text-secondary);
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    padding-bottom: 0.5rem;
-                    border-bottom: 1px solid var(--border-light);
-                }
-                .add-view-form .form-section-title i {
-                    font-size: 0.875rem;
-                    color: var(--accent);
-                    opacity: 0.8;
-                }
-                .add-view-form .form-row {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                }
-                @media (min-width: 480px) {
-                    .add-view-form .form-row {
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    }
-                }
-                .add-view-form .form-group {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.5rem;
-                }
-                .add-view-form label {
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    color: var(--text-primary);
-                }
-                .add-view-form input[type="text"],
-                .add-view-form input[type="tel"],
-                .add-view-form input[type="number"],
-                .add-view-form input[type="date"],
-                .add-view-form input[type="datetime-local"],
-                .add-view-form textarea {
-                    width: 100%;
-                    max-width: 100%;
-                    padding: 0.75rem 1rem;
-                    border: 1px solid var(--border-light);
-                    border-radius: 12px;
-                    font-size: 0.875rem;
-                    color: var(--text-primary);
-                    background: var(--bg-primary);
-                    outline: none;
-                    transition: all 0.2s;
-                    box-sizing: border-box;
-                }
-                .add-view-form input:focus,
-                .add-view-form textarea:focus {
-                    border-color: #3b82f6;
-                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-                }
-                .add-view-form select {
-                    width: 100%;
-                    max-width: 100%;
-                    padding: 0.75rem 2.5rem 0.75rem 1rem;
-                    border: 1px solid var(--border-light);
-                    border-radius: 12px;
-                    font-size: 0.875rem;
-                    color: var(--text-primary);
-                    background: var(--bg-primary);
-                    cursor: pointer;
-                    appearance: none;
-                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-                    background-repeat: no-repeat;
-                    background-position: right 12px center;
-                    background-size: 18px;
-                    outline: none;
-                    transition: all 0.2s;
-                }
-                .add-view-form select:focus {
-                    border-color: #3b82f6;
-                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-                }
-                .add-view-form button[type="button"]:not(.form-submit) {
-                    width: 100%;
-                    padding: 0.75rem 1rem;
-                    border: 1px solid var(--border-light);
-                    border-radius: 12px;
-                    font-size: 0.875rem;
-                    color: var(--text-primary);
-                    background: var(--bg-primary);
-                    text-align: left;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .add-view-form button[type="button"]:not(.form-submit):hover {
-                    background: var(--bg-secondary);
-                }
-                .add-view-form .form-actions {
-                    display: flex;
-                    justify-content: flex-end;
-                    padding-top: 0.5rem;
-                    border-top: 1px solid var(--border-light);
-                    margin-top: 0.25rem;
-                }
-                .add-view-form button[type="submit"],
-                .add-view-form .form-submit {
-                    padding: 0.75rem 1.5rem;
-                    background: var(--accent);
-                    color: white;
-                    border: none;
-                    border-radius: 12px;
-                    font-size: 0.875rem;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .add-view-form button[type="submit"]:hover,
-                .add-view-form .form-submit:hover {
-                    filter: brightness(0.85);
-                }
-                .add-view-form button[type="submit"]:disabled,
-                .add-view-form .form-submit:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-                @media (max-width: 480px) {
-                    .add-view-form {
-                        gap: 4px !important;
-                        padding: 0.75rem !important;
-                    }
-                    .add-view-form .form-section {
-                        padding: 0.75rem !important;
-                    }
-                    .add-view-form input[type="datetime-local"],
-                    .add-view-form input[type="date"] {
-                        font-size: 0.8125rem !important;
-                        padding: 0.625rem 0.5rem !important;
-                    }
-                }
-                .add-view-form .form-hint {
-                    font-size: 0.75rem;
-                    color: var(--text-secondary);
-                    margin-top: 0.25rem;
-                }
-                .add-view-form .form-warning {
-                    font-size: 0.8125rem;
-                    color: #d97706;
-                    margin-top: 0.25rem;
-                }
-                .add-view-form .form-checkbox {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    cursor: pointer;
-                }
-                .add-view-form .form-checkbox input[type="checkbox"] {
-                    width: 1.25rem;
-                    height: 1.25rem;
-                    border-radius: 0.375rem;
-                    cursor: pointer;
-                }
-                .add-view-form .selected-items {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 0.5rem;
-                    margin-top: 0.5rem;
-                }
-                .add-view-form .selected-item-chip {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    padding: 0.375rem 0.75rem;
-                    background: var(--bg-tertiary);
-                    color: var(--text-primary);
-                    border-radius: 0.5rem;
-                    font-size: 0.8125rem;
-                }
-                .add-view-form .selected-item-chip button {
-                    width: 1.25rem;
-                    height: 1.25rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: var(--bg-hover);
-                    border: none;
-                    border-radius: 50%;
-                    color: var(--text-primary);
-                    cursor: pointer;
-                    padding: 0;
-                    font-size: 0.625rem;
-                }
-                .add-view-form .selected-item-chip button:hover {
-                    background: var(--border-medium);
-                }
-            `}</style>
-            <div style={styles.backdrop} onPointerDown={handleBackdropPointerDown} onClick={handleBackdropClick}>
-                <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-                    <div style={styles.header}>
-                        <div style={styles.headerContent}>
-                            <i className="fas fa-plus-circle" style={styles.headerIcon}></i>
+            <style>{addViewFormStyles}</style>
+            <div
+                className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in-fast"
+                onPointerDown={handleBackdropPointerDown}
+                onClick={handleBackdropClick}
+            >
+                <div
+                    className="animate-pop-in bg-bg-primary border border-border-light rounded-card shadow-card flex flex-col max-h-[90vh] max-w-[650px] w-full overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex items-center justify-between bg-bg-secondary border-b border-border-light rounded-t-card py-5 px-6">
+                        <div className="flex items-center gap-3.5">
+                            <i className="fas fa-plus-circle text-accent text-xl"></i>
                             <div>
-                                <h2 style={styles.title}>{title}</h2>
-                                <span style={styles.subtitle}>Create New</span>
+                                <h2 className="text-text-primary text-lg font-bold leading-tight m-0">{title}</h2>
+                                <span className="text-text-secondary text-xs font-medium uppercase tracking-wide">
+                                    Create New
+                                </span>
                             </div>
                         </div>
                         <button
-                            style={styles.closeButton}
+                            className="flex items-center justify-center w-8 h-8 bg-transparent border-none rounded-md text-text-secondary text-xl cursor-pointer transition-all duration-200 p-2 hover:bg-border-light hover:text-text-primary"
                             onClick={onClose}
                             aria-label="Close"
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'var(--border-light)'
-                                e.currentTarget.style.color = 'var(--text-primary)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'transparent'
-                                e.currentTarget.style.color = 'var(--text-secondary)'
-                            }}
                         >
                             <i className="fas fa-times"></i>
                         </button>
                     </div>
-                    <div style={styles.contentScrollable}>
-                        <div style={styles.content} className="add-view-form">
+                    <div className="flex-1 min-h-0 overflow-y-auto">
+                        <div className="flex flex-col gap-5 p-6 add-view-form">
                             <ErrorMessage message={internalError} onDismiss={() => setInternalError(null)} />
                             {children}
                         </div>

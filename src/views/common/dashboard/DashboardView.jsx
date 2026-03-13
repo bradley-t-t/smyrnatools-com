@@ -359,35 +359,12 @@ export default function DashboardView() {
         }
         wasLoadingRef.current = showSkeleton
     }, [showSkeleton])
-    const revealClass = (direction) => (revealContent ? `dash-reveal-${direction}` : '')
+    const REVEAL_DIRECTION_MAP = { left: 'animate-reveal-left', right: 'animate-reveal-right', up: 'animate-reveal-up' }
+    const revealClass = (direction) => (revealContent ? REVEAL_DIRECTION_MAP[direction] || '' : '')
     const revealStyle = (delay) => (revealContent ? { animationDelay: `${delay}ms` } : undefined)
 
     return (
         <div className="dashboard-full-width min-h-screen bg-bg-secondary text-text-primary">
-            <style>{`
-                @keyframes dashRevealLeft {
-                    from { opacity: 0; transform: translateX(-18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes dashRevealRight {
-                    from { opacity: 0; transform: translateX(18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes dashRevealUp {
-                    from { opacity: 0; transform: translateY(14px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                .dash-reveal-left {
-                    animation: dashRevealLeft 0.5s ease-out both;
-                }
-                .dash-reveal-right {
-                    animation: dashRevealRight 0.5s ease-out both;
-                }
-                .dash-reveal-up {
-                    animation: dashRevealUp 0.5s ease-out both;
-                }
-            `}</style>
-
             <div className="flex min-h-screen">
                 {/* Main content */}
                 <main className="flex-1 min-w-0 flex flex-col">

@@ -13,7 +13,6 @@ import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { PlantService } from '../../../services/PlantService'
 import { TractorService } from '../../../services/TractorService'
-import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import OperatorAddView from './OperatorAddView'
 import OperatorCard from './OperatorCard'
@@ -62,9 +61,7 @@ function OperatorsView({
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [showDetailView, setShowDetailView] = useState(false)
     const [selectedOperator, setSelectedOperator] = useState(null)
-    const [, setCurrentUserId] = useState(null)
     const [trainers, setTrainers] = useState([])
-    const [reloadFlag] = useState(false)
     const [mixers, setMixers] = useState([])
     const [tractors, setTractors] = useState([])
     const [viewMode, setViewMode] = useState(() => {
@@ -189,13 +186,6 @@ function OperatorsView({
             supabase.removeChannel(channel)
         }
     }, [])
-    useEffect(() => {
-        const fetchCurrentUser = async () => {
-            const user = await UserService.getCurrentUser()
-            if (user) setCurrentUserId(user.id)
-        }
-        fetchCurrentUser()
-    }, [])
     /** Fetches operators scoped to the given plant codes; falls back to a 1-hour localStorage cache on failure. */
     const fetchCommentCounts = useCallback(async (operatorsList) => {
         if (!operatorsList || operatorsList.length === 0) return
@@ -288,7 +278,7 @@ function OperatorsView({
     }, [preferences.selectedRegion?.code, fetchOperators])
     useEffect(() => {
         fetchAllData()
-    }, [reloadFlag, fetchAllData])
+    }, [fetchAllData])
     useEffect(() => {
         if (preferences.operatorFilters) {
             setSearchText(preferences.operatorFilters.searchText || '')
@@ -505,30 +495,23 @@ function OperatorsView({
     const renderStars = (val) => {
         const rating = Math.round(Number(val) || 0)
         if (!rating || rating <= 0) {
-            return (
-                <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontStyle: 'italic' }}>Not Rated</span>
-            )
+            return <span className="text-text-secondary text-sm italic">Not Rated</span>
         }
         const stars = []
         for (let i = 1; i <= 5; i++) {
             stars.push(
                 <i
                     key={i}
-                    className="fas fa-star"
-                    style={{
-                        color: i <= rating ? '#f59e0b' : 'var(--border-light)',
-                        fontSize: '16px',
-                        marginRight: i < 5 ? '2px' : '0'
-                    }}
+                    className={`fas fa-star text-base ${i <= rating ? 'text-amber-400' : 'text-border-light'} ${i < 5 ? 'mr-0.5' : ''}`}
                 ></i>
             )
         }
-        return <div style={{ alignItems: 'center', display: 'flex', gap: '2px' }}>{stars}</div>
+        return <div className="flex items-center gap-0.5">{stars}</div>
     }
     const renderStarsOrNA = (operator) => {
         const allowedStatuses = ['Active', 'Light Duty', 'Training']
         if (!allowedStatuses.includes(operator.status)) {
-            return <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontStyle: 'italic' }}>N/A</span>
+            return <span className="text-text-secondary text-sm italic">N/A</span>
         }
         return renderStars(operator.rating)
     }
@@ -560,8 +543,7 @@ function OperatorsView({
                             onAddClick={() => setShowAddSheet(true)}
                             customActions={
                                 <button
-                                    className="flex items-center gap-2 rounded-xl border-none px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
-                                    style={{ backgroundColor: '#6b7280' }}
+                                    className="flex items-center gap-2 rounded-xl border-none bg-gray-500 px-4 py-3 text-sm font-semibold text-white cursor-pointer transition-all duration-150 disabled:opacity-50"
                                     onClick={handleExportRatings}
                                     disabled={isExporting || operators.length === 0}
                                     type="button"
@@ -665,12 +647,12 @@ function OperatorsView({
                                     renderRow={(
                                         operator,
                                         handleSelect,
-                                        onComment,
-                                        onIssue,
-                                        onVerify,
-                                        onHistory,
-                                        index,
-                                        alternatingBg
+                                        _onComment,
+                                        _onIssue,
+                                        _onVerify,
+                                        _onHistory,
+                                        _index,
+                                        _alternatingBg
                                     ) => {
                                         const duplicate = duplicateNamesSet.has(
                                             (operator.name || '').trim().toLowerCase()
@@ -678,32 +660,12 @@ function OperatorsView({
                                         const trainerObj = trainers.find(
                                             (t) => t.employeeId === operator.assignedTrainer
                                         )
-                                        const cellStyle = {
-                                            backgroundColor: alternatingBg,
-                                            color: 'var(--text-primary)',
-                                            fontSize: '15px',
-                                            fontWeight: 500,
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
-                                        const cellSecondaryStyle = {
-                                            backgroundColor: alternatingBg,
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '14px',
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
-                                        const cellHighlightStyle = {
-                                            backgroundColor: alternatingBg,
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '16px',
-                                            fontWeight: 700,
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
+                                        const cellCls =
+                                            'text-text-primary text-[15px] font-medium py-5 px-6 text-left align-middle'
+                                        const cellSecondaryCls =
+                                            'text-text-secondary text-sm py-5 px-6 text-left align-middle'
+                                        const cellHighlightCls =
+                                            'text-text-secondary text-base font-bold py-5 px-6 text-left align-middle'
                                         const statusBadgeStyle = (status) => {
                                             const colorMap = {
                                                 Active: 'bg-[#dcfce7] text-[#166534]',
@@ -716,51 +678,21 @@ function OperatorsView({
                                             const colors = colorMap[status] || 'bg-[#f1f5f9] text-[#475569]'
                                             return `inline-block rounded-3xl text-[13px] font-semibold px-4 py-2 ${colors}`
                                         }
-                                        const actionBtnStyle = {
-                                            alignItems: 'center',
-                                            backgroundColor: 'var(--bg-primary)',
-                                            border: '1px solid var(--border-light)',
-                                            borderRadius: '12px',
-                                            color: 'var(--text-secondary)',
-                                            cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            fontSize: '16px',
-                                            height: '42px',
-                                            justifyContent: 'center',
-                                            marginRight: '8px',
-                                            width: '42px'
-                                        }
+                                        const actionBtnCls =
+                                            'inline-flex items-center justify-center w-[42px] h-[42px] mr-2 rounded-xl border border-border-light bg-bg-primary text-text-secondary text-base cursor-pointer hover:bg-accent hover:text-white hover:border-accent transition-colors'
                                         return (
                                             <tr
                                                 key={operator.employeeId}
                                                 onClick={() => handleSelect(operator)}
-                                                style={{
-                                                    borderBottom: '1px solid var(--border-light)',
-                                                    cursor: 'pointer'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach(
-                                                        (cell) => (cell.style.backgroundColor = 'var(--bg-tertiary)')
-                                                    )
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach(
-                                                        (cell) => (cell.style.backgroundColor = alternatingBg)
-                                                    )
-                                                }}
+                                                className="border-b border-border-light cursor-pointer group"
                                             >
-                                                <td
-                                                    style={{
-                                                        ...cellStyle,
-                                                        width: '10%'
-                                                    }}
-                                                >
+                                                <td className={`${cellCls} w-[10%] group-hover:bg-bg-tertiary`}>
                                                     {operator.plantCode || '\u2014'}
                                                 </td>
-                                                <td style={{ ...cellHighlightStyle, width: '24%' }}>
-                                                    <div style={{ alignItems: 'center', display: 'flex', gap: '6px' }}>
+                                                <td
+                                                    className={`${cellHighlightCls} w-[24%] group-hover:bg-bg-tertiary`}
+                                                >
+                                                    <div className="flex items-center gap-1.5">
                                                         <span className={duplicate ? 'duplicate' : ''}>
                                                             {operator.name}
                                                         </span>
@@ -778,32 +710,22 @@ function OperatorsView({
                                                                 }, 1500)
                                                             }}
                                                             title="Copy name"
-                                                            style={{
-                                                                alignItems: 'center',
-                                                                background: 'transparent',
-                                                                border: 'none',
-                                                                color: 'var(--text-secondary)',
-                                                                cursor: 'pointer',
-                                                                display: 'inline-flex',
-                                                                fontSize: '12px',
-                                                                padding: '2px'
-                                                            }}
+                                                            className="inline-flex items-center bg-transparent border-none text-text-secondary cursor-pointer text-xs p-0.5"
                                                         >
                                                             <i className="fas fa-copy"></i>
                                                         </button>
                                                     </div>
                                                 </td>
                                                 <td
-                                                    style={{
-                                                        ...cellSecondaryStyle,
-                                                        width: '14%'
-                                                    }}
+                                                    className={`${cellSecondaryCls} w-[14%] group-hover:bg-bg-tertiary`}
                                                 >
                                                     {operator.phone
                                                         ? GrammarUtility.formatPhone(operator.phone)
                                                         : '\u2014'}
                                                 </td>
-                                                <td style={{ ...cellSecondaryStyle, width: '14%' }}>
+                                                <td
+                                                    className={`${cellSecondaryCls} w-[14%] group-hover:bg-bg-tertiary`}
+                                                >
                                                     <div>
                                                         <span className={statusBadgeStyle(operator.status)}>
                                                             {operator.status || '\u2014'}
@@ -834,23 +756,19 @@ function OperatorsView({
                                                     </div>
                                                 </td>
                                                 <td
-                                                    style={{
-                                                        ...cellSecondaryStyle,
-                                                        width: '12%'
-                                                    }}
+                                                    className={`${cellSecondaryCls} w-[12%] group-hover:bg-bg-tertiary`}
                                                 >
                                                     {renderStarsOrNA(operator)}
                                                 </td>
                                                 <td
-                                                    style={{
-                                                        ...cellSecondaryStyle,
-                                                        width: '14%'
-                                                    }}
+                                                    className={`${cellSecondaryCls} w-[14%] group-hover:bg-bg-tertiary`}
                                                 >
                                                     {trainerObj ? trainerObj.name : '\u2014'}
                                                 </td>
-                                                <td style={{ ...cellSecondaryStyle, width: '12%' }}>
-                                                    <div style={{ alignItems: 'center', display: 'flex' }}>
+                                                <td
+                                                    className={`${cellSecondaryCls} w-[12%] group-hover:bg-bg-tertiary`}
+                                                >
+                                                    <div className="flex items-center">
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
@@ -860,41 +778,11 @@ function OperatorsView({
                                                             }}
                                                             type="button"
                                                             title="View comments"
-                                                            style={{ ...actionBtnStyle, position: 'relative' }}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.backgroundColor = 'var(--accent)'
-                                                                e.currentTarget.style.color = 'white'
-                                                                e.currentTarget.style.borderColor = 'var(--accent)'
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.backgroundColor =
-                                                                    'var(--bg-primary)'
-                                                                e.currentTarget.style.color = 'var(--text-secondary)'
-                                                                e.currentTarget.style.borderColor =
-                                                                    'var(--border-light)'
-                                                            }}
+                                                            className={`${actionBtnCls} relative`}
                                                         >
                                                             <i className="fas fa-comments"></i>
                                                             {operator.commentsCount > 0 && (
-                                                                <span
-                                                                    style={{
-                                                                        alignItems: 'center',
-                                                                        backgroundColor: '#3b82f6',
-                                                                        borderRadius: '10px',
-                                                                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.4)',
-                                                                        color: 'white',
-                                                                        display: 'flex',
-                                                                        fontSize: '10px',
-                                                                        fontWeight: 700,
-                                                                        height: '16px',
-                                                                        justifyContent: 'center',
-                                                                        minWidth: '16px',
-                                                                        padding: '0 4px',
-                                                                        position: 'absolute',
-                                                                        right: '-4px',
-                                                                        top: '-4px'
-                                                                    }}
-                                                                >
+                                                                <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-[0_2px_8px_rgba(59,130,246,0.4)]">
                                                                     {operator.commentsCount > 9
                                                                         ? '9+'
                                                                         : operator.commentsCount}
@@ -909,19 +797,7 @@ function OperatorsView({
                                                             }}
                                                             type="button"
                                                             title="View history"
-                                                            style={actionBtnStyle}
-                                                            onMouseEnter={(e) => {
-                                                                e.currentTarget.style.backgroundColor = 'var(--accent)'
-                                                                e.currentTarget.style.color = 'white'
-                                                                e.currentTarget.style.borderColor = 'var(--accent)'
-                                                            }}
-                                                            onMouseLeave={(e) => {
-                                                                e.currentTarget.style.backgroundColor =
-                                                                    'var(--bg-primary)'
-                                                                e.currentTarget.style.color = 'var(--text-secondary)'
-                                                                e.currentTarget.style.borderColor =
-                                                                    'var(--border-light)'
-                                                            }}
+                                                            className={actionBtnCls}
                                                         >
                                                             <i className="fas fa-history"></i>
                                                         </button>

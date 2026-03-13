@@ -21,7 +21,9 @@ const NetworkUtility = {
                 })
                 clearTimeout(timeoutId)
                 return true
-            } catch {}
+            } catch (error) {
+                console.error('Google connectivity check failed, falling back to local ping:', error)
+            }
         }
         try {
             const res = await fetch(`/turl.json?cb=${Date.now()}`, {

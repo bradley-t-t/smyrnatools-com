@@ -4,6 +4,7 @@ import {
     apiPostRequireSuccess,
     fetchWithDetailsBase,
     getDuplicateFieldValues,
+    normalizeSeverity,
     requireUserId,
     resolveEntityId
 } from '../utils/BaseAssetUtility'
@@ -125,20 +126,10 @@ class PickupTruckServiceImpl {
         return baseService.fetchComments(pickupId)
     }
     static async addComment(pickupId, text, author) {
-        ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
-        if (!text?.trim()) throw new Error('Comment text is required')
-        if (!author) throw new Error('Author is required')
-        const json = await apiPostOrThrow(
-            `${SERVICE_PREFIX}/add-comment`,
-            { author, pickupId, text },
-            'Failed to add comment'
-        )
-        return json?.data
+        return baseService.addComment(pickupId, text, author)
     }
     static async deleteComment(commentId) {
-        ValidationUtility.requireUUID(commentId, 'Comment ID is required')
-        const json = await apiPostOrThrow(`${SERVICE_PREFIX}/delete-comment`, { commentId }, 'Failed to delete comment')
-        return json?.success ?? false
+        return baseService.deleteComment(commentId)
     }
     static async fetchIssues(pickupId) {
         return baseService.fetchIssues(pickupId)
@@ -149,13 +140,12 @@ class PickupTruckServiceImpl {
     static async addIssue(pickupId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(pickupId, 'Pickup Truck ID is required')
         if (!issue?.trim()) throw new Error('Issue description is required')
-        if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/add-issue`,
             {
                 issue: issue.trim(),
                 pickupId,
-                severity,
+                severity: normalizeSeverity(severity),
                 userId: createdBy
             },
             'Failed to add issue'
@@ -174,4 +164,3 @@ class PickupTruckServiceImpl {
     }
 }
 export const PickupTruckService = PickupTruckServiceImpl
-export default PickupTruckServiceImpl

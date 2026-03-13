@@ -1,5 +1,9 @@
 import React from 'react'
-const cardStyles = `
+/**
+ * Shared CSS classes consumed by child card components (OperatorCard, TractorCard, etc.).
+ * These must remain as a style block until all consumer components are migrated to Tailwind.
+ */
+const childCardStyles = `
     .detail-row {
         display: flex;
         justify-content: space-between;
@@ -67,118 +71,28 @@ function CardSection({
     verificationTooltip,
     children
 }) {
-    const accentColor = 'var(--accent)'
     const handleCardClick = () => {
         if (onSelect && typeof onSelect === 'function') {
             onSelect(item.id)
         }
     }
     const cardProps = onSelect ? { onClick: handleCardClick } : {}
-    const styles = {
-        card: {
-            background: 'var(--bg-primary)',
-            border: '1px solid var(--border-light)',
-            borderRadius: '12px',
-            boxShadow: 'var(--shadow)',
-            cursor: onSelect ? 'pointer' : 'default',
-            marginBottom: '24px',
-            overflow: 'hidden',
-            position: 'relative',
-            transition: 'all 0.2s ease'
-        },
-        cardContent: {
-            padding: '32px'
-        },
-        cardDetails: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px'
-        },
-        cardHeader: {
-            alignItems: 'flex-start',
-            borderBottom: '2px solid var(--border-light)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            justifyContent: 'flex-start',
-            marginBottom: '28px',
-            paddingBottom: '18px'
-        },
-        itemName: {
-            color: accentColor,
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
-            lineHeight: 1.3,
-            margin: 0,
-            textAlign: 'left',
-            width: '100%'
-        },
-        itemSubtitle: {
-            alignItems: 'center',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            fontSize: '1rem',
-            fontWeight: 600,
-            gap: '6px',
-            margin: 0,
-            textAlign: 'left',
-            width: '100%'
-        },
-        statusBar: {
-            background: statusColor,
-            borderRadius: '8px 0 0 8px',
-            bottom: 0,
-            height: '100%',
-            left: 0,
-            position: 'absolute',
-            top: 0,
-            width: '6px',
-            zIndex: 10
-        },
-        verificationFlag: (verified) => ({
-            color: verified ? '#16a34a' : '#dc2626',
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))',
-            fontSize: '1.3rem',
-            position: 'absolute',
-            right: '12px',
-            top: '16px',
-            zIndex: 5
-        }),
-        warningBadge: {
-            color: '#f59e0b',
-            fontSize: '1.1rem',
-            marginLeft: '8px'
-        }
-    }
     return (
         <>
-            <style>{cardStyles}</style>
+            <style>{childCardStyles}</style>
             <div
-                style={styles.card}
+                className={`relative bg-bg-primary border border-border-light rounded-card shadow-card overflow-hidden mb-6 transition-all duration-200 ${onSelect ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0' : ''}`}
                 {...cardProps}
-                onMouseEnter={(e) => {
-                    if (onSelect) {
-                        e.currentTarget.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.15)'
-                        e.currentTarget.style.transform = 'translateY(-2px)'
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    if (onSelect) {
-                        e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
-                        e.currentTarget.style.transform = 'translateY(0)'
-                    }
-                }}
-                onMouseDown={(e) => {
-                    if (onSelect) {
-                        e.currentTarget.style.transform = 'translateY(0)'
-                    }
-                }}
             >
-                <div style={styles.statusBar} />
+                {/* Status color bar */}
+                <div
+                    className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-lg z-10"
+                    style={{ background: statusColor }}
+                />
+                {/* Verification flag */}
                 {isVerified !== undefined && (
                     <div
-                        style={styles.verificationFlag(isVerified)}
+                        className="absolute right-3 top-4 z-[5] text-xl drop-shadow-md"
                         title={isVerified ? 'Verified' : verificationTooltip || 'Not verified'}
                     >
                         <i
@@ -187,23 +101,24 @@ function CardSection({
                         ></i>
                     </div>
                 )}
-                <div style={styles.cardContent}>
-                    <div style={styles.cardHeader}>
-                        <h3 style={styles.itemName}>
+                <div className="p-8">
+                    <div className="flex flex-col items-start gap-2 border-b-2 border-border-light mb-7 pb-[18px]">
+                        <h3 className="text-accent text-2xl font-bold tracking-tight leading-[1.3] m-0 text-left w-full">
                             {itemType} #{itemNumber || 'Not Assigned'}
                         </h3>
                         {subtitle && (
-                            <div style={styles.itemSubtitle}>
+                            <div className="flex items-center text-text-secondary text-base font-semibold gap-1.5 m-0 text-left w-full">
                                 {subtitle}
                                 {subtitleWarning && (
-                                    <span style={styles.warningBadge} title={subtitleWarning}>
+                                    <span className="text-amber-400 text-lg ml-2" title={subtitleWarning}>
                                         <i className="fas fa-exclamation-triangle"></i>
                                     </span>
                                 )}
                             </div>
                         )}
                     </div>
-                    <div style={styles.cardDetails}>{children}</div>
+                    {/* Detail rows — consumers provide .detail-row / .detail-label / .detail-value children */}
+                    <div className="flex flex-col gap-1">{children}</div>
                 </div>
             </div>
         </>

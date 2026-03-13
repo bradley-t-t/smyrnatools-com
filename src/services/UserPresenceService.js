@@ -1,18 +1,7 @@
+import { detectDeviceType } from '../utils/DeviceUtility'
 import { supabase } from './DatabaseService'
 import { PlantService } from './PlantService'
 import { UserService } from './UserService'
-
-function detectDeviceType() {
-    if (typeof navigator === 'undefined') return 'desktop'
-    const ua = navigator.userAgent || ''
-    if (/Mobi|Android|iPhone|iPod/i.test(ua)) return 'mobile'
-    if (/iPad/i.test(ua)) return 'mobile'
-    if (navigator.standalone) return 'mobile'
-    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return 'mobile'
-    if (navigator.maxTouchPoints > 1 && window.innerWidth < 1024) return 'mobile'
-    if (window.matchMedia?.('(pointer: coarse)')?.matches && window.innerWidth < 1024) return 'mobile'
-    return 'desktop'
-}
 
 let _hasActiveDevicesCol = null
 async function checkActiveDevicesCol() {
@@ -20,7 +9,8 @@ async function checkActiveDevicesCol() {
     try {
         const { error } = await supabase.from('users_presence').select('active_devices').limit(0)
         _hasActiveDevicesCol = !error
-    } catch {
+    } catch (err) {
+        console.error('Failed to check active_devices column:', err)
         _hasActiveDevicesCol = false
     }
     return _hasActiveDevicesCol
@@ -39,12 +29,17 @@ async function mergeActiveDevice(userId, device, now) {
             data?.active_devices && typeof data.active_devices === 'object' ? { ...data.active_devices } : {}
         devices[device] = now
         await supabase.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
-    } catch {}
+    } catch (err) {
+        console.error('Failed to merge active device:', err)
+    }
 }
 
 /* ── Online users helpers (read side) ── */
 
 const STALE_THRESHOLD = 5 * 60 * 1000
+const HEARTBEAT_INTERVAL_MS = 30000
+const ACTIVITY_THROTTLE_MS = 30000
+const CLEANUP_INTERVAL_MS = 60000
 
 function buildRoleColorMap(roles) {
     if (!roles?.length) return {}
@@ -70,20 +65,18 @@ function extractRoleNames(rolesData) {
 
 function getActiveDevices(activeDevices, isSelf) {
     const now = Date.now()
-    const devices = []
-    if (activeDevices && typeof activeDevices === 'object') {
-        for (const [type, timestamp] of Object.entries(activeDevices)) {
-            if (timestamp && now - new Date(timestamp).getTime() < STALE_THRESHOLD) {
-                devices.push(type)
-            }
-        }
-    }
+    const recentDevices =
+        activeDevices && typeof activeDevices === 'object'
+            ? Object.entries(activeDevices)
+                  .filter(([, timestamp]) => timestamp && now - new Date(timestamp).getTime() < STALE_THRESHOLD)
+                  .map(([type]) => type)
+            : []
     if (isSelf) {
         const current = detectDeviceType()
-        if (!devices.includes(current)) devices.push(current)
+        if (!recentDevices.includes(current)) recentDevices.push(current)
     }
-    if (devices.length === 0) devices.push('desktop')
-    return devices.sort()
+    if (recentDevices.length === 0) recentDevices.push('desktop')
+    return recentDevices.sort()
 }
 
 /**
@@ -153,7 +146,8 @@ class UserPresenceService {
             window.addEventListener('offline', this.onOffline)
             this.isSetup = true
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to setup presence tracking:', err)
             return false
         }
     }
@@ -170,7 +164,7 @@ class UserPresenceService {
 
     handleUserActivity() {
         const now = Date.now()
-        if (now - this.lastActivityUpdate < 30000) return
+        if (now - this.lastActivityUpdate < ACTIVITY_THROTTLE_MS) return
         this.lastActivityUpdate = now
         this.updateActivity()
     }
@@ -187,15 +181,15 @@ class UserPresenceService {
             const today = now.split('T')[0]
             if (this.lastLoginDateWritten !== today) {
                 this.lastLoginDateWritten = today
-                supabase
-                    .from('users')
-                    .update({ last_login_at: today })
-                    .eq('id', this.currentUserId)
-                    .then(() => {})
-                    .catch(() => {})
+                try {
+                    await supabase.from('users').update({ last_login_at: today }).eq('id', this.currentUserId)
+                } catch (err) {
+                    console.error('Failed to update last_login_at:', err)
+                }
             }
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to update activity:', err)
             return false
         }
     }
@@ -204,7 +198,7 @@ class UserPresenceService {
         if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
         this.activityRefreshInterval = setInterval(() => {
             this.notifyListeners()
-        }, 60000)
+        }, CLEANUP_INTERVAL_MS)
     }
 
     async setUserOnline(userId) {
@@ -232,7 +226,8 @@ class UserPresenceService {
             }
             mergeActiveDevice(userId, detectDeviceType(), now)
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to set user online:', err)
             return false
         }
     }
@@ -247,7 +242,8 @@ class UserPresenceService {
                 .eq('user_id', userId)
             mergeActiveDevice(userId, detectDeviceType(), now)
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to set user back online:', err)
             return false
         }
     }
@@ -261,7 +257,8 @@ class UserPresenceService {
                 .update({ is_online: false, last_seen: now, updated_at: now })
                 .eq('user_id', userId)
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to set user offline:', err)
             return false
         }
     }
@@ -275,29 +272,32 @@ class UserPresenceService {
                 .update({ last_seen: now, updated_at: now })
                 .eq('user_id', this.currentUserId)
             return true
-        } catch {
+        } catch (err) {
+            console.error('Failed to update heartbeat:', err)
             return false
         }
     }
 
     startHeartbeat() {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
-        this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), 30000)
+        this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), HEARTBEAT_INTERVAL_MS)
     }
 
     startCleanup() {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
             try {
-                const staleTime = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+                const staleTime = new Date(Date.now() - STALE_THRESHOLD).toISOString()
                 await supabase
                     .from('users_presence')
                     .update({ is_online: false, updated_at: new Date().toISOString() })
                     .eq('is_online', true)
                     .lt('last_seen', staleTime)
                 this.notifyListeners()
-            } catch {}
-        }, 60000)
+            } catch (err) {
+                console.error('Failed to clean up stale presence records:', err)
+            }
+        }, CLEANUP_INTERVAL_MS)
     }
 
     handleBeforeUnload() {
@@ -312,7 +312,7 @@ class UserPresenceService {
                 },
                 keepalive: true,
                 method: 'PATCH'
-            }).catch(() => {})
+            }).catch((err) => console.error('Failed to set offline on beforeunload:', err))
         }
     }
 
@@ -338,7 +338,8 @@ class UserPresenceService {
                 .eq('is_online', true)
             if (error) return 0
             return count || 0
-        } catch {
+        } catch (err) {
+            console.error('Failed to get online count:', err)
             return 0
         }
     }
@@ -356,7 +357,9 @@ class UserPresenceService {
         this.listeners.forEach((listener) => {
             try {
                 listener()
-            } catch {}
+            } catch (err) {
+                console.error('Presence listener threw:', err)
+            }
         })
     }
 
@@ -382,7 +385,9 @@ class UserPresenceService {
         for (const sub of this.subscriptions) {
             try {
                 supabase.removeChannel(sub)
-            } catch {}
+            } catch (err) {
+                console.error('Failed to remove presence channel:', err)
+            }
         }
         this.subscriptions = []
         this.listeners = []
@@ -405,7 +410,9 @@ class UserPresenceService {
             ])
             this.currentUserId = currentUser?.id || null
             this.roleColorMap = buildRoleColorMap(allRoles)
-        } catch {}
+        } catch (err) {
+            console.error('Failed to initialize online users metadata:', err)
+        }
         await this.refreshOnlineUsers(true)
         this.addListener(() => this.refreshOnlineUsers())
     }
@@ -466,7 +473,8 @@ class UserPresenceService {
             this.isOnlineUsersLoading = false
             await this._resolveRegionNames(this.onlineUsers)
             this._notifyOnlineUsersListeners()
-        } catch {
+        } catch (err) {
+            console.error('Failed to refresh online users:', err)
             this.isOnlineUsersLoading = false
             this._notifyOnlineUsersListeners()
         } finally {
@@ -487,7 +495,9 @@ class UserPresenceService {
                 try {
                     const regions = await PlantService.fetchRegionsByPlantCode(profile.plant_code)
                     if (regions?.length > 0) regionCode = regions[0].regionCode || regions[0].region_code
-                } catch {}
+                } catch (err) {
+                    console.error(`Failed to resolve region for plant ${profile.plant_code}:`, err)
+                }
             }
             this._userMetaCache[userId] = {
                 name,
@@ -495,7 +505,8 @@ class UserPresenceService {
                 roleWeight: roleWeight || 0,
                 roles: extractRoleNames(rolesData)
             }
-        } catch {
+        } catch (err) {
+            console.error(`Failed to fetch metadata for user ${userId}:`, err)
             this._userMetaCache[userId] = { name: 'Unknown User', regionCode: null, roleWeight: 0, roles: [] }
         }
     }
@@ -508,7 +519,8 @@ class UserPresenceService {
             try {
                 const region = await PlantService.fetchRegionByCode(code)
                 this.regionNames[code] = region?.regionName || region?.region_name || code
-            } catch {
+            } catch (err) {
+                console.error(`Failed to resolve region name for ${code}:`, err)
                 this.regionNames[code] = code
             }
             changed = true
@@ -533,12 +545,12 @@ class UserPresenceService {
     }
 
     /** Online-users-list listeners (read side) */
-    addOnlineUsersListener(cb) {
-        if (typeof cb === 'function') this.onlineUsersListeners.push(cb)
+    addOnlineUsersListener(callback) {
+        if (typeof callback === 'function') this.onlineUsersListeners.push(callback)
     }
 
-    removeOnlineUsersListener(cb) {
-        this.onlineUsersListeners = this.onlineUsersListeners.filter((l) => l !== cb)
+    removeOnlineUsersListener(callback) {
+        this.onlineUsersListeners = this.onlineUsersListeners.filter((listener) => listener !== callback)
     }
 
     _notifyOnlineUsersListeners() {
@@ -548,10 +560,12 @@ class UserPresenceService {
             roleColorMap: this.roleColorMap,
             users: this.onlineUsers
         }
-        this.onlineUsersListeners.forEach((cb) => {
+        this.onlineUsersListeners.forEach((callback) => {
             try {
-                cb(snapshot)
-            } catch {}
+                callback(snapshot)
+            } catch (err) {
+                console.error('Online users listener threw:', err)
+            }
         })
     }
 }

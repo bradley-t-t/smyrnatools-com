@@ -12,7 +12,9 @@ const getAuthToken = async () => {
     try {
         const { data } = await supabase.auth.getSession()
         if (data?.session?.access_token) return data.session.access_token
-    } catch {}
+    } catch (error) {
+        console.error('Failed to retrieve auth session, falling back to anon key:', error)
+    }
     return SUPABASE_ANON_KEY
 }
 /**
@@ -54,7 +56,10 @@ const APIUtility = {
                     signal: controller.signal
                 })
                 clearTimeout(timeoutId)
-                const json = await res.json().catch(() => ({}))
+                const json = await res.json().catch((error) => {
+                    console.error('Failed to parse JSON response body:', error)
+                    return {}
+                })
                 return { json, res }
             } catch (error) {
                 clearTimeout(timeoutId)

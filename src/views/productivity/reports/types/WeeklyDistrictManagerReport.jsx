@@ -2,6 +2,7 @@ import React from 'react'
 
 import { usePreferences } from '../../../../app/context/PreferencesContext'
 import { PlantService } from '../../../../services/PlantService'
+import FormatUtility from '../../../../utils/FormatUtility'
 import { ReportUtility } from '../../../../utils/ReportUtility'
 import { filterMaintenanceItemsByPlant, useAllowedPlantCodes } from './shared'
 const WEEKDAYS = [
@@ -86,10 +87,7 @@ function getItemIcon(item) {
     if (item.isOverdue) return ITEM_ICON_CLASSES.overdue
     return ITEM_ICON_CLASSES.pending
 }
-function truncateText(text, maxLength) {
-    if (!text) return ''
-    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
-}
+const truncateText = (text, maxLength) => FormatUtility.truncateText(text, maxLength)
 function MaintenanceItemsTable({ items, plants }) {
     const getPlantName = (plantCode) => {
         const plant = plants?.find((p) => (p.plant_code || p.code) === plantCode)

@@ -11,6 +11,7 @@ import {
     requireUserId,
     resolveEntityId,
     resolveUserIdOrAnonymous,
+    toSnakeCase,
     uppercaseVin
 } from '../utils/BaseAssetUtility'
 import CleanupUtility from '../utils/CleanupUtility'
@@ -45,10 +46,6 @@ const ALLOWED_HISTORY_FIELDS = [
     'freight',
     'status'
 ]
-/** Converts camelCase field names to snake_case for API compatibility. */
-function toSnakeCase(fieldName) {
-    return fieldName.includes('_') ? fieldName : fieldName.replace(/([A-Z])/g, '_$1').toLowerCase()
-}
 /** Attaches an isVerified() method and uppercases VIN on a tractor instance. */
 function enrichTractorWithVerification(tractor) {
     tractor.vin = (tractor.vin || '').toUpperCase()
@@ -75,11 +72,7 @@ export class TractorService {
     static async fetchTractorById(id) {
         ValidationUtility.requireUUID(id, 'Invalid tractor ID')
         const tractor = await this.getTractorById(id)
-        if (!tractor) return null
-        tractor.isVerified = function () {
-            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
-        }
-        return tractor
+        return tractor ? enrichTractorWithVerification(tractor) : null
     }
     /** Fetches the most recent history entry date for a tractor. */
     static async getLatestHistoryDate(tractorId) {
@@ -126,8 +119,9 @@ export class TractorService {
             { id, tractor, userId: resolvedUserId },
             'Failed to update tractor'
         )
-        dispatchNotificationsRefresh()
-        return Tractor.fromApiFormat(json?.data)
+        const updated = Tractor.fromApiFormat(json?.data)
+        dispatchNotificationsRefresh({ id, plant: updated.assignedPlant, type: 'tractor' })
+        return updated
     }
     /** Marks a tractor as verified and dispatches a notification refresh. */
     static async verifyTractor(tractorId, userId) {
@@ -139,8 +133,9 @@ export class TractorService {
             { id, userId: resolvedUserId },
             'Failed to verify tractor'
         )
-        dispatchNotificationsRefresh()
-        return Tractor.fromApiFormat(json?.data)
+        const tractor = Tractor.fromApiFormat(json?.data)
+        dispatchNotificationsRefresh({ id, plant: tractor.assignedPlant, type: 'tractor' })
+        return tractor
     }
     static async deleteTractor(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
@@ -253,11 +248,7 @@ export class TractorService {
     }
     static async _fetchHistoryDates() {
         const tractors = await this.getAllTractors()
-        const map = {}
-        tractors.forEach((t) => {
-            map[t.id] = t.latestHistoryDate ?? null
-        })
-        return map
+        return Object.fromEntries(tractors.map((t) => [t.id, t.latestHistoryDate ?? null]))
     }
     static async fetchIssues(tractorId) {
         return baseService.fetchIssues(tractorId)

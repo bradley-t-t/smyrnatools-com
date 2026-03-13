@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 
 import { PlantService } from '../../services/PlantService'
-import DashboardUtility from '../../utils/DashboardUtility'
+import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import VerifiedUtility from '../../utils/VerifiedUtility'
 import { INITIAL_STATS } from '../constants/dashboardConstants'
 const CALC_PERCENT = (numerator, denominator) => (denominator ? Math.round((numerator / denominator) * 100) : 0)
@@ -77,7 +77,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             if (asset.status === 'Active') totals.active++
             else if (asset.status === 'Spare') totals.spare++
             else if (asset.status === 'In Shop') totals.shop++
-            if (DashboardUtility.isServiceOverdue(asset.lastServiceDate)) totals.overdue++
+            if (AssetStatsUtility.isServiceOverdue(asset.lastServiceDate)) totals.overdue++
             if (hasVerification && VerifiedUtility.isVerified(asset.updatedLast, asset.updatedAt, asset.updatedBy)) {
                 totals.verified++
             }
@@ -116,7 +116,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             tractorsAvailable++
             const freightType = t.freight && tractorsTotals.freight[t.freight] ? t.freight : 'Other'
             incrementStatusSubtype(tractorsTotals, tractorsTotals.freight, freightType, t.status)
-            if (DashboardUtility.isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
+            if (AssetStatsUtility.isServiceOverdue(t.lastServiceDate)) tractorsTotals.overdue++
             if (VerifiedUtility.isVerified(t.updatedLast, t.updatedAt, t.updatedBy)) tractorsTotals.verified++
             if (t.assignedOperator) tractorAssignedIds.add(t.assignedOperator)
             const tc = counts.tractors?.[t.id]
@@ -131,7 +131,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             trailersAvailable++
             const tType = r.trailerType === 'End Dump' ? 'End Dump' : 'Cement'
             incrementStatusSubtype(trailersTotals, trailersTotals.trailerType, tType, r.status)
-            if (DashboardUtility.isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
+            if (AssetStatsUtility.isServiceOverdue(r.lastServiceDate)) trailersTotals.overdue++
             const rc = counts.trailers?.[r.id]
             if (rc) {
                 trailersTotals.issues += rc.issues || 0

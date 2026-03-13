@@ -265,6 +265,10 @@ function ListDetailView({ itemId, onClose }) {
                 e.preventDefault()
                 onClose?.()
             } else if (key === 'delete' || key === 'backspace') {
+                const tag = (e.target.tagName || '').toLowerCase()
+                const isEditable =
+                    tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable
+                if (isEditable) return
                 e.preventDefault()
                 setShowDeleteConfirmation(true)
             }

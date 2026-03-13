@@ -61,7 +61,8 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         setIsLoading(true)
         try {
             await Promise.all([fetchManagers(), fetchPlants(), fetchRoles()])
-        } catch {
+        } catch (e) {
+            console.error('Failed to fetch managers data:', e)
         } finally {
             setIsLoading(false)
         }
@@ -102,7 +103,8 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                     setSelectedPlant('')
                     updateManagerFilter('selectedPlant', '')
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to load region plant codes:', e)
                 setRegionPlantCodes(new Set())
             }
         }
@@ -137,7 +139,8 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
             setManagers(managersData)
             localStorage.setItem('cachedManagers', JSON.stringify(managersData))
             localStorage.setItem('cachedManagersDate', new Date().toISOString())
-        } catch {
+        } catch (e) {
+            console.error('Failed to fetch managers, falling back to cache:', e)
             const cachedData = localStorage.getItem('cachedManagers')
             const cacheDate = localStorage.getItem('cachedManagersDate')
             if (cachedData && cacheDate && new Date(cacheDate).getTime() > new Date().getTime() - 3600000)
@@ -148,13 +151,16 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
         try {
             const data = await PlantService.fetchPlants()
             setPlants(data)
-        } catch {}
+        } catch (e) {
+            console.error('Failed to fetch plants for managers view:', e)
+        }
     }
     async function fetchRoles() {
         try {
             const data = await UserService.getAllRoles()
             setAvailableRoles(data)
-        } catch {
+        } catch (e) {
+            console.error('Failed to fetch roles:', e)
             setAvailableRoles([])
         }
     }
@@ -320,90 +326,40 @@ function ManagersView({ title = 'Managers', onSelectManager }) {
                                     headerLabels={['Plant', 'Email', 'First Name', 'Last Name', 'Role', 'Last Login']}
                                     colWidths={['10%', '23%', '14%', '14%', '17%', '22%']}
                                     renderRow={(manager, handleSelect) => {
-                                        const cellStyle = {
-                                            color: 'var(--text-primary)',
-                                            fontSize: '15px',
-                                            fontWeight: 500,
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
-                                        const cellSecondaryStyle = {
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '14px',
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
-                                        const cellHighlightStyle = {
-                                            color: 'var(--text-secondary)',
-                                            fontSize: '16px',
-                                            fontWeight: 700,
-                                            padding: '20px 24px',
-                                            textAlign: 'left',
-                                            verticalAlign: 'middle'
-                                        }
+                                        const cellCls =
+                                            'text-text-primary text-[15px] font-medium py-5 px-6 text-left align-middle'
+                                        const cellSecondaryCls =
+                                            'text-text-secondary text-sm py-5 px-6 text-left align-middle'
+                                        const cellHighlightCls =
+                                            'text-text-secondary text-base font-bold py-5 px-6 text-left align-middle'
                                         const roleBadgeCls =
                                             'bg-[#e0e7ff] text-[#4338ca] inline-block rounded-3xl text-[13px] font-semibold px-4 py-2'
                                         return (
                                             <tr
                                                 key={manager.id}
                                                 onClick={() => handleSelect(manager)}
-                                                style={{
-                                                    borderBottom: '1px solid var(--border-light)',
-                                                    cursor: 'pointer'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                    const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach(
-                                                        (cell) => (cell.style.backgroundColor = 'var(--bg-hover)')
-                                                    )
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    const cells = e.currentTarget.querySelectorAll('td')
-                                                    cells.forEach((cell) => (cell.style.backgroundColor = ''))
-                                                }}
+                                                className="border-b border-border-light cursor-pointer group"
                                             >
-                                                <td
-                                                    style={{
-                                                        ...cellStyle,
-                                                        width: '10%'
-                                                    }}
-                                                >
+                                                <td className={`${cellCls} w-[10%] group-hover:bg-bg-hover`}>
                                                     {manager.plantCode || '\u2014'}
                                                 </td>
-                                                <td
-                                                    style={{
-                                                        ...cellHighlightStyle,
-                                                        width: '23%'
-                                                    }}
-                                                >
+                                                <td className={`${cellHighlightCls} w-[23%] group-hover:bg-bg-hover`}>
                                                     {manager.email || '\u2014'}
                                                 </td>
-                                                <td
-                                                    style={{
-                                                        ...cellSecondaryStyle,
-                                                        width: '14%'
-                                                    }}
-                                                >
+                                                <td className={`${cellSecondaryCls} w-[14%] group-hover:bg-bg-hover`}>
                                                     {manager.firstName || '\u2014'}
                                                 </td>
-                                                <td
-                                                    style={{
-                                                        ...cellSecondaryStyle,
-                                                        width: '14%'
-                                                    }}
-                                                >
+                                                <td className={`${cellSecondaryCls} w-[14%] group-hover:bg-bg-hover`}>
                                                     {manager.lastName || '\u2014'}
                                                 </td>
-                                                <td style={{ ...cellSecondaryStyle, width: '17%' }}>
+                                                <td className={`${cellSecondaryCls} w-[17%] group-hover:bg-bg-hover`}>
                                                     {manager.roleName ? (
                                                         <span className={roleBadgeCls}>{manager.roleName}</span>
                                                     ) : (
                                                         '\u2014'
                                                     )}
                                                 </td>
-                                                <td style={{ ...cellSecondaryStyle, width: '22%' }}>
+                                                <td className={`${cellSecondaryCls} w-[22%] group-hover:bg-bg-hover`}>
                                                     {manager.lastLoginAt
                                                         ? new Date(
                                                               manager.lastLoginAt + 'T00:00:00'

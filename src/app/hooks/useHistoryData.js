@@ -22,7 +22,8 @@ const filterEquivalentEntries = (entries) => {
                     entry.newValue ?? entry.new_value
                 )
         )
-    } catch {
+    } catch (e) {
+        console.error('Failed to filter equivalent history entries:', e)
         return entries
     }
 }
@@ -46,13 +47,17 @@ export default function useHistoryData(item, type) {
     const fetchOperators = useCallback(async () => {
         try {
             setOperators(await OperatorService.fetchOperators())
-        } catch {}
+        } catch (e) {
+            console.error('Failed to fetch operators for history:', e)
+        }
     }, [])
     const fetchUsers = useCallback(async () => {
         try {
             const { data } = await supabase.from('profiles').select('id, name, email')
             setUsers(data ?? [])
-        } catch {}
+        } catch (e) {
+            console.error('Failed to fetch user profiles for history:', e)
+        }
     }, [])
     const fetchIssues = useCallback(async () => {
         if (type === 'operator') return
@@ -68,12 +73,14 @@ export default function useHistoryData(item, type) {
             for (const userId of userIds) {
                 try {
                     names[userId] = (await UserService.getUserDisplayName(userId)) ?? 'Unknown'
-                } catch {
+                } catch (e) {
+                    console.error(`Failed to resolve display name for user ${userId}:`, e)
                     names[userId] = 'Unknown'
                 }
             }
             setUserNames((prev) => ({ ...prev, ...names }))
-        } catch {
+        } catch (e) {
+            console.error(`Failed to fetch issues for ${type} ${item.id}:`, e)
             setIssues([])
         }
     }, [item.id, type])
@@ -85,7 +92,8 @@ export default function useHistoryData(item, type) {
             const historyData = await Service[config.method](assetId)
             setHistory(filterEquivalentEntries(historyData ?? []))
             setError(null)
-        } catch {
+        } catch (e) {
+            console.error(`Failed to fetch ${type} history via service, falling back to direct query:`, e)
             try {
                 const tableName = HISTORY_TABLE_MAP[type]
                 const idField = type === 'pickup-truck' ? 'truck_id' : `${type}_id`
@@ -97,7 +105,8 @@ export default function useHistoryData(item, type) {
                 if (queryError) throw queryError
                 setHistory(filterEquivalentEntries(data ?? []))
                 setError(null)
-            } catch {
+            } catch (e2) {
+                console.error(`Failed to fetch ${type} history via direct query:`, e2)
                 setError('Failed to load history. Please try again.')
             }
         }
@@ -320,7 +329,8 @@ export default function useHistoryData(item, type) {
             if (Date.now() - assetCache.timestamp > AI_CACHE_DURATION_MS) return null
             if (assetCache.historyCount !== history.length) return null
             return assetCache.summary
-        } catch {
+        } catch (e) {
+            console.error('Failed to read AI summary from localStorage cache:', e)
             return null
         }
     }, [assetCacheKey, history.length])
@@ -331,7 +341,9 @@ export default function useHistoryData(item, type) {
                 const cacheData = cached ? JSON.parse(cached) : {}
                 cacheData[assetCacheKey] = { historyCount: history.length, summary, timestamp: Date.now() }
                 localStorage.setItem(AI_HISTORY_CACHE_KEY, JSON.stringify(cacheData))
-            } catch {}
+            } catch (e) {
+                console.error('Failed to write AI summary to localStorage cache:', e)
+            }
         },
         [assetCacheKey, history.length]
     )
@@ -342,7 +354,9 @@ export default function useHistoryData(item, type) {
             const cacheData = JSON.parse(cached)
             delete cacheData[assetCacheKey]
             localStorage.setItem(AI_HISTORY_CACHE_KEY, JSON.stringify(cacheData))
-        } catch {}
+        } catch (e) {
+            console.error('Failed to clear AI summary from localStorage cache:', e)
+        }
     }, [assetCacheKey])
     const generateAISummary = useCallback(
         async (forceRegenerate = false) => {
@@ -430,7 +444,8 @@ export default function useHistoryData(item, type) {
                     setAiSummaryError(true)
                     setAiSummary(null)
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to generate AI history summary:', e)
                 setAiSummaryError(true)
                 setAiSummary(null)
             } finally {

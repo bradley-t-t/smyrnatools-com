@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
+import ConfirmDialog from '../../../app/components/common/ConfirmDialog'
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import AddViewSection from '../../../app/components/sections/AddViewSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
@@ -35,6 +36,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [automaticRestriction, setAutomaticRestriction] = useState(false)
+    const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false)
     useEffect(() => {
         if (allowedPlantCodes && allowedPlantCodes.size > 0) {
             if (assignedPlant && !allowedPlantCodes.has(String(assignedPlant).trim().toUpperCase())) {
@@ -91,29 +93,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
     const plantDisplayText = assignedPlant
         ? `(${selectedPlantObj?.plantCode}) ${selectedPlantObj?.plantName}`
         : 'Select Plant'
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        setError('')
-        if (!name) {
-            setError('Name is required')
-            return
-        }
-        if (!assignedPlant) {
-            setError('Plant is required')
-            return
-        }
-        if (!hasTrainingPermission && ['Training', 'Pending Start'].includes(status)) {
-            setError('You do not have permission to assign this status.')
-            return
-        }
-        const normalizedNewName = name.trim().toLowerCase()
-        const hasDuplicate =
-            Array.isArray(operators) &&
-            operators.some((o) => (o?.name || '').trim().toLowerCase() === normalizedNewName)
-        if (hasDuplicate) {
-            const proceed = window.confirm(`An operator named "${name.trim()}" already exists. Create anyway?`)
-            if (!proceed) return
-        }
+    const saveOperator = useCallback(async () => {
         setIsSaving(true)
         try {
             let userId = sessionStorage.getItem('userId')
@@ -153,18 +133,55 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
         } finally {
             setIsSaving(false)
         }
+    }, [
+        name,
+        phone,
+        assignedPlant,
+        status,
+        position,
+        isTrainer,
+        assignedTrainer,
+        pendingStartDate,
+        automaticRestriction,
+        onOperatorAdded,
+        onClose
+    ])
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setError('')
+        if (!name) {
+            setError('Name is required')
+            return
+        }
+        if (!assignedPlant) {
+            setError('Plant is required')
+            return
+        }
+        if (!hasTrainingPermission && ['Training', 'Pending Start'].includes(status)) {
+            setError('You do not have permission to assign this status.')
+            return
+        }
+        const normalizedNewName = name.trim().toLowerCase()
+        const hasDuplicate =
+            Array.isArray(operators) &&
+            operators.some((o) => (o?.name || '').trim().toLowerCase() === normalizedNewName)
+        if (hasDuplicate) {
+            setShowDuplicateConfirm(true)
+            return
+        }
+        await saveOperator()
     }
     return (
         <>
             <AddViewSection title="Add New Operator" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit}>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-user"></i>
                             <span>Basic Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="name">Name*</label>
                                 <input
                                     id="name"
@@ -175,7 +192,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                     required
                                 />
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="phone">Phone</label>
                                 <input
                                     id="phone"
@@ -187,13 +204,13 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
                             <span>Assignment & Status</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
                                     type="button"
@@ -203,7 +220,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="status">Status</label>
                                 <select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
                                     <option value="Active">Active</option>
@@ -216,8 +233,8 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         </div>
                         {status === 'Pending Start' && (
-                            <div className="form-row">
-                                <div className="form-group">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1">
                                     <label htmlFor="pendingStartDate">Pending Start Date</label>
                                     <input
                                         id="pendingStartDate"
@@ -229,13 +246,13 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             </div>
                         )}
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-briefcase"></i>
                             <span>Position & Training</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="position">Position</label>
                                 <select id="position" value={position} onChange={(e) => setPosition(e.target.value)}>
                                     <option value="">Select Position</option>
@@ -244,7 +261,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                 </select>
                             </div>
                             {hasTrainingPermission && (
-                                <div className="form-group">
+                                <div className="flex flex-col gap-1">
                                     <label htmlFor="isTrainer">Trainer Status</label>
                                     <select
                                         id="isTrainer"
@@ -264,8 +281,8 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                             )}
                         </div>
                         {hasTrainingPermission && (status === 'Training' || status === 'Pending Start') && (
-                            <div className="form-row">
-                                <div className="form-group">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1">
                                     <label htmlFor="assignedTrainer">Assigned Trainer</label>
                                     <select
                                         id="assignedTrainer"
@@ -284,19 +301,19 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                             ))}
                                     </select>
                                     {operators.filter((op) => op.isTrainer).length === 0 && (
-                                        <span className="form-warning">No trainers available</span>
+                                        <span className="text-xs text-amber-600">No trainers available</span>
                                     )}
                                 </div>
                             </div>
                         )}
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-car"></i>
                             <span>CDL Restrictions</span>
                         </div>
-                        <div className="form-group">
-                            <label className="form-checkbox">
+                        <div className="flex flex-col gap-1">
+                            <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={automaticRestriction}
@@ -304,12 +321,12 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                 />
                                 <span>Automatic Only</span>
                             </label>
-                            <span className="form-hint">
+                            <span className="text-xs text-gray-500">
                                 Enable if the operator has a CDL restriction for automatic transmission only
                             </span>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Operator'}
                         </button>
@@ -327,6 +344,18 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                     plants={filteredPlants}
                 />
             )}
+            <ConfirmDialog
+                isOpen={showDuplicateConfirm}
+                onConfirm={() => {
+                    setShowDuplicateConfirm(false)
+                    saveOperator()
+                }}
+                onCancel={() => setShowDuplicateConfirm(false)}
+                title="Duplicate Name"
+                message={`An operator named "${name.trim()}" already exists. Create anyway?`}
+                confirmLabel="Create Anyway"
+                variant="warning"
+            />
         </>
     )
 }

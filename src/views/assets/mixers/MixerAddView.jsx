@@ -6,6 +6,7 @@ import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Mixer } from '../../../app/models/mixers/Mixer'
 import { MixerService } from '../../../services/MixerService'
 import { PlantService } from '../../../services/PlantService'
+import DateUtility from '../../../utils/DateUtility'
 /**
  * Slide-in form for creating a new mixer (concrete truck) record.
  * Requires truck number and assigned plant. Defaults cleanliness to 5
@@ -28,7 +29,9 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
         async function loadMixers() {
             try {
                 await MixerService.fetchMixers()
-            } catch (error) {}
+            } catch (e) {
+                console.error('Failed to prefetch mixers:', e)
+            }
         }
         loadMixers()
     }, [])
@@ -46,7 +49,8 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                 const codes = new Set(regionPlants.map((p) => p.plantCode))
                 setRegionPlantCodes(codes)
                 if (assignedPlant && !codes.has(assignedPlant)) setAssignedPlant('')
-            } catch {
+            } catch (e) {
+                console.error('Failed to load region plants for mixer add view:', e)
                 setRegionPlantCodes(new Set())
             }
         }
@@ -81,13 +85,7 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
         try {
             const userId = sessionStorage.getItem('userId')
             if (!userId) throw new Error('User ID not available. Please log in again.')
-            const formatDateForDb = (date) => {
-                if (!date) return null
-                const d = new Date(date)
-                if (isNaN(d.getTime())) return null
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}+00`
-            }
-            const now = formatDateForDb(new Date())
+            const now = DateUtility.formatDateForDb(new Date())
             const newMixer = new Mixer({
                 assigned_operator: '0',
                 assigned_plant: assignedPlant,
@@ -113,13 +111,13 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
         <>
             <AddViewSection title="Add New Mixer" onClose={onClose} error={error}>
                 <form onSubmit={handleSubmit} autoComplete="off">
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-truck"></i>
-                            <span>Basic Information</span>
+                            <span> Basic Information</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="truckNumber">Truck Number*</label>
                                 <input
                                     id="truckNumber"
@@ -133,13 +131,13 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-section">
-                        <div className="form-section-title">
+                    <div className="space-y-4">
+                        <div className="text-lg font-semibold">
                             <i className="fas fa-building"></i>
-                            <span>Assignment & Status</span>
+                            <span> Assignment & Status</span>
                         </div>
-                        <div className="form-row">
-                            <div className="form-group">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="assignedPlant">Assigned Plant*</label>
                                 <button
                                     type="button"
@@ -149,7 +147,7 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                                     {plantDisplayText}
                                 </button>
                             </div>
-                            <div className="form-group">
+                            <div className="flex flex-col gap-1">
                                 <label htmlFor="status">Status</label>
                                 <select id="status" value={status} onChange={(e) => setStatus(e.target.value)}>
                                     <option value="">Select status</option>
@@ -160,7 +158,7 @@ function MixerAddView({ plants, onClose, onMixerAdded }) {
                             </div>
                         </div>
                     </div>
-                    <div className="form-actions">
+                    <div className="flex justify-end gap-3 pt-4">
                         <button type="submit" disabled={isSaving}>
                             {isSaving ? 'Adding...' : 'Add Mixer'}
                         </button>

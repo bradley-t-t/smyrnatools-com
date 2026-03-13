@@ -48,19 +48,17 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
             footerActions={
                 <>
                     <button
-                        className="global-button-secondary"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                         onClick={handleSave}
                         disabled={isSaving}
-                        style={{ flex: 1, justifyContent: 'center' }}
                     >
                         <i className="fas fa-save"></i>
                         <span>{isSaving ? 'Saving...' : 'Save'}</span>
                     </button>
                     <button
-                        className="global-button-secondary"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border-light bg-bg-primary px-5 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-bg-hover"
                         onClick={() => setShowDeleteConfirmation(true)}
                         disabled={isSaving}
-                        style={{ flex: 1, justifyContent: 'center' }}
                     >
                         <i className="fas fa-trash-alt"></i>
                         <span>Delete</span>
@@ -75,15 +73,20 @@ function PlantsDetailView({ plant, onClose, onDelete }) {
         >
             <DetailViewSection.Section id="info" title="Plant Information" icon="fas fa-industry">
                 <DetailViewSection.Card title="Basic Information" icon="fas fa-id-card">
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Plant Code</label>
-                        <input type="text" className="form-control" value={plantCode} disabled />
+                        <input
+                            type="text"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
+                            value={plantCode}
+                            disabled
+                        />
                     </div>
-                    <div className="form-group">
+                    <div className="flex flex-col gap-1.5">
                         <label>Plant Name</label>
                         <input
                             type="text"
-                            className="form-control"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             value={plantName}
                             onChange={(e) => setPlantName(e.target.value)}
                         />

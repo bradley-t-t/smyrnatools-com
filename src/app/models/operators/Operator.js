@@ -17,7 +17,8 @@ export class Operator {
         this.createdAt = data.created_at ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         this.updatedAt = data.updated_at ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         this.pendingStartDate = data.pending_start_date ?? data.pendingStartDate ?? null
-        this.phone = data.phone ?? data.phone ?? null
+        this.phone = data.phone ?? null
+        this.automaticRestriction = data.automatic_restriction ?? data.automaticRestriction ?? false
     }
     static fromApiFormat(data) {
         if (!data) return null

@@ -40,18 +40,18 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             .then((code) => {
                 if (code) setPlant(code)
             })
-            .catch(() => {})
+            .catch((e) => console.error('Failed to fetch user plant:', e))
     }, [user?.id])
     useEffect(() => {
         MixerService.getAllMixers()
             .then(setMixers)
-            .catch(() => {})
+            .catch((e) => console.error('Failed to fetch mixers for lost load modal:', e))
     }, [])
     useEffect(() => {
         if (!plants?.length) return
         Promise.all(plants.map((p) => OperatorService.fetchOperatorsByPlant(p.plant_code)))
             .then((results) => setOperators(results.flat()))
-            .catch(() => {})
+            .catch((e) => console.error('Failed to fetch operators by plant:', e))
     }, [plants])
     const operatorMap = useMemo(() => {
         const map = {}
@@ -135,14 +135,8 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div
-                className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col"
-                style={{ backgroundColor: 'var(--bg-primary)', maxHeight: '90vh' }}
-            >
-                <div
-                    className="flex items-center justify-between px-6 py-4"
-                    style={{ borderBottom: '1px solid var(--border-light)' }}
-                >
+            <div className="rounded-2xl shadow-2xl w-full max-w-lg flex flex-col bg-bg-primary max-h-[90vh]">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border-light">
                     <div className="flex items-center gap-3">
                         <div
                             className="flex items-center justify-center w-9 h-9 rounded-lg"
@@ -150,14 +144,11 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         >
                             <i className="fas fa-exclamation-triangle text-sm" style={{ color: accentColor }} />
                         </div>
-                        <h2 className="text-base font-semibold m-0" style={{ color: 'var(--text-primary)' }}>
-                            Lost Load Report
-                        </h2>
+                        <h2 className="text-base font-semibold m-0 text-text-primary">Lost Load Report</h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg"
-                        style={{ color: 'var(--text-secondary)' }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary"
                         type="button"
                     >
                         <i className="fas fa-times text-sm" />
@@ -171,10 +162,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         </div>
                     )}
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Plant
                         </label>
                         <div className="relative">
@@ -183,12 +171,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                 onChange={(e) => {
                                     setPlant(e.target.value)
                                 }}
-                                className="w-full appearance-none rounded-lg pl-3 pr-9 py-2.5 text-sm font-medium focus:outline-none cursor-pointer transition-colors"
-                                style={{
-                                    backgroundColor: 'var(--bg-secondary)',
-                                    border: '1px solid var(--border-light)',
-                                    color: plant ? 'var(--text-primary)' : 'var(--text-secondary)'
-                                }}
+                                className={`w-full appearance-none rounded-lg pl-3 pr-9 py-2.5 text-sm font-medium focus:outline-none cursor-pointer transition-colors bg-bg-secondary border border-border-light ${plant ? 'text-text-primary' : 'text-text-secondary'}`}
                             >
                                 <option value="">Select plant...</option>
                                 {plants.map((p) => (
@@ -204,10 +187,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         </div>
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Yardage
                         </label>
                         <input
@@ -225,10 +205,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Truck Number
                         </label>
                         <button
@@ -360,10 +337,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         )}
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Customer Name
                         </label>
                         <input
@@ -380,10 +354,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Ticket Number
                         </label>
                         <input
@@ -400,10 +371,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label
-                            className="text-xs font-semibold uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                             Reason
                         </label>
                         <div className="grid grid-cols-1 gap-2">

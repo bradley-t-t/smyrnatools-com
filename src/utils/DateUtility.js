@@ -59,6 +59,18 @@ const DateUtility = {
         const options = { day: 'numeric', hour: '2-digit', minute: '2-digit', month: 'short', year: 'numeric' }
         return date.toLocaleString('en-US', options)
     },
+    /** Formats a date string into an HTML datetime-local input value (YYYY-MM-DDTHH:MM). */
+    formatDateTimeLocal(dateStr) {
+        if (!dateStr) return ''
+        const date = new Date(dateStr)
+        if (isNaN(date.getTime())) return ''
+        const y = date.getFullYear()
+        const m = String(date.getMonth() + 1).padStart(2, '0')
+        const d = String(date.getDate()).padStart(2, '0')
+        const h = String(date.getHours()).padStart(2, '0')
+        const min = String(date.getMinutes()).padStart(2, '0')
+        return `${y}-${m}-${d}T${h}:${min}`
+    },
     formatPendingDate(d) {
         if (!d) return '-'
         if (d.length === 10 && /\d{4}-\d{2}-\d{2}/.test(d)) return d
@@ -128,6 +140,32 @@ const DateUtility = {
         const month = String(date.getMonth() + 1).padStart(2, '0')
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
+    },
+    /** Formats a Date to a Supabase-compatible timestamp string: `YYYY-MM-DD HH:MM:SS+00`. */
+    formatDateForDb(date) {
+        if (!date) return null
+        const d = date instanceof Date ? date : new Date(date)
+        if (isNaN(d.getTime())) return null
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        const h = String(d.getHours()).padStart(2, '0')
+        const min = String(d.getMinutes()).padStart(2, '0')
+        const s = String(d.getSeconds()).padStart(2, '0')
+        return `${y}-${m}-${day} ${h}:${min}:${s}+00`
+    },
+    /** Returns a human-readable relative time string (e.g. "5m ago", "3d ago"). */
+    formatTimeAgo(dateString) {
+        if (!dateString) return ''
+        const diffMs = Date.now() - new Date(dateString).getTime()
+        const mins = Math.floor(diffMs / 60000)
+        if (mins < 1) return 'just now'
+        if (mins < 60) return `${mins}m ago`
+        const hours = Math.floor(mins / 60)
+        if (hours < 24) return `${hours}h ago`
+        const days = Math.floor(hours / 24)
+        if (days < 30) return `${days}d ago`
+        return new Date(dateString).toLocaleDateString()
     }
 }
 export default DateUtility

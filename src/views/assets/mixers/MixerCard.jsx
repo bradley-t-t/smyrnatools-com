@@ -3,10 +3,26 @@ import React from 'react'
 import CardSection from '../../../app/components/sections/CardSection'
 import AssetStatsUtility from '../../../utils/AssetStatsUtility'
 import VerifiedUtility from '../../../utils/VerifiedUtility'
+
+/** Maps mixer status to card accent color. Shop sub-statuses handled separately. */
+const STATUS_COLORS = {
+    Active: 'var(--status-active)',
+    'In Shop': 'var(--status-inshop)',
+    Retired: 'var(--status-retired)',
+    Spare: 'var(--status-spare)'
+}
+
+/** Shop sub-status overrides for In Shop mixers. */
+const SHOP_SUB_STATUS_COLORS = {
+    down_in_yard: 'var(--error)',
+    third_party: '#7c3aed',
+    waiting_for_shop: 'var(--warning)'
+}
+
 /**
  * Grid-mode card for a single mixer. Displays plant, operator, status
  * (with In Shop sub-statuses), service/chip overdue warnings, cleanliness
- * rating with a "DOWNED" badge when below 3 stars, and verification state.
+ * rating with a "DIRTY" badge when below 3 stars, and verification state.
  */
 function MixerCard({
     mixer,
@@ -23,15 +39,19 @@ function MixerCard({
         typeof mixer.isVerified === 'function'
             ? mixer.isVerified(mixer.latestHistoryDate)
             : VerifiedUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy)
-    let statusColor = 'var(--accent)'
-    if (mixer.status === 'Active') statusColor = 'var(--status-active)'
-    else if (mixer.status === 'Spare') statusColor = 'var(--status-spare)'
-    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'down_in_yard') statusColor = 'var(--error)'
-    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'waiting_for_shop') statusColor = 'var(--warning)'
-    else if (mixer.status === 'In Shop' && mixer.shopStatus === 'third_party') statusColor = '#7c3aed'
-    else if (mixer.status === 'In Shop') statusColor = 'var(--status-inshop)'
-    else if (mixer.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (AssetStatsUtility.isServiceOverdue(mixer.lastServiceDate)) statusColor = 'var(--error)'
+
+    // Resolve status color: shop sub-statuses override the base In Shop color
+    const resolveStatusColor = () => {
+        if (mixer.status === 'In Shop' && SHOP_SUB_STATUS_COLORS[mixer.shopStatus]) {
+            return SHOP_SUB_STATUS_COLORS[mixer.shopStatus]
+        }
+        return (
+            STATUS_COLORS[mixer.status] ??
+            (AssetStatsUtility.isServiceOverdue(mixer.lastServiceDate) ? 'var(--error)' : 'var(--accent)')
+        )
+    }
+    const statusColor = resolveStatusColor()
+
     const getDisplayStatus = () => {
         if (mixer.status !== 'In Shop') return mixer.status || 'Unknown'
         switch (mixer.shopStatus) {
@@ -66,40 +86,42 @@ function MixerCard({
             isVerified={isVerified}
             verificationTooltip={verificationTooltip}
         >
-            <div className="detail-row">
-                <div className="detail-label">Plant</div>
-                <div className="detail-value">{plantName}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Plant</div>
+                <div className="text-sm font-medium">{plantName}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Status</div>
-                <div className="detail-value" style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Status</div>
+                <div className="text-sm font-medium flex items-center gap-2">
                     <span>{getDisplayStatus()}</span>
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Last Service</div>
-                <div className={`detail-value ${mixer.lastServiceDate && isServiceOverdue ? 'overdue' : ''}`}>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Last Service</div>
+                <div
+                    className={`text-sm font-medium ${mixer.lastServiceDate && isServiceOverdue ? 'text-red-600' : ''}`}
+                >
                     {mixer.lastServiceDate ? new Date(mixer.lastServiceDate).toLocaleDateString() : 'Unknown'}
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Last Chip</div>
-                <div className={`detail-value ${mixer.lastChipDate && isChipOverdue ? 'overdue' : ''}`}>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Last Chip</div>
+                <div className={`text-sm font-medium ${mixer.lastChipDate && isChipOverdue ? 'text-red-600' : ''}`}>
                     {mixer.lastChipDate ? new Date(mixer.lastChipDate).toLocaleDateString() : 'Unknown'}
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Cleanliness</div>
-                <div className="detail-value">
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Cleanliness</div>
+                <div className="text-sm font-medium">
                     {mixer.status === 'Retired' ? (
-                        <span style={{ color: 'var(--text-secondary)' }}>N/A</span>
+                        <span className="text-[color:var(--text-secondary)]">N/A</span>
                     ) : mixer.cleanlinessRating ? (
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '8px' }}>
-                            <div className="stars-container">
+                        <div className="flex items-center gap-2">
+                            <div className="flex gap-0.5">
                                 {[...Array(5)].map((_, i) => (
                                     <i
                                         key={i}
-                                        className={`fas fa-star ${i < mixer.cleanlinessRating ? 'filled-star' : 'empty-star'}`}
+                                        className={`fas fa-star ${i < mixer.cleanlinessRating ? 'text-yellow-400' : 'text-gray-300'}`}
                                         aria-hidden="true"
                                     ></i>
                                 ))}

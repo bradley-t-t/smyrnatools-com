@@ -2,27 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { UserService } from '../../../services/UserService'
+import DateUtility from '../../../utils/DateUtility'
+import UserUtility from '../../../utils/UserUtility'
 import { useAccentColor } from '../../hooks/useAccentColor'
-
-function formatTimeAgo(dateString) {
-    if (!dateString) return ''
-    const diffMs = Date.now() - new Date(dateString).getTime()
-    const mins = Math.floor(diffMs / 60000)
-    if (mins < 1) return 'just now'
-    if (mins < 60) return `${mins}m ago`
-    const hours = Math.floor(mins / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    if (days < 30) return `${days}d ago`
-    return new Date(dateString).toLocaleDateString()
-}
-
-function getInitials(name) {
-    if (!name || name === 'Unknown' || name === 'Loading...') return '?'
-    const parts = name.trim().split(' ')
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-    return name.slice(0, 2).toUpperCase()
-}
 
 /**
  * Anchored dropdown showing recent conversations grouped by user.
@@ -70,6 +52,7 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
 
     if (!isOpen || typeof document === 'undefined' || !document.body) return null
 
+    /* Position is runtime-computed from anchorRect, must stay inline */
     const modalStyle = {
         position: 'fixed',
         zIndex: 1000,
@@ -85,23 +68,18 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
         <div className="fixed inset-0 z-[999]" onClick={onClose}>
             <div
                 ref={panelRef}
-                style={{ ...modalStyle, backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
-                className="w-96 max-h-[76vh] rounded-xl shadow-2xl border overflow-hidden flex flex-col"
+                style={modalStyle}
+                className="flex max-h-[76vh] w-96 flex-col overflow-hidden rounded-xl border border-border-light bg-bg-primary shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div
-                    className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
-                    style={{ borderColor: 'var(--border-light)' }}
-                >
+                <div className="flex flex-shrink-0 items-center justify-between border-b border-border-light px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                        <i className="fas fa-bell text-sm" style={{ color: 'var(--text-secondary)' }}></i>
-                        <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            Notifications
-                        </span>
+                        <i className="fas fa-bell text-sm text-text-secondary" />
+                        <span className="text-sm font-semibold text-text-primary">Notifications</span>
                         {unreadCount > 0 && (
                             <span
-                                className="px-2 py-0.5 text-white text-xs font-bold rounded-full min-w-[22px] text-center"
+                                className="min-w-[22px] rounded-full px-2 py-0.5 text-center text-xs font-bold text-white"
                                 style={{ backgroundColor: accentColor }}
                             >
                                 {unreadCount}
@@ -112,88 +90,57 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllRead}
-                                className="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors"
-                                style={{ color: 'var(--text-secondary)' }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'transparent'
-                                }}
+                                className="rounded-lg px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:bg-bg-hover"
                             >
                                 Mark all read
                             </button>
                         )}
                         <button
                             onClick={onClose}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
-                            style={{ color: 'var(--text-secondary)' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent'
-                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-hover"
                         >
-                            <i className="fas fa-times text-sm"></i>
+                            <i className="fas fa-times text-sm" />
                         </button>
                     </div>
                 </div>
                 {/* Body — conversation list */}
-                <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)' }}>
+                <div className="flex-1 overflow-y-auto bg-bg-primary">
                     {loading ? (
-                        <div className="divide-y" style={{ borderColor: 'var(--bg-hover)' }}>
+                        <div className="divide-y divide-bg-hover">
                             {Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
-                                    <div
-                                        className="w-9 h-9 rounded-full flex-shrink-0"
-                                        style={{ backgroundColor: 'var(--bg-hover)' }}
-                                    ></div>
-                                    <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                                <div key={i} className="flex animate-pulse items-center gap-3 px-4 py-3">
+                                    <div className="h-9 w-9 flex-shrink-0 rounded-full bg-bg-hover" />
+                                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                                         <div className="flex items-center justify-between gap-2">
                                             <div
-                                                className="h-3.5 rounded"
-                                                style={{ backgroundColor: 'var(--bg-hover)', width: `${60 + i * 10}%` }}
-                                            ></div>
-                                            <div
-                                                className="h-3 w-10 rounded flex-shrink-0"
-                                                style={{ backgroundColor: 'var(--bg-hover)' }}
-                                            ></div>
+                                                className="h-3.5 rounded bg-bg-hover"
+                                                style={{ width: `${60 + i * 10}%` }}
+                                            />
+                                            <div className="h-3 w-10 flex-shrink-0 rounded bg-bg-hover" />
                                         </div>
-                                        <div
-                                            className="h-3 rounded"
-                                            style={{ backgroundColor: 'var(--bg-hover)', width: `${80 - i * 8}%` }}
-                                        ></div>
+                                        <div className="h-3 rounded bg-bg-hover" style={{ width: `${80 - i * 8}%` }} />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : recentConversations.length === 0 ? (
-                        <div
-                            className="flex flex-col items-center justify-center py-14"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <i
-                                className="fas fa-envelope-open text-3xl mb-3"
-                                style={{ color: 'var(--border-medium)' }}
-                            ></i>
-                            <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                                No conversations
-                            </span>
-                            <span className="text-xs mt-1">Your inbox is empty</span>
+                        <div className="flex flex-col items-center justify-center py-14 text-text-secondary">
+                            <i className="fas fa-envelope-open mb-3 text-3xl text-border-medium" />
+                            <span className="text-sm font-medium text-text-primary">No conversations</span>
+                            <span className="mt-1 text-xs">Your inbox is empty</span>
                         </div>
                     ) : (
-                        <div className="divide-y" style={{ borderColor: 'var(--bg-hover)' }}>
+                        <div className="divide-y divide-bg-hover">
                             {recentConversations.map((conv) => {
                                 const name = userNames[conv.otherId] || 'Loading...'
-                                const initials = getInitials(name)
+                                const initials = UserUtility.getInitials(name)
                                 const latest = conv.lastMessage
                                 const hasUnread = conv.unread > 0
                                 return (
                                     <div
                                         key={conv.otherId}
-                                        className="flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors"
-                                        style={{ backgroundColor: hasUnread ? `${accentColor}06` : 'transparent' }}
+                                        className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-bg-hover"
+                                        style={{ backgroundColor: hasUnread ? `${accentColor}06` : undefined }}
                                         onClick={() => {
                                             if (onSelectConversation) {
                                                 onSelectConversation(conv.otherId)
@@ -201,19 +148,11 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
                                                 onViewAll()
                                             }
                                         }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = hasUnread
-                                                ? `${accentColor}06`
-                                                : 'transparent'
-                                        }}
                                     >
                                         {/* Avatar with unread badge */}
                                         <div className="relative flex-shrink-0">
                                             <div
-                                                className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                                                className="flex h-9 w-9 items-center justify-center rounded-full text-[10px] font-bold text-white"
                                                 style={{
                                                     background: `linear-gradient(135deg, ${accentColor}, ${accentColor}bb)`
                                                 }}
@@ -222,57 +161,41 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
                                             </div>
                                             {hasUnread && (
                                                 <div
-                                                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2"
-                                                    style={{
-                                                        backgroundColor: accentColor,
-                                                        borderColor: 'var(--bg-primary)'
-                                                    }}
+                                                    className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-bg-primary text-[9px] font-bold text-white"
+                                                    style={{ backgroundColor: accentColor }}
                                                 >
                                                     {conv.unread}
                                                 </div>
                                             )}
                                         </div>
                                         {/* Content */}
-                                        <div className="flex-1 min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span
-                                                    className={`text-sm truncate ${hasUnread ? 'font-bold' : 'font-medium'}`}
-                                                    style={{ color: 'var(--text-primary)' }}
+                                                    className={`truncate text-sm text-text-primary ${hasUnread ? 'font-bold' : 'font-medium'}`}
                                                 >
                                                     {name}
                                                 </span>
-                                                <span
-                                                    className="text-[11px] flex-shrink-0"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {formatTimeAgo(latest?.createdAt)}
+                                                <span className="flex-shrink-0 text-[11px] text-text-secondary">
+                                                    {DateUtility.formatTimeAgo(latest?.createdAt)}
                                                 </span>
                                             </div>
                                             {latest?.subject && (
                                                 <p
-                                                    className="text-xs m-0 truncate"
-                                                    style={{
-                                                        color: 'var(--text-primary)',
-                                                        opacity: hasUnread ? 1 : 0.7
-                                                    }}
+                                                    className="m-0 truncate text-xs text-text-primary"
+                                                    style={{ opacity: hasUnread ? 1 : 0.7 }}
                                                 >
                                                     {latest.subject}
                                                 </p>
                                             )}
-                                            <p
-                                                className="text-xs m-0 mt-0.5 truncate"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
+                                            <p className="m-0 mt-0.5 truncate text-xs text-text-secondary">
                                                 {latest?.body}
                                             </p>
                                         </div>
                                         {/* Message count */}
-                                        <div
-                                            className="flex items-center gap-1 flex-shrink-0"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
+                                        <div className="flex flex-shrink-0 items-center gap-1 text-text-secondary">
                                             <span className="text-[11px]">{conv.messages.length}</span>
-                                            <i className="fas fa-chevron-right text-[9px]"></i>
+                                            <i className="fas fa-chevron-right text-[9px]" />
                                         </div>
                                     </div>
                                 )
@@ -281,20 +204,14 @@ function NotificationsModal({ isOpen, onClose, onViewAll, onSelectConversation, 
                     )}
                 </div>
                 {/* Footer */}
-                <div className="border-t flex-shrink-0" style={{ borderColor: 'var(--border-light)' }}>
+                <div className="flex-shrink-0 border-t border-border-light">
                     <button
                         onClick={onViewAll}
-                        className="w-full px-4 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                        className="flex w-full items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-bg-hover"
                         style={{ color: accentColor }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent'
-                        }}
                     >
                         View All Messages
-                        <i className="fas fa-arrow-right text-xs"></i>
+                        <i className="fas fa-arrow-right text-xs" />
                     </button>
                 </div>
             </div>

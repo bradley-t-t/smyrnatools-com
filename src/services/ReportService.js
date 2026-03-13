@@ -17,16 +17,8 @@ function sortPlants(plants) {
             return String(a.plant_code).localeCompare(String(b.plant_code))
         })
 }
-/** Calculates Monday and Saturday dates from a week ISO string. */
-function getWeekRangeDates(weekIso) {
-    if (!weekIso) return null
-    const monday = new Date(weekIso)
-    monday.setDate(monday.getDate() + 1)
-    monday.setHours(0, 0, 0, 0)
-    const saturday = new Date(monday)
-    saturday.setDate(monday.getDate() + 5)
-    return { monday, saturday }
-}
+/** Maps a performance grade key to its display label. */
+const GRADE_LABELS = { average: 'Average', excellent: 'Excellent', good: 'Good', poor: 'Poor' }
 /**
  * Weekly report management service handling plant manager, general manager,
  * efficiency, and RMI reports. Provides date utilities, production insights,
@@ -35,20 +27,14 @@ function getWeekRangeDates(weekIso) {
 class ReportServiceImpl {
     /** Formats a week ISO into a human-readable "MM-DD-YY through MM-DD-YY" range. */
     getWeekRangeFromIso(weekIso) {
-        const monday = new Date(weekIso)
-        monday.setDate(monday.getDate() + 1)
-        monday.setHours(0, 0, 0, 0)
-        const saturday = new Date(monday)
-        saturday.setDate(monday.getDate() + 5)
-        return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
+        const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
+        if (!monday || !saturday) return ''
+        return `${ReportUtility.formatDateMMDDYY(monday)} through ${ReportUtility.formatDateMMDDYY(saturday)}`
     }
     /** Calculates the Monday and Saturday bounding a given date. */
     getMondayAndSaturday(date = new Date()) {
-        const d = new Date(date)
-        const day = d.getDay()
-        const monday = new Date(d)
-        monday.setDate(d.getDate() - ((day + 6) % 7))
-        monday.setHours(0, 0, 0, 0)
+        const monday = ReportUtility.mondayOf(date)
+        if (!monday) return { monday: null, saturday: null }
         const saturday = new Date(monday)
         saturday.setDate(monday.getDate() + 5)
         saturday.setHours(0, 0, 0, 0)
@@ -56,18 +42,11 @@ class ReportServiceImpl {
     }
     /** Returns the ISO date string (YYYY-MM-DD) for the Monday of a given date's week. */
     getMondayISO(date) {
-        return this.getMondayAndSaturday(date).monday.toISOString().slice(0, 10)
+        return ReportUtility.getMondayISO(date)
     }
-    /** Formats a Date as M-D-YY. */
     /** Formats two Date objects into a "MM-DD-YY through MM-DD-YY" range string. */
     getWeekRangeString(monday, saturday) {
-        return `${this.formatDateMMDDYY(monday)} through ${this.formatDateMMDDYY(saturday)}`
-    }
-    formatDateMMDDYY(date) {
-        const mm = date.getMonth() + 1
-        const dd = date.getDate()
-        const yy = date.getFullYear().toString().slice(-2)
-        return `${mm}-${dd}-${yy}`
+        return `${ReportUtility.formatDateMMDDYY(monday)} through ${ReportUtility.formatDateMMDDYY(saturday)}`
     }
     /** Extracts the plant code from a report's data structure. */
     getPlantNameFromReport(report) {
@@ -114,11 +93,7 @@ class ReportServiceImpl {
             else if (yph >= 3) yphGrade = 'average'
             else yphGrade = 'poor'
         }
-        let yphLabel = ''
-        if (yphGrade === 'excellent') yphLabel = 'Excellent'
-        else if (yphGrade === 'good') yphLabel = 'Good'
-        else if (yphGrade === 'average') yphLabel = 'Average'
-        else if (yphGrade === 'poor') yphLabel = 'Poor'
+        const yphLabel = GRADE_LABELS[yphGrade] || ''
         let lost = null
         if (
             typeof form.total_yards_lost !== 'undefined' &&
@@ -158,32 +133,25 @@ class ReportServiceImpl {
             else if (lost < 10) lostGrade = 'average'
             else lostGrade = 'poor'
         }
-        let lostLabel = ''
-        if (lostGrade === 'excellent') lostLabel = 'Excellent'
-        else if (lostGrade === 'good') lostLabel = 'Good'
-        else if (lostGrade === 'average') lostLabel = 'Average'
-        else if (lostGrade === 'poor') lostLabel = 'Poor'
+        const lostLabel = GRADE_LABELS[lostGrade] || ''
         return { lost, lostGrade, lostLabel, yph, yphGrade, yphLabel }
     }
-    /** Maps a yardage performance grade to its CSS variable color. */
+    /** Maps a yardage performance grade to its Tailwind text color class. */
     getYphColor(grade) {
-        if (grade === 'excellent') return 'var(--excellent)'
-        if (grade === 'good') return 'var(--success)'
-        if (grade === 'average') return 'var(--warning)'
-        if (grade === 'poor') return 'var(--error)'
-        return ''
+        const gradeColors = {
+            average: 'text-yellow-500',
+            excellent: 'text-emerald-500',
+            good: 'text-green-500',
+            poor: 'text-red-500'
+        }
+        return gradeColors[grade] ?? ''
     }
     /**
      * Analyzes per-row production data for a plant, computing totals, averages,
      * and flagging efficiency warnings (late starts, long hours, low loads).
      */
     getPlantProductionInsights(rows) {
-        function parseTimeToMinutes(timeStr) {
-            if (!timeStr || typeof timeStr !== 'string') return null
-            const [h, m] = timeStr.split(':').map(Number)
-            if (isNaN(h) || isNaN(m)) return null
-            return h * 60 + m
-        }
+        const parseTime = (timeStr) => this.parseTimeToMinutes(timeStr)
         function isExcludedRow(row) {
             if (!row) return true
             const keys = Object.keys(row).filter((k) => k !== 'name' && k !== 'truck_number')
@@ -200,10 +168,10 @@ class ReportServiceImpl {
         let loadsPerHourCount = 0
         const includedRows = rows.filter((row) => !isExcludedRow(row))
         includedRows.forEach((row) => {
-            const start = parseTimeToMinutes(row.start_time)
-            const firstLoad = parseTimeToMinutes(row.first_load)
-            const punchOut = parseTimeToMinutes(row.punch_out)
-            const eod = parseTimeToMinutes(row.eod_in_yard)
+            const start = parseTime(row.start_time)
+            const firstLoad = parseTime(row.first_load)
+            const punchOut = parseTime(row.punch_out)
+            const eod = parseTime(row.eod_in_yard)
             const loads = Number(row.loads)
             let hours = null
             if (start !== null && punchOut !== null) {
@@ -350,7 +318,7 @@ class ReportServiceImpl {
             const filtered = basePlants.filter((p) => allowedCodes.has(String(p.plant_code).trim()))
             CacheUtility.set(cacheKey, filtered, TTL_SHORT)
             return filtered
-        } catch (e) {
+        } catch {
             CacheUtility.set(cacheKey, [], TTL_SHORT)
             return []
         }
@@ -396,9 +364,8 @@ class ReportServiceImpl {
         const key = `maintenance:${weekIso}`
         const cached = CacheUtility.get(key)
         if (cached) return cached
-        const range = getWeekRangeDates(weekIso)
-        if (!range) return []
-        const { monday, saturday } = range
+        const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
+        if (!monday || !saturday) return []
         const { data, error } = await supabase
             .from('list_items')
             .select('*')

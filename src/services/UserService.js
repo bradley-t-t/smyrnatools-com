@@ -76,6 +76,7 @@ class UserServiceImpl {
     eligibleRolesCache = null
     userPlantsCache = new Map()
     clearCache() {
+        this.userProfileCache.clear()
         this.userRolesCache.clear()
         this.rolesPermissionsCache.clear()
         this.eligibleRolesCache = null
@@ -253,10 +254,13 @@ class UserServiceImpl {
         ])
         throwFirstError(results)
         const [{ data: users }, { data: profiles }, { data: permissions }, { data: rolesList }] = results
+        const profilesByUserId = new Map(profiles.map((p) => [p.id, p]))
+        const permissionsByUserId = new Map(permissions.map((p) => [p.user_id, p]))
+        const rolesById = new Map(rolesList.map((r) => [r.id, r]))
         return users.map((user) => {
-            const profile = profiles.find((p) => p.id === user.id) ?? {}
-            const permission = permissions.find((p) => p.user_id === user.id)
-            const role = permission?.role_id ? rolesList.find((r) => r.id === permission.role_id) : null
+            const profile = profilesByUserId.get(user.id) ?? {}
+            const permission = permissionsByUserId.get(user.id)
+            const role = permission?.role_id ? (rolesById.get(permission.role_id) ?? null) : null
             return {
                 additionalAssignedPlants: Array.isArray(profile.additional_assigned_plants)
                     ? profile.additional_assigned_plants

@@ -12,7 +12,9 @@ module.exports = function (app) {
                 const entries = JSON.parse(body)
                 const lines = entries.map((e) => `[${new Date().toISOString()}] [${e.level}] ${e.message}`).join('\n')
                 fs.appendFileSync(LOG_FILE, lines + '\n')
-            } catch {}
+            } catch (error) {
+                console.error('Failed to parse or write console log entries:', error)
+            }
             res.status(200).end()
         })
     })

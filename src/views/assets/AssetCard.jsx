@@ -24,12 +24,12 @@ function AssetCard({ item, config, duplicates, onSelect }) {
                 const hasWarning = row.getWarning?.(item, duplicates)
 
                 return (
-                    <div key={row.label} className="detail-row">
-                        <div className="detail-label">{row.label}</div>
-                        <div className="detail-value">
+                    <div key={row.label} className="flex justify-between items-center py-1">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{row.label}</div>
+                        <div className="text-sm font-medium">
                             <span>{value}</span>
                             {hasWarning && (
-                                <span className="warning-badge" title={row.warningTitle}>
+                                <span className="ml-1.5 text-amber-500" title={row.warningTitle}>
                                     <i className="fas fa-exclamation-triangle" />
                                 </span>
                             )}

@@ -166,491 +166,198 @@ const ProportionsCalculator = () => {
         if (value < 0.5) return 0
         return Math.round(value)
     }
-    const styles = {
-        actualGrid: {
-            display: 'grid',
-            gap: isMobile ? '1rem' : '1.5rem',
-            gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))'
-        },
-        actualItem: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        addLabel: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        addValue: (hasAdd) => ({
-            color: hasAdd ? '#16a34a' : 'var(--text-tertiary)',
-            fontSize: '1.125rem',
-            fontWeight: 700
-        }),
-        additionItem: (hasAdd) => ({
-            background: hasAdd ? '#dcfce7' : 'var(--bg-secondary)',
-            border: `2px solid ${hasAdd ? '#16a34a' : 'var(--border-color)'}`,
-            borderRadius: '8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            padding: '1rem'
-        }),
-        additionsGrid: {
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            marginBottom: '1.5rem'
-        },
-        batchChange: {
-            color: '#16a34a',
-            fontSize: '0.875rem',
-            fontWeight: 600
-        },
-        batchEstimate: {
-            alignItems: 'center',
-            background: 'var(--card-background)',
-            border: '1px solid #dcfce7',
-            borderRadius: '8px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-            justifyContent: 'center',
-            padding: '1rem'
-        },
-        batchLabel: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.875rem',
-            fontWeight: 600
-        },
-        batchValue: {
-            color: 'var(--accent)',
-            fontSize: '1.5rem',
-            fontWeight: 700
-        },
-        container: {
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-light)',
-            borderRadius: isMobile ? '8px' : '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        emptyIcon: {
-            color: 'var(--text-tertiary)',
-            fontSize: '3rem',
-            marginBottom: '1rem'
-        },
-        emptyState: {
-            background: 'var(--bg-secondary)',
-            border: '2px dashed var(--border-color)',
-            borderRadius: '12px',
-            marginBottom: '2rem',
-            padding: '3rem 2rem',
-            textAlign: 'center'
-        },
-        emptyText: {
-            color: 'var(--text-secondary)',
-            fontSize: '0.9375rem'
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'center'
-        },
-        formulaDivider: {
-            color: 'var(--accent)',
-            fontSize: isMobile ? '1.5rem' : '2rem',
-            fontWeight: 700
-        },
-        formulaInput: {
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem'
-        },
-        formulaLabel: {
-            color: 'var(--accent)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        formulaLayout: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: isMobile ? 'column' : 'row',
-            flexWrap: 'wrap',
-            gap: isMobile ? '1rem' : '2rem',
-            justifyContent: 'center'
-        },
-        formulaRow: {
-            alignItems: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fraction: {
-            alignItems: 'stretch',
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: isMobile ? '100%' : '200px',
-            width: isMobile ? '100%' : 'auto'
-        },
-        fractionBar: {
-            background: 'var(--accent)',
-            height: '2px'
-        },
-        fractionPart: {
-            padding: isMobile ? '0.75rem' : '1rem'
-        },
-        input: {
-            border: '2px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-primary)',
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            fontWeight: 600,
-            outline: 'none',
-            padding: isMobile ? '0.625rem 3rem 0.625rem 0.75rem' : '0.75rem 3.5rem 0.75rem 1rem',
-            transition: 'all 0.2s',
-            width: '100%'
-        },
-        inputUnit: {
-            color: 'var(--text-tertiary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            position: 'absolute',
-            right: isMobile ? '0.75rem' : '1rem'
-        },
-        inputWrap: {
-            alignItems: 'center',
-            display: 'flex',
-            position: 'relative'
-        },
-        label: {
-            color: 'var(--text-secondary)',
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase'
-        },
-        resetButton: {
-            alignItems: 'center',
-            background: 'var(--card-background)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '8px',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            display: 'flex',
-            fontSize: '0.9375rem',
-            fontWeight: 600,
-            gap: '0.5rem',
-            outline: 'none',
-            padding: '0.75rem 1.5rem',
-            transition: 'all 0.2s'
-        },
-        resultContainer: {
-            background: '#f0fdf4',
-            border: '2px solid #dcfce7',
-            borderRadius: isMobile ? '8px' : '12px',
-            marginBottom: isMobile ? '1.5rem' : '2rem',
-            padding: isMobile ? '1rem' : '2rem'
-        },
-        resultHeader: {
-            alignItems: 'center',
-            color: '#16a34a',
-            display: 'flex',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem'
-        },
-        section: {
-            marginBottom: isMobile ? '1.5rem' : '2rem'
-        },
-        sectionHeader: {
-            alignItems: 'center',
-            borderBottom: '2px solid var(--border-light)',
-            color: 'var(--text-primary)',
-            display: 'flex',
-            fontSize: isMobile ? '1rem' : '1.125rem',
-            fontWeight: 700,
-            gap: '0.75rem',
-            marginBottom: isMobile ? '1rem' : '1.5rem',
-            paddingBottom: '1rem'
-        }
-    }
+    const containerClass = `bg-[var(--card-background)] border border-[var(--border-light)] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ${isMobile ? 'rounded-lg p-4' : 'rounded-xl p-8'}`
+    const sectionClass = isMobile ? 'mb-6' : 'mb-8'
+    const sectionHeaderClass = `flex items-center gap-3 font-bold border-b-2 border-[var(--border-light)] pb-4 text-[var(--text-primary)] ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`
+    const labelClass = `text-[var(--text-secondary)] font-semibold uppercase tracking-wide ${isMobile ? 'text-xs' : 'text-sm'}`
+    const inputClass = `w-full border-2 border-[var(--border-color)] rounded-lg text-[var(--text-primary)] font-semibold outline-none transition-all duration-200 focus:border-[var(--accent)] focus:shadow-[0_0_0_3px_rgba(30,58,95,0.1)] ${isMobile ? 'text-sm py-2.5 pl-3 pr-12' : 'text-base py-3 pl-4 pr-14'}`
+    const inputUnitClass = `absolute text-[var(--text-tertiary)] font-semibold ${isMobile ? 'text-xs right-3' : 'text-sm right-4'}`
     return (
-        <div style={styles.container}>
-            <div style={styles.section}>
-                <div style={styles.sectionHeader}>
-                    <i className="fas fa-bullseye" style={{ color: 'var(--accent)' }}></i>
+        <div className={containerClass}>
+            <div className={sectionClass}>
+                <div className={sectionHeaderClass}>
+                    <i className="fas fa-bullseye text-accent"></i>
                     <span>Target Mix Design</span>
                 </div>
-                <div style={styles.formulaLayout}>
-                    <div style={styles.formulaRow}>
-                        <div style={styles.fraction}>
-                            <div style={styles.fractionPart}>
-                                <div style={styles.formulaInput}>
-                                    <label style={styles.label}>Coarse Agg</label>
-                                    <div style={styles.inputWrap}>
+                <div
+                    className={`flex items-center justify-center flex-wrap ${isMobile ? 'flex-col gap-4' : 'flex-row gap-8'}`}
+                >
+                    <div className={`flex flex-col items-center gap-2 ${isMobile ? 'w-full' : 'w-auto'}`}>
+                        <div className={`flex flex-col ${isMobile ? 'min-w-full w-full' : 'min-w-[200px] w-auto'}`}>
+                            <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                                <div className="flex flex-col gap-2">
+                                    <label className={labelClass}>Coarse Agg</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={target.coarse}
                                             onChange={(e) => handleTargetChange('coarse', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = 'var(--accent)'
-                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
                             </div>
-                            <div style={styles.fractionBar}></div>
-                            <div style={styles.fractionPart}>
-                                <div style={styles.formulaInput}>
-                                    <label style={styles.label}>Fine Agg</label>
-                                    <div style={styles.inputWrap}>
+                            <div className="h-0.5 bg-accent"></div>
+                            <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                                <div className="flex flex-col gap-2">
+                                    <label className={labelClass}>Fine Agg</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={target.fine}
                                             onChange={(e) => handleTargetChange('fine', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = 'var(--accent)'
-                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div style={styles.formulaLabel}>Agg Ratio</div>
+                        <div
+                            className={`text-accent font-semibold uppercase tracking-wide ${isMobile ? 'text-xs' : 'text-sm'}`}
+                        >
+                            Agg Ratio
+                        </div>
                     </div>
-                    <div style={styles.formulaDivider}>
+                    <div className={`text-accent font-bold ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
                         <span>:</span>
                     </div>
-                    <div style={styles.formulaRow}>
-                        <div style={styles.fraction}>
-                            <div style={styles.fractionPart}>
-                                <div style={styles.formulaInput}>
-                                    <label style={styles.label}>Primary Powder</label>
-                                    <div style={styles.inputWrap}>
+                    <div className={`flex flex-col items-center gap-2 ${isMobile ? 'w-full' : 'w-auto'}`}>
+                        <div className={`flex flex-col ${isMobile ? 'min-w-full w-full' : 'min-w-[200px] w-auto'}`}>
+                            <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                                <div className="flex flex-col gap-2">
+                                    <label className={labelClass}>Primary Powder</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={target.cement}
                                             onChange={(e) => handleTargetChange('cement', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = 'var(--accent)'
-                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
                             </div>
-                            <div style={styles.fractionBar}></div>
-                            <div style={styles.fractionPart}>
-                                <div style={styles.formulaInput}>
-                                    <label style={styles.label}>Supplemental</label>
-                                    <div style={styles.inputWrap}>
+                            <div className="h-0.5 bg-accent"></div>
+                            <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+                                <div className="flex flex-col gap-2">
+                                    <label className={labelClass}>Supplemental</label>
+                                    <div className="flex items-center relative">
                                         <input
                                             type="number"
                                             value={target.supplemental}
                                             onChange={(e) => handleTargetChange('supplemental', e.target.value)}
                                             placeholder="0"
-                                            style={styles.input}
-                                            onFocus={(e) => {
-                                                e.target.style.borderColor = 'var(--accent)'
-                                                e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                            }}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)'
-                                                e.target.style.boxShadow = 'none'
-                                            }}
+                                            className={inputClass}
                                         />
-                                        <span style={styles.inputUnit}>lbs</span>
+                                        <span className={inputUnitClass}>lbs</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div style={styles.formulaLabel}>Cite Ratio</div>
+                        <div
+                            className={`text-accent font-semibold uppercase tracking-wide ${isMobile ? 'text-xs' : 'text-sm'}`}
+                        >
+                            Cite Ratio
+                        </div>
                     </div>
                 </div>
             </div>
-            <div style={styles.section}>
-                <div style={styles.sectionHeader}>
-                    <i className="fas fa-weight-hanging" style={{ color: 'var(--accent)' }}></i>
+            <div className={sectionClass}>
+                <div className={sectionHeaderClass}>
+                    <i className="fas fa-weight-hanging text-accent"></i>
                     <span>Actual Weights</span>
                 </div>
-                <div style={styles.actualGrid}>
-                    <div style={styles.actualItem}>
-                        <label style={styles.label}>Coarse Agg</label>
-                        <div style={styles.inputWrap}>
-                            <input
-                                type="number"
-                                value={actual.coarse}
-                                onChange={(e) => handleActualChange('coarse', e.target.value)}
-                                placeholder="0"
-                                style={styles.input}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--accent)'
-                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--border-color)'
-                                    e.target.style.boxShadow = 'none'
-                                }}
-                            />
-                            <span style={styles.inputUnit}>lbs</span>
+                <div
+                    className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6'}`}
+                >
+                    {[
+                        { field: 'coarse', label: 'Coarse Agg' },
+                        { field: 'fine', label: 'Fine Agg' },
+                        { field: 'cement', label: 'Primary Powder' },
+                        { field: 'supplemental', label: 'Supplemental' }
+                    ].map(({ field, label }) => (
+                        <div key={field} className="flex flex-col gap-2">
+                            <label className={labelClass}>{label}</label>
+                            <div className="flex items-center relative">
+                                <input
+                                    type="number"
+                                    value={actual[field]}
+                                    onChange={(e) => handleActualChange(field, e.target.value)}
+                                    placeholder="0"
+                                    className={inputClass}
+                                />
+                                <span className={inputUnitClass}>lbs</span>
+                            </div>
                         </div>
-                    </div>
-                    <div style={styles.actualItem}>
-                        <label style={styles.label}>Fine Agg</label>
-                        <div style={styles.inputWrap}>
-                            <input
-                                type="number"
-                                value={actual.fine}
-                                onChange={(e) => handleActualChange('fine', e.target.value)}
-                                placeholder="0"
-                                style={styles.input}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--accent)'
-                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--border-color)'
-                                    e.target.style.boxShadow = 'none'
-                                }}
-                            />
-                            <span style={styles.inputUnit}>lbs</span>
-                        </div>
-                    </div>
-                    <div style={styles.actualItem}>
-                        <label style={styles.label}>Primary Powder</label>
-                        <div style={styles.inputWrap}>
-                            <input
-                                type="number"
-                                value={actual.cement}
-                                onChange={(e) => handleActualChange('cement', e.target.value)}
-                                placeholder="0"
-                                style={styles.input}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--accent)'
-                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--border-color)'
-                                    e.target.style.boxShadow = 'none'
-                                }}
-                            />
-                            <span style={styles.inputUnit}>lbs</span>
-                        </div>
-                    </div>
-                    <div style={styles.actualItem}>
-                        <label style={styles.label}>Supplemental</label>
-                        <div style={styles.inputWrap}>
-                            <input
-                                type="number"
-                                value={actual.supplemental}
-                                onChange={(e) => handleActualChange('supplemental', e.target.value)}
-                                placeholder="0"
-                                style={styles.input}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = 'var(--accent)'
-                                    e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 95, 0.1)'
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'var(--border-color)'
-                                    e.target.style.boxShadow = 'none'
-                                }}
-                            />
-                            <span style={styles.inputUnit}>lbs</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
             {adjustments ? (
-                <div style={styles.resultContainer}>
-                    <div style={styles.resultHeader}>
+                <div
+                    className={`bg-green-50 border-2 border-green-200 ${isMobile ? 'rounded-lg mb-6 p-4' : 'rounded-xl mb-8 p-8'}`}
+                >
+                    <div
+                        className={`flex items-center gap-3 text-green-600 font-bold ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`}
+                    >
                         <i className="fas fa-plus-circle"></i>
                         <span>Add to Fix Proportions</span>
                     </div>
-                    <div style={styles.additionsGrid}>
-                        <div style={styles.additionItem(getAddition('coarse') > 0)}>
-                            <span style={styles.addLabel}>Coarse Agg</span>
-                            <span style={styles.addValue(getAddition('coarse') > 0)}>
-                                {getAddition('coarse') > 0 ? `+${getAddition('coarse')} lbs` : 'None'}
-                            </span>
-                        </div>
-                        <div style={styles.additionItem(getAddition('fine') > 0)}>
-                            <span style={styles.addLabel}>Fine Agg</span>
-                            <span style={styles.addValue(getAddition('fine') > 0)}>
-                                {getAddition('fine') > 0 ? `+${getAddition('fine')} lbs` : 'None'}
-                            </span>
-                        </div>
-                        <div style={styles.additionItem(getAddition('cement') > 0)}>
-                            <span style={styles.addLabel}>Primary Powder</span>
-                            <span style={styles.addValue(getAddition('cement') > 0)}>
-                                {getAddition('cement') > 0 ? `+${getAddition('cement')} lbs` : 'None'}
-                            </span>
-                        </div>
-                        <div style={styles.additionItem(getAddition('supplemental') > 0)}>
-                            <span style={styles.addLabel}>Supplemental</span>
-                            <span style={styles.addValue(getAddition('supplemental') > 0)}>
-                                {getAddition('supplemental') > 0 ? `+${getAddition('supplemental')} lbs` : 'None'}
-                            </span>
-                        </div>
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 mb-6">
+                        {[
+                            { key: 'coarse', label: 'Coarse Agg' },
+                            { key: 'fine', label: 'Fine Agg' },
+                            { key: 'cement', label: 'Primary Powder' },
+                            { key: 'supplemental', label: 'Supplemental' }
+                        ].map(({ key, label }) => {
+                            const hasAdd = getAddition(key) > 0
+                            return (
+                                <div
+                                    key={key}
+                                    className={`flex flex-col gap-2 rounded-lg p-4 border-2 ${hasAdd ? 'bg-green-100 border-green-600' : 'bg-[var(--bg-secondary)] border-[var(--border-color)]'}`}
+                                >
+                                    <span className="text-[var(--text-secondary)] text-xs font-semibold uppercase tracking-wide">
+                                        {label}
+                                    </span>
+                                    <span
+                                        className={`text-lg font-bold ${hasAdd ? 'text-green-600' : 'text-[var(--text-tertiary)]'}`}
+                                    >
+                                        {hasAdd ? `+${getAddition(key)} lbs` : 'None'}
+                                    </span>
+                                </div>
+                            )
+                        })}
                     </div>
-                    <div style={styles.batchEstimate}>
-                        <span style={styles.batchLabel}>Estimated Batch:</span>
-                        <span style={styles.batchValue}>{adjustments.adjustedYards.toFixed(1)} yd</span>
-                        <span style={styles.batchChange}>
+                    <div className="flex items-center flex-wrap gap-3 justify-center rounded-lg bg-[var(--card-background)] border border-green-200 p-4">
+                        <span className="text-[var(--text-secondary)] text-sm font-semibold">Estimated Batch:</span>
+                        <span className="text-accent text-2xl font-bold">
+                            {adjustments.adjustedYards.toFixed(1)} yd
+                        </span>
+                        <span className="text-green-600 text-sm font-semibold">
                             (+{(adjustments.adjustedYards - adjustments.targetYards).toFixed(1)} yd from target)
                         </span>
                     </div>
                 </div>
             ) : (
-                <div style={styles.emptyState}>
-                    <div style={styles.emptyIcon}>
+                <div
+                    className={`bg-[var(--bg-secondary)] border-2 border-dashed border-[var(--border-color)] rounded-xl text-center ${isMobile ? 'mb-6' : 'mb-8'} py-12 px-8`}
+                >
+                    <div className="text-[var(--text-tertiary)] text-5xl mb-4">
                         <i className="fas fa-balance-scale"></i>
                     </div>
-                    <span style={styles.emptyText}>
+                    <span className="text-[var(--text-secondary)] text-[0.9375rem]">
                         Enter target mix design and actual weights to calculate adjustments
                     </span>
                 </div>
             )}
-            <div style={styles.footer}>
+            <div className="flex justify-center">
                 <button
                     onClick={clearForm}
-                    style={styles.resetButton}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-secondary)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--card-background)'
-                        e.currentTarget.style.borderColor = 'var(--border-color)'
-                    }}
+                    className="flex items-center gap-2 bg-[var(--card-background)] border border-[var(--border-color)] rounded-lg text-[var(--text-secondary)] cursor-pointer text-[0.9375rem] font-semibold outline-none py-3 px-6 transition-all duration-200 hover:bg-[var(--bg-secondary)]"
                 >
                     <i className="fas fa-redo"></i>
                     <span>Reset</span>

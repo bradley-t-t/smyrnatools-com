@@ -13,7 +13,9 @@ async function fetchListItemsWithRetry() {
     } catch (error) {
         if (!error.message?.includes('Load failed')) return
         await new Promise((resolve) => setTimeout(resolve, 1000))
-        await ListService.fetchListItems({ force: true }).catch(() => {})
+        await ListService.fetchListItems({ force: true }).catch((retryError) => {
+            console.error('Retry fetch for overdue list items also failed:', retryError)
+        })
     }
 }
 /** @returns Whether the item is both incomplete and past its due date. */

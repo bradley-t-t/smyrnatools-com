@@ -1,3 +1,5 @@
+import HistoryDisplayUtility from '../../../utils/HistoryDisplayUtility'
+
 /**
  * Tractor field-change history entry. Strips time components from service date fields
  * during deserialization for cleaner display.
@@ -53,34 +55,23 @@ export class TractorHistory {
     }
 }
 /**
- * Display formatting helpers for tractor history values:
- * date localization, cleanliness rating labels, blower boolean formatting,
- * and null-operator normalization.
+ * Display formatting helpers for tractor history values.
+ * Delegates shared logic to HistoryDisplayUtility; handles tractor-specific blower formatting.
  */
 export class TractorHistoryUtils {
     static formatValueForDisplay(fieldName, value) {
         if (!value) return ''
         if (['last_service_date'].includes(fieldName)) {
-            try {
-                const date = new Date(value)
-                if (!isNaN(date.getTime())) return date.toLocaleDateString()
-            } catch (error) {}
+            const formatted = HistoryDisplayUtility.formatDateValue(value)
+            if (formatted) return formatted
         }
         if (fieldName === 'cleanliness_rating') {
-            const rating = parseInt(value, 10)
-            if (!isNaN(rating)) {
-                const ratingLabels = {
-                    1: 'Poor (1)',
-                    2: 'Fair (2)',
-                    3: 'Good (3)',
-                    4: 'Very Good (4)',
-                    5: 'Excellent (5)'
-                }
-                return ratingLabels[rating] || `${rating}`
-            }
+            const formatted = HistoryDisplayUtility.formatCleanlinessRating(value)
+            if (formatted) return formatted
         }
         if (['assigned_operator', 'assigned_plant'].includes(fieldName)) {
-            if (['0', 'null', 'undefined'].includes(value)) return 'None'
+            const formatted = HistoryDisplayUtility.formatAssignmentValue(value)
+            if (formatted) return formatted
         }
         if (fieldName === 'status' && value === '0') return 'None'
         if (fieldName === 'has_blower') {
@@ -89,13 +80,6 @@ export class TractorHistoryUtils {
         return value
     }
     static areSameDates(date1, date2) {
-        if (!date1 && !date2) return true
-        if (!date1 || !date2) return false
-        try {
-            return new Date(date1).toISOString().split('T')[0] === new Date(date2).toISOString().split('T')[0]
-        } catch (error) {
-            console.error('Error comparing dates:', error)
-            return false
-        }
+        return HistoryDisplayUtility.areSameDates(date1, date2)
     }
 }

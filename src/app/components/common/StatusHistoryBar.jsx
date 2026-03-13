@@ -138,42 +138,27 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
     const totalDays = statusPercentages?.reduce((sum, s) => sum + s.days, 0) || 0
     return (
         <div
-            style={{
-                marginTop: '8px',
-                position: 'relative',
-                width: '100%'
-            }}
+            className="relative mt-2 w-full"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div
-                style={{
-                    background: 'var(--bg-hover)',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    height: '6px',
-                    overflow: 'hidden',
-                    width: '100%'
-                }}
-            >
+            <div className="flex h-1.5 w-full overflow-hidden rounded-md bg-bg-hover">
                 {loading ? (
                     <div
+                        className="h-full w-full animate-shimmer"
                         style={{
-                            animation: 'shimmer 1.5s infinite',
                             background:
                                 'linear-gradient(90deg, var(--bg-hover) 0%, var(--bg-secondary) 50%, var(--bg-hover) 100%)',
-                            backgroundSize: '200% 100%',
-                            height: '100%',
-                            width: '100%'
+                            backgroundSize: '200% 100%'
                         }}
                     />
                 ) : statusPercentages && statusPercentages.length > 0 ? (
                     statusPercentages.map((item, index) => (
                         <div
                             key={index}
+                            className="h-full transition-[width] duration-[600ms] ease-out"
                             style={{
                                 background: STATUS_COLORS[item.status] || '#64748b',
-                                height: '100%',
                                 minWidth: item.percentage > 0 ? '2px' : '0',
                                 opacity: animateIn ? 1 : 0,
                                 transition: 'width 0.6s ease-out, opacity 0.4s ease-out',
@@ -185,65 +170,25 @@ const StatusHistoryBar = memo(function StatusHistoryBar({ itemId, itemType, curr
                 ) : null}
             </div>
             {isHovered && !loading && statusPercentages && statusPercentages.length > 0 && (
-                <div
-                    style={{
-                        background: 'var(--bg-primary)',
-                        border: '1px solid var(--border-light)',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        left: '50%',
-                        minWidth: '140px',
-                        padding: '8px 10px',
-                        position: 'absolute',
-                        top: '100%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 1000
-                    }}
-                >
-                    <div
-                        style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '9px',
-                            fontWeight: 600,
-                            marginBottom: '6px',
-                            textTransform: 'uppercase'
-                        }}
-                    >
+                <div className="absolute left-1/2 top-full z-[1000] min-w-[140px] -translate-x-1/2 rounded-lg border border-border-light bg-bg-primary p-2.5 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+                    <div className="mb-1.5 text-[9px] font-semibold uppercase text-text-secondary">
                         {totalDays} days tracked
                     </div>
                     {statusPercentages.map((item, index) => (
                         <div
                             key={index}
-                            style={{
-                                alignItems: 'center',
-                                display: 'flex',
-                                gap: '6px',
-                                marginBottom: index < statusPercentages.length - 1 ? '4px' : 0
-                            }}
+                            className={`flex items-center gap-1.5 ${index < statusPercentages.length - 1 ? 'mb-1' : ''}`}
                         >
                             <div
-                                style={{
-                                    background: STATUS_COLORS[item.status] || '#64748b',
-                                    borderRadius: '2px',
-                                    flexShrink: 0,
-                                    height: '8px',
-                                    width: '8px'
-                                }}
+                                className="h-2 w-2 flex-shrink-0 rounded-sm"
+                                style={{ background: STATUS_COLORS[item.status] || '#64748b' }}
                             />
-                            <span style={{ color: 'var(--text-primary)', flex: 1, fontSize: '11px', fontWeight: 500 }}>
-                                {item.status}
-                            </span>
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{item.percentage}%</span>
+                            <span className="flex-1 text-[11px] font-medium text-text-primary">{item.status}</span>
+                            <span className="text-[10px] text-text-secondary">{item.percentage}%</span>
                         </div>
                     ))}
                 </div>
             )}
-            <style>{`
-                @keyframes shimmer {
-                    0% { background-position: 200% 0; }
-                    100% { background-position: -200% 0; }
-                }
-            `}</style>
         </div>
     )
 })

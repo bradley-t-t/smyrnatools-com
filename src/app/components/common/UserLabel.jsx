@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from 'react'
 
 import { UserService } from '../../../services/UserService'
+import UserUtility from '../../../utils/UserUtility'
 import { useAccentColor } from '../../hooks/useAccentColor'
 /** Size-variant Tailwind class mappings for the label and initials badge. */
 const SIZE_CONFIG = {
     large: { fontSize: 'text-base', initialsFontSize: 'text-[13px]', initialsSize: 'h-8 w-8' },
     medium: { fontSize: 'text-sm', initialsFontSize: 'text-[11px]', initialsSize: 'h-[26px] w-[26px]' },
     small: { fontSize: 'text-xs', initialsFontSize: 'text-[10px]', initialsSize: 'h-5 w-5' }
-}
-/**
- * Extracts up to two-letter initials from a display name.
- * @param {string} displayName
- * @returns {string} Uppercase initials (e.g. "JD" for "John Doe").
- */
-function getInitials(displayName) {
-    const parts = displayName.trim().split(' ').filter(Boolean)
-    if (parts.length > 1) return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-    return displayName.substring(0, 2).toUpperCase()
 }
 /**
  * Inline label that asynchronously resolves and displays a user's name by ID.
@@ -49,7 +40,7 @@ function UserLabel({ userId, showInitials = false, showIcon = false, size = 'med
                 const displayName = await UserService.getUserDisplayName(userId)
                 if (!mounted) return
                 setUserName(displayName)
-                setInitials(getInitials(displayName))
+                setInitials(UserUtility.getInitials(displayName))
             } catch (err) {
                 if (mounted) {
                     setError(err.message)

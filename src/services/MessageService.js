@@ -11,7 +11,8 @@ async function resolveUserId(sessionId) {
     try {
         const { data } = await supabase.from('users_sessions').select('user_id').eq('id', sessionId).maybeSingle()
         return data?.user_id || sessionId
-    } catch {
+    } catch (err) {
+        console.error('Failed to resolve user ID from session:', err)
         return sessionId
     }
 }
@@ -19,16 +20,23 @@ async function resolveUserId(sessionId) {
  * Service for direct user-to-user encrypted messaging.
  * Messages are encrypted at rest via pgcrypto and decrypted through a database view.
  */
+/** Soft-deletes a message by setting the given boolean column to true. */
+async function _softDelete(messageId, column) {
+    if (!messageId) return
+    const { error } = await supabase
+        .from(MESSAGES_TABLE)
+        .update({ [column]: true })
+        .eq('id', messageId)
+    if (error) console.error(`Failed to soft-delete message (${column}):`, error)
+}
 const MessageService = {
     /** Soft-deletes a message for the recipient. */
     async deleteForRecipient(messageId) {
-        if (!messageId) return
-        await supabase.from(MESSAGES_TABLE).update({ deleted_by_recipient: true }).eq('id', messageId)
+        return _softDelete(messageId, 'deleted_by_recipient')
     },
     /** Soft-deletes a message for the sender. */
     async deleteForSender(messageId) {
-        if (!messageId) return
-        await supabase.from(MESSAGES_TABLE).update({ deleted_by_sender: true }).eq('id', messageId)
+        return _softDelete(messageId, 'deleted_by_sender')
     },
     /**
      * Fetches all messages the user is involved in (sent or received, not deleted).
@@ -37,7 +45,7 @@ const MessageService = {
     async getAllMessages(userId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId) return []
-        const [{ data: received }, { data: sent }] = await Promise.all([
+        const [receivedResult, sentResult] = await Promise.all([
             supabase
                 .from(MESSAGES_VIEW)
                 .select('*')
@@ -53,6 +61,10 @@ const MessageService = {
                 .order('created_at', { ascending: false })
                 .limit(200)
         ])
+        if (receivedResult.error) throw receivedResult.error
+        if (sentResult.error) throw sentResult.error
+        const { data: received } = receivedResult
+        const { data: sent } = sentResult
         // Merge, deduplicate by id, sort newest first
         const map = new Map()
         ;[...(received || []), ...(sent || [])].forEach((row) => {

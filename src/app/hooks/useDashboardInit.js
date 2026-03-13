@@ -67,7 +67,8 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                     setDashboardRegionCode(regionsList[0].regionCode)
                     setDashboardRegionName(regionsList[0].regionName)
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to initialize dashboard base data:', e)
             } finally {
                 if (!cancelled) initialLoadRef.current = false
             }
@@ -146,7 +147,8 @@ export function useDashboardInit({ plantSetRef, preferences }) {
                         plantSetRef.current = new Set([profileData.data.plant_code])
                     }
                 }
-            } catch {
+            } catch (e) {
+                console.error('Failed to check plant manager role:', e)
                 if (!cancelled) {
                     setIsPlantManager(false)
                     setUserRoleWeight(0)

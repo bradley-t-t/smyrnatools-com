@@ -1,24 +1,6 @@
 import React from 'react'
 
-const MetricCard = ({ label, value, icon, color, accentColor, suffix }) => (
-    <div className="flex items-center gap-2.5 bg-white rounded-xl shadow-sm border border-slate-100 px-3.5 py-2.5 min-w-[130px] flex-1">
-        {icon && (
-            <div
-                className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
-                style={{ background: `${color || accentColor}15` }}
-            >
-                <i className={`fas ${icon} text-xs`} style={{ color: color || accentColor }} />
-            </div>
-        )}
-        <div className="flex flex-col min-w-0">
-            <span className="text-[11px] text-slate-500 font-medium uppercase tracking-wide">{label}</span>
-            <span className="text-lg font-bold leading-tight" style={{ color: color || accentColor }}>
-                {value}
-                {suffix && <span className="text-xs font-medium text-slate-400 ml-0.5">{suffix}</span>}
-            </span>
-        </div>
-    </div>
-)
+import { MetricPill as MetricCard } from './shared/DashboardSharedComponents'
 
 /**
  * Horizontal strip of 6–8 key metric cards displayed at the top of the main content area.

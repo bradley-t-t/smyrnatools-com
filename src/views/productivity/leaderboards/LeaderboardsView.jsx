@@ -82,22 +82,6 @@ export default function LeaderboardsView() {
     )
     return (
         <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100">
-            <style>{`
-                @keyframes lbRevealFromLeft {
-                    from { opacity: 0; transform: translateX(-18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes lbRevealFromRight {
-                    from { opacity: 0; transform: translateX(18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .lb-reveal-left {
-                    animation: lbRevealFromLeft 0.5s ease-out both;
-                }
-                .lb-reveal-right {
-                    animation: lbRevealFromRight 0.5s ease-out both;
-                }
-            `}</style>
             <header className="border-b border-slate-200 bg-white shadow-sm" style={GRID_PATTERN_STYLE(accentColor)}>
                 {hideRealContent && headerSkeleton}
                 <div
@@ -106,7 +90,7 @@ export default function LeaderboardsView() {
                 >
                     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div
-                            className={revealControls ? 'lb-reveal-left' : ''}
+                            className={revealControls ? 'animate-reveal-left' : ''}
                             style={revealControls ? { animationDelay: '0ms' } : undefined}
                         >
                             <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">Leaderboards</h1>
@@ -115,14 +99,14 @@ export default function LeaderboardsView() {
                             </p>
                         </div>
                         <div
-                            className={revealControls ? 'lb-reveal-right' : ''}
+                            className={revealControls ? 'animate-reveal-right' : ''}
                             style={revealControls ? { animationDelay: '60ms' } : undefined}
                         >
                             <YearSelector selectedYear={selectedYear} onYearChange={setSelectedYear} startYear={2025} />
                         </div>
                     </div>
                     <div
-                        className={revealControls ? 'lb-reveal-left' : ''}
+                        className={revealControls ? 'animate-reveal-left' : ''}
                         style={revealControls ? { animationDelay: '120ms' } : undefined}
                     >
                         <LeaderboardCategorySelector

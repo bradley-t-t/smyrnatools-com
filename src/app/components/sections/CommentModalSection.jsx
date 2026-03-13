@@ -137,391 +137,144 @@ function CommentModalSection({ itemId, itemNumber, itemType, onClose, service })
         return dateB - dateA
     })
     if (typeof document === 'undefined' || !document.body) return null
+    const isSubmitDisabled = isSubmitting || !newComment.trim()
     return ReactDOM.createPortal(
-        <>
-            <style>{`
-                @keyframes commentSlideIn {
-                    from { opacity: 0; transform: translateY(20px) scale(0.98); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                @keyframes commentFadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                .comment-card-hover:hover {
-                    transform: translateX(4px);
-                    box-shadow: -4px 0 0 0 var(--text-secondary), 0 4px 20px rgba(0,0,0,0.08);
-                }
-                @media (max-width: 480px) {
-                    .comment-modal-header { padding: 1rem !important; }
-                    .comment-modal-header-icon { height: 40px !important; width: 40px !important; border-radius: 10px !important; }
-                    .comment-modal-header-icon i { font-size: 1.125rem !important; }
-                    .comment-modal-title { font-size: 1.125rem !important; }
-                    .comment-modal-body { padding: 0.75rem !important; }
-                    .comment-modal-form-inner { padding: 0.75rem !important; }
-                }
-            `}</style>
+        <div
+            onClick={handleBackdropClick}
+            className="fixed inset-0 z-[2000] flex items-center justify-center p-4 backdrop-blur-lg animate-comment-fade-in"
+            style={{ background: 'rgba(15, 23, 42, 0.7)' }}
+        >
             <div
-                onClick={handleBackdropClick}
-                style={{
-                    alignItems: 'center',
-                    animation: 'commentFadeIn 0.2s ease',
-                    backdropFilter: 'blur(8px)',
-                    background: 'rgba(15, 23, 42, 0.7)',
-                    bottom: 0,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    left: 0,
-                    padding: '1rem',
-                    position: 'fixed',
-                    right: 0,
-                    top: 0,
-                    zIndex: 2000
-                }}
+                onClick={(e) => e.stopPropagation()}
+                className="animate-comment-slide-in bg-bg-secondary rounded-[20px] shadow-modal flex flex-col max-h-[90vh] max-w-[580px] w-full overflow-hidden"
             >
+                {/* Header */}
                 <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                        animation: 'commentSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: '20px',
-                        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        maxHeight: '90vh',
-                        maxWidth: '580px',
-                        overflow: 'hidden',
-                        width: '100%'
-                    }}
+                    className="relative border-b border-border-light p-6 max-[480px]:p-4"
+                    style={{ background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-hover) 100%)' }}
                 >
-                    <div
-                        className="comment-modal-header"
-                        style={{
-                            background: 'linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-hover) 100%)',
-                            borderBottom: '1px solid var(--border-light)',
-                            padding: '1.5rem',
-                            position: 'relative'
-                        }}
+                    <button
+                        onClick={onClose}
+                        className="absolute right-4 top-4 flex items-center justify-center w-9 h-9 bg-bg-hover border-none rounded-[10px] text-text-secondary text-base cursor-pointer transition-all duration-200 hover:bg-border-medium"
                     >
-                        <button
-                            onClick={onClose}
-                            style={{
-                                alignItems: 'center',
-                                background: 'var(--bg-hover)',
-                                border: 'none',
-                                borderRadius: '10px',
-                                color: 'var(--text-secondary)',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                fontSize: '1rem',
-                                height: '36px',
-                                justifyContent: 'center',
-                                position: 'absolute',
-                                right: '1rem',
-                                top: '1rem',
-                                transition: 'all 0.2s',
-                                width: '36px'
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border-medium)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                        >
-                            <i className="fas fa-times"></i>
-                        </button>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
-                            <div
-                                className="comment-modal-header-icon"
-                                style={{
-                                    alignItems: 'center',
-                                    background: 'var(--bg-hover)',
-                                    borderRadius: '14px',
-                                    display: 'flex',
-                                    height: '52px',
-                                    justifyContent: 'center',
-                                    width: '52px'
-                                }}
-                            >
-                                <i
-                                    className="fas fa-comments"
-                                    style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}
-                                ></i>
-                            </div>
-                            <div>
-                                <div
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        letterSpacing: '1px',
-                                        marginBottom: '2px',
-                                        textTransform: 'uppercase'
-                                    }}
-                                >
-                                    {itemType}
-                                </div>
-                                <div
-                                    className="comment-modal-title"
-                                    style={{ color: 'var(--text-primary)', fontSize: '1.375rem', fontWeight: 700 }}
-                                >
-                                    {itemNumber || itemId}
-                                </div>
-                            </div>
+                        <i className="fas fa-times"></i>
+                    </button>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-[52px] h-[52px] bg-bg-hover rounded-[14px] max-[480px]:w-10 max-[480px]:h-10 max-[480px]:rounded-[10px]">
+                            <i className="fas fa-comments text-text-secondary text-2xl max-[480px]:text-lg"></i>
                         </div>
-                        <div style={{ alignItems: 'center', display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                            <span
-                                style={{
-                                    background: 'var(--bg-hover)',
-                                    borderRadius: '8px',
-                                    color: 'var(--text-secondary)',
-                                    fontSize: '0.8125rem',
-                                    fontWeight: 600,
-                                    padding: '0.5rem 0.875rem'
-                                }}
-                            >
-                                <i className="fas fa-comment" style={{ marginRight: '0.5rem' }}></i>
-                                {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
-                            </span>
+                        <div>
+                            <div className="text-text-secondary text-xs font-semibold uppercase tracking-[1px] mb-0.5">
+                                {itemType}
+                            </div>
+                            <div className="text-text-primary text-[22px] font-bold max-[480px]:text-lg">
+                                {itemNumber || itemId}
+                            </div>
                         </div>
                     </div>
-                    <div className="comment-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.25rem' }}>
-                        <ErrorMessage message={error} onDismiss={() => setError(null)} />
-                        <form onSubmit={handleAddComment} style={{ marginBottom: '1.25rem' }}>
-                            <div
-                                className="comment-modal-form-inner"
-                                style={{
-                                    background: 'var(--bg-primary)',
-                                    borderRadius: '14px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                    padding: '1rem'
-                                }}
-                            >
-                                <textarea
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Write a comment..."
-                                    disabled={isSubmitting}
-                                    rows="2"
-                                    style={{
-                                        background: 'var(--bg-secondary)',
-                                        border: '2px solid transparent',
-                                        borderRadius: '10px',
-                                        color: 'var(--text-primary)',
-                                        fontFamily: 'inherit',
-                                        fontSize: '0.9375rem',
-                                        outline: 'none',
-                                        padding: '0.875rem',
-                                        resize: 'none',
-                                        transition: 'all 0.2s',
-                                        width: '100%'
-                                    }}
-                                    onFocus={(e) => {
-                                        e.currentTarget.style.borderColor = '#dc2626'
-                                        e.currentTarget.style.background = 'var(--bg-primary)'
-                                    }}
-                                    onBlur={(e) => {
-                                        e.currentTarget.style.borderColor = 'transparent'
-                                        e.currentTarget.style.background = 'var(--bg-secondary)'
-                                    }}
-                                />
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting || !newComment.trim()}
-                                        style={{
-                                            alignItems: 'center',
-                                            background:
-                                                isSubmitting || !newComment.trim()
-                                                    ? 'var(--border-medium)'
-                                                    : 'linear-gradient(135deg, var(--accent), #0f172a)',
-                                            border: 'none',
-                                            borderRadius: '10px',
-                                            boxShadow:
-                                                isSubmitting || !newComment.trim()
-                                                    ? 'none'
-                                                    : '0 4px 12px rgba(30, 58, 95, 0.3)',
-                                            color: 'white',
-                                            cursor: isSubmitting || !newComment.trim() ? 'not-allowed' : 'pointer',
-                                            display: 'flex',
-                                            fontSize: '0.8125rem',
-                                            fontWeight: 600,
-                                            gap: '0.375rem',
-                                            padding: '0.625rem 1.25rem',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        <i className="fas fa-paper-plane" style={{ fontSize: '0.75rem' }}></i>
-                                        {isSubmitting ? 'Posting...' : 'Post'}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                        {isLoading ? (
-                            <div
-                                style={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    padding: '3rem'
-                                }}
-                            >
-                                <LoadingScreen message="Loading comments..." inline={true} />
-                            </div>
-                        ) : comments.length === 0 ? (
-                            <div
-                                style={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    padding: '3rem 1rem',
-                                    textAlign: 'center'
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        alignItems: 'center',
-                                        background: 'var(--bg-hover)',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        height: '64px',
-                                        justifyContent: 'center',
-                                        marginBottom: '1rem',
-                                        width: '64px'
-                                    }}
-                                >
-                                    <i
-                                        className="fas fa-comment-dots"
-                                        style={{ color: 'var(--text-secondary)', fontSize: '1.5rem' }}
-                                    ></i>
-                                </div>
-                                <p
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '0.9375rem',
-                                        fontWeight: 500,
-                                        margin: 0
-                                    }}
-                                >
-                                    No comments yet
-                                </p>
-                                <p
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        fontSize: '0.8125rem',
-                                        margin: '0.25rem 0 0 0'
-                                    }}
-                                >
-                                    Be the first to add a comment
-                                </p>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                                {sortedComments.map((comment) => {
-                                    const authorName = getAuthorName(comment)
-                                    const avatarGradient = getAvatarGradient(authorName)
-                                    return (
-                                        <div
-                                            key={comment.id}
-                                            className="comment-card-hover"
-                                            style={{
-                                                background: 'var(--bg-primary)',
-                                                borderRadius: '12px',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                                                padding: '1rem',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                        >
-                                            <div style={{ alignItems: 'flex-start', display: 'flex', gap: '0.75rem' }}>
-                                                <div
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: avatarGradient,
-                                                        border: '2px solid rgba(255, 255, 255, 0.2)',
-                                                        borderRadius: '50%',
-                                                        boxShadow: '0 2px 8px rgba(30, 58, 95, 0.25)',
-                                                        color: 'white',
-                                                        display: 'flex',
-                                                        flexShrink: 0,
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: 700,
-                                                        height: '36px',
-                                                        justifyContent: 'center',
-                                                        width: '36px'
-                                                    }}
-                                                >
-                                                    {getInitials(authorName)}
-                                                </div>
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div
-                                                        style={{
-                                                            alignItems: 'center',
-                                                            display: 'flex',
-                                                            gap: '0.5rem',
-                                                            marginBottom: '0.375rem'
-                                                        }}
-                                                    >
-                                                        <span
-                                                            style={{
-                                                                color: 'var(--text-primary)',
-                                                                fontSize: '0.875rem',
-                                                                fontWeight: 600
-                                                            }}
-                                                        >
-                                                            {authorName}
-                                                        </span>
-                                                        <span
-                                                            style={{
-                                                                color: 'var(--text-secondary)',
-                                                                fontSize: '0.75rem'
-                                                            }}
-                                                        >
-                                                            {formatDate(comment.createdAt || comment.created_at)}
-                                                        </span>
-                                                    </div>
-                                                    <p
-                                                        style={{
-                                                            color: 'var(--text-secondary)',
-                                                            fontSize: '0.9375rem',
-                                                            lineHeight: 1.5,
-                                                            margin: 0,
-                                                            whiteSpace: 'pre-wrap',
-                                                            wordBreak: 'break-word'
-                                                        }}
-                                                    >
-                                                        {comment.text}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleDeleteComment(comment.id)}
-                                                    title="Delete"
-                                                    style={{
-                                                        alignItems: 'center',
-                                                        background: '#fef2f2',
-                                                        border: 'none',
-                                                        borderRadius: '8px',
-                                                        color: '#ef4444',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        flexShrink: 0,
-                                                        fontSize: '0.75rem',
-                                                        height: '32px',
-                                                        justifyContent: 'center',
-                                                        transition: 'all 0.15s',
-                                                        width: '32px'
-                                                    }}
-                                                    onMouseEnter={(e) => (e.currentTarget.style.background = '#fee2e2')}
-                                                    onMouseLeave={(e) => (e.currentTarget.style.background = '#fef2f2')}
-                                                >
-                                                    <i className="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
+                    <div className="flex items-center gap-2 mt-4">
+                        <span className="bg-bg-hover rounded-lg text-text-secondary text-[13px] font-semibold py-2 px-3.5">
+                            <i className="fas fa-comment mr-2"></i>
+                            {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+                        </span>
                     </div>
                 </div>
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-5 max-[480px]:p-3">
+                    <ErrorMessage message={error} onDismiss={() => setError(null)} />
+                    {/* Comment form */}
+                    <form onSubmit={handleAddComment} className="mb-5">
+                        <div className="bg-bg-primary rounded-[14px] shadow-sm p-4 max-[480px]:p-3">
+                            <textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Write a comment..."
+                                disabled={isSubmitting}
+                                rows="2"
+                                className="w-full bg-bg-secondary border-2 border-transparent rounded-[10px] text-text-primary font-[inherit] text-[15px] outline-none p-3.5 resize-none transition-all duration-200 focus:border-red-600 focus:bg-bg-primary"
+                            />
+                            <div className="flex justify-end mt-3">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitDisabled}
+                                    className={`flex items-center gap-1.5 border-none rounded-[10px] text-white text-[13px] font-semibold py-2.5 px-5 transition-all duration-200 ${isSubmitDisabled ? 'bg-border-medium cursor-not-allowed shadow-none' : 'cursor-pointer'}`}
+                                    style={
+                                        isSubmitDisabled
+                                            ? undefined
+                                            : {
+                                                  background: 'linear-gradient(135deg, var(--accent), #0f172a)',
+                                                  boxShadow: '0 4px 12px rgba(30, 58, 95, 0.3)'
+                                              }
+                                    }
+                                >
+                                    <i className="fas fa-paper-plane text-xs"></i>
+                                    {isSubmitting ? 'Posting...' : 'Post'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {/* Comments list */}
+                    {isLoading ? (
+                        <div className="flex items-center justify-center p-12">
+                            <LoadingScreen message="Loading comments..." inline={true} />
+                        </div>
+                    ) : comments.length === 0 ? (
+                        <div className="flex flex-col items-center py-12 px-4 text-center">
+                            <div className="flex items-center justify-center w-16 h-16 bg-bg-hover rounded-full mb-4">
+                                <i className="fas fa-comment-dots text-text-secondary text-2xl"></i>
+                            </div>
+                            <p className="text-text-secondary text-[15px] font-medium m-0">No comments yet</p>
+                            <p className="text-text-secondary text-[13px] mt-1 mb-0">Be the first to add a comment</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-2.5">
+                            {sortedComments.map((comment) => {
+                                const authorName = getAuthorName(comment)
+                                const avatarGradient = getAvatarGradient(authorName)
+                                return (
+                                    <div
+                                        key={comment.id}
+                                        className="bg-bg-primary rounded-xl shadow-sm p-4 transition-all duration-200 hover:translate-x-1 hover:shadow-md"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div
+                                                className="flex items-center justify-center shrink-0 w-9 h-9 rounded-full border-2 border-white/20 text-white text-xs font-bold"
+                                                style={{
+                                                    background: avatarGradient,
+                                                    boxShadow: '0 2px 8px rgba(30, 58, 95, 0.25)'
+                                                }}
+                                            >
+                                                {getInitials(authorName)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <span className="text-text-primary text-sm font-semibold">
+                                                        {authorName}
+                                                    </span>
+                                                    <span className="text-text-secondary text-xs">
+                                                        {formatDate(comment.createdAt || comment.created_at)}
+                                                    </span>
+                                                </div>
+                                                <p className="text-text-secondary text-[15px] leading-relaxed m-0 whitespace-pre-wrap break-words">
+                                                    {comment.text}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteComment(comment.id)}
+                                                title="Delete"
+                                                className="flex items-center justify-center shrink-0 w-8 h-8 bg-red-50 border-none rounded-lg text-red-500 text-xs cursor-pointer transition-all duration-150 hover:bg-red-100"
+                                            >
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
-        </>,
+        </div>,
         document.body
     )
 }

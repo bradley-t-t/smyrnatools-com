@@ -1,6 +1,22 @@
 import { UserService } from '../services/UserService'
+import { hasNoOperator } from './BaseAssetUtility'
 import ValidationUtility from './ValidationUtility'
 import VerifiedUtility from './VerifiedUtility'
+
+/** Resolves asset make/model/year across different field naming conventions. */
+function getFieldValue(item, fieldType) {
+    switch (fieldType) {
+        case 'make':
+            return item.make || item.equipmentMake || item.tractorMake || item.trailerMake
+        case 'model':
+            return item.model || item.equipmentModel || item.tractorModel || item.trailerModel
+        case 'year':
+            return item.year || item.yearMade || item.tractorYear || item.trailerYear
+        default:
+            return null
+    }
+}
+
 /**
  * Data-integrity cleanup routines for fleet assets.
  * Fixes null-operator assignments and invalidates verification status
@@ -56,18 +72,6 @@ class CleanupUtility {
                 total: 0
             }
         }
-        const getFieldValue = (item, fieldType) => {
-            switch (fieldType) {
-                case 'make':
-                    return item.make || item.equipmentMake || item.tractorMake || item.trailerMake
-                case 'model':
-                    return item.model || item.equipmentModel || item.tractorModel || item.trailerModel
-                case 'year':
-                    return item.year || item.yearMade || item.tractorYear || item.trailerYear
-                default:
-                    return null
-            }
-        }
         const invalidItems = items.filter((item) => {
             const isMarkedVerified = VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy)
             if (!isMarkedVerified) {
@@ -94,13 +98,7 @@ class CleanupUtility {
                 return true
             }
             if ((assetType === 'mixer' || assetType === 'tractor') && item.status === 'Active') {
-                const hasValidOperator =
-                    item.assignedOperator &&
-                    item.assignedOperator !== '0' &&
-                    item.assignedOperator !== 0 &&
-                    item.assignedOperator !== null &&
-                    item.assignedOperator !== undefined
-                if (!hasValidOperator) {
+                if (hasNoOperator(item)) {
                     return true
                 }
                 if (operators && operators.length > 0) {
@@ -141,18 +139,6 @@ class CleanupUtility {
     }
     static _getVerificationIssues(item, assetType, operators = []) {
         const issues = []
-        const getFieldValue = (item, fieldType) => {
-            switch (fieldType) {
-                case 'make':
-                    return item.make || item.equipmentMake || item.tractorMake || item.trailerMake
-                case 'model':
-                    return item.model || item.equipmentModel || item.tractorModel || item.trailerModel
-                case 'year':
-                    return item.year || item.yearMade || item.tractorYear || item.trailerYear
-                default:
-                    return null
-            }
-        }
         if (item.status === 'Retired') {
             issues.push('Retired assets cannot be verified')
         }
@@ -172,13 +158,7 @@ class CleanupUtility {
             issues.push('Missing Year')
         }
         if ((assetType === 'mixer' || assetType === 'tractor') && item.status === 'Active') {
-            const hasValidOperator =
-                item.assignedOperator &&
-                item.assignedOperator !== '0' &&
-                item.assignedOperator !== 0 &&
-                item.assignedOperator !== null &&
-                item.assignedOperator !== undefined
-            if (!hasValidOperator) {
+            if (hasNoOperator(item)) {
                 issues.push(`Missing or invalid operator for active ${assetType}`)
             } else if (operators && operators.length > 0) {
                 const operatorExists = operators.some((op) => op.employeeId === item.assignedOperator)

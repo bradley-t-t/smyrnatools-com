@@ -1,6 +1,17 @@
 import React from 'react'
 
 import CardSection from '../../../app/components/sections/CardSection'
+
+/** Maps pickup truck status to card accent color. */
+const STATUS_COLORS = {
+    Active: 'var(--status-active)',
+    'In Shop': 'var(--status-inshop)',
+    Retired: 'var(--status-retired)',
+    Sold: 'var(--status-sold)',
+    Spare: 'var(--status-spare)',
+    Stationary: 'var(--status-stationary)'
+}
+
 /**
  * Grid-mode card for a single pickup truck. Displays VIN (with duplicate
  * warning), make, model, year, and mileage (with high-mileage warning).
@@ -8,13 +19,7 @@ import CardSection from '../../../app/components/sections/CardSection'
  * Retired, and Sold.
  */
 function PickupTrucksCard({ pickup, onSelect, isDuplicateVin, isHighMileage }) {
-    let statusColor = 'var(--accent)'
-    if (pickup.status === 'Active') statusColor = 'var(--status-active)'
-    else if (pickup.status === 'Stationary') statusColor = 'var(--status-stationary)'
-    else if (pickup.status === 'Spare') statusColor = 'var(--status-spare)'
-    else if (pickup.status === 'In Shop') statusColor = 'var(--status-inshop)'
-    else if (pickup.status === 'Retired') statusColor = 'var(--status-retired)'
-    else if (pickup.status === 'Sold') statusColor = 'var(--status-sold)'
+    const statusColor = STATUS_COLORS[pickup.status] ?? 'var(--accent)'
     const assignedLabel = pickup.assigned || 'Not Assigned'
     return (
         <CardSection
@@ -24,35 +29,35 @@ function PickupTrucksCard({ pickup, onSelect, isDuplicateVin, isHighMileage }) {
             onSelect={onSelect}
             statusColor={statusColor}
         >
-            <div className="detail-row">
-                <div className="detail-label">VIN</div>
-                <div className="detail-value">
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">VIN</div>
+                <div className="text-sm font-medium">
                     <span>{pickup.vin || 'Unknown'}</span>
                     {isDuplicateVin && (
-                        <span className="warning-badge" title="Duplicate VIN">
+                        <span className="ml-1.5 text-amber-500" title="Duplicate VIN">
                             <i className="fas fa-exclamation-triangle"></i>
                         </span>
                     )}
                 </div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Make</div>
-                <div className="detail-value">{pickup.make || 'Unknown'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Make</div>
+                <div className="text-sm font-medium">{pickup.make || 'Unknown'}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Model</div>
-                <div className="detail-value">{pickup.model || 'Unknown'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Model</div>
+                <div className="text-sm font-medium">{pickup.model || 'Unknown'}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Year</div>
-                <div className="detail-value">{pickup.year || 'Unknown'}</div>
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Year</div>
+                <div className="text-sm font-medium">{pickup.year || 'Unknown'}</div>
             </div>
-            <div className="detail-row">
-                <div className="detail-label">Mileage</div>
-                <div className="detail-value">
+            <div className="flex justify-between items-center py-1">
+                <div className="text-sm text-gray-500 dark:text-gray-400">Mileage</div>
+                <div className="text-sm font-medium">
                     <span>{typeof pickup.mileage === 'number' ? pickup.mileage.toLocaleString() : 'Unknown'}</span>
                     {isHighMileage && (
-                        <span className="warning-badge" title="High mileage">
+                        <span className="ml-1.5 text-amber-500" title="High mileage">
                             <i className="fas fa-exclamation-triangle"></i>
                         </span>
                     )}

@@ -362,22 +362,6 @@ function TopSection({
     if (isMobile) {
         return (
             <>
-                <style>{`
-                    @keyframes revealFromLeft {
-                        from { opacity: 0; transform: translateX(-18px); }
-                        to { opacity: 1; transform: translateX(0); }
-                    }
-                    @keyframes revealFromRight {
-                        from { opacity: 0; transform: translateX(18px); }
-                        to { opacity: 1; transform: translateX(0); }
-                    }
-                    .top-reveal-left {
-                        animation: revealFromLeft 0.5s ease-out both;
-                    }
-                    .top-reveal-right {
-                        animation: revealFromRight 0.5s ease-out both;
-                    }
-                `}</style>
                 <div
                     ref={forwardedRef}
                     className={sectionClasses}
@@ -389,7 +373,7 @@ function TopSection({
                     <div className="flex flex-col gap-4" style={hideRealContent ? { display: 'none' } : undefined}>
                         <div className="flex items-center justify-between gap-3">
                             <div
-                                className={`flex items-center gap-3${revealControls ? ' top-reveal-left' : ''}`}
+                                className={`flex items-center gap-3${revealControls ? ' animate-reveal-left' : ''}`}
                                 style={revealControls ? { animationDelay: '0ms' } : undefined}
                             >
                                 <h1 className="text-[22px] font-bold text-slate-900 m-0">{title}</h1>
@@ -400,7 +384,7 @@ function TopSection({
                                 )}
                             </div>
                             <div
-                                className={`flex items-center gap-2.5${revealControls ? ' top-reveal-right' : ''}`}
+                                className={`flex items-center gap-2.5${revealControls ? ' animate-reveal-right' : ''}`}
                                 style={revealControls ? { animationDelay: '60ms' } : undefined}
                             >
                                 {customActions}
@@ -430,7 +414,7 @@ function TopSection({
                         <div className="flex items-center gap-3 mt-0.5">
                             {!hideSearchBar && (
                                 <div
-                                    className={`flex-1${revealControls ? ' top-reveal-left' : ''}`}
+                                    className={`flex-1${revealControls ? ' animate-reveal-left' : ''}`}
                                     style={revealControls ? { animationDelay: '120ms' } : undefined}
                                 >
                                     <SearchInput
@@ -443,7 +427,7 @@ function TopSection({
                                 </div>
                             )}
                             <div
-                                className={revealControls ? 'top-reveal-right' : ''}
+                                className={revealControls ? 'animate-reveal-right' : ''}
                                 style={revealControls ? { animationDelay: '140ms' } : undefined}
                             >
                                 <button
@@ -551,7 +535,7 @@ function TopSection({
                         )}
                         {customBottomContent && (
                             <div
-                                className={revealControls ? 'top-reveal-left' : ''}
+                                className={revealControls ? 'animate-reveal-left' : ''}
                                 style={revealControls ? { animationDelay: '200ms' } : undefined}
                             >
                                 {customBottomContent}
@@ -573,22 +557,6 @@ function TopSection({
     }
     return (
         <>
-            <style>{`
-                @keyframes revealFromLeft {
-                    from { opacity: 0; transform: translateX(-18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes revealFromRight {
-                    from { opacity: 0; transform: translateX(18px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .top-reveal-left {
-                    animation: revealFromLeft 0.5s ease-out both;
-                }
-                .top-reveal-right {
-                    animation: revealFromRight 0.5s ease-out both;
-                }
-            `}</style>
             <div
                 ref={forwardedRef}
                 className={sectionClasses}
@@ -600,7 +568,7 @@ function TopSection({
                 <div className="flex flex-col gap-4" style={hideRealContent ? { display: 'none' } : undefined}>
                     <div className="flex items-center gap-4 justify-between">
                         <div
-                            className={`flex items-center gap-4${revealControls ? ' top-reveal-left' : ''}`}
+                            className={`flex items-center gap-4${revealControls ? ' animate-reveal-left' : ''}`}
                             style={revealControls ? { animationDelay: '0ms' } : undefined}
                         >
                             <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
@@ -613,7 +581,7 @@ function TopSection({
                             )}
                         </div>
                         <div
-                            className={`flex items-center gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
+                            className={`flex items-center gap-3 ml-auto${revealControls ? ' animate-reveal-right' : ''}`}
                             role="group"
                             aria-label="Primary actions"
                             style={revealControls ? { animationDelay: '60ms' } : undefined}
@@ -646,7 +614,7 @@ function TopSection({
                     >
                         {!hideSearchBar && (
                             <div
-                                className={revealControls ? 'top-reveal-left' : ''}
+                                className={revealControls ? 'animate-reveal-left' : ''}
                                 style={revealControls ? { animationDelay: '120ms' } : undefined}
                             >
                                 <SearchInput
@@ -659,7 +627,7 @@ function TopSection({
                             </div>
                         )}
                         <div
-                            className={`flex items-center flex-wrap gap-3 ml-auto${revealControls ? ' top-reveal-right' : ''}`}
+                            className={`flex items-center flex-wrap gap-3 ml-auto${revealControls ? ' animate-reveal-right' : ''}`}
                             role="group"
                             aria-label="Filters and view options"
                             style={revealControls ? { animationDelay: '140ms' } : undefined}
@@ -703,7 +671,7 @@ function TopSection({
                     </div>
                     {customBottomContent && (
                         <div
-                            className={revealControls ? 'top-reveal-left' : ''}
+                            className={revealControls ? 'animate-reveal-left' : ''}
                             style={revealControls ? { animationDelay: '200ms' } : undefined}
                         >
                             {customBottomContent}
@@ -711,7 +679,7 @@ function TopSection({
                     )}
                     {viewMode === 'list' && safeListLabels.length > 0 && (
                         <div
-                            className={revealControls ? 'top-reveal-left' : ''}
+                            className={revealControls ? 'animate-reveal-left' : ''}
                             style={revealControls ? { animationDelay: '260ms' } : undefined}
                         >
                             <ListHeader

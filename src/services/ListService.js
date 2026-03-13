@@ -1,7 +1,29 @@
 import APIUtility from '../utils/APIUtility'
 import CacheUtility from '../utils/CacheUtility'
+import DateUtility from '../utils/DateUtility'
+import FormatUtility from '../utils/FormatUtility'
 import GrammarUtility from '../utils/GrammarUtility'
 import { UserService } from './UserService'
+
+/**
+ * Consolidated status configuration — single source of truth for label, icon, and Tailwind color per status.
+ */
+const STATUS_CONFIG = {
+    blocked: { color: 'text-red-500', cssClass: 'blocked', icon: 'fa-ban', label: 'Blocked' },
+    completed: { color: 'text-green-500', cssClass: 'completed', icon: 'fa-check-circle', label: 'Completed' },
+    in_progress: { color: 'text-blue-400', cssClass: 'in-progress', icon: 'fa-spinner', label: 'In Progress' },
+    ordered_materials: {
+        color: 'text-sky-400',
+        cssClass: 'ordered',
+        icon: 'fa-truck-loading',
+        label: 'Ordered Materials'
+    },
+    overdue: { color: 'text-red-500', cssClass: 'overdue', icon: 'fa-exclamation-circle', label: 'Overdue' },
+    pending: { color: 'text-blue-500', cssClass: 'pending', icon: 'fa-clock', label: 'Pending' },
+    waiting: { color: 'text-yellow-500', cssClass: 'waiting', icon: 'fa-hourglass-half', label: 'Waiting' }
+}
+const DEFAULT_STATUS = STATUS_CONFIG.pending
+
 /**
  * Task list management service handling CRUD, filtering, sorting, and status tracking
  * for plant-level list items. Caches items and creator profiles for performance.
@@ -146,7 +168,9 @@ class ListServiceImpl {
         if (typeof window !== 'undefined') {
             try {
                 window.dispatchEvent(new CustomEvent('notifications-refresh'))
-            } catch {}
+            } catch (err) {
+                console.error('Failed to dispatch notifications-refresh event:', err)
+            }
         }
         return true
     }
@@ -188,99 +212,50 @@ class ListServiceImpl {
         }
         return items
     }
-    /** Formats a date string for display (e.g., "Jan 5, 2026, 02:30 PM"). */
+    /** Formats a date string for display (e.g., "Jan 5, 2026, 02:30 PM"). Delegates to DateUtility. */
     formatDate(dateString) {
         if (!dateString) return 'N/A'
-        const date = new Date(dateString)
-        if (isNaN(date.getTime())) return 'Invalid Date'
-        return date.toLocaleString(undefined, {
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        })
+        const result = DateUtility.formatDateTime(dateString)
+        return result || 'Invalid Date'
     }
-    /** Formats a date string into an HTML datetime-local input value. */
+    /** Formats a date string into an HTML datetime-local input value. Delegates to DateUtility. */
     formatDateForInput(dateString) {
-        if (!dateString) return ''
-        const date = new Date(dateString)
-        if (isNaN(date.getTime())) return ''
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+        return DateUtility.formatDateTimeLocal(dateString)
     }
     /** Returns true if the item has a deadline that has passed and is not completed. */
     isOverdue(item) {
         return item.deadline && !item.completed && new Date(item.deadline) < new Date()
     }
-    /** Returns status display metadata (color, icon, label) based on item state and deadline. */
+    /** Returns status display metadata (Tailwind color class, icon, label) based on item state and deadline. */
     calculateStatusInfo(item) {
-        if (!item) return { color: 'var(--gray-500)', icon: 'question-circle', label: 'Unknown' }
+        if (!item) return { color: 'text-gray-500', icon: 'question-circle', label: 'Unknown' }
         if (item.completed || item.status === 'completed')
-            return {
-                color: 'var(--success)',
-                icon: 'check-circle',
-                label: 'Completed'
-            }
-        if (item.status === 'in_progress') return { color: 'var(--accent)', icon: 'spinner', label: 'In Progress' }
+            return { color: 'text-green-500', icon: 'check-circle', label: 'Completed' }
+        if (item.status === 'in_progress') return { color: 'text-blue-400', icon: 'spinner', label: 'In Progress' }
         if (item.status === 'ordered_materials')
-            return {
-                color: 'var(--info)',
-                icon: 'truck-loading',
-                label: 'Ordered Materials'
-            }
-        if (item.status === 'blocked') return { color: 'var(--danger)', icon: 'ban', label: 'Blocked' }
-        if (item.status === 'waiting') return { color: 'var(--warning)', icon: 'hourglass-half', label: 'Waiting' }
+            return { color: 'text-sky-400', icon: 'truck-loading', label: 'Ordered Materials' }
+        if (item.status === 'blocked') return { color: 'text-red-500', icon: 'ban', label: 'Blocked' }
+        if (item.status === 'waiting') return { color: 'text-yellow-500', icon: 'hourglass-half', label: 'Waiting' }
         const deadline = new Date(item.deadline)
         const now = new Date()
-        if (isNaN(deadline.getTime())) return { color: 'var(--gray-500)', icon: 'calendar-times', label: 'No Deadline' }
+        if (isNaN(deadline.getTime())) return { color: 'text-gray-500', icon: 'calendar-times', label: 'No Deadline' }
         if (deadline < now || item.status === 'overdue')
-            return {
-                color: 'var(--danger)',
-                icon: 'exclamation-circle',
-                label: 'Overdue'
-            }
+            return { color: 'text-red-500', icon: 'exclamation-circle', label: 'Overdue' }
         const hours = (deadline - now) / (1000 * 60 * 60)
-        if (hours < 24) return { color: 'var(--warning)', icon: 'clock', label: 'Due Soon' }
-        return { color: 'var(--primary)', icon: 'calendar-check', label: 'Pending' }
+        if (hours < 24) return { color: 'text-yellow-500', icon: 'clock', label: 'Due Soon' }
+        return { color: 'text-blue-500', icon: 'calendar-check', label: 'Pending' }
     }
-    /** Maps a status key to its human-readable label. */
+    /** Maps a status key to its human-readable label via STATUS_CONFIG. */
     getStatusLabel(status) {
-        const labels = {
-            blocked: 'Blocked',
-            completed: 'Completed',
-            in_progress: 'In Progress',
-            ordered_materials: 'Ordered Materials',
-            overdue: 'Overdue',
-            pending: 'Pending',
-            waiting: 'Waiting'
-        }
-        return labels[status] || 'Pending'
+        return (STATUS_CONFIG[status] ?? DEFAULT_STATUS).label
     }
-    /** Maps a status key to its FontAwesome icon class. */
+    /** Maps a status key to its FontAwesome icon class via STATUS_CONFIG. */
     getStatusIcon(status) {
-        const icons = {
-            blocked: 'fa-ban',
-            completed: 'fa-check-circle',
-            in_progress: 'fa-spinner',
-            ordered_materials: 'fa-truck-loading',
-            overdue: 'fa-exclamation-circle',
-            pending: 'fa-clock',
-            waiting: 'fa-hourglass-half'
-        }
-        return icons[status] || 'fa-clock'
+        return (STATUS_CONFIG[status] ?? DEFAULT_STATUS).icon
     }
-    /** Maps a status key to its CSS color class name. */
+    /** Maps a status key to its CSS color class name via STATUS_CONFIG. */
     getStatusColor(status) {
-        const colors = {
-            blocked: 'blocked',
-            completed: 'completed',
-            in_progress: 'in-progress',
-            ordered_materials: 'ordered',
-            overdue: 'overdue',
-            pending: 'pending',
-            waiting: 'waiting'
-        }
-        return colors[status] || 'pending'
+        return (STATUS_CONFIG[status] ?? DEFAULT_STATUS).cssClass
     }
     /** Maps a responsible role key to its display label. */
     getResponsibleRoleLabel(role) {
@@ -305,14 +280,9 @@ class ListServiceImpl {
         const plant = this.plants.find((p) => p.plant_code === plantCode)
         return plant ? plant.plant_name : plantCode || 'No Plant'
     }
-    /** Truncates text by character count or word count with ellipsis. */
+    /** Truncates text by character count or word count with ellipsis. Delegates to FormatUtility. */
     truncateText(text, maxLength, byWords = false) {
-        if (!text) return ''
-        if (byWords) {
-            const words = text.split(' ')
-            return words.length > maxLength ? `${words.slice(0, maxLength).join(' ')}...` : text
-        }
-        return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text
+        return FormatUtility.truncateText(text, maxLength, byWords)
     }
     /** Resolves a creator's display name from the cached profiles. */
     getCreatorName(userId) {

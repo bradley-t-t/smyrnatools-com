@@ -72,7 +72,8 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                     vin: data?.vin || '',
                     year: data?.year || ''
                 })
-            } catch {
+            } catch (e) {
+                console.error('Failed to fetch pickup truck details:', e)
                 setPickup(null)
             } finally {
                 setIsLoading(false)
@@ -85,7 +86,8 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
             try {
                 const data = await PlantService.fetchPlants()
                 setPlants(Array.isArray(data) ? data : [])
-            } catch {
+            } catch (e) {
+                console.error('Failed to fetch plants for pickup detail view:', e)
                 setPlants([])
             }
         }
@@ -128,7 +130,8 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                         .filter(Boolean)
                 )
                 setRegionPlantCodes(codes)
-            } catch {
+            } catch (e) {
+                console.error('Failed to load allowed plant codes for pickup detail view:', e)
                 if (!cancelled) setRegionPlantCodes(new Set())
             }
         }
@@ -266,7 +269,9 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
         try {
             await PickupTruckService.remove(pickup.id)
             onClose?.()
-        } catch {}
+        } catch (e) {
+            console.error('Failed to delete pickup truck:', e)
+        }
     }
     async function handleBackClick() {
         if (hasUnsavedChanges) {
@@ -290,7 +295,8 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
                 } else {
                     setCanDeletePickup(false)
                 }
-            } catch (error) {
+            } catch (e) {
+                console.error('Failed to check delete permission:', e)
                 setCanDeletePickup(false)
             }
         }
@@ -298,30 +304,6 @@ function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
     }, [])
     return (
         <>
-            {showHistory && <PickupTruckHistoryView pickupTruck={pickup} onClose={() => setShowHistory(false)} />}
-            {showComments && (
-                <PickupTruckCommentModal
-                    pickupId={pickup?.id}
-                    pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
-                    onClose={() => setShowComments(false)}
-                />
-            )}
-            {showIssues && (
-                <PickupTruckIssueModal
-                    pickupId={pickup?.id}
-                    pickupNumber={pickup?.assigned || pickup?.vin || pickup?.id}
-                    onClose={() => setShowIssues(false)}
-                />
-            )}
-            {showPlantModal && (
-                <PlantDropdownModal
-                    isOpen={showPlantModal}
-                    onClose={() => setShowPlantModal(false)}
-                    plants={filteredPlants}
-                    onSelect={setAssignedPlant}
-                    searchPlaceholder="Search plants..."
-                />
-            )}
             <DetailViewSection
                 title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
                 onClose={onClose}

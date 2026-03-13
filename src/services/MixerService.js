@@ -10,6 +10,7 @@ import {
     dispatchNotificationsRefresh,
     ensureSpareIfNoOperatorBase,
     fetchWithDetailsBase,
+    normalizeSeverity,
     requireUserId,
     resolveEntityId,
     uppercaseVin
@@ -31,18 +32,9 @@ const baseService = new BaseAssetService({
     servicePrefix: SERVICE_PREFIX
 })
 
-/** Attaches a lazy isVerified() method to a mixer instance using VerifiedUtility logic. */
-function attachIsVerified(mixer) {
-    if (!mixer) return mixer
-    if (typeof mixer.isVerified !== 'function') {
-        mixer.isVerified = function () {
-            return VerifiedUtility.isVerified(this.updatedLast, this.updatedAt, this.updatedBy)
-        }
-    }
-    return mixer
-}
-/** Attaches an isVerified() method directly using current mixer field values. */
+/** Attaches an isVerified() method using current mixer field values. */
 function enrichMixerWithVerification(mixer) {
+    if (!mixer) return mixer
     mixer.isVerified = () => VerifiedUtility.isVerified(mixer.updatedLast, mixer.updatedAt, mixer.updatedBy)
     return mixer
 }
@@ -68,7 +60,7 @@ class MixerServiceImpl {
     static async fetchMixerById(id) {
         ValidationUtility.requireUUID(id, 'Invalid mixer ID')
         const mixer = await this.getMixerById(id)
-        return mixer ? attachIsVerified(mixer) : null
+        return mixer ? enrichMixerWithVerification(mixer) : null
     }
     /** Fetches the most recent history entry date for a mixer. */
     static async getLatestHistoryDate(mixerId) {
@@ -102,12 +94,12 @@ class MixerServiceImpl {
      * Updates a mixer record. Clears operator assignment when the plant changes
      * to prevent cross-plant operator assignments.
      */
-    static async updateMixer(mixerId, mixer, userId, _prevMixerState = null) {
+    static async updateMixer(mixerId, mixer, userId, prevMixerState = null) {
         const id = resolveEntityId(mixerId)
         ValidationUtility.requireUUID(id, 'Mixer ID is required')
         const resolvedUserId = await requireUserId(userId)
         uppercaseVin(mixer)
-        if (_prevMixerState?.assignedPlant !== mixer.assignedPlant) {
+        if (prevMixerState?.assignedPlant !== mixer.assignedPlant) {
             mixer.assignedOperator = null
         }
         const json = await apiPostOrThrow(
@@ -170,7 +162,7 @@ class MixerServiceImpl {
             { query: query.trim().toUpperCase() },
             'Failed to search mixers by VIN'
         )
-        return (json?.data ?? []).map((row) => attachIsVerified(new Mixer(row)))
+        return (json?.data ?? []).map((row) => enrichMixerWithVerification(new Mixer(row)))
     }
     static async searchMixersByVinProcessed(query) {
         return (await this.searchMixersByVin(query)).map(enrichMixerWithVerification)
@@ -200,11 +192,7 @@ class MixerServiceImpl {
     }
     static async _fetchHistoryDates() {
         const mixers = await this.getAllMixers()
-        const map = {}
-        mixers.forEach((m) => {
-            map[m.id] = m.latestHistoryDate ?? null
-        })
-        return map
+        return Object.fromEntries(mixers.map((m) => [m.id, m.latestHistoryDate ?? null]))
     }
     static async fetchMixerImages(mixerId) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
@@ -257,13 +245,12 @@ class MixerServiceImpl {
     static async addIssue(mixerId, issue, severity, createdBy = null) {
         ValidationUtility.requireUUID(mixerId, 'Mixer ID is required')
         if (!issue?.trim()) throw new Error('Issue description is required')
-        if (!['Low', 'Medium', 'High'].includes(severity)) throw new Error('Severity must be Low, Medium, or High')
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/add-issue`,
             {
                 issue: issue.trim(),
                 mixerId,
-                severity,
+                severity: normalizeSeverity(severity),
                 userId: createdBy
             },
             'Failed to add issue'
@@ -321,7 +308,7 @@ class MixerServiceImpl {
         )
         const mixer = new Mixer(json?.data)
         dispatchNotificationsRefresh({ id: mixerId, plant: mixer.assignedPlant, type: 'mixer' })
-        return attachIsVerified(mixer)
+        return enrichMixerWithVerification(mixer)
     }
 }
 export const MixerService = MixerServiceImpl

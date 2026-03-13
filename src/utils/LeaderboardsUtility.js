@@ -391,9 +391,9 @@ const LeaderboardsUtility = {
         }
     },
     getEfficiencyColor(efficiency) {
-        if (efficiency >= 90) return 'var(--success)'
-        if (efficiency >= 80) return 'var(--warning)'
-        return 'var(--danger)'
+        if (efficiency >= 90) return '#22c55e'
+        if (efficiency >= 80) return '#f59e0b'
+        return '#ef4444'
     }
 }
 export default LeaderboardsUtility

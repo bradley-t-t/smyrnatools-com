@@ -18,7 +18,7 @@ export default function MaintenanceView() {
     const [activeTab, setActiveTab] = useState('due')
     const [dueItems, setDueItems] = useState([])
     const [pendingReviews, setPendingReviews] = useState([])
-    const [allPlants, _setAllPlants] = useState([])
+    const allPlants = []
     const [reviewedSubmissions, setReviewedSubmissions] = useState([])
     const [mySubmissions, setMySubmissions] = useState([])
     const [myForms, setMyForms] = useState([])

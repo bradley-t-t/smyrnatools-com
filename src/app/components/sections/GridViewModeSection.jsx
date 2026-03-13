@@ -27,49 +27,14 @@ function GridViewModeSection({
     plants = plants || []
     tractors = tractors || []
     const isMobile = useIsMobile()
-    const styles = {
-        cardWrapper: {
-            animationFillMode: 'both'
-        },
-        container: {
-            background: 'transparent',
-            display: 'block',
-            margin: 0,
-            marginBottom: '24px',
-            maxHeight: 'calc(100vh - 250px)',
-            maxWidth: '100vw',
-            overflow: 'auto',
-            overflowX: 'hidden',
-            overscrollBehavior: 'none',
-            padding: 0,
-            width: '100%'
-        },
-        grid: {
-            display: 'grid',
-            gap: isMobile ? '0.75rem' : '1rem',
-            gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? '260px' : '300px'}, 1fr))`,
-            padding: isMobile ? '0.75rem' : '1rem'
-        }
-    }
     return (
-        <div style={styles.container}>
-            <style>{`
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(16px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                .grid-card-animated {
-                    animation: fadeInUp 0.45s ease-out;
-                    animation-fill-mode: both;
-                }
-            `}</style>
-            <div style={styles.grid} className={gridClassName}>
+        <div className="block m-0 mb-6 max-h-[calc(100vh-250px)] max-w-[100vw] overflow-auto overflow-x-hidden overscroll-none p-0 w-full bg-transparent">
+            <div
+                className={`grid ${isMobile ? 'gap-3 p-3' : 'gap-4 p-4'} ${gridClassName || ''}`}
+                style={{
+                    gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? '260px' : '300px'}, 1fr))`
+                }}
+            >
                 {filteredItems &&
                     Array.isArray(filteredItems) &&
                     filteredItems.map((item, index) => {
@@ -101,8 +66,8 @@ function GridViewModeSection({
                         return (
                             <div
                                 key={item.id}
-                                className="grid-card-animated"
-                                style={{ ...styles.cardWrapper, animationDelay: `${index * delay}ms` }}
+                                className="animate-fade-in-up"
+                                style={{ animationDelay: `${index * delay}ms` }}
                             >
                                 {cardElement}
                             </div>

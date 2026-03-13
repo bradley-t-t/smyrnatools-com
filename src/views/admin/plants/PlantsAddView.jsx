@@ -46,13 +46,13 @@ function PlantsAddView({ onClose, onPlantAdded }) {
     return (
         <AddViewSection title="Add New Plant" onClose={onClose} error={error}>
             <form onSubmit={handleSubmit} autoComplete="off">
-                <div className="form-section">
-                    <div className="form-section-title">
+                <div className="space-y-4">
+                    <div className="text-lg font-semibold">
                         <i className="fas fa-building"></i>
                         <span>Plant Information</span>
                     </div>
-                    <div className="form-row">
-                        <div className="form-group">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
                             <label htmlFor="plantCode">Plant Code*</label>
                             <input
                                 id="plantCode"
@@ -64,7 +64,7 @@ function PlantsAddView({ onClose, onPlantAdded }) {
                                 autoFocus
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="flex flex-col gap-1">
                             <label htmlFor="plantName">Plant Name*</label>
                             <input
                                 id="plantName"
@@ -77,7 +77,7 @@ function PlantsAddView({ onClose, onPlantAdded }) {
                         </div>
                     </div>
                 </div>
-                <div className="form-actions">
+                <div className="flex justify-end gap-3 pt-4">
                     <button type="submit" disabled={isSaving}>
                         {isSaving ? 'Adding...' : 'Add Plant'}
                     </button>
