@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useIsMobile } from '../../../app/hooks/useIsMobile'
+import { useRealtimeSubscription } from '../../../app/hooks/useRealtimeSubscription'
 import { PlanService } from '../../../services/PlanService'
 import { ReportService } from '../../../services/ReportService'
 import { UserService } from '../../../services/UserService'
@@ -911,7 +912,8 @@ function PlanView() {
     const [notes, setNotes] = useState('')
     const [planDate, setPlanDate] = useState(getTomorrowDate)
     const [travelTimes, setTravelTimes] = useState({})
-    const [userId, setUserId] = useState(null)
+    const [userId, setUserId] = useState(null) // only used for personal templates
+    const [canEdit, setCanEdit] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [showSettings, setShowSettings] = useState(false)
     const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
@@ -946,8 +948,13 @@ function PlanView() {
     useEffect(() => {
         const loadInitialData = async () => {
             const user = await UserService.getCurrentUser()
-            let plantList = user?.id ? await ReportService.fetchPlantsForUser(user.id) : []
-            if (user?.id) setUserId(user.id)
+            const uid = user?.id || user
+            if (uid) {
+                setUserId(uid)
+                const hasEdit = await UserService.hasPermission(uid, 'plan.edit')
+                setCanEdit(hasEdit)
+            }
+            let plantList = uid ? await ReportService.fetchPlantsForUser(uid) : []
             if (!plantList.length) plantList = await ReportService.fetchPlantsSorted()
             const sorted = plantList
                 .filter((p) => p.plant_code)
@@ -966,10 +973,10 @@ function PlanView() {
     }, [])
 
     useEffect(() => {
-        if (!userId || !planDate || isLoading) return
+        if (!planDate || isLoading) return
         const loadPlan = async () => {
             try {
-                const plan = await PlanService.fetchUserPlan(userId, planDate)
+                const plan = await PlanService.fetchPlan(planDate)
                 if (plan?.assignments?.length) {
                     setAssignments(plan.assignments)
                 } else {
@@ -982,15 +989,15 @@ function PlanView() {
             }
         }
         loadPlan()
-    }, [userId, planDate, isLoading])
+    }, [planDate, isLoading])
 
     // Fetch adjacent days' plans for the timeline view (3 days before, 3 days after)
     useEffect(() => {
-        if (!userId || !planDate || isLoading) return
+        if (!planDate || isLoading) return
         const loadAdjacentPlans = async () => {
             const offsets = [-3, -2, -1, 1, 2, 3]
             const dates = offsets.map((o) => getOffsetDate(planDate, o))
-            const results = await Promise.allSettled(dates.map((d) => PlanService.fetchUserPlan(userId, d)))
+            const results = await Promise.allSettled(dates.map((d) => PlanService.fetchPlan(d)))
             const plans = {}
             dates.forEach((d, i) => {
                 const result = results[i]
@@ -1001,17 +1008,63 @@ function PlanView() {
             setAdjacentPlans(plans)
         }
         loadAdjacentPlans()
-    }, [userId, planDate, isLoading])
+    }, [planDate, isLoading])
+
+    // Track local saves to avoid echoing our own changes back from realtime
+    const lastLocalSaveRef = useRef(0)
 
     useEffect(() => {
-        if (!userId || !planDate || isLoading) return
+        if (!canEdit || !planDate || isLoading) return
         const timeout = setTimeout(async () => {
             try {
-                await PlanService.saveUserPlan(userId, planDate, assignments, notes)
+                lastLocalSaveRef.current = Date.now()
+                await PlanService.savePlan(planDate, assignments, notes)
             } catch {}
         }, AUTOSAVE_DELAY_MS)
         return () => clearTimeout(timeout)
-    }, [userId, planDate, assignments, notes, isLoading])
+    }, [canEdit, planDate, assignments, notes, isLoading])
+
+    // Realtime: sync plan changes from other users
+    const planDateRef = useRef(planDate)
+    planDateRef.current = planDate
+
+    useRealtimeSubscription({
+        table: 'plans',
+        filter: `plan_date=eq.${planDate}`,
+        enabled: !isLoading,
+        onChange: useCallback((payload) => {
+            // Skip echoes from our own saves (within 3s window)
+            if (Date.now() - lastLocalSaveRef.current < 3000) return
+            const record = payload.new
+            if (!record || record.plan_date !== planDateRef.current) return
+            setAssignments(record.assignments?.length ? record.assignments : [createEmptyAssignment()])
+            setNotes(record.notes || '')
+        }, [])
+    })
+
+    // Realtime: refresh mixer counts when mixers change
+    const plantCodesRef = useRef([])
+    plantCodesRef.current = plants.map((p) => p.plant_code).filter(Boolean)
+
+    useRealtimeSubscription({
+        table: 'mixers',
+        enabled: !isLoading && plants.length > 0,
+        onChange: useCallback(async () => {
+            if (!plantCodesRef.current.length) return
+            const counts = await ReportService.fetchActiveMixerCountsByPlant(plantCodesRef.current)
+            setMixerCountsByPlant(counts)
+        }, [])
+    })
+
+    // Realtime: refresh travel times when they change
+    useRealtimeSubscription({
+        table: 'plant_travel_times',
+        enabled: !isLoading,
+        onChange: useCallback(async () => {
+            await PlanService.fetchTravelTimes()
+            setTravelTimes(PlanService.getTravelTimesMap())
+        }, [])
+    })
 
     const DEFAULT_SHIFT_HOURS = 14
 
@@ -1582,39 +1635,43 @@ function PlanView() {
                         <i className={`fas fa-${copied ? 'check' : 'copy'}`} />
                         <span>{copied ? 'Copied' : 'Copy'}</span>
                     </button>
-                    <button
-                        onClick={() => {
-                            setShowTemplateModal(true)
-                            loadTemplates()
-                        }}
-                        className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                        style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-                        title="Plan templates"
-                    >
-                        <i className="fas fa-bookmark" />
-                        <span>Templates</span>
-                    </button>
-                    <button
-                        onClick={() => setShowImportModal(true)}
-                        className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                        style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-                        title="Import plan from message"
-                    >
-                        <i className="fas fa-file-import" />
-                        <span>Import</span>
-                    </button>
-                    <button
-                        onClick={() => setShowSettings(!showSettings)}
-                        className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                        style={{
-                            backgroundColor: showSettings ? accentColor : 'var(--bg-tertiary)',
-                            color: showSettings ? '#fff' : 'var(--text-secondary)'
-                        }}
-                        title="Travel time settings"
-                    >
-                        <i className="fas fa-cog" />
-                        <span>Settings</span>
-                    </button>
+                    {canEdit && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    setShowTemplateModal(true)
+                                    loadTemplates()
+                                }}
+                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                                title="Plan templates"
+                            >
+                                <i className="fas fa-bookmark" />
+                                <span>Templates</span>
+                            </button>
+                            <button
+                                onClick={() => setShowImportModal(true)}
+                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                                title="Import plan from message"
+                            >
+                                <i className="fas fa-file-import" />
+                                <span>Import</span>
+                            </button>
+                            <button
+                                onClick={() => setShowSettings(!showSettings)}
+                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                style={{
+                                    backgroundColor: showSettings ? accentColor : 'var(--bg-tertiary)',
+                                    color: showSettings ? '#fff' : 'var(--text-secondary)'
+                                }}
+                                title="Travel time settings"
+                            >
+                                <i className="fas fa-cog" />
+                                <span>Settings</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
             <div
@@ -1625,6 +1682,20 @@ function PlanView() {
                     <PlanSkeleton isMobile={isMobile} />
                 ) : (
                     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        {/* Read-only banner for users without plan.edit */}
+                        {!canEdit && (
+                            <div
+                                className="flex items-center gap-2 px-4 py-2 text-xs font-medium border-b shrink-0"
+                                style={{
+                                    background: `${accentColor}10`,
+                                    borderColor: 'var(--border-light)',
+                                    color: 'var(--text-secondary)'
+                                }}
+                            >
+                                <i className="fas fa-lock text-[10px]" />
+                                <span>View only — you need permission to make changes</span>
+                            </div>
+                        )}
                         {/* Settings panel */}
                         {/* Travel Times Modal */}
                         {showSettings && (
@@ -2014,8 +2085,11 @@ function PlanView() {
                         {/* Main grid: table left, sidebar right */}
                         {viewMode === 'table' && (
                             <div
-                                className={`flex-1 min-h-0 overflow-hidden ${isMobile ? 'flex flex-col overflow-y-auto' : 'grid'}`}
-                                style={isMobile ? {} : { gridTemplateColumns: '1fr 340px' }}
+                                className={`flex-1 min-h-0 overflow-hidden ${isMobile ? 'flex flex-col overflow-y-auto' : 'grid'} ${!canEdit ? 'pointer-events-none' : ''}`}
+                                style={{
+                                    ...(isMobile ? {} : { gridTemplateColumns: '1fr 340px' }),
+                                    ...(canEdit ? {} : { opacity: 0.6 })
+                                }}
                             >
                                 {/* Left: table area */}
                                 <div className="flex flex-col overflow-hidden">

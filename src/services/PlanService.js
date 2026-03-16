@@ -1,8 +1,8 @@
 import APIUtility from '../utils/APIUtility'
 const SERVICE_PREFIX = 'plan-service'
 /**
- * Daily dispatch planning service managing inter-plant travel times
- * and per-user daily assignment plans.
+ * Shared daily dispatch planning service managing inter-plant travel times
+ * and collaborative daily assignment plans.
  */
 class PlanServiceImpl {
     travelTimesCache = null
@@ -59,26 +59,20 @@ class PlanServiceImpl {
         }
         return map
     }
-    /** Fetches a user's saved plan for a specific date. */
-    async fetchUserPlan(userId, planDate) {
-        if (!userId || !planDate) return null
-        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-user-plan`, {
-            planDate,
-            userId
-        })
+    /** Fetches the shared plan for a specific date. */
+    async fetchPlan(planDate) {
+        if (!planDate) return null
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-plan`, { planDate })
         if (!res.ok) return null
         return json?.data ?? null
     }
-    /** Saves or updates a user's daily plan with assignments and notes. */
-    async saveUserPlan(userId, planDate, assignments, notes) {
-        if (!userId || !planDate) {
-            throw new Error('userId and planDate are required')
-        }
-        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/save-user-plan`, {
+    /** Saves or updates the shared daily plan with assignments and notes. */
+    async savePlan(planDate, assignments, notes) {
+        if (!planDate) throw new Error('planDate is required')
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/save-plan`, {
             assignments: assignments || [],
             notes: notes || '',
-            planDate,
-            userId
+            planDate
         })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to save plan')
         return true

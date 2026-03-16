@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.4] - 2026-03-16
+
+- Rebuilt the Plan view with an interactive multi-day timeline visualization showing plant-based lanes, color-coded driver assignments, and a draggable cursor that displays real-time plant snapshots (on site, in transit, idle counts, mixer totals)
+- Added plan templates — save, load, and delete named templates for reusable daily plan configurations
+- Added fetchTemplates, saveTemplate, and deleteTemplate methods to PlanService and corresponding edge function endpoints
+- Redesigned PlantSelect and added a shared TimeInput component with more compact sizing
+- Added constants for overtime threshold (12h) and schedule gap detection (30min)
+- Added dark mode support to the account menu divider and sign-out button in MyAccountView
+- Added v33.3 changelog entry documenting the lightened dark mode color palette and v33.2 changelog backfill
+
 ## [33.3] - 2026-03-16
 
 - Lightened the entire dark mode color palette — raised background, card, and surface colors from near-black (#0a0a0a) to a softer dark gray (#1a1a1a), improving contrast and readability

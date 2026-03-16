@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.5] - 2026-03-16
+
+- Converted daily plans from per-user to shared/collaborative — replaced users_plans table with a new shared plans table keyed by date only, removing user_id from all plan operations
+- Added permission-based editing with plan.edit permission check; users without edit access see a read-only view with a locked banner and disabled interactions
+- Added realtime collaboration via useRealtimeSubscription — plan changes from other users sync live, with a 3-second debounce window to avoid echoing local saves
+- Added realtime subscriptions for mixer count updates and travel time changes so the view stays current without manual refresh
+- Renamed PlanService methods from fetchUserPlan/saveUserPlan to fetchPlan/savePlan, removing userId parameter throughout
+- Updated plan-service edge function endpoints from fetch-user-plan/save-user-plan to fetch-plan/save-plan, switching upsert conflict key from (user_id, plan_date) to (plan_date)
+- Added SQL schema file for the new plans table with migration comment for existing users_plans data
+- Gated Templates, Import, and Settings buttons behind canEdit so read-only users only see the Copy action
+- Added v33.4 changelog entry
+
 ## [33.4] - 2026-03-16
 
 - Rebuilt the Plan view with an interactive multi-day timeline visualization showing plant-based lanes, color-coded driver assignments, and a draggable cursor that displays real-time plant snapshots (on site, in transit, idle counts, mixer totals)

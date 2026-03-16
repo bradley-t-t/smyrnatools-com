@@ -4,7 +4,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 
 const TRAVEL_TIMES_TABLE = "plant_travel_times";
-const PLANS_TABLE = "users_plans";
+const PLANS_TABLE = "plans";
 const TEMPLATES_TABLE = "plan_templates";
 
 async function parseBody(req: Request): Promise<any> {
@@ -52,21 +52,21 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
-            case "fetch-user-plan": {
+            case "fetch-plan": {
                 const body = await parseBody(req);
-                const {userId, planDate} = body;
-                if (!userId || !planDate) return errorResponse("userId and planDate are required", headers, 400);
-                const {data, error} = await supabase.from(PLANS_TABLE).select("*").eq("user_id", userId).eq("plan_date", planDate).single();
+                const {planDate} = body;
+                if (!planDate) return errorResponse("planDate is required", headers, 400);
+                const {data, error} = await supabase.from(PLANS_TABLE).select("*").eq("plan_date", planDate).single();
                 if (error && error.code !== "PGRST116") return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
-            case "save-user-plan": {
+            case "save-plan": {
                 const body = await parseBody(req);
-                const {userId, planDate, assignments, notes} = body;
-                if (!userId || !planDate) return errorResponse("userId and planDate are required", headers, 400);
+                const {planDate, assignments, notes} = body;
+                if (!planDate) return errorResponse("planDate is required", headers, 400);
                 const {error} = await supabase.from(PLANS_TABLE).upsert({
-                    user_id: userId, plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "", updated_at: nowISO()
-                }, {onConflict: "user_id,plan_date"});
+                    plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "", updated_at: nowISO()
+                }, {onConflict: "plan_date"});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
