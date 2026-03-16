@@ -161,11 +161,18 @@ export default function useAssetData({
         }
     }, [config])
 
-    // --- Fetch plants ---
+    // --- Fetch plants (enriched with district data from the region) ---
     const fetchPlants = useCallback(async (codes) => {
         try {
-            const data = await PlantService.fetchPlants(codes)
-            setPlants(Array.isArray(data) ? data : [])
+            const regionCode = regionCodeRef.current
+            if (regionCode) {
+                // fetchRegionPlants includes districts from the regions_plants junction table
+                const regionData = await PlantService.fetchRegionPlants(regionCode)
+                setPlants(Array.isArray(regionData) ? regionData : [])
+            } else {
+                const data = await PlantService.fetchPlants(codes)
+                setPlants(Array.isArray(data) ? data : [])
+            }
         } catch {
             setPlants([])
         }

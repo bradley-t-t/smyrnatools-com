@@ -374,6 +374,7 @@ export default function DashboardView() {
                         regionDisplayName={regionDisplayName}
                         heroRegionSub={heroRegionSub}
                         isLoading={showSkeleton}
+                        onPlantFilterClick={() => setPlantModalOpen(true)}
                     />
                     <div className={`w-full flex-1 ${isMobile ? 'p-3' : 'p-6'}`}>
                         {error && (

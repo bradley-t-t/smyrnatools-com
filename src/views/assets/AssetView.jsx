@@ -5,6 +5,7 @@ import ListViewModeSection from '../../app/components/sections/ListViewModeSecti
 import TopSection from '../../app/components/sections/TopSection'
 import AssetListSkeleton from '../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../app/context/PreferencesContext'
+import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import AssetStatsUtility from '../../utils/AssetStatsUtility'
 import AssetGridCard from './AssetGridCard'
@@ -43,6 +44,26 @@ function AssetView({
     const saveLastViewedFilters = prefsContext.saveLastViewedFilters
     const updateOperatorFilter = prefsContext.updateOperatorFilter
 
+    // Fetch current user's plant code for district filtering in PlantDropdownModal
+    const [userPlantCode, setUserPlantCode] = useState('')
+    useEffect(() => {
+        let cancelled = false
+        async function fetchUserPlant() {
+            const { data: sessionData } = await Database.auth.getSession()
+            const uid = sessionData?.session?.user?.id || sessionStorage.getItem('userId') || ''
+            if (!uid || cancelled) return
+            const { data: profile } = await Database.from('users_profiles')
+                .select('plant_code')
+                .eq('id', uid)
+                .maybeSingle()
+            if (!cancelled) setUserPlantCode(profile?.plant_code || '')
+        }
+        fetchUserPlant()
+        return () => {
+            cancelled = true
+        }
+    }, [])
+
     // --- Filter & sort state (initialized before data hook so searchText is available) ---
     const filters = useAssetFilters({
         config,
@@ -62,6 +83,22 @@ function AssetView({
         selectedPlant: filters.selectedPlant,
         updateFilterRef
     })
+
+    // Build a set of plant codes when a district is selected
+    const districtPlantCodes = useMemo(() => {
+        if (!filters.selectedPlant?.startsWith('DISTRICT:')) return null
+        const districtName = filters.selectedPlant.slice(9)
+        const codes = new Set()
+        data.plants.forEach((p) => {
+            const plantCode = p.plantCode || p.plant_code || ''
+            const districts = p.districts || []
+            districts.forEach((d) => {
+                const name = typeof d === 'string' ? d : d?.name
+                if (name === districtName) codes.add(plantCode.trim().toUpperCase())
+            })
+        })
+        return codes
+    }, [filters.selectedPlant, data.plants])
 
     // --- Re-derive filtered results with live data ---
     // useAssetFilters was initialized with empty arrays; recompute with actual data
@@ -92,12 +129,15 @@ function AssetView({
                 }
             }
 
+            const itemPlantCode = String(item.assignedPlant || '')
+                .trim()
+                .toUpperCase()
             const matchesPlant =
                 !filters.selectedPlant ||
                 filters.selectedPlant === 'All' ||
-                String(item.assignedPlant || '')
-                    .trim()
-                    .toUpperCase() === filters.selectedPlant.toUpperCase()
+                (districtPlantCodes
+                    ? districtPlantCodes.has(itemPlantCode)
+                    : itemPlantCode === filters.selectedPlant.toUpperCase())
 
             const matchesRegion =
                 !data.regionPlantCodes ||
@@ -179,6 +219,7 @@ function AssetView({
         data.plants,
         data.regionPlantCodes,
         data.tractors,
+        districtPlantCodes,
         exactMatch,
         filters.extraTypeFilter,
         filters.freightFilter,
@@ -257,32 +298,44 @@ function AssetView({
         [data.items, saveLastViewedFilters, onSelectItem, config.selectsFullObject]
     )
 
-    // --- Unassigned operators count ---
-    const unassignedActiveOperatorsCount = useMemo(() => {
-        if (!config.operatorConfig) return 0
-        return AssetStatsUtility.countUnassignedActiveOperators(data.items, data.operators, filters.searchText, {
-            assignedOperatorField: config.operatorConfig.assignedField,
-            assignedPlantField: 'assignedPlant',
-            operatorIdField: 'employeeId',
+    // --- Operator counts (active assigned + unassigned) ---
+    const { activeOperatorsCount, unassignedActiveOperatorsCount } = useMemo(() => {
+        if (!config.operatorConfig) return { activeOperatorsCount: 0, unassignedActiveOperatorsCount: 0 }
+
+        // When a district is selected, scope by the resolved plant codes instead of the raw filter value
+        const effectivePlant = districtPlantCodes ? '' : filters.selectedPlant
+        const effectiveRegionCodes = districtPlantCodes || data.regionPlantCodes
+
+        const scopeOpts = {
             position: config.operatorConfig.position,
-            regionPlantCodes: data.regionPlantCodes,
-            selectedPlant: filters.selectedPlant
-        })
+            regionPlantCodes: effectiveRegionCodes,
+            selectedPlant: effectivePlant
+        }
+        const total = AssetStatsUtility.countActiveOperatorsInScope(data.operators, scopeOpts)
+        const unassigned = AssetStatsUtility.countUnassignedActiveOperators(
+            data.items,
+            data.operators,
+            filters.searchText,
+            {
+                assignedOperatorField: config.operatorConfig.assignedField,
+                assignedPlantField: 'assignedPlant',
+                operatorIdField: 'employeeId',
+                ...scopeOpts
+            }
+        )
+        return { activeOperatorsCount: total - unassigned, unassignedActiveOperatorsCount: unassigned }
     }, [
         data.operators,
         data.items,
+        districtPlantCodes,
         filters.selectedPlant,
         filters.searchText,
         data.regionPlantCodes,
         config.operatorConfig
     ])
 
-    const canShowUnassignedOverlay =
-        config.hasOperatorAssignment &&
-        data.itemsLoaded &&
-        data.operatorsLoaded &&
-        !data.isLoading &&
-        unassignedActiveOperatorsCount > 0
+    const canShowOperatorBadge =
+        config.hasOperatorAssignment && data.itemsLoaded && data.operatorsLoaded && !data.isLoading
 
     // --- Duplicate sets ---
     const duplicates = useMemo(() => {
@@ -657,12 +710,12 @@ function AssetView({
                         isLoading={data.isLoading || data.isRegionLoading}
                         title={pageTitle}
                         badge={
-                            canShowUnassignedOverlay
-                                ? `${unassignedActiveOperatorsCount} Unassigned Active Operator${unassignedActiveOperatorsCount !== 1 ? 's' : ''}`
+                            canShowOperatorBadge
+                                ? `${activeOperatorsCount + unassignedActiveOperatorsCount} Active · ${unassignedActiveOperatorsCount} Unassigned`
                                 : null
                         }
                         onBadgeClick={
-                            canShowUnassignedOverlay && setSelectedView
+                            canShowOperatorBadge && setSelectedView
                                 ? () => {
                                       const pos = config.operatorConfig.positionLabel
                                       setSelectedView('Operators', 'Unassigned Active', filters.selectedPlant, pos)
@@ -729,6 +782,7 @@ function AssetView({
                         onHeaderClick={filters.handleHeaderClick}
                         sortKey={filters.sortKey}
                         sortDirection={filters.sortDirection}
+                        userPlantCode={userPlantCode}
                     />
                     <div className="global-content-container content-container">{content}</div>
 

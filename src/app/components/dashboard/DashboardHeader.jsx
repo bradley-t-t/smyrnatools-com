@@ -8,7 +8,8 @@ export default function DashboardHeader({
     isMobile,
     regionDisplayName,
     heroRegionSub,
-    isLoading = false
+    isLoading = false,
+    onPlantFilterClick
 }) {
     return (
         <div
@@ -29,19 +30,33 @@ export default function DashboardHeader({
                     <div className="h-4 w-40 rounded bg-slate-200 animate-pulse" />
                 </div>
             ) : (
-                <div className="flex flex-wrap items-center gap-3 mx-auto max-w-full">
-                    <h1 className={`font-bold text-slate-900 m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>Dashboard</h1>
-                    {regionDisplayName && (
-                        <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                            <i className="fas fa-chevron-right text-[8px] text-slate-300" />
-                            <span>{regionDisplayName}</span>
-                            {heroRegionSub && (
-                                <>
-                                    <i className="fas fa-chevron-right text-[8px] text-slate-300" />
-                                    <span className="text-slate-400">{heroRegionSub}</span>
-                                </>
-                            )}
-                        </div>
+                <div className="flex items-center justify-between mx-auto max-w-full">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <h1 className={`font-bold text-slate-900 m-0 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                            Dashboard
+                        </h1>
+                        {regionDisplayName && (
+                            <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                                <i className="fas fa-chevron-right text-[8px] text-slate-300" />
+                                <span>{regionDisplayName}</span>
+                                {heroRegionSub && (
+                                    <>
+                                        <i className="fas fa-chevron-right text-[8px] text-slate-300" />
+                                        <span className="text-slate-400">{heroRegionSub}</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    {isMobile && onPlantFilterClick && (
+                        <button
+                            className="flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 text-sm cursor-pointer"
+                            onClick={onPlantFilterClick}
+                            type="button"
+                            aria-label="Filter by plant"
+                        >
+                            <i className="fas fa-filter" />
+                        </button>
                     )}
                 </div>
             )}

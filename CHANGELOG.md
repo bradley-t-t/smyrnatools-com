@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.1] - 2026-03-16
+
+- Added email service infrastructure: new EmailService client, email-service edge function (MailerSend integration), and an example notification email template with builder pattern
+- Added district-based plant filtering to asset views, allowing users to filter assets by district groupings instead of individual plants
+- Updated the operator badge in asset views to show both active and unassigned counts (e.g. "12 Active · 3 Unassigned") instead of only unassigned
+- Added countActiveOperatorsInScope method to AssetStatsUtility for deriving assigned operator counts
+- Added a plant filter button to the mobile dashboard header
+- Passed userPlantCode to PlantDropdownModal and TopSection for district-aware filtering
+- Changed the operator badge icon from user-clock to users
+- Updated useAssetData to fetch region-enriched plant data (including districts) when a region is active
+- Added v33.0 changelog entry documenting the Database naming convention refactor
+
 ## [33.0] - 2026-03-13
 
 - Renamed all references to `supabase` client to `Database` across the entire codebase, enforcing the project convention that the word "supabase" should never appear in application code

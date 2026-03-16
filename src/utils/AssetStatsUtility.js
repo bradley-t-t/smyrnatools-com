@@ -71,6 +71,20 @@ const AssetStatsUtility = {
     },
 
     /**
+     * Counts total active operators in scope (by position, plant, and region).
+     * Used alongside countUnassignedActiveOperators to derive assigned count.
+     */
+    countActiveOperatorsInScope(operators, { position, selectedPlant, regionPlantCodes }) {
+        return (operators || []).filter((op) => {
+            if (op?.status !== 'Active') return false
+            if (position && op?.position !== position) return false
+            if (selectedPlant && selectedPlant !== 'All' && op?.plantCode !== selectedPlant) return false
+            if (regionPlantCodes && regionPlantCodes.size > 0 && !regionPlantCodes.has(op?.plantCode)) return false
+            return true
+        }).length
+    },
+
+    /**
      * Computes the average of a numeric rating field across items.
      * Returns 'N/A' when no valid ratings exist.
      */

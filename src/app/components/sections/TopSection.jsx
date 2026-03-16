@@ -36,12 +36,12 @@ const Badge = ({ children, onClick, accentColor, isDark }) => {
     const style = { backgroundColor: `${accentColor}${isDark ? '30' : '15'}`, color: accentColor }
     return onClick ? (
         <button className={`${baseClasses} border-none cursor-pointer`} style={style} onClick={onClick}>
-            <i className="fas fa-user-clock" />
+            <i className="fas fa-users" />
             <span>{children}</span>
         </button>
     ) : (
         <span className={baseClasses} style={style}>
-            <i className="fas fa-user-clock" />
+            <i className="fas fa-users" />
             <span>{children}</span>
         </span>
     )
@@ -243,7 +243,8 @@ function TopSection({
     customActions = null,
     customBottomContent = null,
     customBottomSkeleton = null,
-    isLoading = false
+    isLoading = false,
+    userPlantCode = ''
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
@@ -550,6 +551,7 @@ function TopSection({
                         plants={filteredPlants}
                         onSelect={onSelectedPlantChange}
                         showAllPlants={true}
+                        userPlantCode={userPlantCode}
                     />
                 )}
             </>
@@ -701,6 +703,7 @@ function TopSection({
                     plants={filteredPlants}
                     onSelect={onSelectedPlantChange}
                     showAllPlants={true}
+                    userPlantCode={userPlantCode}
                 />
             )}
         </>
