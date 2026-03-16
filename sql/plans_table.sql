@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS plans (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Enable realtime on the plans table so changes broadcast to all connected clients
+ALTER PUBLICATION supabase_realtime ADD TABLE plans;
+
 -- Optional: migrate existing per-user plans to the shared table.
 -- Takes the most recently updated plan per date.
 -- Run once after creating the table.

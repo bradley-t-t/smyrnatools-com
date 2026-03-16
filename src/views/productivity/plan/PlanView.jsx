@@ -1015,14 +1015,10 @@ function PlanView() {
         loadAdjacentPlans()
     }, [planDate, isLoading])
 
-    // Track local saves to avoid echoing our own changes back from realtime
-    const lastLocalSaveRef = useRef(0)
-
     useEffect(() => {
         if (!canEdit || !planDate || isLoading) return
         const timeout = setTimeout(async () => {
             try {
-                lastLocalSaveRef.current = Date.now()
                 await PlanService.savePlan(planDate, assignments, notes)
             } catch {}
         }, AUTOSAVE_DELAY_MS)
@@ -1032,18 +1028,26 @@ function PlanView() {
     // Realtime: sync plan changes from other users
     const planDateRef = useRef(planDate)
     planDateRef.current = planDate
+    const assignmentsRef = useRef(assignments)
+    assignmentsRef.current = assignments
+    const notesRef = useRef(notes)
+    notesRef.current = notes
 
     useRealtimeSubscription({
         table: 'plans',
-        filter: `plan_date=eq.${planDate}`,
         enabled: !isLoading,
         onChange: useCallback((payload) => {
-            // Skip echoes from our own saves (within 3s window)
-            if (Date.now() - lastLocalSaveRef.current < 3000) return
             const record = payload.new
             if (!record || record.plan_date !== planDateRef.current) return
-            setAssignments(record.assignments?.length ? record.assignments : [createEmptyAssignment()])
-            setNotes(record.notes || '')
+            // Only apply if the incoming data actually differs from local state
+            const incoming = JSON.stringify(record.assignments ?? [])
+            const local = JSON.stringify(assignmentsRef.current)
+            if (incoming !== local) {
+                setAssignments(record.assignments?.length ? record.assignments : [createEmptyAssignment()])
+            }
+            if ((record.notes || '') !== notesRef.current) {
+                setNotes(record.notes || '')
+            }
         }, [])
     })
 

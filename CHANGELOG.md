@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.7] - 2026-03-16
+
+- Replaced timestamp-based echo suppression with content-aware diffing for realtime plan sync — incoming changes are now compared against local state and only applied when they actually differ
+- Removed the plan_date filter from the realtime subscription so all plan changes are received, with client-side filtering by current date instead
+- Added refs for assignments and notes so the realtime callback always sees current local state without needing to re-subscribe
+- Enabled realtime broadcasting on the plans table via supabase_realtime publication
+- Added v33.6 changelog entry
+
 ## [33.6] - 2026-03-16
 
 - Defaulted plan editing to enabled — canEdit now initializes to true instead of false, so users aren't locked out when permissions aren't configured yet
