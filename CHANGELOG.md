@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.6] - 2026-03-16
+
+- Defaulted plan editing to enabled — canEdit now initializes to true instead of false, so users aren't locked out when permissions aren't configured yet
+- Added try/catch around the plan.edit permission check so unconfigured permissions gracefully fall back to allowing edits
+- Clarified migration comments in the plans SQL schema file
+- Added v33.5 changelog entry
+
 ## [33.5] - 2026-03-16
 
 - Converted daily plans from per-user to shared/collaborative — replaced users_plans table with a new shared plans table keyed by date only, removing user_id from all plan operations

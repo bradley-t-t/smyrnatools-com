@@ -6,7 +6,10 @@ CREATE TABLE IF NOT EXISTS plans (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Migrate existing data from users_plans if desired (takes the most recent per date)
+-- Optional: migrate existing per-user plans to the shared table.
+-- Takes the most recently updated plan per date.
+-- Run once after creating the table.
+
 -- INSERT INTO plans (plan_date, assignments, notes, updated_at)
 -- SELECT DISTINCT ON (plan_date) plan_date, assignments, notes, updated_at
 -- FROM users_plans

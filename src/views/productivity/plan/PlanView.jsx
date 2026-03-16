@@ -913,7 +913,7 @@ function PlanView() {
     const [planDate, setPlanDate] = useState(getTomorrowDate)
     const [travelTimes, setTravelTimes] = useState({})
     const [userId, setUserId] = useState(null) // only used for personal templates
-    const [canEdit, setCanEdit] = useState(false)
+    const [canEdit, setCanEdit] = useState(true)
     const [isLoading, setIsLoading] = useState(true)
     const [showSettings, setShowSettings] = useState(false)
     const [newTravelTime, setNewTravelTime] = useState({ from: '', minutes: '', to: '' })
@@ -951,8 +951,13 @@ function PlanView() {
             const uid = user?.id || user
             if (uid) {
                 setUserId(uid)
-                const hasEdit = await UserService.hasPermission(uid, 'plan.edit')
-                setCanEdit(hasEdit)
+                try {
+                    const hasEdit = await UserService.hasPermission(uid, 'plan.edit')
+                    setCanEdit(hasEdit)
+                } catch {
+                    // Permission not configured yet — allow editing by default
+                    setCanEdit(true)
+                }
             }
             let plantList = uid ? await ReportService.fetchPlantsForUser(uid) : []
             if (!plantList.length) plantList = await ReportService.fetchPlantsSorted()
