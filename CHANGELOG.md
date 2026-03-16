@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.2] - 2026-03-16
+
+- Added email notifications to General Managers and District Managers when reports are submitted in their region, with the submitter CC'd automatically
+- Created a reusable report-submitted email template with branded HTML layout, detail rows, and plain-text fallback
+- Added a notify-report-submitted endpoint to the email-service edge function that resolves the submitter's region, finds relevant GMs and DMs, and sends the notification
+- Extracted a shared sendEmail helper in the edge function to deduplicate MailerSend logic between the generic send and notify-report-submitted endpoints
+- Wired up fire-and-forget email notifications in LostLoadReportModal with report-specific fields (plant, truck number, yardage, customer, ticket, reason)
+- Wired up fire-and-forget email notifications in useReportSubmission for all other report types on final submit
+- Added notifyReportSubmitted method to EmailService client for calling the new edge function endpoint
+- Added v33.1 changelog entry documenting email service infrastructure, district-based plant filtering, and operator badge updates
+
 ## [33.1] - 2026-03-16
 
 - Added email service infrastructure: new EmailService client, email-service edge function (MailerSend integration), and an example notification email template with builder pattern

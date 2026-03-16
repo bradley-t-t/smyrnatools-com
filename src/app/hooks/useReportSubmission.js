@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 
 import { Database } from '../../services/DatabaseService'
+import { EmailService } from '../../services/EmailService'
 import { reportTypeMap } from '../types/ReportTypes'
 const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
 const persistExclusionReason = async (reportId, reason) => {
@@ -111,6 +112,17 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                         weekIso
                     })
                 )
+
+                // Notify GMs in the submitter's region (fire-and-forget, only on final submit)
+                if (completed) {
+                    const reportDef = reportTypeMap[reportName]
+                    EmailService.notifyReportSubmitted({
+                        userId: user.id,
+                        reportTitle: reportDef?.title || reportName,
+                        weekLabel: weekIso || ''
+                    }).catch((err) => console.error('[ReportSubmission] Email error:', err))
+                }
+
                 return { success: true }
             }
             return { success: false }

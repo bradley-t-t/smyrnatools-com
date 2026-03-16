@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Database } from '../../../services/DatabaseService'
+import { EmailService } from '../../../services/EmailService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
@@ -120,6 +121,22 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                 .select()
                 .single()
             if (dbError) throw dbError
+
+            // Notify GMs in submitter's region (fire-and-forget)
+            EmailService.notifyReportSubmitted({
+                userId: user.id,
+                reportTitle: 'Lost Load Report',
+                weekLabel: '',
+                reportFields: [
+                    { label: 'Plant', value: plant },
+                    { label: 'Truck Number', value: truckNumber.trim() },
+                    { label: 'Yardage', value: String(Number(yardage)) },
+                    ...(customerName.trim() ? [{ label: 'Customer', value: customerName.trim() }] : []),
+                    ...(ticketNumber.trim() ? [{ label: 'Ticket Number', value: ticketNumber.trim() }] : []),
+                    { label: 'Reason', value: fullReason }
+                ]
+            }).catch((err) => console.error('[LostLoadReport] Email error:', err))
+
             onSubmitted?.(data)
             onClose()
         } catch (err) {
