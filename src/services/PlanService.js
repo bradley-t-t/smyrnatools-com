@@ -83,5 +83,31 @@ class PlanServiceImpl {
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to save plan')
         return true
     }
+    /** Fetches all saved plan templates for a user. */
+    async fetchTemplates(userId) {
+        if (!userId) return []
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/fetch-templates`, { userId })
+        if (!res.ok) return []
+        return json?.data ?? []
+    }
+    /** Saves the current plan as a named template. */
+    async saveTemplate(userId, name, assignments, notes) {
+        if (!userId || !name) throw new Error('userId and name are required')
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/save-template`, {
+            assignments: assignments || [],
+            name,
+            notes: notes || '',
+            userId
+        })
+        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to save template')
+        return true
+    }
+    /** Deletes a saved plan template by ID. */
+    async deleteTemplate(templateId) {
+        if (!templateId) throw new Error('templateId is required')
+        const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/delete-template`, { templateId })
+        if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to delete template')
+        return true
+    }
 }
 export const PlanService = new PlanServiceImpl()

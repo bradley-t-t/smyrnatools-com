@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.3] - 2026-03-16
+
+- Lightened the entire dark mode color palette — raised background, card, and surface colors from near-black (#0a0a0a) to a softer dark gray (#1a1a1a), improving contrast and readability
+- Brightened secondary and muted text colors in dark mode for better legibility
+- Lightened border colors across all dark mode overrides (gray, slate, dividers, rings)
+- Softened dark mode shadow opacity from 0.5-0.6 down to 0.35-0.4 for a less harsh appearance
+- Updated all dark mode alert, accent, and semantic tint backgrounds (red, green, yellow, blue, emerald, amber, indigo) to lighter values consistent with the new palette
+- Added v33.2 changelog entry documenting report-submitted email notifications for GMs and DMs, reusable email template, notify endpoint, shared sendEmail helper, and EmailService client updates
+
 ## [33.2] - 2026-03-16
 
 - Added email notifications to General Managers and District Managers when reports are submitted in their region, with the submitter CC'd automatically

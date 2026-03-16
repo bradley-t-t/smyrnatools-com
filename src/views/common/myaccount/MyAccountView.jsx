@@ -761,10 +761,10 @@ function MyAccountView({ userId }) {
                                         <i className="fas fa-cog w-5 text-center"></i>
                                         <span className="font-medium">Preferences</span>
                                     </button>
-                                    <div className="mx-4 my-2 border-t border-gray-100"></div>
+                                    <div className="mx-4 my-2 border-t border-gray-100 dark:border-gray-700"></div>
                                     <button
                                         onClick={handleSignOut}
-                                        className="flex items-center gap-3 px-5 py-4 text-left text-red-600 transition-all hover:bg-red-50"
+                                        className="flex items-center gap-3 px-5 py-4 text-left text-red-600 transition-all hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
                                     >
                                         <i className="fas fa-sign-out-alt w-5 text-center"></i>
                                         <span className="font-medium">Sign Out</span>

@@ -5,6 +5,7 @@ import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_sh
 
 const TRAVEL_TIMES_TABLE = "plant_travel_times";
 const PLANS_TABLE = "users_plans";
+const TEMPLATES_TABLE = "plan_templates";
 
 async function parseBody(req: Request): Promise<any> {
     try { return await req.json(); } catch { return {}; }
@@ -66,6 +67,32 @@ Deno.serve(async (req) => {
                 const {error} = await supabase.from(PLANS_TABLE).upsert({
                     user_id: userId, plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "", updated_at: nowISO()
                 }, {onConflict: "user_id,plan_date"});
+                if (error) return errorResponse("Operation failed", headers, 400);
+                return jsonResponse({success: true}, headers);
+            }
+            case "fetch-templates": {
+                const body = await parseBody(req);
+                const {userId} = body;
+                if (!userId) return errorResponse("userId is required", headers, 400);
+                const {data, error} = await supabase.from(TEMPLATES_TABLE).select("*").eq("user_id", userId).order("created_at", {ascending: false});
+                if (error) return errorResponse("Operation failed", headers, 400);
+                return jsonResponse({data: data ?? []}, headers);
+            }
+            case "save-template": {
+                const body = await parseBody(req);
+                const {userId, name, assignments, notes} = body;
+                if (!userId || !name) return errorResponse("userId and name are required", headers, 400);
+                const {error} = await supabase.from(TEMPLATES_TABLE).insert({
+                    user_id: userId, name, assignments: assignments ?? [], notes: notes ?? "", created_at: nowISO()
+                });
+                if (error) return errorResponse("Operation failed", headers, 400);
+                return jsonResponse({success: true}, headers);
+            }
+            case "delete-template": {
+                const body = await parseBody(req);
+                const {templateId} = body;
+                if (!templateId) return errorResponse("templateId is required", headers, 400);
+                const {error} = await supabase.from(TEMPLATES_TABLE).delete().eq("id", templateId);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
