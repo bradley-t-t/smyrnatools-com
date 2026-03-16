@@ -126,13 +126,14 @@ class EmailServiceImpl {
      * @param {string} [options.weekLabel] - Human-readable week label (e.g., "Mar 10 – Mar 15").
      * @param {boolean} [options.debug] - Override debug mode for this send.
      */
-    async notifyReportSubmitted({ userId, reportTitle, weekLabel, reportFields, debug }) {
+    async notifyReportSubmitted({ userId, reportTitle, weekLabel, reportFields, attachmentUrl, debug }) {
         try {
             const { res, json } = await APIUtility.post('/email-service/notify-report-submitted', {
                 userId,
                 reportTitle,
                 weekLabel: weekLabel || '',
                 ...(reportFields?.length ? { reportFields } : {}),
+                ...(attachmentUrl ? { attachmentUrl } : {}),
                 debug: debug ?? DEBUG_MODE
             })
             if (!res.ok) console.error('Report notification email failed:', json?.error)

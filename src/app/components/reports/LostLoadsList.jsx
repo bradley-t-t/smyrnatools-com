@@ -61,11 +61,13 @@ const EmptyState = () => (
 /** Mobile card for a single lost load report. */
 const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDeleteClick, onClick }) => {
     const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
-    const submittedDate = report.submitted_at
-        ? new Date(report.submitted_at).toLocaleDateString()
-        : report.week
-          ? new Date(report.week).toLocaleDateString()
-          : '—'
+    const lostDate = report.data?.lost_load_date
+        ? new Date(report.data.lost_load_date + 'T12:00:00').toLocaleDateString()
+        : null
+    const submittedDate =
+        lostDate ||
+        (report.submitted_at ? new Date(report.submitted_at).toLocaleDateString() : null) ||
+        (report.week ? new Date(report.week).toLocaleDateString() : '—')
     return (
         <div
             className="reports-row-animated p-4 last:border-b-0 cursor-pointer"
@@ -144,11 +146,13 @@ const MobileLostLoadCard = ({ report, getUserName, index = 0, canDelete, onDelet
 /** Desktop row for a single lost load report. */
 const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDeleteClick, onClick }) => {
     const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
-    const submittedDate = report.submitted_at
-        ? new Date(report.submitted_at).toLocaleDateString()
-        : report.week
-          ? new Date(report.week).toLocaleDateString()
-          : '—'
+    const lostDate = report.data?.lost_load_date
+        ? new Date(report.data.lost_load_date + 'T12:00:00').toLocaleDateString()
+        : null
+    const submittedDate =
+        lostDate ||
+        (report.submitted_at ? new Date(report.submitted_at).toLocaleDateString() : null) ||
+        (report.week ? new Date(report.week).toLocaleDateString() : '—')
     return (
         <div
             className="reports-row-animated flex items-center py-3 px-4 lg:px-7 cursor-pointer"
@@ -179,7 +183,12 @@ const DesktopLostLoadRow = ({ report, getUserName, index = 0, canDelete, onDelet
                 {report.data?.customer_name || '—'}
             </div>
             <div className="w-28 shrink-0 pr-3 text-sm text-slate-600">{report.data?.ticket_number || '—'}</div>
-            <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">{report.data?.reason || '—'}</div>
+            <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">
+                {report.data?.reason || '—'}
+                {report.data?.attachment_url && (
+                    <i className="fas fa-paperclip text-[10px] text-slate-400 ml-1.5" title="Has writeup attachment" />
+                )}
+            </div>
             <div className="flex-1 min-w-0 pr-3 text-sm text-slate-600 truncate">{getUserName(report.userId)}</div>
             {canDelete && (
                 <button

@@ -112,8 +112,8 @@ const TimeInput = ({ value, onChange, placeholder = 'HH:MM', className = '' }) =
     />
 )
 
-const TIMELINE_START_HOUR = 3
-const TIMELINE_END_HOUR = 20
+const TIMELINE_START_HOUR = 0
+const TIMELINE_END_HOUR = 24
 const TIMELINE_HOURS = TIMELINE_END_HOUR - TIMELINE_START_HOUR
 const LABEL_WIDTH = 150
 
@@ -238,6 +238,33 @@ function TimelineView({
         () => days.map((day, idx) => ({ ...day, lanes: buildLanesForDay(day.assignments, idx) })),
         [days, getTravelTime, calcClockIn, addMinutesToTime]
     )
+
+    // Detect insufficient rest between consecutive days (< 10 hours)
+    const MIN_REST_HOURS = 10
+    const restViolations = useMemo(() => {
+        const violations = {} // keyed by dayIdx (the later day)
+        for (let i = 1; i < dayLanes.length; i++) {
+            const prevDay = dayLanes[i - 1]
+            const currDay = dayLanes[i]
+            if (!prevDay.lanes.length || !currDay.lanes.length) continue
+            const prevLeaveMins = prevDay.lanes.map((l) => timeToMinutes(l.leaveTime)).filter((m) => m !== null)
+            const currStartMins = currDay.lanes
+                .map((l) => timeToMinutes(l.clockIn || l.arriveTime))
+                .filter((m) => m !== null)
+            if (!prevLeaveMins.length || !currStartMins.length) continue
+            const latestLeave = Math.max(...prevLeaveMins)
+            const earliestStart = Math.min(...currStartMins)
+            const gapMinutes = 24 * 60 - latestLeave + earliestStart
+            if (gapMinutes < MIN_REST_HOURS * 60) {
+                violations[i] = {
+                    gapHours: Math.round((gapMinutes / 60) * 10) / 10,
+                    prevLeaveTime: minutesToTime(latestLeave),
+                    nextStartTime: minutesToTime(earliestStart)
+                }
+            }
+        }
+        return violations
+    }, [dayLanes])
 
     // All plants sorted by code — always show every plant regardless of plan data
     const allPlants = useMemo(
@@ -494,10 +521,14 @@ function TimelineView({
                     {/* Day columns — horizontally scrollable */}
                     {dayLanes.map((day, dayIdx) => {
                         const isCurrent = day.isCurrent
+                        // Violation with previous day: red band from 0% to next start time
+                        const violationFromPrev = restViolations[dayIdx] || null
+                        // Violation with next day: red band from leave time to 100%
+                        const violationToNext = restViolations[dayIdx + 1] || null
                         return (
                             <div
                                 key={day.date}
-                                className="shrink-0 border-r"
+                                className="shrink-0 border-r relative"
                                 ref={(el) => {
                                     dayRefs.current[dayIdx] = el
                                 }}
@@ -706,7 +737,42 @@ function TimelineView({
                                                     }}
                                                 />
                                             ))}
-                                            {/* Sent lanes (red — operators leaving) */}
+                                            {/* Rest violation: red band from start of day to earliest start */}
+                                            {violationFromPrev && (
+                                                <div
+                                                    className="absolute top-0 bottom-0 pointer-events-none"
+                                                    style={{
+                                                        left: 0,
+                                                        width: `${timeToPercent(violationFromPrev.nextStartTime)}%`,
+                                                        background: 'rgba(239, 68, 68, 0.12)',
+                                                        borderRight: '2px solid #ef4444'
+                                                    }}
+                                                    title={`${violationFromPrev.gapHours}h rest (min ${MIN_REST_HOURS}h)`}
+                                                >
+                                                    {pr === plantRows[0] && (
+                                                        <span
+                                                            className="absolute top-0.5 left-1 text-[8px] font-bold whitespace-nowrap"
+                                                            style={{ color: '#ef4444' }}
+                                                        >
+                                                            {violationFromPrev.gapHours}h rest
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {/* Rest violation: red band from latest leave to end of day */}
+                                            {violationToNext && (
+                                                <div
+                                                    className="absolute top-0 bottom-0 pointer-events-none"
+                                                    style={{
+                                                        left: `${timeToPercent(violationToNext.prevLeaveTime)}%`,
+                                                        right: 0,
+                                                        background: 'rgba(239, 68, 68, 0.12)',
+                                                        borderLeft: '2px solid #ef4444'
+                                                    }}
+                                                    title={`${violationToNext.gapHours}h rest (min ${MIN_REST_HOURS}h)`}
+                                                />
+                                            )}
+                                            {/* Sent lanes — operators leaving */}
                                             {sentLanes.map((lane, i) => renderBlock(lane, i, true))}
                                             {/* Received lanes (green — operators arriving) */}
                                             {recvLanes.map((lane, i) => renderBlock(lane, sentLanes.length + i, false))}

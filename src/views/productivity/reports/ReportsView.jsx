@@ -323,20 +323,17 @@ function ReportsView() {
             {hasLostLoadsPermission && !bannerDismissed && (
                 <div className="flex items-center gap-3 mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-3 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
                     <i className="fas fa-exclamation-triangle text-amber-500 shrink-0" />
-                    <span className="flex-1 flex flex-wrap items-center gap-x-1">
-                        <strong>Lost loads:</strong>
-                        <span>
-                            You no longer need to email lost load reports to your General Manager or District Manager.
-                            Instead, complete the report on
-                        </span>
+                    <span className="flex-1">
+                        <strong>Lost loads:</strong> You no longer need to email lost load reports to your General
+                        Manager or District Manager. Instead, complete the report on{' '}
                         <button
                             onClick={() => setShowLostLoadModal(true)}
-                            className="underline font-semibold hover:text-amber-900 border-none bg-transparent text-amber-800 cursor-pointer p-0 text-xs"
+                            className="underline font-semibold hover:text-amber-900 border-none bg-transparent text-amber-800 cursor-pointer p-0 text-xs inline"
                             type="button"
                         >
                             Smyrna Tools
                         </button>
-                        <span>, write the reason on the ticket, and scan it into the O: Drive.</span>
+                        , write the reason on the ticket, and scan it into the O: Drive.
                     </span>
                     <button
                         onClick={() => setBannerDismissed(true)}

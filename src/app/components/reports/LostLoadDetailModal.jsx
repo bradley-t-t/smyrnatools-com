@@ -70,8 +70,8 @@ function LostLoadDetailModal({ report, getUserName, onClose }) {
                 <div className="px-6 py-2 overflow-y-auto flex-1">
                     <DetailRow
                         icon="calendar-alt"
-                        label="Date"
-                        value={formatDate(report.submitted_at || report.week)}
+                        label="Date of Lost Load"
+                        value={formatDate(data.lost_load_date || report.submitted_at || report.week)}
                     />
                     <DetailRow
                         icon="industry"
@@ -118,6 +118,28 @@ function LostLoadDetailModal({ report, getUserName, onClose }) {
                                         {reasonExplanation}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+                    {data.attachment_url && (
+                        <div className="flex items-start gap-3 py-3 border-b border-border-light">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-bg-tertiary">
+                                <i className="fas fa-file-pdf text-xs text-red-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-[11px] font-semibold uppercase tracking-wide mb-0.5 text-text-secondary">
+                                    Writeup Attachment
+                                </div>
+                                <a
+                                    href={data.attachment_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+                                    style={{ color: accentColor }}
+                                >
+                                    <i className="fas fa-download text-xs" />
+                                    Download PDF
+                                </a>
                             </div>
                         </div>
                     )}

@@ -59,16 +59,34 @@ function createAdminClient() {
     );
 }
 
+/** Fetches a file from a URL and returns it as a base64-encoded string. */
+async function fetchFileAsBase64(url: string): Promise<string | null> {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+    } catch {
+        console.error("Failed to fetch file for attachment:", url);
+        return null;
+    }
+}
+
 /** Sends an email via MailerSend, applying debug whitelist filtering. */
 async function sendEmail({
     subject, html, text, toList, ccList = [] as Array<{email: string; name?: string}>,
-    bccList = [] as Array<{email: string; name?: string}>, debugMode = false
+    bccList = [] as Array<{email: string; name?: string}>, debugMode = false,
+    attachments = [] as Array<{content: string; filename: string; disposition?: string}>
 }: {
     subject: string; html: string; text?: string;
     toList: Array<{email: string; name?: string}>;
     ccList?: Array<{email: string; name?: string}>;
     bccList?: Array<{email: string; name?: string}>;
     debugMode?: boolean;
+    attachments?: Array<{content: string; filename: string; disposition?: string}>;
 }): Promise<{success: boolean; sent: boolean; reason?: string; recipients?: Record<string, number>}> {
     const mailerSendToken = Deno.env.get("MAILERSEND_API_TOKEN");
     const fromEmail = Deno.env.get("MAILERSEND_FROM_EMAIL");
@@ -110,7 +128,8 @@ async function sendEmail({
         from: sender, to: toList, subject, html,
         ...(text ? {text} : {}),
         ...(ccList.length > 0 ? {cc: ccList} : {}),
-        ...(bccList.length > 0 ? {bcc: bccList} : {})
+        ...(bccList.length > 0 ? {bcc: bccList} : {}),
+        ...(attachments.length > 0 ? {attachments} : {})
     };
 
     const response = await fetch(MAILERSEND_API_URL, {
@@ -224,7 +243,7 @@ Deno.serve(async (req) => {
             const body = await req.json().catch(() => null);
             if (!body) return errorResponse("Invalid request body", headers, 400);
 
-            const {userId, reportTitle, weekLabel, reportFields, debug} = body;
+            const {userId, reportTitle, weekLabel, reportFields, attachmentUrl, debug} = body;
             if (!userId || !reportTitle) return errorResponse("userId and reportTitle are required", headers, 400);
 
             const supabase = createAdminClient();
@@ -386,6 +405,19 @@ Deno.serve(async (req) => {
                     {email: submitterEmail, name: submitterName}
                 ];
 
+                // 10. Fetch and base64-encode the PDF attachment if provided
+                const emailAttachments: Array<{content: string; filename: string; disposition: string}> = [];
+                if (attachmentUrl && typeof attachmentUrl === "string") {
+                    const base64Content = await fetchFileAsBase64(attachmentUrl);
+                    if (base64Content) {
+                        emailAttachments.push({
+                            content: base64Content,
+                            filename: "lost-load-writeup.pdf",
+                            disposition: "attachment"
+                        });
+                    }
+                }
+
                 // Log intended recipients before debug whitelist filtering
                 const intendedRecipients = {
                     to: toRecipients.map(r => ({email: r.email, name: r.name})),
@@ -397,6 +429,7 @@ Deno.serve(async (req) => {
                     subject, html, text,
                     toList: toRecipients,
                     ccList: ccRecipients,
+                    attachments: emailAttachments,
                     debugMode
                 });
 

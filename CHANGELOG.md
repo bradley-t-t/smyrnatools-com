@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.9] - 2026-03-16
+
+- Added "Date of Lost Load" field to the lost load report form, detail modal, and list views
+- Added PDF writeup attachment support to lost load reports — upload, storage, display, and download
+- Email notifications for lost load reports now include the lost load date and attachment as a base64-encoded PDF
+- Extended the email service edge function to support file attachments via MailerSend
+- Added rest violation detection to the plan timeline — highlights days where operators have less than 10 hours between shifts
+- Expanded plan timeline range from 3AM–8PM to midnight–midnight
+- Fixed lost load banner text wrapping and inline formatting in ReportsView
+- Removed the standalone plans table SQL file
+- Added v33.8 changelog entry
+
 ## [33.8] - 2026-03-16
 
 - Fixed duplicate assignment IDs by replacing raw Date.now() with an incrementing counter and adding ensureUniqueIds to all assignment ingestion paths (fetch, import, templates, realtime sync)

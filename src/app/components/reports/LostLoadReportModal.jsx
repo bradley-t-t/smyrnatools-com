@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Database } from '../../../services/DatabaseService'
@@ -6,6 +6,12 @@ import { EmailService } from '../../../services/EmailService'
 import { MixerService } from '../../../services/MixerService'
 import { OperatorService } from '../../../services/OperatorService'
 import { UserService } from '../../../services/UserService'
+
+const STORAGE_BUCKET = 'smyrna'
+const STORAGE_PREFIX = 'lost-loads'
+const MAX_FILE_SIZE_MB = 10
+const ALLOWED_FILE_TYPE = 'application/pdf'
+
 function getCurrentWeekBounds() {
     const d = new Date()
     const day = d.getDay()
@@ -17,18 +23,35 @@ function getCurrentWeekBounds() {
     saturday.setDate(monday.getDate() + 5)
     return { monday: monday.toISOString(), saturday: saturday.toISOString() }
 }
+
+/** Uploads a PDF to storage and returns the public URL. */
+async function uploadWriteup(file, userId) {
+    const fileName = `${STORAGE_PREFIX}/${userId}_${Date.now()}.pdf`
+    const { error } = await Database.storage.from(STORAGE_BUCKET).upload(fileName, file, {
+        cacheControl: '3600',
+        contentType: ALLOWED_FILE_TYPE,
+        upsert: false
+    })
+    if (error) throw new Error('Failed to upload writeup: ' + error.message)
+    const { data: urlData } = Database.storage.from(STORAGE_BUCKET).getPublicUrl(fileName)
+    return urlData?.publicUrl || fileName
+}
+
 const REASONS = ['Plant Manager Error', 'Operator Error', 'Plant Issue', 'Truck Issues', 'Other']
 /** Modal form for submitting a new lost load report. Plant is auto-populated from the user's assigned plant. */
 function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
+    const fileInputRef = useRef(null)
     const [plant, setPlant] = useState('')
+    const [lostLoadDate, setLostLoadDate] = useState('')
     const [yardage, setYardage] = useState('')
     const [truckNumber, setTruckNumber] = useState('')
     const [customerName, setCustomerName] = useState('')
     const [ticketNumber, setTicketNumber] = useState('')
     const [reason, setReason] = useState('')
     const [explanation, setExplanation] = useState('')
+    const [attachment, setAttachment] = useState(null)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState('')
     const [mixers, setMixers] = useState([])
@@ -82,9 +105,23 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
             return String(a.truckNumber).localeCompare(String(b.truckNumber), undefined, { numeric: true })
         })
     }, [mixers, plants, operatorMap, truckSearch])
+    const handleFileSelect = (e) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        if (file.type !== ALLOWED_FILE_TYPE) {
+            setError('Only PDF files are allowed.')
+            return
+        }
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            setError(`File must be under ${MAX_FILE_SIZE_MB}MB.`)
+            return
+        }
+        setError('')
+        setAttachment(file)
+    }
     const handleSubmit = async () => {
-        if (!plant || !yardage || !truckNumber.trim() || !reason) {
-            setError('Please fill out all fields.')
+        if (!plant || !lostLoadDate || !yardage || !truckNumber.trim() || !reason) {
+            setError('Please fill out all required fields.')
             return
         }
         if (!explanation.trim()) {
@@ -98,13 +135,21 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
         setSubmitting(true)
         setError('')
         try {
+            // Upload attachment if provided
+            let attachmentUrl = null
+            if (attachment) {
+                attachmentUrl = await uploadWriteup(attachment, user.id)
+            }
+
             const { monday, saturday } = getCurrentWeekBounds()
             const fullReason = reason === 'Other' ? `Other: ${explanation.trim()}` : `${reason}: ${explanation.trim()}`
             const { data, error: dbError } = await Database.from('reports')
                 .insert({
                     completed: true,
                     data: {
+                        attachment_url: attachmentUrl,
                         customer_name: customerName.trim() || null,
+                        lost_load_date: lostLoadDate,
                         plant,
                         reason: fullReason,
                         ticket_number: ticketNumber.trim() || null,
@@ -127,13 +172,23 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                 userId: user.id,
                 reportTitle: 'Lost Load Report',
                 weekLabel: '',
+                attachmentUrl,
                 reportFields: [
+                    {
+                        label: 'Date of Lost Load',
+                        value: new Date(lostLoadDate + 'T12:00:00').toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                        })
+                    },
                     { label: 'Plant', value: plant },
                     { label: 'Truck Number', value: truckNumber.trim() },
                     { label: 'Yardage', value: String(Number(yardage)) },
                     ...(customerName.trim() ? [{ label: 'Customer', value: customerName.trim() }] : []),
                     ...(ticketNumber.trim() ? [{ label: 'Ticket Number', value: ticketNumber.trim() }] : []),
-                    { label: 'Reason', value: fullReason }
+                    { label: 'Reason', value: fullReason },
+                    ...(attachmentUrl ? [{ label: 'Writeup', value: 'PDF attached' }] : [])
                 ]
             }).catch((err) => console.error('[LostLoadReport] Email error:', err))
 
@@ -201,6 +256,17 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                 style={{ color: 'var(--text-secondary)' }}
                             />
                         </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                            Date of Lost Load <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            value={lostLoadDate}
+                            onChange={(e) => setLostLoadDate(e.target.value)}
+                            className="rounded-lg px-3 py-2.5 text-sm focus:outline-none bg-bg-secondary border border-border-light text-text-primary"
+                        />
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
@@ -385,6 +451,49 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                                 color: 'var(--text-primary)'
                             }}
                         />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                            Writeup Attachment{' '}
+                            <span className="text-text-tertiary font-normal normal-case">(optional PDF)</span>
+                        </label>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                        />
+                        {attachment ? (
+                            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-bg-secondary border border-border-light">
+                                <i className="fas fa-file-pdf text-red-500" />
+                                <span className="flex-1 min-w-0 text-sm font-medium text-text-primary truncate">
+                                    {attachment.name}
+                                </span>
+                                <span className="text-xs text-text-secondary shrink-0">
+                                    {(attachment.size / 1024 / 1024).toFixed(1)}MB
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAttachment(null)
+                                        if (fileInputRef.current) fileInputRef.current.value = ''
+                                    }}
+                                    className="w-6 h-6 flex items-center justify-center rounded text-text-secondary hover:text-red-500 transition-colors shrink-0"
+                                >
+                                    <i className="fas fa-times text-xs" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center justify-center gap-2 px-3 py-3 rounded-lg border-2 border-dashed border-border-light text-sm text-text-secondary hover:border-border-dark transition-colors"
+                            >
+                                <i className="fas fa-cloud-upload-alt" />
+                                Upload PDF
+                            </button>
+                        )}
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
