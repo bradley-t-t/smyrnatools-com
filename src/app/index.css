@@ -199,29 +199,29 @@ html.dark {
     --success-color: #34c759;
     --warning-color: #ff9f0a;
     --danger-color: #ff453a;
-    --background-color: #0a0a0a;
-    --card-background: #1a1a1a;
-    --text-color: #fafafa;
-    --text-secondary: #919191;
-    --text-light: #606060;
-    --border-color: #262626;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #1a1a1a;
-    --bg-tertiary: #262626;
-    --bg-hover: #303030;
-    --text-primary: #fafafa;
-    --accent-light: color-mix(in srgb, var(--accent) 12%, black);
+    --background-color: #1a1a1a;
+    --card-background: #242424;
+    --text-color: #f5f5f5;
+    --text-secondary: #a8a8a8;
+    --text-light: #787878;
+    --border-color: #363636;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #242424;
+    --bg-tertiary: #303030;
+    --bg-hover: #3c3c3c;
+    --text-primary: #f5f5f5;
+    --accent-light: color-mix(in srgb, var(--accent) 16%, black);
     --accent-dark: color-mix(in srgb, var(--accent) 70%, white);
     --accent-hover: color-mix(in srgb, var(--accent) 70%, white);
     --accent-transparent: color-mix(in srgb, var(--accent) 10%, transparent);
-    --border-light: #262626;
-    --border-medium: #333333;
-    --border-dark: #404040;
-    --shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --border-light: #363636;
+    --border-medium: #424242;
+    --border-dark: #505050;
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
     --danger: #ef4444;
     --warning: #f59e0b;
     --success: #22c55e;
@@ -284,76 +284,76 @@ textarea {
 
 /* Surfaces */
 html.dark .bg-white {
-    background-color: #0a0a0a;
+    background-color: #1a1a1a;
 }
 html.dark .bg-white\/95 {
-    background-color: rgba(10, 10, 10, 0.95);
+    background-color: rgba(26, 26, 26, 0.95);
 }
 html.dark .bg-white\/90 {
-    background-color: rgba(10, 10, 10, 0.9);
+    background-color: rgba(26, 26, 26, 0.9);
 }
 html.dark .bg-white\/80 {
-    background-color: rgba(10, 10, 10, 0.8);
+    background-color: rgba(26, 26, 26, 0.8);
 }
 html.dark .bg-white\/60 {
-    background-color: rgba(10, 10, 10, 0.6);
+    background-color: rgba(26, 26, 26, 0.6);
 }
 html.dark .bg-gray-50 {
-    background-color: #111111;
+    background-color: #202020;
 }
 html.dark .bg-gray-100 {
-    background-color: #1a1a1a;
+    background-color: #242424;
 }
 html.dark .bg-gray-200 {
-    background-color: #262626;
+    background-color: #3a3a3a;
 }
 html.dark .bg-gray-300 {
-    background-color: #303030;
+    background-color: #3c3c3c;
 }
 html.dark .from-slate-50 {
-    --tw-gradient-from: #111111 var(--tw-gradient-from-position);
-    --tw-gradient-to: rgb(17 17 17 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: #202020 var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(32 32 32 / 0) var(--tw-gradient-to-position);
 }
 html.dark .to-slate-100 {
-    --tw-gradient-to: #1a1a1a var(--tw-gradient-to-position);
+    --tw-gradient-to: #242424 var(--tw-gradient-to-position);
 }
 html.dark .bg-slate-50 {
-    background-color: #111111;
+    background-color: #202020;
 }
 html.dark .bg-slate-50\/80 {
-    background-color: rgba(17, 17, 17, 0.8);
+    background-color: rgba(32, 32, 32, 0.8);
 }
 html.dark .bg-slate-100 {
-    background-color: #1a1a1a;
+    background-color: #242424;
 }
 html.dark .bg-slate-200 {
-    background-color: #262626;
+    background-color: #303030;
 }
 html.dark .bg-slate-300 {
-    background-color: #303030;
+    background-color: #3c3c3c;
 }
 
 /* Hover */
 html.dark .hover\:bg-gray-50:hover {
-    background-color: #1a1a1a;
+    background-color: #242424;
 }
 html.dark .hover\:bg-gray-100:hover {
-    background-color: #262626;
+    background-color: #303030;
 }
 html.dark .hover\:bg-gray-200:hover {
-    background-color: #303030;
+    background-color: #3c3c3c;
 }
 html.dark .hover\:bg-slate-50:hover {
-    background-color: #1a1a1a;
+    background-color: #242424;
 }
 html.dark .hover\:bg-slate-100:hover {
-    background-color: #262626;
-}
-html.dark .hover\:bg-slate-200:hover {
     background-color: #303030;
 }
+html.dark .hover\:bg-slate-200:hover {
+    background-color: #3c3c3c;
+}
 html.dark .hover\:bg-white:hover {
-    background-color: #111111;
+    background-color: #202020;
 }
 
 /* Text */
@@ -402,76 +402,76 @@ html.dark .text-slate-300 {
 
 /* Borders */
 html.dark .border-gray-100 {
-    border-color: #262626;
+    border-color: #363636;
 }
 html.dark .border-gray-200 {
-    border-color: #333333;
+    border-color: #424242;
 }
 html.dark .border-gray-300 {
-    border-color: #404040;
+    border-color: #505050;
 }
 html.dark .border-slate-100 {
-    border-color: #262626;
+    border-color: #363636;
 }
 html.dark .border-slate-200 {
-    border-color: #333333;
+    border-color: #424242;
 }
 html.dark .border-slate-300 {
-    border-color: #404040;
+    border-color: #505050;
 }
 html.dark .border-white\/15 {
     border-color: rgba(255, 255, 255, 0.1);
 }
 html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #262626;
+    border-color: #363636;
 }
 html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: #333333;
+    border-color: #424242;
 }
 
 /* Rings */
 html.dark .ring-gray-100 {
-    --tw-ring-color: #262626;
+    --tw-ring-color: #363636;
 }
 html.dark .ring-gray-200 {
-    --tw-ring-color: #333333;
+    --tw-ring-color: #424242;
 }
 
 /* Alerts */
 html.dark .bg-red-50 {
-    background-color: #1f0e0e;
+    background-color: #2a1a1a;
 }
 html.dark .bg-red-100 {
-    background-color: #2c1414;
+    background-color: #342020;
 }
 html.dark .bg-green-50 {
-    background-color: #0e1f0e;
+    background-color: #1a2a1a;
 }
 html.dark .bg-green-100 {
-    background-color: #142c14;
+    background-color: #203420;
 }
 html.dark .bg-yellow-50 {
-    background-color: #1f1c0e;
+    background-color: #2a271a;
 }
 html.dark .bg-yellow-100 {
-    background-color: #2c2614;
+    background-color: #343020;
 }
 html.dark .bg-blue-50 {
-    background-color: #0e131f;
+    background-color: #1a1f2a;
 }
 html.dark .bg-blue-100 {
-    background-color: #141d2c;
+    background-color: #202834;
 }
 
 /* Accent backgrounds (stat icons, badges) */
 html.dark .bg-emerald-50 {
-    background-color: #0e1f18;
+    background-color: #1a2a24;
 }
 html.dark .bg-amber-50 {
-    background-color: #1f1a0e;
+    background-color: #2a261a;
 }
 html.dark .bg-indigo-50 {
-    background-color: #120e1f;
+    background-color: #1e1a2a;
 }
 
 /* Accent text (stat icons, badges) */
@@ -544,42 +544,42 @@ html.dark textarea::placeholder {
 
 /* Surfaces */
 html.dark .bg-\[\#f8fafc\] {
-    background-color: #0d0d0d;
+    background-color: #1a1a1a;
 }
 html.dark .bg-\[\#f1f5f9\] {
-    background-color: #171717;
+    background-color: #202020;
 }
 html.dark .bg-\[\#f0f9ff\] {
-    background-color: #0d1117;
+    background-color: #181d24;
 }
 html.dark .bg-\[\#fafbfc\] {
-    background-color: #0a0a0a;
+    background-color: #242424;
 }
 html.dark .bg-\[\#e2e8f0\] {
-    background-color: #212121;
+    background-color: #2a2a2a;
 }
 html.dark .bg-\[\#fff7ed\] {
-    background-color: #17130d;
+    background-color: #221e18;
 }
 
 /* Semantic tints */
 html.dark .bg-\[\#fef2f2\] {
-    background-color: #1a0a0a;
+    background-color: #261616;
 }
 html.dark .bg-\[\#fee2e2\] {
-    background-color: #261010;
+    background-color: #301c1c;
 }
 html.dark .bg-\[\#dcfce7\] {
-    background-color: #0a1a0a;
+    background-color: #162616;
 }
 html.dark .bg-\[\#fef3c7\] {
-    background-color: #1a170a;
+    background-color: #262216;
 }
 html.dark .bg-\[\#dbeafe\] {
-    background-color: #0a0f1a;
+    background-color: #161b26;
 }
 html.dark .bg-\[\#f3e8ff\] {
-    background-color: #140a1a;
+    background-color: #201626;
 }
 html.dark .bg-\[\#ffedd5\] {
     background-color: #1a100a;
