@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [33.8] - 2026-03-16
+
+- Fixed duplicate assignment IDs by replacing raw Date.now() with an incrementing counter and adding ensureUniqueIds to all assignment ingestion paths (fetch, import, templates, realtime sync)
+- Skip travel time in timeline for load-from-plant assignments — they only show pre-trip now
+- Reduced default stagger minutes from 10 to 5
+- Auto-populate custom times when switching to custom time mode or changing driver count in custom mode
+- Extracted buildCustomTimes helper to consolidate staggered time generation logic
+- Added dirty flag to prevent realtime sync from overwriting unsaved local edits
+- Removed the duplicate row feature and its UI button
+- Removed onFocus handler that was setting activeRowId on table rows
+- Added v33.7 changelog entry
+
 ## [33.7] - 2026-03-16
 
 - Replaced timestamp-based echo suppression with content-aware diffing for realtime plan sync — incoming changes are now compared against local state and only applied when they actually differ

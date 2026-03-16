@@ -10,7 +10,7 @@ import { UserService } from '../../../services/UserService'
 const PRE_TRIP_MINUTES = 15
 const BUFFER_MINUTES = 5
 const AUTOSAVE_DELAY_MS = 1000
-const DEFAULT_STAGGER_MINUTES = 10
+const DEFAULT_STAGGER_MINUTES = 5
 const OVERTIME_THRESHOLD_HOURS = 12
 const GAP_THRESHOLD_MINUTES = 30
 const DROPDOWN_ARROW_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`
@@ -45,17 +45,32 @@ const formatTimeInput = (value) => {
     return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`
 }
 
+let assignmentIdCounter = Date.now()
+const nextAssignmentId = () => ++assignmentIdCounter
+
 const createEmptyAssignment = () => ({
     customTimes: [],
     driverCount: 1,
     fromPlant: '',
-    id: Date.now(),
+    id: nextAssignmentId(),
     leaveTime: '',
     staggerMinutes: DEFAULT_STAGGER_MINUTES,
     time: '',
     timeMode: 'stagger',
     toPlant: ''
 })
+
+/** Ensures every assignment in an array has a unique id. */
+const ensureUniqueIds = (assignments) => {
+    const seen = new Set()
+    return assignments.map((a) => {
+        if (!a.id || seen.has(a.id)) {
+            return { ...a, id: nextAssignmentId() }
+        }
+        seen.add(a.id)
+        return a
+    })
+}
 
 const PlantSelect = ({ value, onChange, plants, excludeValue, placeholder, className }) => (
     <select
@@ -178,15 +193,9 @@ function TimelineView({
             const hasTravelTime = travelMin !== null
 
             const buildLane = (arriveTime, leaveTime, opLabel) => {
-                // Pre-trip always happens: 15 min before departure
-                // If travel time known: clockIn = arrive - travel - buffer - preTrip
-                //   preTripEnd = clockIn + 15 (depart time)
-                //   travelStart = preTripEnd (depart immediately after pre-trip; buffer is at destination end)
-                // If no travel time: clockIn = arrive - 15 (pre-trip only)
-                //   preTripEnd = arrive
-                const totalPreDeparture = hasTravelTime
-                    ? travelMin + BUFFER_MINUTES + PRE_TRIP_MINUTES
-                    : PRE_TRIP_MINUTES
+                // Load-from-plant trucks don't travel — pre-trip only
+                const showTravel = hasTravelTime && !a.loadFromPlant
+                const totalPreDeparture = showTravel ? travelMin + BUFFER_MINUTES + PRE_TRIP_MINUTES : PRE_TRIP_MINUTES
                 const clockIn = arriveTime ? addMinutesToTime(arriveTime, -totalPreDeparture) : null
                 const preTripEnd = clockIn ? addMinutesToTime(clockIn, PRE_TRIP_MINUTES) : null
 
@@ -196,13 +205,13 @@ function TimelineView({
                     color: LANE_COLORS[idx % LANE_COLORS.length],
                     dayIdx,
                     fromPlant: a.fromPlant,
-                    hasTravelTime,
+                    hasTravelTime: showTravel,
                     label: opLabel,
                     leaveTime: leaveTime || null,
                     loadFromPlant: a.loadFromPlant,
                     preTripEnd,
                     toPlant: a.toPlant,
-                    travel: travelMin
+                    travel: showTravel ? travelMin : null
                 }
             }
 
@@ -924,6 +933,7 @@ function PlanView() {
     const [viewMode, setViewMode] = useState('table') // 'table' | 'timeline'
     const [adjacentPlans, setAdjacentPlans] = useState({}) // { [dateStr]: assignments[] }
     const [showImportModal, setShowImportModal] = useState(false)
+    const dirtyRef = useRef(false)
     const [importText, setImportText] = useState('')
     const isMobile = useIsMobile()
 
@@ -983,7 +993,7 @@ function PlanView() {
             try {
                 const plan = await PlanService.fetchPlan(planDate)
                 if (plan?.assignments?.length) {
-                    setAssignments(plan.assignments)
+                    setAssignments(ensureUniqueIds(plan.assignments))
                 } else {
                     setAssignments([createEmptyAssignment()])
                 }
@@ -1017,9 +1027,11 @@ function PlanView() {
 
     useEffect(() => {
         if (!canEdit || !planDate || isLoading) return
+        dirtyRef.current = true
         const timeout = setTimeout(async () => {
             try {
                 await PlanService.savePlan(planDate, assignments, notes)
+                dirtyRef.current = false
             } catch {}
         }, AUTOSAVE_DELAY_MS)
         return () => clearTimeout(timeout)
@@ -1037,13 +1049,16 @@ function PlanView() {
         table: 'plans',
         enabled: !isLoading,
         onChange: useCallback((payload) => {
+            // Don't overwrite local unsaved edits
+            if (dirtyRef.current) return
             const record = payload.new
             if (!record || record.plan_date !== planDateRef.current) return
-            // Only apply if the incoming data actually differs from local state
             const incoming = JSON.stringify(record.assignments ?? [])
             const local = JSON.stringify(assignmentsRef.current)
             if (incoming !== local) {
-                setAssignments(record.assignments?.length ? record.assignments : [createEmptyAssignment()])
+                setAssignments(
+                    record.assignments?.length ? ensureUniqueIds(record.assignments) : [createEmptyAssignment()]
+                )
             }
             if ((record.notes || '') !== notesRef.current) {
                 setNotes(record.notes || '')
@@ -1077,7 +1092,13 @@ function PlanView() {
 
     const DEFAULT_SHIFT_HOURS = 14
 
-    const updateAssignment = (id, field, value) =>
+    const buildCustomTimes = (baseTime, leaveTime, count, stagger) =>
+        Array.from({ length: count }, (_, i) => ({
+            leaveTime: leaveTime || '',
+            time: baseTime ? addMinutesToTime(baseTime, i * (stagger || DEFAULT_STAGGER_MINUTES)) || '' : ''
+        }))
+
+    const updateAssignment = (id, field, value) => {
         setAssignments((prev) =>
             prev.map((a) => {
                 if (a.id !== id) return a
@@ -1086,9 +1107,23 @@ function PlanView() {
                 if (field === 'time' && value?.length === 5 && !a.leaveTime) {
                     updated.leaveTime = addMinutesToTime(value, DEFAULT_SHIFT_HOURS * 60) || ''
                 }
+                // Pre-fill custom times when switching to custom mode
+                if (field === 'timeMode' && value === 'custom') {
+                    updated.customTimes = buildCustomTimes(
+                        a.time,
+                        a.leaveTime,
+                        parseInt(a.driverCount) || 1,
+                        a.staggerMinutes
+                    )
+                }
+                // Rebuild custom times when driver count changes in custom mode
+                if (field === 'driverCount' && a.timeMode === 'custom') {
+                    updated.customTimes = buildCustomTimes(a.time, a.leaveTime, parseInt(value) || 1, a.staggerMinutes)
+                }
                 return updated
             })
         )
+    }
 
     const updateCustomTime = (assignmentId, idx, field, value) => {
         setAssignments((prev) =>
@@ -1106,12 +1141,12 @@ function PlanView() {
         setAssignments((prev) =>
             prev.map((a) => {
                 if (a.id !== id) return a
-                const customTimes = Array.from({ length: a.driverCount }, (_, i) => ({
-                    leaveTime: a.leaveTime || '',
-                    time: a.time
-                        ? addMinutesToTime(a.time, i * (a.staggerMinutes || DEFAULT_STAGGER_MINUTES)) || ''
-                        : ''
-                }))
+                const customTimes = buildCustomTimes(
+                    a.time,
+                    a.leaveTime,
+                    parseInt(a.driverCount) || 1,
+                    a.staggerMinutes
+                )
                 return { ...a, customTimes, timeMode: 'custom' }
             })
         )
@@ -1285,7 +1320,7 @@ function PlanView() {
         if (!importText.trim()) return
         const parsed = parsePlanMessage(importText)
         if (parsed.length > 0) {
-            setAssignments(parsed)
+            setAssignments(ensureUniqueIds(parsed))
         }
         setImportText('')
         setShowImportModal(false)
@@ -1469,17 +1504,6 @@ function PlanView() {
         return { suggestions, warnings }
     }, [assignments, mixerCountsByPlant, travelTimes, shiftSpanHours])
 
-    // Duplicate an assignment row
-    const duplicateRow = useCallback((assignment) => {
-        const clone = { ...assignment, id: Date.now(), customTimes: [...(assignment.customTimes || [])] }
-        setAssignments((prev) => {
-            const idx = prev.findIndex((a) => a.id === assignment.id)
-            const next = [...prev]
-            next.splice(idx + 1, 0, clone)
-            return next
-        })
-    }, [])
-
     // Move assignment up/down for manual reordering
     const moveAssignment = useCallback((id, direction) => {
         setAssignments((prev) => {
@@ -1508,7 +1532,7 @@ function PlanView() {
     }, [userId, templateName, assignments, notes, loadTemplates])
 
     const loadTemplate = useCallback((template) => {
-        setAssignments(template.assignments || [createEmptyAssignment()])
+        setAssignments(ensureUniqueIds(template.assignments || [createEmptyAssignment()]))
         setNotes(template.notes || '')
         setShowTemplateModal(false)
     }, [])
@@ -2341,7 +2365,6 @@ function PlanView() {
                                                             <React.Fragment key={a.id}>
                                                                 <tr
                                                                     className="group hover:bg-[var(--bg-secondary)] transition-colors"
-                                                                    onFocus={() => setActiveRowId(a.id)}
                                                                     style={{
                                                                         borderBottom: isExpanded
                                                                             ? 'none'
@@ -2561,16 +2584,6 @@ function PlanView() {
                                                                                     />
                                                                                 </button>
                                                                             )}
-                                                                            <button
-                                                                                onClick={() => duplicateRow(a)}
-                                                                                className="border-none bg-transparent cursor-pointer p-0.5 opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-                                                                                style={{
-                                                                                    color: 'var(--text-secondary)'
-                                                                                }}
-                                                                                title="Duplicate row"
-                                                                            >
-                                                                                <i className="fas fa-clone text-[9px]" />
-                                                                            </button>
                                                                         </div>
                                                                     </td>
                                                                     <td className="text-center py-2.5 px-0">
