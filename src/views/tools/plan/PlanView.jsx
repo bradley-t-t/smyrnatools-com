@@ -327,7 +327,6 @@ function TimelineView({
             allPlants.map((plant) => {
                 let maxSent = 0
                 let maxRecv = 0
-                let maxHome = 0
                 let maxTotal = 0
                 const base = mixerCountsByPlant[plant] || 0
                 dayLanes.forEach((d) => {
@@ -336,14 +335,14 @@ function TimelineView({
                     const home = Math.max(0, base - sent)
                     maxSent = Math.max(maxSent, sent)
                     maxRecv = Math.max(maxRecv, recv)
-                    maxHome = Math.max(maxHome, home)
-                    maxTotal = Math.max(maxTotal, sent + recv + home)
+                    // +1 row for consolidated home/production bar when home operators exist
+                    maxTotal = Math.max(maxTotal, sent + recv + (home > 0 ? 1 : 0))
                 })
                 return {
                     plant,
+                    base,
                     sentCount: maxSent,
                     recvCount: maxRecv,
-                    homeCount: maxHome,
                     laneCount: Math.max(1, maxTotal)
                 }
             }),
@@ -541,15 +540,6 @@ function TimelineView({
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2 mt-0.5">
-                                        {pr.homeCount > 0 && (
-                                            <span
-                                                className="flex items-center gap-0.5 text-[9px] font-medium"
-                                                style={{ color: HOME_COLOR }}
-                                            >
-                                                <i className="fas fa-home text-[7px]" />
-                                                {pr.homeCount} home
-                                            </span>
-                                        )}
                                         {pr.sentCount > 0 && (
                                             <span
                                                 className="flex items-center gap-0.5 text-[9px] font-medium"
@@ -796,35 +786,61 @@ function TimelineView({
                                                     }}
                                                 />
                                             ))}
-                                            {/* Production block: first job → last job */}
+                                            {/* Home operators + production bar */}
                                             {(() => {
+                                                if (homeCount <= 0) return null
                                                 const prod = day.production?.[pr.plant]
-                                                if (!prod?.firstJobTime || !prod?.lastJobTime) return null
-                                                const startPct = timeToPercent(prod.firstJobTime)
-                                                const endPct = timeToPercent(prod.lastJobTime)
-                                                if (startPct == null || endPct == null || endPct <= startPct)
-                                                    return null
+                                                const startPct = timeToPercent(prod?.firstJobTime)
+                                                const endPct = timeToPercent(prod?.lastJobTime)
+                                                const hasProd = startPct != null && endPct != null && endPct > startPct
+                                                const homeTop = (sentLanes.length + recvLanes.length) * ROW_HEIGHT + 4
+                                                const blockH = ROW_HEIGHT - 8
                                                 return (
-                                                    <div
-                                                        className="absolute pointer-events-none flex items-end justify-center"
-                                                        style={{
-                                                            left: `${startPct}%`,
-                                                            width: `${endPct - startPct}%`,
-                                                            top: 0,
-                                                            bottom: 0,
-                                                            background: `${accentColor}08`,
-                                                            borderLeft: `1.5px dashed ${accentColor}40`,
-                                                            borderRight: `1.5px dashed ${accentColor}40`
-                                                        }}
-                                                    >
-                                                        <span
-                                                            className="text-[8px] font-semibold whitespace-nowrap pb-0.5 px-1"
-                                                            style={{ color: `${accentColor}80` }}
+                                                    <>
+                                                        {/* Production time range background */}
+                                                        {hasProd && (
+                                                            <div
+                                                                className="absolute pointer-events-none"
+                                                                style={{
+                                                                    left: `${startPct}%`,
+                                                                    width: `${endPct - startPct}%`,
+                                                                    top: 0,
+                                                                    bottom: 0,
+                                                                    background: `${HOME_COLOR}06`,
+                                                                    borderLeft: `1px dashed ${HOME_COLOR}30`,
+                                                                    borderRight: `1px dashed ${HOME_COLOR}30`
+                                                                }}
+                                                            />
+                                                        )}
+                                                        {/* Consolidated home bar */}
+                                                        <div
+                                                            className="absolute rounded flex items-center overflow-hidden pointer-events-none"
+                                                            style={{
+                                                                left: hasProd ? `${startPct}%` : '2%',
+                                                                width: hasProd ? `${endPct - startPct}%` : '96%',
+                                                                top: homeTop,
+                                                                height: blockH,
+                                                                background: `${HOME_COLOR}18`,
+                                                                border: `1px solid ${HOME_COLOR}40`
+                                                            }}
                                                         >
-                                                            {prod.totalYardage ? `${prod.totalYardage} yds` : ''}{' '}
-                                                            {prod.firstJobTime}–{prod.lastJobTime}
-                                                        </span>
-                                                    </div>
+                                                            <span
+                                                                className="text-[9px] font-bold truncate px-2 whitespace-nowrap"
+                                                                style={{ color: HOME_COLOR }}
+                                                            >
+                                                                <i className="fas fa-home text-[7px] mr-1" />
+                                                                {homeCount} on site
+                                                                {hasProd && (
+                                                                    <span className="font-medium ml-1.5">
+                                                                        {prod.firstJobTime}–{prod.lastJobTime}
+                                                                        {prod.totalYardage
+                                                                            ? ` · ${prod.totalYardage} yds`
+                                                                            : ''}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    </>
                                                 )
                                             })()}
                                             {/* Rest violations: only on sent lanes (plant's own drivers) */}
@@ -886,36 +902,8 @@ function TimelineView({
                                             {sentLanes.map((lane, i) => renderBlock(lane, i, true))}
                                             {/* Received lanes — operators arriving */}
                                             {recvLanes.map((lane, i) => renderBlock(lane, sentLanes.length + i, false))}
-                                            {/* Home operators — staying at plant */}
-                                            {homeCount > 0 &&
-                                                (() => {
-                                                    const prod = day.production?.[pr.plant]
-                                                    const startPct = timeToPercent(prod?.firstJobTime)
-                                                    const endPct = timeToPercent(prod?.lastJobTime)
-                                                    if (startPct == null || endPct == null || endPct <= startPct)
-                                                        return null
-                                                    const homeOffset = sentLanes.length + recvLanes.length
-                                                    return Array.from({ length: homeCount }, (_, hi) => (
-                                                        <div
-                                                            key={`home-${hi}`}
-                                                            className="absolute rounded flex items-center overflow-hidden"
-                                                            style={{
-                                                                left: `${startPct}%`,
-                                                                width: `${endPct - startPct}%`,
-                                                                top: (homeOffset + hi) * ROW_HEIGHT + 4,
-                                                                height: ROW_HEIGHT - 8,
-                                                                background: HOME_COLOR
-                                                            }}
-                                                        >
-                                                            <span className="text-[9px] font-bold text-white truncate px-1.5 whitespace-nowrap">
-                                                                {pr.plant} #{hi + 1} {prod.firstJobTime}–
-                                                                {prod.lastJobTime}
-                                                            </span>
-                                                        </div>
-                                                    ))
-                                                })()}
                                             {/* Empty state */}
-                                            {allLanes.length === 0 && (
+                                            {allLanes.length === 0 && homeCount === 0 && (
                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                     <span
                                                         className="text-[10px] opacity-30"
