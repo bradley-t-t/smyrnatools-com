@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.3] - 2026-03-17
+
+- Added yards-per-hour-per-operator metric to the home operator summary bar in the plan timeline
+- Production stats now calculate elapsed hours from job times and derive a per-operator throughput rate
+- Updated changelog with v35.2 release notes
+
 ## [35.2] - 2026-03-17
 
 - Changed home operator summary bar label from "on site" to "assigned to plant" for clarity

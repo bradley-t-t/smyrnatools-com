@@ -13,6 +13,8 @@ const AUTOSAVE_DELAY_MS = 1000
 const DEFAULT_STAGGER_MINUTES = 5
 const OVERTIME_THRESHOLD_HOURS = 12
 const GAP_THRESHOLD_MINUTES = 30
+const TARGET_YPH = 3 // minimum yards/hr/op target
+const MAX_YPH = 5 // above this, operators can't keep up
 const DROPDOWN_ARROW_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`
 
 const getTomorrowDate = () => {
@@ -317,10 +319,10 @@ function TimelineView({
         [plants]
     )
 
-    // Neutral colors for sent/received/home lanes
-    const SENT_COLOR = '#8b8685' // warm gray — operators leaving this plant
-    const RECV_COLOR = '#5b7a9c' // muted steel blue — operators arriving at this plant
-    const HOME_COLOR = '#4d8c57' // muted green — operators staying at home plant
+    // Lane colors — high contrast, distinct hues for instant recognition
+    const SENT_COLOR = '#c2703a' // warm copper — operators leaving this plant
+    const RECV_COLOR = '#3b7dd8' // clear blue — operators arriving at this plant
+    const HOME_COLOR = '#2d8659' // rich green — operators staying at home plant
 
     const plantRows = useMemo(
         () =>
@@ -515,47 +517,60 @@ function TimelineView({
                         </div>
 
                         {/* Plant rows */}
-                        {plantRows.map((pr) => (
+                        {plantRows.map((pr, prIdx) => (
                             <React.Fragment key={pr.plant}>
                                 <div
                                     className="flex flex-col justify-center px-3 border-b border-r"
                                     style={{
                                         height: ROW_HEIGHT * pr.laneCount,
                                         borderColor: 'var(--border-light)',
-                                        background: 'var(--bg-primary)'
+                                        background: prIdx % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)',
+                                        borderBottomWidth: 2
                                     }}
                                 >
                                     <div className="flex items-center gap-1.5">
                                         <i className="fas fa-industry text-[9px]" style={{ color: accentColor }} />
                                         <span
-                                            className="text-[11px] font-bold uppercase tracking-wide"
+                                            className="text-[12px] font-extrabold uppercase tracking-wide"
                                             style={{ color: accentColor }}
                                         >
                                             {pr.plant}
                                         </span>
                                         {mixerCountsByPlant[pr.plant] > 0 && (
-                                            <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                                                {mixerCountsByPlant[pr.plant]}m
+                                            <span
+                                                className="text-[9px] font-semibold rounded-full px-1.5 py-px"
+                                                style={{
+                                                    color: 'var(--text-secondary)',
+                                                    background: 'var(--bg-tertiary)'
+                                                }}
+                                            >
+                                                {mixerCountsByPlant[pr.plant]}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="flex items-center gap-1.5 mt-1">
                                         {pr.sentCount > 0 && (
                                             <span
-                                                className="flex items-center gap-0.5 text-[9px] font-medium"
-                                                style={{ color: SENT_COLOR }}
+                                                className="flex items-center gap-0.5 text-[9px] font-bold rounded px-1 py-px"
+                                                style={{
+                                                    color: SENT_COLOR,
+                                                    background: `${SENT_COLOR}15`
+                                                }}
                                             >
-                                                <i className="fas fa-arrow-up text-[7px]" />
-                                                {pr.sentCount} out
+                                                <i className="fas fa-arrow-right-from-bracket text-[7px]" />
+                                                {pr.sentCount}
                                             </span>
                                         )}
                                         {pr.recvCount > 0 && (
                                             <span
-                                                className="flex items-center gap-0.5 text-[9px] font-medium"
-                                                style={{ color: RECV_COLOR }}
+                                                className="flex items-center gap-0.5 text-[9px] font-bold rounded px-1 py-px"
+                                                style={{
+                                                    color: RECV_COLOR,
+                                                    background: `${RECV_COLOR}15`
+                                                }}
                                             >
-                                                <i className="fas fa-arrow-down text-[7px]" />
-                                                {pr.recvCount} in
+                                                <i className="fas fa-arrow-right-to-bracket text-[7px]" />
+                                                {pr.recvCount}
                                             </span>
                                         )}
                                     </div>
@@ -607,29 +622,40 @@ function TimelineView({
                                                 </span>
                                             )}
                                         </span>
-                                        {hourLabels.map((label, i) => (
-                                            <div
-                                                key={i}
-                                                className="absolute top-0 bottom-0 flex items-end pb-0.5"
-                                                style={{ left: `${(i / TIMELINE_HOURS) * 100}%` }}
-                                            >
+                                        {hourLabels.map((label, i) => {
+                                            const hour = TIMELINE_START_HOUR + i
+                                            const isWorkHour = hour >= 4 && hour <= 18
+                                            return (
                                                 <div
-                                                    className="absolute top-0 bottom-0 w-px"
-                                                    style={{ background: 'var(--border-light)' }}
-                                                />
-                                                <span
-                                                    className="text-[9px] pl-0.5"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    key={i}
+                                                    className="absolute top-0 bottom-0 flex items-end pb-0.5"
+                                                    style={{ left: `${(i / TIMELINE_HOURS) * 100}%` }}
                                                 >
-                                                    {label}
-                                                </span>
-                                            </div>
-                                        ))}
+                                                    <div
+                                                        className="absolute top-0 bottom-0 w-px"
+                                                        style={{
+                                                            background: 'var(--border-light)',
+                                                            opacity: isWorkHour ? 1 : 0.4
+                                                        }}
+                                                    />
+                                                    <span
+                                                        className="text-[9px] pl-0.5"
+                                                        style={{
+                                                            color: 'var(--text-secondary)',
+                                                            opacity: isWorkHour ? 0.9 : 0.4,
+                                                            fontWeight: isWorkHour ? 600 : 400
+                                                        }}
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 </div>
 
                                 {/* Lanes for each plant row */}
-                                {plantRows.map((pr) => {
+                                {plantRows.map((pr, prIdx) => {
                                     // Per-lane violation lookup helpers
                                     const getLaneViolationFromPrev = (li) =>
                                         restViolations[`${dayIdx}:${pr.plant}:${li}`] || null
@@ -648,6 +674,8 @@ function TimelineView({
                                     const allLanes = [...sentLanes, ...recvLanes]
                                     const base = mixerCountsByPlant[pr.plant] || 0
                                     const homeCount = Math.max(0, base - sentLanes.length)
+                                    // Home/production bar sits at row 0; help lanes shift down by 1
+                                    const homeOffset = homeCount > 0 ? 1 : 0
 
                                     const renderBlock = (lane, laneIdx, isSent) => {
                                         const blockColor = isSent ? SENT_COLOR : RECV_COLOR
@@ -655,11 +683,14 @@ function TimelineView({
                                         const preTripEndPct = timeToPercent(lane.preTripEnd)
                                         const arrivePct = timeToPercent(lane.arriveTime)
                                         const leavePct = timeToPercent(lane.leaveTime)
-                                        const top = laneIdx * ROW_HEIGHT + 4
-                                        const blockH = ROW_HEIGHT - 8
+                                        const top = (laneIdx + homeOffset) * ROW_HEIGHT + 3
+                                        const blockH = ROW_HEIGHT - 6
                                         const routeLabel = isSent
                                             ? `\u2192 ${lane.toPlant}`
                                             : `\u2190 ${lane.fromPlant}`
+                                        const dirIcon = isSent
+                                            ? 'fa-arrow-right-from-bracket'
+                                            : 'fa-arrow-right-to-bracket'
 
                                         // Pre-trip: clockIn -> preTripEnd (always 15 min)
                                         const preW =
@@ -682,25 +713,38 @@ function TimelineView({
 
                                         return (
                                             <React.Fragment key={`${isSent ? 's' : 'r'}-${laneIdx}`}>
+                                                {/* Connector line spanning pre-trip through on-site */}
+                                                {clockInPct != null &&
+                                                    siteStart != null &&
+                                                    (preW > 0 || travelW > 0) && (
+                                                        <div
+                                                            className="absolute pointer-events-none"
+                                                            style={{
+                                                                left: `${clockInPct}%`,
+                                                                width: `${siteStart + siteW - clockInPct}%`,
+                                                                top: top + blockH / 2 - 1,
+                                                                height: 2,
+                                                                background: `${blockColor}30`
+                                                            }}
+                                                        />
+                                                    )}
                                                 {/* Pre-trip block */}
                                                 {preW > 0 && (
                                                     <div
-                                                        className="absolute rounded-l flex items-center justify-center overflow-visible"
+                                                        className="absolute rounded-sm flex items-center justify-center overflow-visible"
                                                         style={{
                                                             left: `${clockInPct}%`,
                                                             width: `${preW}%`,
-                                                            minWidth: 6,
+                                                            minWidth: 8,
                                                             top,
                                                             height: blockH,
-                                                            background: `${blockColor}30`,
-                                                            borderLeft: `2px solid ${blockColor}`,
-                                                            borderTop: `1px dotted ${blockColor}60`,
-                                                            borderBottom: `1px dotted ${blockColor}60`
+                                                            background: `${blockColor}18`,
+                                                            borderLeft: `3px solid ${blockColor}80`
                                                         }}
                                                     >
                                                         <span
-                                                            className="text-[8px] font-semibold whitespace-nowrap px-0.5"
-                                                            style={{ color: blockColor }}
+                                                            className="text-[8px] font-bold whitespace-nowrap px-0.5 uppercase"
+                                                            style={{ color: `${blockColor}90` }}
                                                         >
                                                             PT
                                                         </span>
@@ -713,36 +757,39 @@ function TimelineView({
                                                         style={{
                                                             left: `${preTripEndPct}%`,
                                                             width: `${travelW}%`,
-                                                            minWidth: 6,
-                                                            top,
-                                                            height: blockH,
-                                                            background: `${blockColor}45`,
-                                                            borderTop: `1px dashed ${blockColor}70`,
-                                                            borderBottom: `1px dashed ${blockColor}70`
+                                                            minWidth: 8,
+                                                            top: top + 2,
+                                                            height: blockH - 4,
+                                                            background: `${blockColor}20`,
+                                                            borderRadius: 3,
+                                                            border: `1px dashed ${blockColor}50`
                                                         }}
                                                     >
                                                         <span
-                                                            className="text-[9px] font-semibold whitespace-nowrap px-1"
-                                                            style={{ color: blockColor }}
+                                                            className="text-[8px] font-semibold whitespace-nowrap px-1"
+                                                            style={{ color: `${blockColor}BB` }}
                                                         >
-                                                            <i className="fas fa-truck text-[7px] mr-0.5" />
+                                                            <i className="fas fa-route text-[7px] mr-0.5" />
                                                             {lane.travel}m
                                                         </span>
                                                     </div>
                                                 )}
-                                                {/* On-site / arrival block */}
+                                                {/* On-site / arrival block — solid pill */}
                                                 {siteW > 0 && siteStart != null && (
                                                     <div
-                                                        className="absolute rounded-r flex items-center overflow-hidden"
+                                                        className="absolute flex items-center overflow-visible"
                                                         style={{
                                                             left: `${siteStart}%`,
                                                             width: `${siteW}%`,
                                                             top,
                                                             height: blockH,
-                                                            background: blockColor
+                                                            background: blockColor,
+                                                            borderRadius: 4,
+                                                            boxShadow: `0 1px 3px ${blockColor}40`
                                                         }}
                                                     >
-                                                        <span className="text-[9px] font-bold text-white truncate px-1.5 whitespace-nowrap">
+                                                        <span className="text-[9px] font-bold text-white px-1.5 whitespace-nowrap flex items-center gap-1">
+                                                            <i className={`fas ${dirIcon} text-[7px] opacity-70`} />
                                                             {routeLabel} {lane.arriveTime}
                                                             {lane.leaveTime ? `\u2013${lane.leaveTime}` : ''}
                                                             {lane.loadFromPlant ? ' LD' : ''}
@@ -756,36 +803,48 @@ function TimelineView({
                                     return (
                                         <div
                                             key={pr.plant}
-                                            className="relative border-b cursor-crosshair select-none"
+                                            className="relative cursor-crosshair select-none"
                                             style={{
                                                 height: ROW_HEIGHT * pr.laneCount,
-                                                borderColor: 'var(--border-light)',
-                                                background: isCurrent ? `${accentColor}05` : 'transparent'
+                                                borderBottom: '2px solid var(--border-light)',
+                                                background:
+                                                    prIdx % 2 === 0
+                                                        ? isCurrent
+                                                            ? `${accentColor}06`
+                                                            : 'transparent'
+                                                        : isCurrent
+                                                          ? `${accentColor}08`
+                                                          : 'var(--bg-secondary)'
                                             }}
                                             onMouseDown={(e) => handleMouseDown(e, dayIdx)}
                                         >
-                                            {/* Sent/Recv separator line */}
+                                            {/* Sent/Recv separator — dashed line with color indicator */}
                                             {sentLanes.length > 0 && recvLanes.length > 0 && (
                                                 <div
-                                                    className="absolute left-0 right-0 h-px"
+                                                    className="absolute left-0 right-0"
                                                     style={{
-                                                        top: sentLanes.length * ROW_HEIGHT,
-                                                        background: 'var(--border-light)'
+                                                        top: (sentLanes.length + homeOffset) * ROW_HEIGHT - 1,
+                                                        height: 2,
+                                                        background: `repeating-linear-gradient(90deg, ${RECV_COLOR}30 0, ${RECV_COLOR}30 4px, transparent 4px, transparent 8px)`
                                                     }}
                                                 />
                                             )}
-                                            {/* Hour grid lines */}
-                                            {hourLabels.map((_, j) => (
-                                                <div
-                                                    key={j}
-                                                    className="absolute top-0 bottom-0 w-px"
-                                                    style={{
-                                                        left: `${(j / TIMELINE_HOURS) * 100}%`,
-                                                        background: 'var(--border-light)',
-                                                        opacity: 0.3
-                                                    }}
-                                                />
-                                            ))}
+                                            {/* Hour grid lines — emphasize work hours (4a-6p) */}
+                                            {hourLabels.map((_, j) => {
+                                                const hour = TIMELINE_START_HOUR + j
+                                                const isWorkHour = hour >= 4 && hour <= 18
+                                                return (
+                                                    <div
+                                                        key={j}
+                                                        className="absolute top-0 bottom-0 w-px"
+                                                        style={{
+                                                            left: `${(j / TIMELINE_HOURS) * 100}%`,
+                                                            background: 'var(--border-light)',
+                                                            opacity: isWorkHour ? 0.5 : 0.15
+                                                        }}
+                                                    />
+                                                )
+                                            })}
                                             {/* Home operators + production bar */}
                                             {(() => {
                                                 if (homeCount <= 0) return null
@@ -793,11 +852,30 @@ function TimelineView({
                                                 const startPct = timeToPercent(prod?.firstJobTime)
                                                 const endPct = timeToPercent(prod?.lastJobTime)
                                                 const hasProd = startPct != null && endPct != null && endPct > startPct
-                                                const homeTop = (sentLanes.length + recvLanes.length) * ROW_HEIGHT + 4
-                                                const blockH = ROW_HEIGHT - 8
+                                                const homeTop = 2 // First row — above help lanes
+                                                const blockH = ROW_HEIGHT - 4
+
+                                                // Production metrics
+                                                const firstMins = hasProd ? timeToMinutes(prod.firstJobTime) : null
+                                                const lastMins = hasProd ? timeToMinutes(prod.lastJobTime) : null
+                                                const hrs =
+                                                    firstMins !== null && lastMins !== null && lastMins > firstMins
+                                                        ? (lastMins - firstMins) / 60
+                                                        : null
+                                                const yds = hasProd ? parseFloat(prod.totalYardage) || 0 : 0
+                                                const ydsPerHrOp =
+                                                    hrs && yds && homeCount > 0
+                                                        ? Math.round((yds / (hrs * homeCount)) * 10) / 10
+                                                        : null
+                                                const minNeeded =
+                                                    hrs && yds ? Math.ceil(yds / (hrs * TARGET_YPH)) : null
+                                                const availableToSend =
+                                                    minNeeded !== null ? Math.max(0, homeCount - minNeeded) : null
+                                                const overMax = ydsPerHrOp !== null && ydsPerHrOp > MAX_YPH
+
                                                 return (
                                                     <>
-                                                        {/* Production time range background */}
+                                                        {/* Production time range background stripe */}
                                                         {hasProd && (
                                                             <div
                                                                 className="absolute pointer-events-none"
@@ -806,61 +884,94 @@ function TimelineView({
                                                                     width: `${endPct - startPct}%`,
                                                                     top: 0,
                                                                     bottom: 0,
-                                                                    background: `${HOME_COLOR}06`,
-                                                                    borderLeft: `1px dashed ${HOME_COLOR}30`,
-                                                                    borderRight: `1px dashed ${HOME_COLOR}30`
+                                                                    background: `${HOME_COLOR}08`,
+                                                                    borderLeft: `2px solid ${HOME_COLOR}25`,
+                                                                    borderRight: `2px solid ${HOME_COLOR}25`
                                                                 }}
                                                             />
                                                         )}
-                                                        {/* Consolidated home bar */}
+                                                        {/* Consolidated home bar — pill style */}
                                                         <div
-                                                            className="absolute rounded flex items-center overflow-hidden pointer-events-none"
+                                                            className="absolute flex items-center overflow-visible pointer-events-none"
                                                             style={{
-                                                                left: hasProd ? `${startPct}%` : '2%',
-                                                                width: hasProd ? `${endPct - startPct}%` : '96%',
+                                                                left: hasProd ? `${startPct}%` : '1%',
+                                                                width: hasProd ? `${endPct - startPct}%` : '98%',
                                                                 top: homeTop,
                                                                 height: blockH,
-                                                                background: `${HOME_COLOR}18`,
-                                                                border: `1px solid ${HOME_COLOR}40`
+                                                                background: `${HOME_COLOR}20`,
+                                                                borderRadius: 5,
+                                                                borderLeft: `3px solid ${HOME_COLOR}`,
+                                                                boxShadow: `inset 0 0 0 1px ${HOME_COLOR}25`
                                                             }}
                                                         >
-                                                            <span
-                                                                className="text-[9px] font-bold truncate px-2 whitespace-nowrap"
-                                                                style={{ color: HOME_COLOR }}
-                                                            >
-                                                                <i className="fas fa-home text-[7px] mr-1" />
-                                                                {homeCount} assigned to plant
-                                                                {hasProd &&
-                                                                    (() => {
-                                                                        const firstMins = timeToMinutes(
-                                                                            prod.firstJobTime
-                                                                        )
-                                                                        const lastMins = timeToMinutes(prod.lastJobTime)
-                                                                        const hrs =
-                                                                            firstMins !== null &&
-                                                                            lastMins !== null &&
-                                                                            lastMins > firstMins
-                                                                                ? (lastMins - firstMins) / 60
-                                                                                : null
-                                                                        const yds = parseFloat(prod.totalYardage) || 0
-                                                                        const ydsPerHrOp =
-                                                                            hrs && yds && homeCount > 0
-                                                                                ? Math.round(
-                                                                                      (yds / (hrs * homeCount)) * 10
-                                                                                  ) / 10
-                                                                                : null
-                                                                        return (
-                                                                            <span className="font-medium ml-1.5">
-                                                                                {prod.firstJobTime}–{prod.lastJobTime}
-                                                                                {yds
-                                                                                    ? ` · ${prod.totalYardage} yds`
-                                                                                    : ''}
-                                                                                {ydsPerHrOp !== null &&
-                                                                                    ` · ${ydsPerHrOp} yds/hr/op`}
-                                                                            </span>
-                                                                        )
-                                                                    })()}
-                                                            </span>
+                                                            <div className="flex items-center gap-2 px-2 whitespace-nowrap">
+                                                                {/* Operator count badge */}
+                                                                <span
+                                                                    className="text-[9px] font-extrabold flex items-center gap-1"
+                                                                    style={{ color: HOME_COLOR }}
+                                                                >
+                                                                    <i className="fas fa-hard-hat text-[8px]" />
+                                                                    {homeCount}
+                                                                </span>
+                                                                {/* Time range */}
+                                                                {hasProd && (
+                                                                    <span
+                                                                        className="text-[9px] font-semibold"
+                                                                        style={{ color: `${HOME_COLOR}CC` }}
+                                                                    >
+                                                                        {prod.firstJobTime}–{prod.lastJobTime}
+                                                                    </span>
+                                                                )}
+                                                                {/* Yardage badge */}
+                                                                {yds > 0 && (
+                                                                    <span
+                                                                        className="text-[9px] font-bold rounded-full px-1.5 py-px"
+                                                                        style={{
+                                                                            color: HOME_COLOR,
+                                                                            background: `${HOME_COLOR}15`
+                                                                        }}
+                                                                    >
+                                                                        {prod.totalYardage} yds
+                                                                    </span>
+                                                                )}
+                                                                {/* YPH metric */}
+                                                                {ydsPerHrOp !== null && (
+                                                                    <span
+                                                                        className="text-[9px] font-bold rounded-full px-1.5 py-px"
+                                                                        style={{
+                                                                            color: overMax ? '#fff' : HOME_COLOR,
+                                                                            background: overMax
+                                                                                ? '#ef444490'
+                                                                                : `${HOME_COLOR}15`
+                                                                        }}
+                                                                    >
+                                                                        {ydsPerHrOp} yph
+                                                                    </span>
+                                                                )}
+                                                                {/* Available to send */}
+                                                                {availableToSend !== null && availableToSend > 0 && (
+                                                                    <span
+                                                                        className="text-[9px] font-bold rounded-full px-1.5 py-px"
+                                                                        style={{
+                                                                            color: '#16a34a',
+                                                                            background: '#16a34a18'
+                                                                        }}
+                                                                    >
+                                                                        <i className="fas fa-paper-plane text-[7px] mr-0.5" />
+                                                                        {availableToSend} avail
+                                                                    </span>
+                                                                )}
+                                                                {/* Behind schedule warning */}
+                                                                {overMax && (
+                                                                    <span
+                                                                        className="text-[9px] font-extrabold flex items-center gap-0.5"
+                                                                        style={{ color: '#ef4444' }}
+                                                                    >
+                                                                        <i className="fas fa-triangle-exclamation text-[8px]" />
+                                                                        Likely behind
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </>
                                                 )
@@ -877,7 +988,7 @@ function TimelineView({
                                                                 style={{
                                                                     left: 0,
                                                                     width: `calc(${timeToPercent(vFrom.nextStartTime)}% - 5px)`,
-                                                                    top: li * ROW_HEIGHT + 4,
+                                                                    top: (li + homeOffset) * ROW_HEIGHT + 4,
                                                                     height: ROW_HEIGHT - 8,
                                                                     background: 'rgba(239, 68, 68, 0.12)',
                                                                     border: '1px solid rgba(239, 68, 68, 0.35)',
@@ -900,7 +1011,7 @@ function TimelineView({
                                                                 style={{
                                                                     left: `calc(${timeToPercent(vTo.prevLeaveTime)}% + 5px)`,
                                                                     right: 0,
-                                                                    top: li * ROW_HEIGHT + 4,
+                                                                    top: (li + homeOffset) * ROW_HEIGHT + 4,
                                                                     height: ROW_HEIGHT - 8,
                                                                     background: 'rgba(239, 68, 68, 0.12)',
                                                                     border: '1px solid rgba(239, 68, 68, 0.35)',
@@ -3750,29 +3861,84 @@ function PlanView() {
                                                                     />
                                                                 </div>
                                                             </div>
-                                                            {yardsPerHrPerOp !== null && (
-                                                                <div
-                                                                    className="flex items-center justify-between mt-2 pt-2 border-t"
-                                                                    style={{ borderColor: 'var(--border-light)' }}
-                                                                >
-                                                                    <span
-                                                                        className="text-[10px] font-medium"
-                                                                        style={{ color: 'var(--text-secondary)' }}
-                                                                    >
-                                                                        Yards / Hr / Op
-                                                                    </span>
-                                                                    <span
-                                                                        className="text-sm font-bold"
-                                                                        style={{
-                                                                            fontFamily:
-                                                                                'var(--font-heading, Rajdhani, sans-serif)',
-                                                                            color: accentColor
-                                                                        }}
-                                                                    >
-                                                                        {yardsPerHrPerOp}
-                                                                    </span>
-                                                                </div>
-                                                            )}
+                                                            {yardsPerHrPerOp !== null &&
+                                                                (() => {
+                                                                    const minNeeded = Math.ceil(
+                                                                        yardage / (hours * TARGET_YPH)
+                                                                    )
+                                                                    const availableToSend = Math.max(
+                                                                        0,
+                                                                        s.eff - minNeeded
+                                                                    )
+                                                                    return (
+                                                                        <div
+                                                                            className="mt-2 pt-2 border-t flex flex-col gap-1.5"
+                                                                            style={{
+                                                                                borderColor: 'var(--border-light)'
+                                                                            }}
+                                                                        >
+                                                                            <div className="flex items-center justify-between">
+                                                                                <span
+                                                                                    className="text-[10px] font-medium"
+                                                                                    style={{
+                                                                                        color: 'var(--text-secondary)'
+                                                                                    }}
+                                                                                >
+                                                                                    Yards / Hr / Op
+                                                                                </span>
+                                                                                <span
+                                                                                    className="text-sm font-bold"
+                                                                                    style={{
+                                                                                        fontFamily:
+                                                                                            'var(--font-heading, Rajdhani, sans-serif)',
+                                                                                        color:
+                                                                                            yardsPerHrPerOp > MAX_YPH
+                                                                                                ? '#ef4444'
+                                                                                                : accentColor
+                                                                                    }}
+                                                                                >
+                                                                                    {yardsPerHrPerOp}
+                                                                                </span>
+                                                                            </div>
+                                                                            {yardsPerHrPerOp > MAX_YPH && (
+                                                                                <div
+                                                                                    className="flex items-center gap-1.5 rounded px-2 py-1"
+                                                                                    style={{ background: '#ef444415' }}
+                                                                                >
+                                                                                    <i className="fas fa-exclamation-triangle text-[9px] text-[#ef4444]" />
+                                                                                    <span className="text-[10px] font-semibold text-[#ef4444]">
+                                                                                        Will run behind schedule —
+                                                                                        operators cannot sustain &gt;
+                                                                                        {MAX_YPH} yds/hr
+                                                                                    </span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex items-center justify-between">
+                                                                                <span
+                                                                                    className="text-[10px] font-medium"
+                                                                                    style={{
+                                                                                        color: 'var(--text-secondary)'
+                                                                                    }}
+                                                                                >
+                                                                                    Available to send
+                                                                                </span>
+                                                                                <span
+                                                                                    className="text-sm font-bold"
+                                                                                    style={{
+                                                                                        fontFamily:
+                                                                                            'var(--font-heading, Rajdhani, sans-serif)',
+                                                                                        color:
+                                                                                            availableToSend > 0
+                                                                                                ? '#16a34a'
+                                                                                                : 'var(--text-secondary)'
+                                                                                    }}
+                                                                                >
+                                                                                    {availableToSend}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    )
+                                                                })()}
                                                         </div>
                                                     )
                                                 })}
