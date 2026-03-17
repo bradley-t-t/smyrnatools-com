@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.1] - 2026-03-17
+
+- Added responsive mobile card layout for the maintenance log equipment list, replacing the horizontal-scrolling table on small screens
+- Extracted empty state into a dedicated render function for cleaner conditional rendering in MaintenanceLogView
+- Simplified column width logic by removing the mobile-specific conditional for Service Progress
+- Made maintenance tab bar horizontally scrollable on narrow screens with hidden scrollbar and non-shrinking tab buttons
+- Added v34.0 changelog entry
+
 ## [34.0] - 2026-03-17
 
 - Reorganized navigation into separate Reporting (Reports, Maintenance) and Tools (Plan, Calculators) categories, splitting out from the old Productivity dropdown

@@ -1236,80 +1236,6 @@ export default function MaintenanceLogView({
         </div>
     )
 
-    const renderMobileCards = () => (
-        <div className="flex flex-col gap-3">
-            {sorted.map((item) => {
-                const cfg = STATUS_CONFIG[item.service_status] || STATUS_CONFIG.ok
-                const progressInfo = getProgressInfo(item)
-                return (
-                    <div
-                        key={item.id}
-                        className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 cursor-pointer active:bg-slate-50"
-                        style={{
-                            borderLeftWidth: '3px',
-                            borderLeftColor: cfg.barColor
-                        }}
-                        onClick={() => setDetailTarget(item)}
-                    >
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                                <i
-                                    className={`fas ${item.category_icon || 'fa-cog'} text-sm shrink-0`}
-                                    style={{ color: accentColor }}
-                                />
-                                <div className="min-w-0">
-                                    <div className="text-sm font-semibold truncate">{item.name}</div>
-                                    <div className="text-[11px] text-slate-500 truncate">
-                                        {item.category_name}
-                                        {item.manufacturer ? ` · ${item.manufacturer}` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <StatusBadge status={item.service_status} isDark={isDark} />
-                        </div>
-                        <div className="flex items-center gap-4 text-[11px] text-slate-500 mb-2">
-                            <span>
-                                <i className="fas fa-building mr-1" />
-                                {item.plant_code}
-                            </span>
-                            <span>
-                                <i className="fas fa-calendar mr-1" />
-                                {formatDate(item.last_service_date)}
-                            </span>
-                        </div>
-                        <ProgressBar item={item} isDark={isDark} />
-                        <div className="flex items-center justify-end mt-2">
-                            <button
-                                type="button"
-                                className="flex items-center gap-1.5 rounded-lg text-xs font-semibold px-3 py-1.5 border-none cursor-pointer"
-                                style={{
-                                    background:
-                                        item.service_status === 'overdue'
-                                            ? isDark
-                                                ? cfg.darkBg
-                                                : cfg.bg
-                                            : 'var(--bg-tertiary)',
-                                    color:
-                                        item.service_status === 'overdue'
-                                            ? isDark
-                                                ? cfg.darkColor
-                                                : cfg.color
-                                            : 'var(--text-secondary)'
-                                }}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setServiceTarget(item)
-                                }}
-                            >
-                                <i className="fas fa-wrench" /> Log Service
-                            </button>
-                        </div>
-                    </div>
-                )
-            })}
-        </div>
-    )
-
     return (
         <div className="p-3 md:p-5">
             <div className="max-w-[1600px] mx-auto">
@@ -1323,12 +1249,10 @@ export default function MaintenanceLogView({
                                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                                     {renderEmptyState()}
                                 </div>
-                            ) : isMobile ? (
-                                renderMobileCards()
                             ) : (
                                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                                     <div className="overflow-x-auto">
-                                        <table className="w-full border-collapse">
+                                        <table className="w-full border-collapse" style={{ minWidth: '700px' }}>
                                             <thead>
                                                 <tr>
                                                     {headers.map((h, i) => (

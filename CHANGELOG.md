@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.2] - 2026-03-17
+
+- Removed the mobile card layout from the maintenance log, reverting to the standard table view on all screen sizes
+- Added a 700px minimum width to the maintenance log table so it scrolls horizontally on narrow screens instead of collapsing
+- Added v34.1 changelog entry
+
 ## [34.1] - 2026-03-17
 
 - Added responsive mobile card layout for the maintenance log equipment list, replacing the horizontal-scrolling table on small screens
