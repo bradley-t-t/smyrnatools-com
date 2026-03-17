@@ -1250,107 +1250,103 @@ export default function MaintenanceLogView({
                                     {renderEmptyState()}
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full border-collapse" style={{ minWidth: '700px' }}>
-                                            <thead>
-                                                <tr>
-                                                    {headers.map((h, i) => (
-                                                        <th
-                                                            key={h || i}
-                                                            className="text-left text-[11px] font-bold uppercase tracking-wide text-slate-500 py-3 px-4 border-b-2 border-slate-100 cursor-pointer select-none hover:text-slate-700"
-                                                            style={{ width: colWidths[i] || 'auto' }}
-                                                            onClick={() => h && handleHeaderClick(h)}
-                                                        >
-                                                            <span className="inline-flex items-center gap-1.5">
-                                                                {h}
-                                                                {sortKey === h && (
-                                                                    <i
-                                                                        className={`fas fa-sort-${sortDir === 'asc' ? 'up' : 'down'} text-[10px]`}
-                                                                        style={{ color: accentColor }}
-                                                                    />
-                                                                )}
-                                                            </span>
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {sorted.map((item) => (
-                                                    <tr
-                                                        key={item.id}
-                                                        className="cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50"
-                                                        style={{
-                                                            background:
-                                                                item.service_status === 'overdue'
-                                                                    ? isDark
-                                                                        ? 'rgba(239,68,68,0.04)'
-                                                                        : 'rgba(220,53,69,0.03)'
-                                                                    : 'transparent'
-                                                        }}
-                                                        onClick={() => setDetailTarget(item)}
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+                                    <table className="w-full border-collapse" style={{ minWidth: '700px' }}>
+                                        <thead>
+                                            <tr>
+                                                {headers.map((h, i) => (
+                                                    <th
+                                                        key={h || i}
+                                                        className="text-left text-[11px] font-bold uppercase tracking-wide text-slate-500 py-3 px-4 border-b-2 border-slate-100 cursor-pointer select-none hover:text-slate-700"
+                                                        style={{ width: colWidths[i] || 'auto' }}
+                                                        onClick={() => h && handleHeaderClick(h)}
                                                     >
-                                                        <td className="py-3 px-4">
-                                                            <div className="flex items-center gap-2.5">
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            {h}
+                                                            {sortKey === h && (
                                                                 <i
-                                                                    className={`fas ${item.category_icon || 'fa-cog'} text-sm`}
+                                                                    className={`fas fa-sort-${sortDir === 'asc' ? 'up' : 'down'} text-[10px]`}
                                                                     style={{ color: accentColor }}
                                                                 />
-                                                                <div className="min-w-0">
-                                                                    <div className="text-sm font-semibold truncate">
-                                                                        {item.name}
-                                                                    </div>
-                                                                    <div className="text-[11px] text-slate-500 truncate">
-                                                                        {item.category_name}
-                                                                        {item.manufacturer
-                                                                            ? ` · ${item.manufacturer}`
-                                                                            : ''}
-                                                                    </div>
+                                                            )}
+                                                        </span>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {sorted.map((item) => (
+                                                <tr
+                                                    key={item.id}
+                                                    className="cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50"
+                                                    style={{
+                                                        background:
+                                                            item.service_status === 'overdue'
+                                                                ? isDark
+                                                                    ? 'rgba(239,68,68,0.04)'
+                                                                    : 'rgba(220,53,69,0.03)'
+                                                                : 'transparent'
+                                                    }}
+                                                    onClick={() => setDetailTarget(item)}
+                                                >
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <i
+                                                                className={`fas ${item.category_icon || 'fa-cog'} text-sm`}
+                                                                style={{ color: accentColor }}
+                                                            />
+                                                            <div className="min-w-0">
+                                                                <div className="text-sm font-semibold truncate">
+                                                                    {item.name}
+                                                                </div>
+                                                                <div className="text-[11px] text-slate-500 truncate">
+                                                                    {item.category_name}
+                                                                    {item.manufacturer ? ` · ${item.manufacturer}` : ''}
                                                                 </div>
                                                             </div>
-                                                        </td>
-                                                        <td className="py-3 px-4 text-sm">{item.plant_code}</td>
-                                                        <td className="py-3 px-4 text-sm">
-                                                            {formatDate(item.last_service_date)}
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <ProgressBar item={item} isDark={isDark} />
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <StatusBadge status={item.service_status} isDark={isDark} />
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <button
-                                                                type="button"
-                                                                className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer text-sm"
-                                                                style={{
-                                                                    background:
-                                                                        item.service_status === 'overdue'
-                                                                            ? isDark
-                                                                                ? STATUS_CONFIG.overdue.darkBg
-                                                                                : STATUS_CONFIG.overdue.bg
-                                                                            : 'var(--bg-tertiary)',
-                                                                    color:
-                                                                        item.service_status === 'overdue'
-                                                                            ? isDark
-                                                                                ? STATUS_CONFIG.overdue.darkColor
-                                                                                : STATUS_CONFIG.overdue.color
-                                                                            : 'var(--text-secondary)'
-                                                                }}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    setServiceTarget(item)
-                                                                }}
-                                                                title="Log service"
-                                                            >
-                                                                <i className="fas fa-wrench" />
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-3 px-4 text-sm">{item.plant_code}</td>
+                                                    <td className="py-3 px-4 text-sm">
+                                                        {formatDate(item.last_service_date)}
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <ProgressBar item={item} isDark={isDark} />
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <StatusBadge status={item.service_status} isDark={isDark} />
+                                                    </td>
+                                                    <td className="py-3 px-4">
+                                                        <button
+                                                            type="button"
+                                                            className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer text-sm"
+                                                            style={{
+                                                                background:
+                                                                    item.service_status === 'overdue'
+                                                                        ? isDark
+                                                                            ? STATUS_CONFIG.overdue.darkBg
+                                                                            : STATUS_CONFIG.overdue.bg
+                                                                        : 'var(--bg-tertiary)',
+                                                                color:
+                                                                    item.service_status === 'overdue'
+                                                                        ? isDark
+                                                                            ? STATUS_CONFIG.overdue.darkColor
+                                                                            : STATUS_CONFIG.overdue.color
+                                                                        : 'var(--text-secondary)'
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setServiceTarget(item)
+                                                            }}
+                                                            title="Log service"
+                                                        >
+                                                            <i className="fas fa-wrench" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             )}
                         </div>
