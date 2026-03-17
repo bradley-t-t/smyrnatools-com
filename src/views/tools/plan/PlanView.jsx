@@ -1208,10 +1208,12 @@ function PlanView() {
             if ((record.notes || '') !== notesRef.current) {
                 setNotes(record.notes || '')
             }
-            const incomingProd = JSON.stringify(record.plant_production ?? {})
-            const localProd = JSON.stringify(plantProductionRef.current)
-            if (incomingProd !== localProd) {
-                setPlantProduction(record.plant_production || {})
+            if (record.plant_production && Object.keys(record.plant_production).length > 0) {
+                const incomingProd = JSON.stringify(record.plant_production)
+                const localProd = JSON.stringify(plantProductionRef.current)
+                if (incomingProd !== localProd) {
+                    setPlantProduction(record.plant_production)
+                }
             }
         }, [])
     })

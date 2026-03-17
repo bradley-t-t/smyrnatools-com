@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.8] - 2026-03-17
+
+- Fixed PlanView realtime sync to skip overwriting local plant production data with empty server records
+- Added changelog entry for v34.7 features (DailyOrder HTML import, Import button, plant_production column)
+
 ## [34.7] - 2026-03-17
 
 - Added DailyOrder HTML import to PlanView production section, parsing per-plant first/last job times and total yardage from the report

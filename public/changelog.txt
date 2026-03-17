@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.7] - 2026-03-17
+
+- Added DailyOrder HTML import to PlanView production section, parsing per-plant first/last job times and total yardage from the report
+- Added Import button in the production section header that accepts .html/.htm files
+- Added plant_production JSONB column to plans table for persisting production data
+
 ## [34.6] - 2026-03-17
 
 - Added plant production tracking to PlanView with per-plant first job time, last job time, and total yardage inputs
