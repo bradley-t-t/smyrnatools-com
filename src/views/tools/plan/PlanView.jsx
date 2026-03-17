@@ -159,6 +159,8 @@ const DAY_WIDTH = 900 // px per day column
 function TimelineView({
     assignments,
     adjacentPlans,
+    adjacentProduction,
+    plantProduction,
     planDate,
     plants,
     accentColor,
@@ -179,10 +181,11 @@ function TimelineView({
         for (let i = -3; i <= 3; i++) {
             const date = getOffsetDate(planDate, i)
             const dayAssignments = i === 0 ? assignments : adjacentPlans[date] || []
-            result.push({ date, assignments: dayAssignments, isCurrent: i === 0, offset: i })
+            const dayProduction = i === 0 ? plantProduction : adjacentProduction[date] || {}
+            result.push({ date, assignments: dayAssignments, production: dayProduction, isCurrent: i === 0, offset: i })
         }
         return result
-    }, [planDate, assignments, adjacentPlans])
+    }, [planDate, assignments, adjacentPlans, plantProduction, adjacentProduction])
 
     const buildLanesForDay = (dayAssignments, dayIdx) => {
         const result = []
@@ -776,6 +779,37 @@ function TimelineView({
                                                     }}
                                                 />
                                             ))}
+                                            {/* Production block: first job → last job */}
+                                            {(() => {
+                                                const prod = day.production?.[pr.plant]
+                                                if (!prod?.firstJobTime || !prod?.lastJobTime) return null
+                                                const startPct = timeToPercent(prod.firstJobTime)
+                                                const endPct = timeToPercent(prod.lastJobTime)
+                                                if (startPct == null || endPct == null || endPct <= startPct)
+                                                    return null
+                                                return (
+                                                    <div
+                                                        className="absolute pointer-events-none flex items-end justify-center"
+                                                        style={{
+                                                            left: `${startPct}%`,
+                                                            width: `${endPct - startPct}%`,
+                                                            top: 0,
+                                                            bottom: 0,
+                                                            background: `${accentColor}08`,
+                                                            borderLeft: `1.5px dashed ${accentColor}40`,
+                                                            borderRight: `1.5px dashed ${accentColor}40`
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="text-[8px] font-semibold whitespace-nowrap pb-0.5 px-1"
+                                                            style={{ color: `${accentColor}80` }}
+                                                        >
+                                                            {prod.totalYardage ? `${prod.totalYardage} yds` : ''}{' '}
+                                                            {prod.firstJobTime}–{prod.lastJobTime}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            })()}
                                             {/* Rest violations: only on sent lanes (plant's own drivers) */}
                                             {Array.from({ length: sentLanes.length }, (_, li) => {
                                                 const vFrom = getLaneViolationFromPrev(li)
@@ -1057,6 +1091,7 @@ function PlanView() {
     const [templateName, setTemplateName] = useState('')
     const [viewMode, setViewMode] = useState('table') // 'table' | 'timeline'
     const [adjacentPlans, setAdjacentPlans] = useState({}) // { [dateStr]: assignments[] }
+    const [adjacentProduction, setAdjacentProduction] = useState({}) // { [dateStr]: plantProduction }
     const [showImportModal, setShowImportModal] = useState(false)
     const [plantProduction, setPlantProduction] = useState({}) // { [plantCode]: { firstJobTime, lastJobTime, totalYardage } }
     const dirtyRef = useRef(false)
@@ -1155,13 +1190,16 @@ function PlanView() {
             // Only apply if this is still the latest fetch
             if (adjacentFetchRef.current !== fetchId) return
             const plans = {}
+            const production = {}
             dates.forEach((d, i) => {
                 const result = results[i]
-                if (result.status === 'fulfilled' && result.value?.assignments?.length) {
-                    plans[d] = result.value.assignments
+                if (result.status === 'fulfilled' && result.value) {
+                    if (result.value.assignments?.length) plans[d] = result.value.assignments
+                    if (result.value.plant_production) production[d] = result.value.plant_production
                 }
             })
             setAdjacentPlans(plans)
+            setAdjacentProduction(production)
         }
         loadAdjacentPlans()
     }, [planDate, isLoading])
@@ -2361,6 +2399,8 @@ function PlanView() {
                             <TimelineView
                                 assignments={assignments}
                                 adjacentPlans={adjacentPlans}
+                                adjacentProduction={adjacentProduction}
+                                plantProduction={plantProduction}
                                 planDate={planDate}
                                 plants={plants}
                                 accentColor={accentColor}
