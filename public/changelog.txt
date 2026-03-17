@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.9] - 2026-03-17
+
+- Added production time blocks to the PlanView timeline, showing first/last job times and total yardage per plant as dashed overlays
+- Extended adjacent plan fetching to also load plant production data for surrounding days
+- Passed adjacent production and current-day production data through to the TimelineView component
+
 ## [34.8] - 2026-03-17
 
 - Fixed PlanView realtime sync to skip overwriting local plant production data with empty server records

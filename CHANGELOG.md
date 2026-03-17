@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.0] - 2026-03-17
+
+- Added "home" operator lanes to the PlanView timeline, showing mixers that stay at their home plant in green alongside sent/received lanes
+- Home lane blocks display plant production time ranges (first/last job times) pulled from production data
+- Plant row sizing now accounts for home operators in addition to sent and received counts
+- Added home count badge with house icon to plant row headers
+
 ## [34.9] - 2026-03-17
 
 - Added production time blocks to the PlanView timeline, showing first/last job times and total yardage per plant as dashed overlays

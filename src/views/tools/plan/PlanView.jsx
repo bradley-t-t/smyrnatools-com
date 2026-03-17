@@ -317,31 +317,37 @@ function TimelineView({
         [plants]
     )
 
-    // Neutral colors for sent/received lanes
+    // Neutral colors for sent/received/home lanes
     const SENT_COLOR = '#8b8685' // warm gray — operators leaving this plant
     const RECV_COLOR = '#5b7a9c' // muted steel blue — operators arriving at this plant
+    const HOME_COLOR = '#4d8c57' // muted green — operators staying at home plant
 
     const plantRows = useMemo(
         () =>
             allPlants.map((plant) => {
                 let maxSent = 0
                 let maxRecv = 0
+                let maxHome = 0
                 let maxTotal = 0
+                const base = mixerCountsByPlant[plant] || 0
                 dayLanes.forEach((d) => {
                     const sent = d.lanes.filter((l) => l.fromPlant === plant).length
                     const recv = d.lanes.filter((l) => l.toPlant === plant).length
+                    const home = Math.max(0, base - sent)
                     maxSent = Math.max(maxSent, sent)
                     maxRecv = Math.max(maxRecv, recv)
-                    maxTotal = Math.max(maxTotal, sent + recv)
+                    maxHome = Math.max(maxHome, home)
+                    maxTotal = Math.max(maxTotal, sent + recv + home)
                 })
                 return {
                     plant,
                     sentCount: maxSent,
                     recvCount: maxRecv,
+                    homeCount: maxHome,
                     laneCount: Math.max(1, maxTotal)
                 }
             }),
-        [allPlants, dayLanes]
+        [allPlants, dayLanes, mixerCountsByPlant]
     )
 
     // Cursor logic
@@ -535,6 +541,15 @@ function TimelineView({
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2 mt-0.5">
+                                        {pr.homeCount > 0 && (
+                                            <span
+                                                className="flex items-center gap-0.5 text-[9px] font-medium"
+                                                style={{ color: HOME_COLOR }}
+                                            >
+                                                <i className="fas fa-home text-[7px]" />
+                                                {pr.homeCount} home
+                                            </span>
+                                        )}
                                         {pr.sentCount > 0 && (
                                             <span
                                                 className="flex items-center gap-0.5 text-[9px] font-medium"
@@ -641,6 +656,8 @@ function TimelineView({
                                             (a.clockIn || a.arriveTime).localeCompare(b.clockIn || b.arriveTime)
                                         )
                                     const allLanes = [...sentLanes, ...recvLanes]
+                                    const base = mixerCountsByPlant[pr.plant] || 0
+                                    const homeCount = Math.max(0, base - sentLanes.length)
 
                                     const renderBlock = (lane, laneIdx, isSent) => {
                                         const blockColor = isSent ? SENT_COLOR : RECV_COLOR
@@ -867,8 +884,36 @@ function TimelineView({
                                             })}
                                             {/* Sent lanes — operators leaving */}
                                             {sentLanes.map((lane, i) => renderBlock(lane, i, true))}
-                                            {/* Received lanes (green — operators arriving) */}
+                                            {/* Received lanes — operators arriving */}
                                             {recvLanes.map((lane, i) => renderBlock(lane, sentLanes.length + i, false))}
+                                            {/* Home operators — staying at plant */}
+                                            {homeCount > 0 &&
+                                                (() => {
+                                                    const prod = day.production?.[pr.plant]
+                                                    const startPct = timeToPercent(prod?.firstJobTime)
+                                                    const endPct = timeToPercent(prod?.lastJobTime)
+                                                    if (startPct == null || endPct == null || endPct <= startPct)
+                                                        return null
+                                                    const homeOffset = sentLanes.length + recvLanes.length
+                                                    return Array.from({ length: homeCount }, (_, hi) => (
+                                                        <div
+                                                            key={`home-${hi}`}
+                                                            className="absolute rounded flex items-center overflow-hidden"
+                                                            style={{
+                                                                left: `${startPct}%`,
+                                                                width: `${endPct - startPct}%`,
+                                                                top: (homeOffset + hi) * ROW_HEIGHT + 4,
+                                                                height: ROW_HEIGHT - 8,
+                                                                background: HOME_COLOR
+                                                            }}
+                                                        >
+                                                            <span className="text-[9px] font-bold text-white truncate px-1.5 whitespace-nowrap">
+                                                                {pr.plant} #{hi + 1} {prod.firstJobTime}–
+                                                                {prod.lastJobTime}
+                                                            </span>
+                                                        </div>
+                                                    ))
+                                                })()}
                                             {/* Empty state */}
                                             {allLanes.length === 0 && (
                                                 <div className="absolute inset-0 flex items-center justify-center">
