@@ -31,19 +31,113 @@ const SearchInput = ({ value, onChange, onClear, placeholder, className = '' }) 
         )}
     </div>
 )
-const Badge = ({ children, onClick, accentColor, isDark }) => {
-    const baseClasses = 'inline-flex items-center gap-2 rounded-lg text-sm font-semibold px-4 py-2'
-    const style = { backgroundColor: `${accentColor}${isDark ? '30' : '15'}`, color: accentColor }
-    return onClick ? (
-        <button className={`${baseClasses} border-none cursor-pointer`} style={style} onClick={onClick}>
-            <i className="fas fa-users" />
-            <span>{children}</span>
-        </button>
-    ) : (
-        <span className={baseClasses} style={style}>
-            <i className="fas fa-users" />
-            <span>{children}</span>
-        </span>
+const BADGE_PILL_STYLES = {
+    Total: {
+        icon: 'fa-hashtag',
+        light: { bg: 'rgba(100,116,139,0.1)', color: '#475569' },
+        dark: { bg: 'rgba(148,163,184,0.2)', color: '#94a3b8' }
+    },
+    Shop: {
+        icon: 'fa-wrench',
+        light: { bg: 'rgba(239,68,68,0.1)', color: '#dc2626' },
+        dark: { bg: 'rgba(239,68,68,0.2)', color: '#f87171' }
+    },
+    Active: {
+        icon: 'fa-check-circle',
+        light: { bg: 'rgba(22,163,74,0.1)', color: '#15803d' },
+        dark: { bg: 'rgba(34,197,94,0.2)', color: '#4ade80' }
+    },
+    Spare: {
+        icon: 'fa-exchange-alt',
+        light: { bg: 'rgba(59,130,246,0.1)', color: '#2563eb' },
+        dark: { bg: 'rgba(59,130,246,0.2)', color: '#60a5fa' }
+    },
+    Unassigned: {
+        icon: 'fa-user-slash',
+        light: { bg: 'rgba(245,158,11,0.1)', color: '#b45309' },
+        lightZero: { bg: 'rgba(100,116,139,0.08)', color: '#64748b' },
+        dark: { bg: 'rgba(251,191,36,0.2)', color: '#fbbf24' },
+        darkZero: { bg: 'rgba(148,163,184,0.15)', color: '#64748b' }
+    },
+    OK: {
+        icon: 'fa-check-circle',
+        light: { bg: 'rgba(22,163,74,0.1)', color: '#15803d' },
+        dark: { bg: 'rgba(34,197,94,0.2)', color: '#4ade80' }
+    },
+    'Due Soon': {
+        icon: 'fa-clock',
+        light: { bg: 'rgba(245,158,11,0.1)', color: '#b45309' },
+        dark: { bg: 'rgba(251,191,36,0.2)', color: '#fbbf24' }
+    },
+    Overdue: {
+        icon: 'fa-exclamation-triangle',
+        light: { bg: 'rgba(239,68,68,0.1)', color: '#dc2626' },
+        dark: { bg: 'rgba(239,68,68,0.2)', color: '#f87171' }
+    }
+}
+const Badge = ({ children, onClick, onPillClick, accentColor, isDark }) => {
+    // Parse "X Label · Y Label · ..." format into pills
+    const text = typeof children === 'string' ? children : ''
+    const parts = text.split('·').map((s) => s.trim())
+    const parsed = parts
+        .map((p) => {
+            const match = p.match(/^(\d+)\s+(.+)$/)
+            return match ? { count: match[1], label: match[2] } : null
+        })
+        .filter(Boolean)
+
+    if (parsed.length >= 2) {
+        return (
+            <div className="flex items-center gap-1.5 flex-wrap">
+                {parsed.map(({ count, label }) => {
+                    const pillConfig = BADGE_PILL_STYLES[label]
+                    if (!pillConfig) return null
+                    const num = parseInt(count, 10)
+                    const isZeroVariant = label === 'Unassigned' && num === 0
+                    const theme = isDark
+                        ? isZeroVariant
+                            ? pillConfig.darkZero || pillConfig.dark
+                            : pillConfig.dark
+                        : isZeroVariant
+                          ? pillConfig.lightZero || pillConfig.light
+                          : pillConfig.light
+                    const clickHandler = onPillClick ? () => onPillClick(label) : onClick
+                    const Tag = clickHandler ? 'button' : 'span'
+                    const clickProps = clickHandler ? { onClick: clickHandler, type: 'button' } : {}
+                    return (
+                        <Tag
+                            key={label}
+                            className={`inline-flex items-center gap-1.5 rounded-lg text-xs font-bold px-2.5 py-1.5${clickHandler ? ' border-none bg-transparent cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                            style={{ backgroundColor: theme.bg, color: theme.color }}
+                            {...clickProps}
+                        >
+                            <i className={`fas ${pillConfig.icon} text-[10px]`} />
+                            {count} {label}
+                        </Tag>
+                    )
+                })}
+            </div>
+        )
+    }
+
+    // Fallback for non-standard badge content
+    const Wrapper = onClick ? 'button' : 'div'
+    const wrapperProps = onClick
+        ? {
+              onClick,
+              type: 'button',
+              className: 'border-none bg-transparent p-0 cursor-pointer flex items-center gap-1.5 flex-wrap'
+          }
+        : { className: 'flex items-center gap-1.5 flex-wrap' }
+    const baseClasses = 'inline-flex items-center gap-2 rounded-lg text-xs font-bold px-2.5 py-1.5'
+    const style = { backgroundColor: `${accentColor}${isDark ? '30' : '12'}`, color: accentColor }
+    return (
+        <Wrapper {...wrapperProps}>
+            <span className={baseClasses} style={style}>
+                <i className="fas fa-users text-[10px]" />
+                {children}
+            </span>
+        </Wrapper>
     )
 }
 const ActionButton = ({ icon, label, onClick, variant = 'subtle', accentColor, className = '' }) => {
@@ -203,6 +297,7 @@ function TopSection({
     title,
     badge,
     onBadgeClick,
+    onPillClick,
     onToggleSidebar,
     addButtonLabel,
     onAddClick,
@@ -379,7 +474,12 @@ function TopSection({
                             >
                                 <h1 className="text-[22px] font-bold text-slate-900 m-0">{title}</h1>
                                 {badge && (
-                                    <Badge onClick={onBadgeClick} accentColor={accentColor} isDark={isDark}>
+                                    <Badge
+                                        onClick={onBadgeClick}
+                                        onPillClick={onPillClick}
+                                        accentColor={accentColor}
+                                        isDark={isDark}
+                                    >
                                         {badge}
                                     </Badge>
                                 )}
@@ -576,7 +676,12 @@ function TopSection({
                             <h1 className="text-[28px] font-bold text-slate-900 tracking-tight m-0">{title}</h1>
                             {badge && (
                                 <div className="ml-4">
-                                    <Badge onClick={onBadgeClick} accentColor={accentColor} isDark={isDark}>
+                                    <Badge
+                                        onClick={onBadgeClick}
+                                        onPillClick={onPillClick}
+                                        accentColor={accentColor}
+                                        isDark={isDark}
+                                    >
                                         {badge}
                                     </Badge>
                                 </div>

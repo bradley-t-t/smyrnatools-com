@@ -40,6 +40,8 @@ const ICONS = {
     Plan: 'fa-calendar-alt',
     Plants: 'fa-industry',
     Productivity: 'fa-chart-line',
+    Reporting: 'fa-file-alt',
+    Tools: 'fa-toolbox',
     Regions: 'fa-map-marker-alt',
     Reports: 'fa-file-alt',
     Roles: 'fa-lock',
@@ -64,16 +66,21 @@ const menuItems = [
     { id: 'Roles', permission: 'roles.view', text: 'Roles' },
     { id: 'Calculators', permission: 'calculator.view', text: 'Calculators' },
     { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' },
-    { id: 'Documents', permission: 'documents.view', text: 'Documents' }
+    { id: 'Documents', permission: 'documents.view', text: 'Documents' },
+    { id: 'Maintenance', permission: 'maintenance.view', text: 'Maintenance' }
 ]
 /** Navigation item IDs grouped under the "Assets" dropdown. */
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
 /** Navigation item IDs grouped under the "People" dropdown. */
 const PEOPLE_ITEMS = ['Operators', 'Managers']
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
-const PRODUCTIVITY_ITEMS = ['Reports', 'List', 'Plan', 'Calculators', 'Leaderboards', 'Documents']
+const PRODUCTIVITY_ITEMS = ['List', 'Leaderboards', 'Documents']
+/** Navigation item IDs grouped under the "Reporting" dropdown. */
+const REPORTING_ITEMS = ['Reports', 'Maintenance']
+/** Navigation item IDs grouped under the "Tools" dropdown. */
+const TOOLS_ITEMS = ['Plan', 'Calculators']
 /** Navigation item IDs grouped under the "Admin" category (two-level mode). */
-const ADMIN_ITEMS = ['Plants', 'Regions', 'Roles', 'Maintenance']
+const ADMIN_ITEMS = ['Plants', 'Regions', 'Roles']
 
 /** Category definitions for the two-level tab nav row. */
 const CATEGORIES = [
@@ -81,6 +88,8 @@ const CATEGORIES = [
     { icon: 'fa-truck', id: 'assets', items: ASSET_ITEMS, label: 'Assets' },
     { icon: 'fa-users', id: 'people', items: PEOPLE_ITEMS, label: 'People' },
     { icon: 'fa-chart-bar', id: 'productivity', items: PRODUCTIVITY_ITEMS, label: 'Productivity' },
+    { icon: 'fa-file-alt', id: 'reporting', items: REPORTING_ITEMS, label: 'Reporting' },
+    { icon: 'fa-toolbox', id: 'tools', items: TOOLS_ITEMS, label: 'Tools' },
     { icon: 'fa-cog', id: 'admin', items: ADMIN_ITEMS, label: 'Admin' }
 ]
 
@@ -90,6 +99,8 @@ const getCategoryForView = (viewId) => {
     if (ASSET_ITEMS.includes(viewId)) return 'assets'
     if (PEOPLE_ITEMS.includes(viewId)) return 'people'
     if (PRODUCTIVITY_ITEMS.includes(viewId)) return 'productivity'
+    if (REPORTING_ITEMS.includes(viewId)) return 'reporting'
+    if (TOOLS_ITEMS.includes(viewId)) return 'tools'
     if (ADMIN_ITEMS.includes(viewId)) return 'admin'
     return 'dashboard'
 }
@@ -331,11 +342,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const hasAssets = visibleMenuItems.some((i) => ASSET_ITEMS.includes(i.id))
     const hasPeople = visibleMenuItems.filter((i) => PEOPLE_ITEMS.includes(i.id)).length > 1
     const hasProductivity = visibleMenuItems.filter((i) => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
+    const hasReporting = visibleMenuItems.filter((i) => REPORTING_ITEMS.includes(i.id)).length > 1
+    const hasTools = visibleMenuItems.filter((i) => TOOLS_ITEMS.includes(i.id)).length > 1
     const standaloneItems = visibleMenuItems.filter(
         (i) =>
             !ASSET_ITEMS.includes(i.id) &&
             !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
-            !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id))
+            !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id)) &&
+            !(hasReporting && REPORTING_ITEMS.includes(i.id)) &&
+            !(hasTools && TOOLS_ITEMS.includes(i.id))
     )
 
     /* ── Two-level: user initials for avatar ── */
@@ -720,6 +735,40 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 {hasProductivity && (
                                     <MobileSection title="Productivity">
                                         {PRODUCTIVITY_ITEMS.map((id) => {
+                                            const item = visibleMenuItems.find((i) => i.id === id)
+                                            if (!item) return null
+                                            return (
+                                                <MobileMenuItem
+                                                    key={id}
+                                                    item={item}
+                                                    isActive={selectedView === id}
+                                                    onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
+                                                />
+                                            )
+                                        })}
+                                    </MobileSection>
+                                )}
+                                {hasReporting && (
+                                    <MobileSection title="Reporting">
+                                        {REPORTING_ITEMS.map((id) => {
+                                            const item = visibleMenuItems.find((i) => i.id === id)
+                                            if (!item) return null
+                                            return (
+                                                <MobileMenuItem
+                                                    key={id}
+                                                    item={item}
+                                                    isActive={selectedView === id}
+                                                    onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
+                                                />
+                                            )
+                                        })}
+                                    </MobileSection>
+                                )}
+                                {hasTools && (
+                                    <MobileSection title="Tools">
+                                        {TOOLS_ITEMS.map((id) => {
                                             const item = visibleMenuItems.find((i) => i.id === id)
                                             if (!item) return null
                                             return (
@@ -1158,6 +1207,14 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     PRODUCTIVITY_ITEMS,
                                     'productivity',
                                     () => PRODUCTIVITY_ITEMS.includes(selectedView)
+                                )}
+                            {hasReporting &&
+                                renderDropdown('Reporting', ICONS.Reporting, REPORTING_ITEMS, 'reporting', () =>
+                                    REPORTING_ITEMS.includes(selectedView)
+                                )}
+                            {hasTools &&
+                                renderDropdown('Tools', ICONS.Tools, TOOLS_ITEMS, 'tools', () =>
+                                    TOOLS_ITEMS.includes(selectedView)
                                 )}
                             {standaloneItems
                                 .filter((i) => i.id !== 'Dashboard')

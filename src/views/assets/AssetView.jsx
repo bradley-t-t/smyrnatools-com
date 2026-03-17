@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import EmbeddedViewModal from '../../app/components/dashboard/EmbeddedViewModal'
 import { exportAssetIssuesSheet } from '../../app/components/modules/export/issues/AssetIssuesExport'
 import ListViewModeSection from '../../app/components/sections/ListViewModeSection'
 import TopSection from '../../app/components/sections/TopSection'
@@ -234,6 +235,7 @@ function AssetView({
     const [selectedId, setSelectedId] = useState(null)
     const [showAddSheet, setShowAddSheet] = useState(false)
     const [isExportingIssues, setIsExportingIssues] = useState(false)
+    const [embeddedModal, setEmbeddedModal] = useState(null)
 
     // --- Verification ---
     const verification = useAssetVerification({
@@ -334,8 +336,56 @@ function AssetView({
         config.operatorConfig
     ])
 
+    // Status counts scoped to current plant/region/search filters (excluding status filter)
+    const { activeCount, shopCount, spareCount, totalCount } = useMemo(() => {
+        if (!data.items?.length) return { activeCount: 0, shopCount: 0, spareCount: 0, totalCount: 0 }
+        const q = filters.searchText.trim().toLowerCase()
+        const normalizedSearch = q.replace(/\s+/g, '')
+        const scoped = data.items.filter((item) => {
+            let matchesSearch = true
+            if (q) {
+                const searchableText = config.searchableFields
+                    .map((fn) => fn(item, { operators: data.operators, plants: data.plants, tractors: data.tractors }))
+                    .join(' ')
+                    .toLowerCase()
+                matchesSearch =
+                    searchableText.includes(q) || searchableText.replace(/\s+/g, '').includes(normalizedSearch)
+            }
+            const itemPlantCode = String(item.assignedPlant || '')
+                .trim()
+                .toUpperCase()
+            const matchesPlant =
+                !filters.selectedPlant ||
+                filters.selectedPlant === 'All' ||
+                (districtPlantCodes
+                    ? districtPlantCodes.has(itemPlantCode)
+                    : itemPlantCode === filters.selectedPlant.toUpperCase())
+            const matchesRegion =
+                !data.regionPlantCodes || data.regionPlantCodes.size === 0 || data.regionPlantCodes.has(itemPlantCode)
+            return matchesSearch && matchesPlant && matchesRegion
+        })
+        const counts = AssetStatsUtility.getStatusCounts(scoped)
+        return {
+            activeCount: counts.Active || 0,
+            shopCount: counts['In Shop'] || 0,
+            spareCount: counts.Spare || 0,
+            totalCount: counts.Total || 0
+        }
+    }, [
+        data.items,
+        data.operators,
+        data.plants,
+        data.tractors,
+        data.regionPlantCodes,
+        filters.searchText,
+        filters.selectedPlant,
+        districtPlantCodes,
+        config.searchableFields
+    ])
+
     const canShowOperatorBadge =
         config.hasOperatorAssignment && data.itemsLoaded && data.operatorsLoaded && !data.isLoading
+    const canShowAssetBadge = data.itemsLoaded && !data.isLoading && data.items?.length > 0
 
     // --- Duplicate sets ---
     const duplicates = useMemo(() => {
@@ -711,20 +761,29 @@ function AssetView({
                         title={pageTitle}
                         badge={
                             canShowOperatorBadge
-                                ? `${activeOperatorsCount + unassignedActiveOperatorsCount} Active · ${unassignedActiveOperatorsCount} Unassigned`
-                                : null
+                                ? `${totalCount} Total · ${activeOperatorsCount + unassignedActiveOperatorsCount} Active · ${spareCount} Spare · ${unassignedActiveOperatorsCount} Unassigned · ${shopCount} Shop`
+                                : canShowAssetBadge
+                                  ? `${totalCount} Total · ${activeCount} Active · ${spareCount} Spare · ${shopCount} Shop`
+                                  : null
                         }
-                        onBadgeClick={
-                            canShowOperatorBadge && setSelectedView
-                                ? () => {
-                                      const pos = config.operatorConfig.positionLabel
-                                      setSelectedView('Operators', 'Unassigned Active', filters.selectedPlant, pos)
-                                      updateOperatorFilter?.('selectedPlant', filters.selectedPlant)
-                                      updateOperatorFilter?.('positionFilter', pos)
-                                      updateOperatorFilter?.('statusFilter', 'Unassigned Active')
-                                  }
-                                : null
-                        }
+                        onPillClick={(label) => {
+                            const STATUS_MAP = { Active: 'Active', Spare: 'Spare', Shop: 'In Shop' }
+                            if (label === 'Unassigned' && canShowOperatorBadge) {
+                                setEmbeddedModal({
+                                    view: 'operators',
+                                    props: {
+                                        initialStatusFilter: 'Unassigned Active',
+                                        initialPositionFilter: config.operatorConfig.positionLabel
+                                    }
+                                })
+                            } else if (label === 'Total') {
+                                filters.setStatusFilter('')
+                                updateFilter?.('statusFilter', '')
+                            } else if (STATUS_MAP[label]) {
+                                filters.setStatusFilter(STATUS_MAP[label])
+                                updateFilter?.('statusFilter', STATUS_MAP[label])
+                            }
+                        }}
                         addButtonLabel={config.addButtonLabel}
                         onAddClick={() => setShowAddSheet(true)}
                         customActions={customActions}
@@ -805,6 +864,14 @@ function AssetView({
                         showAddSheet={showAddSheet}
                         verification={verification}
                     />
+                    {embeddedModal && (
+                        <EmbeddedViewModal
+                            embeddedView={embeddedModal.view}
+                            embeddedViewProps={embeddedModal.props}
+                            accentColor={preferences.accentColor || '#1e3a5f'}
+                            onClose={() => setEmbeddedModal(null)}
+                        />
+                    )}
                 </>
             )}
         </div>

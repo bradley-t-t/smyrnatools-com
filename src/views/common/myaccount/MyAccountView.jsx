@@ -497,9 +497,9 @@ function MyAccountView({ userId }) {
                         className="absolute inset-0"
                         style={{
                             backgroundImage: `
-                                linear-gradient(${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
-                                linear-gradient(90deg, ${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
-                                radial-gradient(circle at center, ${preferences.accentColor || '#1e3a5f'}08 0%, transparent 50%)
+                                linear-gradient(${preferences.accentColor || '#2A3163'}10 1px, transparent 1px),
+                                linear-gradient(90deg, ${preferences.accentColor || '#2A3163'}10 1px, transparent 1px),
+                                radial-gradient(circle at center, ${preferences.accentColor || '#2A3163'}08 0%, transparent 50%)
                             `,
                             backgroundPosition: '0 0, 0 0, 0 0',
                             backgroundSize: '20px 20px, 20px 20px, 40px 40px'
@@ -651,9 +651,9 @@ function MyAccountView({ userId }) {
                     className="absolute inset-0"
                     style={{
                         backgroundImage: `
-                            linear-gradient(${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
-                            linear-gradient(90deg, ${preferences.accentColor || '#1e3a5f'}10 1px, transparent 1px),
-                            radial-gradient(circle at center, ${preferences.accentColor || '#1e3a5f'}08 0%, transparent 50%)
+                            linear-gradient(${preferences.accentColor || '#2A3163'}10 1px, transparent 1px),
+                            linear-gradient(90deg, ${preferences.accentColor || '#2A3163'}10 1px, transparent 1px),
+                            radial-gradient(circle at center, ${preferences.accentColor || '#2A3163'}08 0%, transparent 50%)
                         `,
                         backgroundPosition: '0 0, 0 0, 0 0',
                         backgroundSize: '20px 20px, 20px 20px, 40px 40px'
@@ -685,7 +685,7 @@ function MyAccountView({ userId }) {
                                 <div
                                     className="px-6 pb-16 pt-8"
                                     style={{
-                                        background: `linear-gradient(to bottom right, ${preferences.accentColor || '#1e3a5f'}, ${preferences.accentColor || '#1e3a5f'}dd)`
+                                        background: `linear-gradient(to bottom right, ${preferences.accentColor || '#2A3163'}, ${preferences.accentColor || '#2A3163'}dd)`
                                     }}
                                 >
                                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-2xl font-bold text-white backdrop-blur-sm">
@@ -718,9 +718,9 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'profile'
                                                 ? {
-                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
-                                                      color: preferences.accentColor || '#1e3a5f'
+                                                      backgroundColor: `${preferences.accentColor || '#2A3163'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#2A3163',
+                                                      color: preferences.accentColor || '#2A3163'
                                                   }
                                                 : {}
                                         }
@@ -734,9 +734,9 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'security'
                                                 ? {
-                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
-                                                      color: preferences.accentColor || '#1e3a5f'
+                                                      backgroundColor: `${preferences.accentColor || '#2A3163'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#2A3163',
+                                                      color: preferences.accentColor || '#2A3163'
                                                   }
                                                 : {}
                                         }
@@ -751,9 +751,9 @@ function MyAccountView({ userId }) {
                                         style={
                                             activeTab === 'preferences'
                                                 ? {
-                                                      backgroundColor: `${preferences.accentColor || '#1e3a5f'}10`,
-                                                      borderLeftColor: preferences.accentColor || '#1e3a5f',
-                                                      color: preferences.accentColor || '#1e3a5f'
+                                                      backgroundColor: `${preferences.accentColor || '#2A3163'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#2A3163',
+                                                      color: preferences.accentColor || '#2A3163'
                                                   }
                                                 : {}
                                         }
@@ -761,7 +761,7 @@ function MyAccountView({ userId }) {
                                         <i className="fas fa-cog w-5 text-center"></i>
                                         <span className="font-medium">Preferences</span>
                                     </button>
-                                    <div className="mx-4 my-2 border-t border-gray-100 dark:border-gray-700"></div>
+                                    <div className="mx-4 my-2 border-t border-border-light"></div>
                                     <button
                                         onClick={handleSignOut}
                                         className="flex items-center gap-3 px-5 py-4 text-left text-red-600 transition-all hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
@@ -821,7 +821,7 @@ function MyAccountView({ userId }) {
                                             type="submit"
                                             disabled={loading}
                                             className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50"
-                                            style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
+                                            style={{ backgroundColor: preferences.accentColor || '#2A3163' }}
                                         >
                                             <i className="fas fa-save"></i>
                                             Save Changes
@@ -929,7 +929,7 @@ function MyAccountView({ userId }) {
                                     <button
                                         onClick={() => setShowPasswordModal(true)}
                                         className="inline-flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-all"
-                                        style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
+                                        style={{ backgroundColor: preferences.accentColor || '#2A3163' }}
                                     >
                                         <i className="fas fa-lock"></i>
                                         Change Password
@@ -1040,11 +1040,11 @@ function MyAccountView({ userId }) {
                                     <div className="mb-6 flex items-center gap-3">
                                         <div
                                             className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                            style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
                                         >
                                             <i
                                                 className="fas fa-rocket"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ color: preferences.accentColor || '#2A3163' }}
                                             ></i>
                                         </div>
                                         <div>
@@ -1056,7 +1056,7 @@ function MyAccountView({ userId }) {
                                     </div>
                                     <StartPageDropdown
                                         value={preferences.startPage || 'Dashboard'}
-                                        accentColor={preferences.accentColor || '#1e3a5f'}
+                                        accentColor={preferences.accentColor || '#2A3163'}
                                         onChange={(id) => updatePreferences('startPage', id)}
                                     />
                                 </div>
@@ -1064,11 +1064,11 @@ function MyAccountView({ userId }) {
                                     <div className="mb-6 flex items-center gap-3">
                                         <div
                                             className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                            style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
                                         >
                                             <i
                                                 className="fas fa-palette"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ color: preferences.accentColor || '#2A3163' }}
                                             ></i>
                                         </div>
                                         <div>
@@ -1088,8 +1088,7 @@ function MyAccountView({ userId }) {
                                             </div>
                                             <div className="flex flex-wrap items-center gap-3">
                                                 {[
-                                                    { color: '#1e3a5f', name: 'Navy' },
-                                                    { color: '#1D4D81', name: 'Steel Blue' },
+                                                    { color: '#2A3163', name: 'Navy' },
                                                     { color: '#7f1d1d', name: 'Red' },
                                                     { color: '#374151', name: 'Gray' },
                                                     { color: '#0a0a0a', name: 'Black' }
@@ -1097,14 +1096,14 @@ function MyAccountView({ userId }) {
                                                     <button
                                                         key={color}
                                                         onClick={() => updatePreferences('accentColor', color)}
-                                                        className={`group relative h-10 w-10 rounded-xl transition-all hover:scale-110 ${(preferences.accentColor || '#1e3a5f') === color ? 'ring-2 ring-offset-2' : ''}`}
+                                                        className={`group relative h-10 w-10 rounded-xl transition-all hover:scale-110 ${(preferences.accentColor || '#2A3163') === color ? 'ring-2 ring-offset-2' : ''}`}
                                                         style={{
                                                             backgroundColor: color,
                                                             ringColor: color
                                                         }}
                                                         title={name}
                                                     >
-                                                        {(preferences.accentColor || '#1e3a5f') === color && (
+                                                        {(preferences.accentColor || '#2A3163') === color && (
                                                             <i className="fas fa-check text-white text-sm"></i>
                                                         )}
                                                     </button>
@@ -1112,7 +1111,7 @@ function MyAccountView({ userId }) {
                                                 <div className="relative">
                                                     <input
                                                         type="color"
-                                                        value={preferences.accentColor || '#1e3a5f'}
+                                                        value={preferences.accentColor || '#2A3163'}
                                                         onChange={(e) => {
                                                             const clampedColor = clampColorToMaxBrightness(
                                                                 e.target.value
@@ -1135,19 +1134,19 @@ function MyAccountView({ userId }) {
                                                     <div
                                                         className="h-8 w-8 rounded-lg shadow-sm"
                                                         style={{
-                                                            backgroundColor: preferences.accentColor || '#1e3a5f'
+                                                            backgroundColor: preferences.accentColor || '#2A3163'
                                                         }}
                                                     ></div>
                                                     <div>
                                                         <div className="text-xs font-medium text-gray-500">Current</div>
                                                         <div className="font-mono text-sm font-semibold text-gray-900">
-                                                            {(preferences.accentColor || '#1e3a5f').toUpperCase()}
+                                                            {(preferences.accentColor || '#2A3163').toUpperCase()}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {preferences.accentColor && preferences.accentColor !== '#1e3a5f' && (
+                                                {preferences.accentColor && preferences.accentColor !== '#2A3163' && (
                                                     <button
-                                                        onClick={() => updatePreferences('accentColor', '#1e3a5f')}
+                                                        onClick={() => updatePreferences('accentColor', '#2A3163')}
                                                         className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 transition-all hover:bg-gray-200"
                                                     >
                                                         <i className="fas fa-undo text-xs"></i>
@@ -1169,7 +1168,7 @@ function MyAccountView({ userId }) {
                                                     className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${themeMode === 'light' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                                     style={
                                                         themeMode === 'light'
-                                                            ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                            ? { backgroundColor: preferences.accentColor || '#2A3163' }
                                                             : {}
                                                     }
                                                 >
@@ -1181,7 +1180,7 @@ function MyAccountView({ userId }) {
                                                     className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${themeMode === 'dark' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                                     style={
                                                         themeMode === 'dark'
-                                                            ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                            ? { backgroundColor: preferences.accentColor || '#2A3163' }
                                                             : {}
                                                     }
                                                 >
@@ -1197,11 +1196,11 @@ function MyAccountView({ userId }) {
                                     <div className="mb-6 flex items-center gap-3">
                                         <div
                                             className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                            style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
                                         >
                                             <i
                                                 className="fas fa-bars"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ color: preferences.accentColor || '#2A3163' }}
                                             ></i>
                                         </div>
                                         <div>
@@ -1217,7 +1216,7 @@ function MyAccountView({ userId }) {
                                             className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'top_bar_basic' || !preferences.navStyle ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                             style={
                                                 preferences.navStyle === 'top_bar_basic' || !preferences.navStyle
-                                                    ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                    ? { backgroundColor: preferences.accentColor || '#2A3163' }
                                                     : {}
                                             }
                                         >
@@ -1229,7 +1228,7 @@ function MyAccountView({ userId }) {
                                             className={`rounded-xl px-6 py-3 text-sm font-medium transition-all flex items-center gap-2 ${preferences.navStyle === 'two_level_tabs' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                                             style={
                                                 preferences.navStyle === 'two_level_tabs'
-                                                    ? { backgroundColor: preferences.accentColor || '#1e3a5f' }
+                                                    ? { backgroundColor: preferences.accentColor || '#2A3163' }
                                                     : {}
                                             }
                                         >
@@ -1243,11 +1242,11 @@ function MyAccountView({ userId }) {
                                         <div className="mb-6 flex items-center gap-3">
                                             <div
                                                 className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                                style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                                style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
                                             >
                                                 <i
                                                     className="fas fa-graduation-cap"
-                                                    style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                    style={{ color: preferences.accentColor || '#2A3163' }}
                                                 ></i>
                                             </div>
                                             <div>
@@ -1272,7 +1271,7 @@ function MyAccountView({ userId }) {
                                                     className="relative h-7 w-12 rounded-full transition-colors"
                                                     style={{
                                                         backgroundColor: preferences.tutorials
-                                                            ? preferences.accentColor || '#1e3a5f'
+                                                            ? preferences.accentColor || '#2A3163'
                                                             : '#d1d5db'
                                                     }}
                                                 >
@@ -1300,11 +1299,11 @@ function MyAccountView({ userId }) {
                                     <div className="mb-6 flex items-center gap-3">
                                         <div
                                             className="flex h-10 w-10 items-center justify-center rounded-xl"
-                                            style={{ backgroundColor: `${preferences.accentColor || '#1e3a5f'}15` }}
+                                            style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
                                         >
                                             <i
                                                 className="fas fa-database"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                style={{ color: preferences.accentColor || '#2A3163' }}
                                             ></i>
                                         </div>
                                         <div>
@@ -1419,7 +1418,7 @@ function MyAccountView({ userId }) {
                                         newPassword.length < 8
                                     }
                                     className="flex-1 rounded-xl py-3 font-semibold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50"
-                                    style={{ backgroundColor: preferences.accentColor || '#1e3a5f' }}
+                                    style={{ backgroundColor: preferences.accentColor || '#2A3163' }}
                                 >
                                     Update Password
                                 </button>

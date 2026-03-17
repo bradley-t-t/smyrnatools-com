@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.0] - 2026-03-17
+
+- Reorganized navigation into separate Reporting (Reports, Maintenance) and Tools (Plan, Calculators) categories, splitting out from the old Productivity dropdown
+- Moved calculator, plan, reports, and maintenance views from productivity/ to tools/ and reporting/ directories respectively
+- Added new MaintenanceLogService for tracking equipment service history, categories, service types, attachments, and status summaries
+- Added MaintenanceLogView for browsing and managing equipment maintenance log entries with service history, status tracking, and file attachments
+- Rewrote MaintenanceView and MaintenanceCreateFormView under the new reporting directory
+- Redesigned asset view header badges into clickable colored status pills (Total, Active, Spare, Unassigned, Shop) that filter the list on click
+- Added asset status counts (active, shop, spare, total) scoped to current plant/region/search filters in AssetView
+- Clicking the Unassigned pill now opens an embedded operators modal instead of navigating away from the asset view
+- Added onPillClick support to TopSection Badge component with per-status color-coded pill rendering
+- EmbeddedViewModal now accepts and spreads additional props to the embedded view component
+- Improved ManagerDetailView role selector with proper loading state, disabled styling, chevron icon, and a re-assertion effect to sync role when data loads asynchronously
+- Changed default accent color from #1e3a5f (Navy) to #2A3163 and removed the Steel Blue preset from account preferences
+
 ## [33.9] - 2026-03-16
 
 - Added "Date of Lost Load" field to the lost load report form, detail modal, and list views

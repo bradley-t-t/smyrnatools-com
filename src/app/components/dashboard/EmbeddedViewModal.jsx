@@ -22,7 +22,13 @@ const VIEW_CONFIG = {
  * @param {string} props.accentColor - Theme accent color for the header bar.
  * @param {Function} props.onClose - Callback invoked when the close button is clicked.
  */
-export default function EmbeddedViewModal({ embeddedView, embeddedViewSearch, accentColor, onClose }) {
+export default function EmbeddedViewModal({
+    embeddedView,
+    embeddedViewSearch,
+    embeddedViewProps,
+    accentColor,
+    onClose
+}) {
     const config = VIEW_CONFIG[embeddedView]
     if (!config) return null
     const ViewComponent = config.component
@@ -50,7 +56,12 @@ export default function EmbeddedViewModal({ embeddedView, embeddedViewSearch, ac
                     </button>
                 </div>
                 <div className="flex-1 overflow-auto">
-                    <ViewComponent embedded={true} initialSearch={embeddedViewSearch} exactMatch={true} />
+                    <ViewComponent
+                        embedded={true}
+                        initialSearch={embeddedViewSearch}
+                        exactMatch={true}
+                        {...(embeddedViewProps || {})}
+                    />
                 </div>
             </div>
         </div>

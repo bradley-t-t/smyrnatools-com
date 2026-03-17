@@ -171,6 +171,14 @@ function ManagerDetailView({ managerId, onClose }) {
         const canEditByWeight = currentUserRoleWeight > (manager.roleWeight || 0)
         setIsReadOnly(!(canEditAny || canEditByWeight))
     }, [manager, currentUserRoleWeight])
+    // Re-assert the manager's role once both roles and manager data are available
+    useEffect(() => {
+        if (!manager?.roleName || !availableRoles.length) return
+        const matchingRole = availableRoles.find((r) => r.name === manager.roleName)
+        if (matchingRole && roleName !== manager.roleName && roleName === originalValues.roleName) {
+            setRoleName(manager.roleName)
+        }
+    }, [availableRoles, manager, roleName, originalValues.roleName])
     useEffect(() => {
         let cancelled = false
         async function loadRegionPlants() {
@@ -560,22 +568,25 @@ function ManagerDetailView({ managerId, onClose }) {
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <label>Role</label>
-                        <select
-                            value={roleName}
-                            onChange={(e) => setRoleName(e.target.value)}
-                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
-                            disabled={isReadOnly || !canEditManager}
-                        >
-                            {availableRoles.length ? (
-                                availableRoles.map((role) => (
-                                    <option key={role.id} value={role.name}>
-                                        {role.name}
-                                    </option>
-                                ))
-                            ) : (
-                                <option value="">Loading roles...</option>
-                            )}
-                        </select>
+                        <div className="relative">
+                            <select
+                                value={roleName}
+                                onChange={(e) => setRoleName(e.target.value)}
+                                className={`w-full appearance-none rounded-xl border border-border-light bg-bg-secondary pl-4 pr-10 py-3 text-sm outline-none transition-colors focus:border-accent ${isReadOnly || !canEditManager ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${roleName ? 'text-text-primary' : 'text-text-secondary'}`}
+                                disabled={isReadOnly || !canEditManager || !availableRoles.length || !roleName}
+                            >
+                                {!availableRoles.length || !roleName ? (
+                                    <option value={roleName}>{roleName || 'Loading...'}</option>
+                                ) : (
+                                    availableRoles.map((role) => (
+                                        <option key={role.id} value={role.name}>
+                                            {role.name}
+                                        </option>
+                                    ))
+                                )}
+                            </select>
+                            <i className="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-text-secondary pointer-events-none" />
+                        </div>
                     </div>
                 </DetailViewSection.Card>
             </DetailViewSection.Section>
