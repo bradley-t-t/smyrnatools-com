@@ -203,6 +203,8 @@ function TimelineView({
                 const totalPreDeparture = showTravel ? travelMin + BUFFER_MINUTES + PRE_TRIP_MINUTES : PRE_TRIP_MINUTES
                 const clockIn = arriveTime ? addMinutesToTime(arriveTime, -totalPreDeparture) : null
                 const preTripEnd = clockIn ? addMinutesToTime(clockIn, PRE_TRIP_MINUTES) : null
+                // Return travel: after leave time, travel back to home plant
+                const returnEnd = showTravel && leaveTime ? addMinutesToTime(leaveTime, travelMin) : null
 
                 return {
                     arriveTime,
@@ -215,6 +217,7 @@ function TimelineView({
                     leaveTime: leaveTime || null,
                     loadFromPlant: a.loadFromPlant,
                     preTripEnd,
+                    returnEnd,
                     toPlant: a.toPlant,
                     travel: showTravel ? travelMin : null
                 }
@@ -269,9 +272,9 @@ function TimelineView({
                 const lanesB = getPlantSentLanes(dayB, plant)
                 if (!lanesA.length || !lanesB.length) continue
 
-                // Get valid leave times from day A and start times from day B
+                // Get end-of-shift times from day A (returnEnd if available, else leaveTime) and start times from day B
                 const leaveMinsA = lanesA
-                    .map((l, li) => ({ li, mins: timeToMinutes(l.leaveTime) }))
+                    .map((l, li) => ({ li, mins: timeToMinutes(l.returnEnd ?? l.leaveTime) }))
                     .filter((x) => x.mins !== null)
                 const startMinsB = lanesB
                     .map((l, li) => ({ li, mins: timeToMinutes(l.clockIn || l.arriveTime) }))
@@ -683,6 +686,7 @@ function TimelineView({
                                         const preTripEndPct = timeToPercent(lane.preTripEnd)
                                         const arrivePct = timeToPercent(lane.arriveTime)
                                         const leavePct = timeToPercent(lane.leaveTime)
+                                        const returnEndPct = timeToPercent(lane.returnEnd)
                                         const top = (laneIdx + homeOffset) * ROW_HEIGHT + 3
                                         const blockH = ROW_HEIGHT - 6
                                         const routeLabel = isSent
@@ -710,10 +714,15 @@ function TimelineView({
                                             siteStart != null && siteEnd != null
                                                 ? Math.max(siteEnd - siteStart, 0.8)
                                                 : 0
+                                        // Return travel: leave -> returnEnd
+                                        const returnW =
+                                            leavePct != null && returnEndPct != null
+                                                ? Math.max(returnEndPct - leavePct, 0)
+                                                : 0
 
                                         return (
                                             <React.Fragment key={`${isSent ? 's' : 'r'}-${laneIdx}`}>
-                                                {/* Connector line spanning pre-trip through on-site */}
+                                                {/* Connector line spanning pre-trip through return travel */}
                                                 {clockInPct != null &&
                                                     siteStart != null &&
                                                     (preW > 0 || travelW > 0) && (
@@ -721,7 +730,7 @@ function TimelineView({
                                                             className="absolute pointer-events-none"
                                                             style={{
                                                                 left: `${clockInPct}%`,
-                                                                width: `${siteStart + siteW - clockInPct}%`,
+                                                                width: `${(returnEndPct ?? siteStart + siteW) - clockInPct}%`,
                                                                 top: top + blockH / 2 - 1,
                                                                 height: 2,
                                                                 background: `${blockColor}30`
@@ -784,7 +793,7 @@ function TimelineView({
                                                             top,
                                                             height: blockH,
                                                             background: blockColor,
-                                                            borderRadius: 4,
+                                                            borderRadius: returnW > 0 ? '4px 0 0 4px' : 4,
                                                             boxShadow: `0 1px 3px ${blockColor}40`
                                                         }}
                                                     >
@@ -793,6 +802,31 @@ function TimelineView({
                                                             {routeLabel} {lane.arriveTime}
                                                             {lane.leaveTime ? `\u2013${lane.leaveTime}` : ''}
                                                             {lane.loadFromPlant ? ' LD' : ''}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {/* Return travel block — after leave time */}
+                                                {returnW > 0 && (
+                                                    <div
+                                                        className="absolute flex items-center justify-center overflow-visible"
+                                                        style={{
+                                                            left: `${leavePct}%`,
+                                                            width: `${returnW}%`,
+                                                            minWidth: 8,
+                                                            top: top + 2,
+                                                            height: blockH - 4,
+                                                            background: `${blockColor}20`,
+                                                            borderRadius: '0 3px 3px 0',
+                                                            border: `1px dashed ${blockColor}50`,
+                                                            borderLeft: 'none'
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="text-[8px] font-semibold whitespace-nowrap px-1"
+                                                            style={{ color: `${blockColor}BB` }}
+                                                        >
+                                                            <i className="fas fa-rotate-left text-[7px] mr-0.5" />
+                                                            {lane.travel}m
                                                         </span>
                                                     </div>
                                                 )}
@@ -855,7 +889,8 @@ function TimelineView({
                                                 const homeTop = 2 // First row — above help lanes
                                                 const blockH = ROW_HEIGHT - 4
 
-                                                // Production metrics
+                                                // Production metrics — effective ops = home + received help
+                                                const effectiveOps = homeCount + recvLanes.length
                                                 const firstMins = hasProd ? timeToMinutes(prod.firstJobTime) : null
                                                 const lastMins = hasProd ? timeToMinutes(prod.lastJobTime) : null
                                                 const hrs =
@@ -864,13 +899,13 @@ function TimelineView({
                                                         : null
                                                 const yds = hasProd ? parseFloat(prod.totalYardage) || 0 : 0
                                                 const ydsPerHrOp =
-                                                    hrs && yds && homeCount > 0
-                                                        ? Math.round((yds / (hrs * homeCount)) * 10) / 10
+                                                    hrs && yds && effectiveOps > 0
+                                                        ? Math.round((yds / (hrs * effectiveOps)) * 10) / 10
                                                         : null
                                                 const minNeeded =
                                                     hrs && yds ? Math.ceil(yds / (hrs * TARGET_YPH)) : null
                                                 const availableToSend =
-                                                    minNeeded !== null ? Math.max(0, homeCount - minNeeded) : null
+                                                    minNeeded !== null ? Math.max(0, effectiveOps - minNeeded) : null
                                                 const overMax = ydsPerHrOp !== null && ydsPerHrOp > MAX_YPH
 
                                                 return (
@@ -905,13 +940,23 @@ function TimelineView({
                                                             }}
                                                         >
                                                             <div className="flex items-center gap-2 px-2 whitespace-nowrap">
-                                                                {/* Operator count badge */}
+                                                                {/* Operator count badge — effective = home + received */}
                                                                 <span
                                                                     className="text-[9px] font-extrabold flex items-center gap-1"
                                                                     style={{ color: HOME_COLOR }}
                                                                 >
                                                                     <i className="fas fa-hard-hat text-[8px]" />
-                                                                    {homeCount}
+                                                                    {effectiveOps}
+                                                                    {recvLanes.length > 0 && (
+                                                                        <span
+                                                                            style={{
+                                                                                color: RECV_COLOR,
+                                                                                fontWeight: 600
+                                                                            }}
+                                                                        >
+                                                                            (+{recvLanes.length})
+                                                                        </span>
+                                                                    )}
                                                                 </span>
                                                                 {/* Time range */}
                                                                 {hasProd && (

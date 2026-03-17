@@ -17,6 +17,7 @@ const PLUGINS = {
     plant_manager: PlantManagerReviewPlugin,
     plant_production: EfficiencyReviewPlugin,
     ready_mix_instructor: ReadyMixInstructorReviewPlugin,
+    safety_environmental_rep: SafetyManagerReviewPlugin,
     safety_manager: SafetyManagerReviewPlugin
 }
 const PLUGIN_ONLY_REPORTS = [
@@ -140,7 +141,12 @@ function ReportsReviewView({ report, initialData, onBack, user, completedByUser,
     const renderDefaultForm = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 bg-white rounded-xl border border-gray-200 p-6 mb-6">
             {report.fields
-                .filter((f) => !(report.name === 'safety_manager' && f.name === 'issues') && f.type !== 'table')
+                .filter(
+                    (f) =>
+                        !(
+                            ['safety_manager', 'safety_environmental_rep'].includes(report.name) && f.name === 'issues'
+                        ) && f.type !== 'table'
+                )
                 .map((field) => (
                     <div key={field.name} className="flex flex-col gap-2">
                         <label className="text-sm font-semibold text-gray-700">

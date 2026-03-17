@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.4] - 2026-03-17
+
+- smyrnatools.com Release v35.4
+
 ## [35.3] - 2026-03-17
 
 - Added yards-per-hour-per-operator metric to the home operator summary bar in the plan timeline

@@ -24,9 +24,16 @@ const PLUGINS = {
     plant_manager: PlantManagerSubmitPlugin,
     plant_production: EfficiencySubmitPlugin,
     ready_mix_instructor: ReadyMixInstructorSubmitPlugin,
+    safety_environmental_rep: SafetyManagerSubmitPlugin,
     safety_manager: SafetyManagerSubmitPlugin
 }
-const EXCLUDED_REPORT_TYPES = ['district_manager', 'general_manager', 'aggregate_production', 'safety_manager']
+const EXCLUDED_REPORT_TYPES = [
+    'district_manager',
+    'general_manager',
+    'aggregate_production',
+    'safety_manager',
+    'safety_environmental_rep'
+]
 const GM_REQUIRED_FIELD_SUFFIXES = [
     'active_operators',
     'runnable_trucks',
@@ -201,7 +208,7 @@ function ReportsSubmitView({
             setShowConfirmationModal(true)
             return
         }
-        if (report.name === 'safety_manager') {
+        if (report.name === 'safety_manager' || report.name === 'safety_environmental_rep') {
             const err = validateSafetyManager(form)
             if (err) return showError(err)
         }

@@ -99,6 +99,14 @@ const reportTypes = [
         title: 'Safety Manager Report'
     }),
     createReportType({
+        assignment: ['reports.assigned.safety_environmental_rep'],
+        fields: [{ label: 'Issues', name: 'issues', required: false, type: 'table' }],
+        frequency: 'weekly',
+        name: 'safety_environmental_rep',
+        review: ['reports.review.safety_environmental_rep'],
+        title: 'Safety / Environmental Representative'
+    }),
+    createReportType({
         assignment: ['reports.assigned.general_manager'],
         fields: [],
         frequency: 'weekly',

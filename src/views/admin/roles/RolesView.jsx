@@ -79,20 +79,6 @@ function RolesView() {
     useEffect(() => {
         loadData()
     }, [loadData])
-    // Convert vertical mouse wheel to horizontal scroll on the matrix
-    useEffect(() => {
-        const el = matrixScrollRef.current
-        if (!el) return
-        const handleWheel = (e) => {
-            if (el.scrollWidth <= el.clientWidth) return
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                e.preventDefault()
-                el.scrollLeft += e.deltaY
-            }
-        }
-        el.addEventListener('wheel', handleWheel, { passive: false })
-        return () => el.removeEventListener('wheel', handleWheel)
-    })
     // Build the full permission set from all roles
     const allPermissions = useMemo(() => {
         const permSet = new Set()
@@ -355,17 +341,14 @@ function RolesView() {
                 <div className="px-6 py-4">
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                         <div
-                            className="overflow-x-auto overflow-y-auto"
+                            className="overflow-y-auto"
                             ref={matrixScrollRef}
                             style={{ maxHeight: 'calc(100vh - 320px)' }}
                         >
-                            <table className="w-full border-collapse" style={{ minWidth: roles.length * 110 + 240 }}>
+                            <table className="w-full border-collapse table-fixed">
                                 <thead className="sticky top-0 z-[6]">
                                     <tr>
-                                        <th
-                                            className="sticky left-0 z-[7] bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-2 border-b border-r border-slate-200"
-                                            style={{ minWidth: 220 }}
-                                        >
+                                        <th className="sticky left-0 z-[7] bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-2 border-b border-r border-slate-200 w-52">
                                             Permission
                                         </th>
                                         {roles.map((role) => {
@@ -375,11 +358,13 @@ function RolesView() {
                                             return (
                                                 <th
                                                     key={role.id}
-                                                    className="text-center border-b border-slate-200 px-3 py-2 bg-slate-50"
-                                                    style={{ minWidth: 110 }}
+                                                    className="text-center border-b border-slate-200 px-1 py-2 bg-slate-50"
                                                 >
                                                     <div className="flex flex-col items-center gap-0.5">
-                                                        <span className="text-[11px] font-bold text-slate-700 leading-tight whitespace-nowrap">
+                                                        <span
+                                                            className="text-[11px] font-bold text-slate-700 leading-tight truncate max-w-full"
+                                                            title={role.name}
+                                                        >
                                                             {role.name}
                                                         </span>
                                                         {editingWeight === role.id ? (
