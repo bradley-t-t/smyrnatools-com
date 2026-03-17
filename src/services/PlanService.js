@@ -67,12 +67,13 @@ class PlanServiceImpl {
         return json?.data ?? null
     }
     /** Saves or updates the shared daily plan with assignments and notes. */
-    async savePlan(planDate, assignments, notes) {
+    async savePlan(planDate, assignments, notes, plantProduction) {
         if (!planDate) throw new Error('planDate is required')
         const { res, json } = await APIUtility.post(`/${SERVICE_PREFIX}/save-plan`, {
             assignments: assignments || [],
             notes: notes || '',
-            planDate
+            planDate,
+            plantProduction: plantProduction || {}
         })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to save plan')
         return true

@@ -1058,6 +1058,7 @@ function PlanView() {
     const [viewMode, setViewMode] = useState('table') // 'table' | 'timeline'
     const [adjacentPlans, setAdjacentPlans] = useState({}) // { [dateStr]: assignments[] }
     const [showImportModal, setShowImportModal] = useState(false)
+    const [plantProduction, setPlantProduction] = useState({}) // { [plantCode]: { firstJobTime, lastJobTime, totalYardage } }
     const dirtyRef = useRef(false)
     const [importText, setImportText] = useState('')
     const isMobile = useIsMobile()
@@ -1127,9 +1128,11 @@ function PlanView() {
                     setAssignments([createEmptyAssignment()])
                 }
                 setNotes(plan?.notes || '')
+                setPlantProduction(plan?.plant_production || {})
             } catch {
                 setAssignments([createEmptyAssignment()])
                 setNotes('')
+                setPlantProduction({})
             }
             loadedForDateRef.current = planDate
             // Enable autosave on NEXT user-initiated change, not from this load
@@ -1170,12 +1173,12 @@ function PlanView() {
         dirtyRef.current = true
         const timeout = setTimeout(async () => {
             try {
-                await PlanService.savePlan(planDate, assignments, notes)
+                await PlanService.savePlan(planDate, assignments, notes, plantProduction)
                 dirtyRef.current = false
             } catch {}
         }, AUTOSAVE_DELAY_MS)
         return () => clearTimeout(timeout)
-    }, [canEdit, planDate, assignments, notes, isLoading])
+    }, [canEdit, planDate, assignments, notes, plantProduction, isLoading])
 
     // Realtime: sync plan changes from other users
     const planDateRef = useRef(planDate)
@@ -1184,6 +1187,8 @@ function PlanView() {
     assignmentsRef.current = assignments
     const notesRef = useRef(notes)
     notesRef.current = notes
+    const plantProductionRef = useRef(plantProduction)
+    plantProductionRef.current = plantProduction
 
     useRealtimeSubscription({
         table: 'plans',
@@ -1202,6 +1207,11 @@ function PlanView() {
             }
             if ((record.notes || '') !== notesRef.current) {
                 setNotes(record.notes || '')
+            }
+            const incomingProd = JSON.stringify(record.plant_production ?? {})
+            const localProd = JSON.stringify(plantProductionRef.current)
+            if (incomingProd !== localProd) {
+                setPlantProduction(record.plant_production || {})
             }
         }, [])
     })
@@ -1237,6 +1247,13 @@ function PlanView() {
             leaveTime: leaveTime || '',
             time: baseTime ? addMinutesToTime(baseTime, i * (stagger || DEFAULT_STAGGER_MINUTES)) || '' : ''
         }))
+
+    const updatePlantProduction = (plantCode, field, value) => {
+        setPlantProduction((prev) => ({
+            ...prev,
+            [plantCode]: { ...prev[plantCode], [field]: value }
+        }))
+    }
 
     const updateAssignment = (id, field, value) => {
         setAssignments((prev) =>
@@ -3428,6 +3445,157 @@ function PlanView() {
                                             }}
                                         />
                                     </div>
+
+                                    {/* Plant Production — yards per hour per operator */}
+                                    {stats.length > 0 && (
+                                        <div
+                                            className="border-b px-4 py-3"
+                                            style={{ borderColor: 'var(--border-light)' }}
+                                        >
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <i
+                                                    className="fas fa-tachometer-alt text-[10px]"
+                                                    style={{ color: accentColor }}
+                                                />
+                                                <span
+                                                    className="text-[11px] font-semibold uppercase tracking-[0.5px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Production
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col gap-2.5">
+                                                {stats.map((s) => {
+                                                    const prod = plantProduction[s.code] || {}
+                                                    const firstMins = timeToMinutes(prod.firstJobTime)
+                                                    const lastMins = timeToMinutes(prod.lastJobTime)
+                                                    const hours =
+                                                        firstMins !== null && lastMins !== null && lastMins > firstMins
+                                                            ? (lastMins - firstMins) / 60
+                                                            : null
+                                                    const yardage = parseFloat(prod.totalYardage) || 0
+                                                    const yardsPerHrPerOp =
+                                                        hours && yardage && s.eff > 0
+                                                            ? Math.round((yardage / (hours * s.eff)) * 10) / 10
+                                                            : null
+                                                    return (
+                                                        <div
+                                                            key={s.code}
+                                                            className="rounded-lg p-2.5"
+                                                            style={{
+                                                                background: 'var(--bg-secondary)',
+                                                                border: '1px solid var(--border-light)'
+                                                            }}
+                                                        >
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <span
+                                                                    className="text-xs font-bold"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {s.code}
+                                                                </span>
+                                                                <span
+                                                                    className="text-[10px] font-medium"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {s.eff} operator{s.eff !== 1 ? 's' : ''}
+                                                                </span>
+                                                            </div>
+                                                            <div className="grid grid-cols-3 gap-1.5">
+                                                                <div>
+                                                                    <div
+                                                                        className="text-[9px] font-semibold uppercase tracking-[0.3px] mb-0.5"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        First Job
+                                                                    </div>
+                                                                    <TimeInput
+                                                                        value={prod.firstJobTime || ''}
+                                                                        onChange={(val) =>
+                                                                            updatePlantProduction(
+                                                                                s.code,
+                                                                                'firstJobTime',
+                                                                                val
+                                                                            )
+                                                                        }
+                                                                        className="!w-full"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <div
+                                                                        className="text-[9px] font-semibold uppercase tracking-[0.3px] mb-0.5"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Last Job
+                                                                    </div>
+                                                                    <TimeInput
+                                                                        value={prod.lastJobTime || ''}
+                                                                        onChange={(val) =>
+                                                                            updatePlantProduction(
+                                                                                s.code,
+                                                                                'lastJobTime',
+                                                                                val
+                                                                            )
+                                                                        }
+                                                                        className="!w-full"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <div
+                                                                        className="text-[9px] font-semibold uppercase tracking-[0.3px] mb-0.5"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Yards
+                                                                    </div>
+                                                                    <input
+                                                                        type="number"
+                                                                        value={prod.totalYardage || ''}
+                                                                        onChange={(e) =>
+                                                                            updatePlantProduction(
+                                                                                s.code,
+                                                                                'totalYardage',
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        placeholder="0"
+                                                                        className="border rounded-md text-xs outline-none font-mono text-center py-1 px-1 w-full"
+                                                                        style={{
+                                                                            backgroundColor: 'var(--bg-primary)',
+                                                                            borderColor: 'var(--border-medium)',
+                                                                            color: 'var(--text-primary)'
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            {yardsPerHrPerOp !== null && (
+                                                                <div
+                                                                    className="flex items-center justify-between mt-2 pt-2 border-t"
+                                                                    style={{ borderColor: 'var(--border-light)' }}
+                                                                >
+                                                                    <span
+                                                                        className="text-[10px] font-medium"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Yards / Hr / Op
+                                                                    </span>
+                                                                    <span
+                                                                        className="text-sm font-bold"
+                                                                        style={{
+                                                                            fontFamily:
+                                                                                'var(--font-heading, Rajdhani, sans-serif)',
+                                                                            color: accentColor
+                                                                        }}
+                                                                    >
+                                                                        {yardsPerHrPerOp}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Auto-save indicator */}
                                     <div className="px-4 py-2">

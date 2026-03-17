@@ -62,10 +62,11 @@ Deno.serve(async (req) => {
             }
             case "save-plan": {
                 const body = await parseBody(req);
-                const {planDate, assignments, notes} = body;
+                const {planDate, assignments, notes, plantProduction} = body;
                 if (!planDate) return errorResponse("planDate is required", headers, 400);
                 const {error} = await supabase.from(PLANS_TABLE).upsert({
-                    plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "", updated_at: nowISO()
+                    plan_date: planDate, assignments: assignments ?? [], notes: notes ?? "",
+                    plant_production: plantProduction ?? {}, updated_at: nowISO()
                 }, {onConflict: "plan_date"});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.6] - 2026-03-17
+
+- Added plant production tracking to PlanView with per-plant first job time, last job time, and total yardage inputs
+- Production section calculates and displays yards per hour per operator based on entered data and operator count
+- Extended PlanService.savePlan and the plan-service edge function to persist plantProduction data alongside assignments and notes
+- Plant production state syncs in realtime between users viewing the same plan
+- Plant production data loads from and saves to the database with autosave support
+
 ## [34.5] - 2026-03-17
 
 - Reworked rest violation detection in PlanView timeline to track per-plant, per-lane violations instead of global day-level checks
