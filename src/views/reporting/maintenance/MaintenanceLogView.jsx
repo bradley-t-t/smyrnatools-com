@@ -1244,7 +1244,7 @@ export default function MaintenanceLogView({
                 ) : (
                     <div className={`flex gap-4 items-start ${isMobile ? 'flex-col' : ''}`}>
                         {/* Content */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 w-full overflow-hidden">
                             {sorted.length === 0 ? (
                                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                                     {renderEmptyState()}

@@ -248,8 +248,6 @@ export default function MaintenanceView() {
 
     // ── Derived state ───────────────────────────────────────────
 
-    const isLoading = logLoading || formLoading
-
     const regionPlantCodes = useMemo(() => {
         const codes = new Set()
         regionPlants.forEach((p) => {
@@ -685,7 +683,7 @@ export default function MaintenanceView() {
     return (
         <div className="min-h-full w-full" style={{ background: 'var(--bg-secondary)' }}>
             <TopSection
-                isLoading={isLoading}
+                isLoading={logLoading}
                 title="Maintenance"
                 forwardedRef={headerRef}
                 sticky

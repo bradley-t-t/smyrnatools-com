@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.4] - 2026-03-17
+
+- Added w-full and overflow-hidden to the maintenance log content wrapper to prevent table overflow issues
+- Simplified the maintenance view loading state to use logLoading directly instead of combining logLoading and formLoading
+- Added v34.3 changelog entry
+
 ## [34.3] - 2026-03-17
 
 - Flattened the maintenance log table wrapper by removing the extra nested overflow div, moving overflow-x-auto directly onto the outer container

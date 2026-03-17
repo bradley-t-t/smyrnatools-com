@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.3] - 2026-03-17
+
+- Flattened the maintenance log table wrapper by removing the extra nested overflow div, moving overflow-x-auto directly onto the outer container
+- Added v34.2 changelog entry
+
 ## [34.2] - 2026-03-17
 
 - Removed the mobile card layout from the maintenance log, reverting to the standard table view on all screen sizes
