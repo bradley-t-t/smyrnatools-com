@@ -830,14 +830,36 @@ function TimelineView({
                                                             >
                                                                 <i className="fas fa-home text-[7px] mr-1" />
                                                                 {homeCount} assigned to plant
-                                                                {hasProd && (
-                                                                    <span className="font-medium ml-1.5">
-                                                                        {prod.firstJobTime}–{prod.lastJobTime}
-                                                                        {prod.totalYardage
-                                                                            ? ` · ${prod.totalYardage} yds`
-                                                                            : ''}
-                                                                    </span>
-                                                                )}
+                                                                {hasProd &&
+                                                                    (() => {
+                                                                        const firstMins = timeToMinutes(
+                                                                            prod.firstJobTime
+                                                                        )
+                                                                        const lastMins = timeToMinutes(prod.lastJobTime)
+                                                                        const hrs =
+                                                                            firstMins !== null &&
+                                                                            lastMins !== null &&
+                                                                            lastMins > firstMins
+                                                                                ? (lastMins - firstMins) / 60
+                                                                                : null
+                                                                        const yds = parseFloat(prod.totalYardage) || 0
+                                                                        const ydsPerHrOp =
+                                                                            hrs && yds && homeCount > 0
+                                                                                ? Math.round(
+                                                                                      (yds / (hrs * homeCount)) * 10
+                                                                                  ) / 10
+                                                                                : null
+                                                                        return (
+                                                                            <span className="font-medium ml-1.5">
+                                                                                {prod.firstJobTime}–{prod.lastJobTime}
+                                                                                {yds
+                                                                                    ? ` · ${prod.totalYardage} yds`
+                                                                                    : ''}
+                                                                                {ydsPerHrOp !== null &&
+                                                                                    ` · ${ydsPerHrOp} yds/hr/op`}
+                                                                            </span>
+                                                                        )
+                                                                    })()}
                                                             </span>
                                                         </div>
                                                     </>
