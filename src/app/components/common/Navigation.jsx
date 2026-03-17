@@ -340,10 +340,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
 
     /* ── Top-bar: derived grouping flags ── */
     const hasAssets = visibleMenuItems.some((i) => ASSET_ITEMS.includes(i.id))
-    const hasPeople = visibleMenuItems.filter((i) => PEOPLE_ITEMS.includes(i.id)).length > 1
-    const hasProductivity = visibleMenuItems.filter((i) => PRODUCTIVITY_ITEMS.includes(i.id)).length > 1
-    const hasReporting = visibleMenuItems.filter((i) => REPORTING_ITEMS.includes(i.id)).length > 1
-    const hasTools = visibleMenuItems.filter((i) => TOOLS_ITEMS.includes(i.id)).length > 1
+    const hasPeople = visibleMenuItems.some((i) => PEOPLE_ITEMS.includes(i.id))
+    const hasProductivity = visibleMenuItems.some((i) => PRODUCTIVITY_ITEMS.includes(i.id))
+    const hasReporting = visibleMenuItems.some((i) => REPORTING_ITEMS.includes(i.id))
+    const hasTools = visibleMenuItems.some((i) => TOOLS_ITEMS.includes(i.id))
     const standaloneItems = visibleMenuItems.filter(
         (i) =>
             !ASSET_ITEMS.includes(i.id) &&

@@ -239,32 +239,70 @@ function TimelineView({
         [days, getTravelTime, calcClockIn, addMinutesToTime]
     )
 
-    // Detect insufficient rest between consecutive days (< 10 hours)
+    // Detect insufficient rest between consecutive days (< 10 hours) per individual lane
+    // Only flags violations where both sides of the day boundary have actual shifts
     const MIN_REST_HOURS = 10
     const restViolations = useMemo(() => {
-        const violations = {} // keyed by dayIdx (the later day)
-        for (let i = 1; i < dayLanes.length; i++) {
-            const prevDay = dayLanes[i - 1]
-            const currDay = dayLanes[i]
-            if (!prevDay.lanes.length || !currDay.lanes.length) continue
-            const prevLeaveMins = prevDay.lanes.map((l) => timeToMinutes(l.leaveTime)).filter((m) => m !== null)
-            const currStartMins = currDay.lanes
-                .map((l) => timeToMinutes(l.clockIn || l.arriveTime))
-                .filter((m) => m !== null)
-            if (!prevLeaveMins.length || !currStartMins.length) continue
-            const latestLeave = Math.max(...prevLeaveMins)
-            const earliestStart = Math.min(...currStartMins)
-            const gapMinutes = 24 * 60 - latestLeave + earliestStart
-            if (gapMinutes < MIN_REST_HOURS * 60) {
-                violations[i] = {
-                    gapHours: Math.round((gapMinutes / 60) * 10) / 10,
-                    prevLeaveTime: minutesToTime(latestLeave),
-                    nextStartTime: minutesToTime(earliestStart)
+        const violations = {}
+        const plantCodes = plants.map((p) => p.plant_code).filter(Boolean)
+
+        // Only sent lanes (fromPlant === plant) — these are the plant's own drivers.
+        // Received lanes are another plant's drivers and don't count for this plant's reset.
+        const getPlantSentLanes = (day, plant) =>
+            day.lanes
+                .filter((l) => l.fromPlant === plant)
+                .sort((a, b) => (a.clockIn || a.arriveTime).localeCompare(b.clockIn || b.arriveTime))
+
+        // Only check pairs of consecutive days — both must have lanes for the plant
+        for (let i = 0; i < dayLanes.length - 1; i++) {
+            const dayA = dayLanes[i]
+            const dayB = dayLanes[i + 1]
+            if (!dayA.lanes.length || !dayB.lanes.length) continue
+
+            for (const plant of plantCodes) {
+                const lanesA = getPlantSentLanes(dayA, plant)
+                const lanesB = getPlantSentLanes(dayB, plant)
+                if (!lanesA.length || !lanesB.length) continue
+
+                // Get valid leave times from day A and start times from day B
+                const leaveMinsA = lanesA
+                    .map((l, li) => ({ li, mins: timeToMinutes(l.leaveTime) }))
+                    .filter((x) => x.mins !== null)
+                const startMinsB = lanesB
+                    .map((l, li) => ({ li, mins: timeToMinutes(l.clockIn || l.arriveTime) }))
+                    .filter((x) => x.mins !== null)
+                if (!leaveMinsA.length || !startMinsB.length) continue
+
+                const earliestStartB = Math.min(...startMinsB.map((x) => x.mins))
+                const latestLeaveA = Math.max(...leaveMinsA.map((x) => x.mins))
+
+                // End-of-day blocks on day A: each lane with a leave time that's < 10h from earliest next-day start
+                for (const { li, mins: leaveMins } of leaveMinsA) {
+                    const gap = 24 * 60 - leaveMins + earliestStartB
+                    if (gap < MIN_REST_HOURS * 60) {
+                        const gapHours = Math.round((gap / 60) * 10) / 10
+                        violations[`${i}:${plant}:${li}:end`] = {
+                            gapHours,
+                            prevLeaveTime: minutesToTime(leaveMins)
+                        }
+                    }
+                }
+
+                // Start-of-day blocks on day B: each lane with a start time that's < 10h from latest prev-day leave
+                for (const { li, mins: startMins } of startMinsB) {
+                    const gap = 24 * 60 - latestLeaveA + startMins
+                    if (gap < MIN_REST_HOURS * 60) {
+                        const gapHours = Math.round((gap / 60) * 10) / 10
+                        violations[`${i + 1}:${plant}:${li}`] = {
+                            gapHours,
+                            nextStartTime: minutesToTime(startMins)
+                        }
+                    }
                 }
             }
         }
         return violations
-    }, [dayLanes])
+    }, [dayLanes, plants])
 
     // All plants sorted by code — always show every plant regardless of plan data
     const allPlants = useMemo(
@@ -521,10 +559,6 @@ function TimelineView({
                     {/* Day columns — horizontally scrollable */}
                     {dayLanes.map((day, dayIdx) => {
                         const isCurrent = day.isCurrent
-                        // Violation with previous day: red band from 0% to next start time
-                        const violationFromPrev = restViolations[dayIdx] || null
-                        // Violation with next day: red band from leave time to 100%
-                        const violationToNext = restViolations[dayIdx + 1] || null
                         return (
                             <div
                                 key={day.date}
@@ -588,6 +622,11 @@ function TimelineView({
 
                                 {/* Lanes for each plant row */}
                                 {plantRows.map((pr) => {
+                                    // Per-lane violation lookup helpers
+                                    const getLaneViolationFromPrev = (li) =>
+                                        restViolations[`${dayIdx}:${pr.plant}:${li}`] || null
+                                    const getLaneViolationToNext = (li) =>
+                                        restViolations[`${dayIdx}:${pr.plant}:${li}:end`] || null
                                     const sentLanes = day.lanes
                                         .filter((l) => l.fromPlant === pr.plant)
                                         .sort((a, b) =>
@@ -737,41 +776,61 @@ function TimelineView({
                                                     }}
                                                 />
                                             ))}
-                                            {/* Rest violation: red band from start of day to earliest start */}
-                                            {violationFromPrev && (
-                                                <div
-                                                    className="absolute top-0 bottom-0 pointer-events-none"
-                                                    style={{
-                                                        left: 0,
-                                                        width: `${timeToPercent(violationFromPrev.nextStartTime)}%`,
-                                                        background: 'rgba(239, 68, 68, 0.12)',
-                                                        borderRight: '2px solid #ef4444'
-                                                    }}
-                                                    title={`${violationFromPrev.gapHours}h rest (min ${MIN_REST_HOURS}h)`}
-                                                >
-                                                    {pr === plantRows[0] && (
-                                                        <span
-                                                            className="absolute top-0.5 left-1 text-[8px] font-bold whitespace-nowrap"
-                                                            style={{ color: '#ef4444' }}
-                                                        >
-                                                            {violationFromPrev.gapHours}h rest
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {/* Rest violation: red band from latest leave to end of day */}
-                                            {violationToNext && (
-                                                <div
-                                                    className="absolute top-0 bottom-0 pointer-events-none"
-                                                    style={{
-                                                        left: `${timeToPercent(violationToNext.prevLeaveTime)}%`,
-                                                        right: 0,
-                                                        background: 'rgba(239, 68, 68, 0.12)',
-                                                        borderLeft: '2px solid #ef4444'
-                                                    }}
-                                                    title={`${violationToNext.gapHours}h rest (min ${MIN_REST_HOURS}h)`}
-                                                />
-                                            )}
+                                            {/* Rest violations: only on sent lanes (plant's own drivers) */}
+                                            {Array.from({ length: sentLanes.length }, (_, li) => {
+                                                const vFrom = getLaneViolationFromPrev(li)
+                                                const vTo = getLaneViolationToNext(li)
+                                                return (
+                                                    <React.Fragment key={`v-${li}`}>
+                                                        {vFrom && (
+                                                            <div
+                                                                className="absolute pointer-events-none rounded-r flex items-center overflow-hidden"
+                                                                style={{
+                                                                    left: 0,
+                                                                    width: `calc(${timeToPercent(vFrom.nextStartTime)}% - 5px)`,
+                                                                    top: li * ROW_HEIGHT + 4,
+                                                                    height: ROW_HEIGHT - 8,
+                                                                    background: 'rgba(239, 68, 68, 0.12)',
+                                                                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                                                                    borderLeft: 'none'
+                                                                }}
+                                                                title={`Only a ${vFrom.gapHours}h reset, not a ${MIN_REST_HOURS}h reset`}
+                                                            >
+                                                                <span
+                                                                    className="text-[8px] font-bold whitespace-nowrap pl-1"
+                                                                    style={{ color: '#ef4444' }}
+                                                                >
+                                                                    Only a {vFrom.gapHours}h reset, not a{' '}
+                                                                    {MIN_REST_HOURS}h reset
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {vTo && (
+                                                            <div
+                                                                className="absolute pointer-events-none rounded-l flex items-center overflow-hidden"
+                                                                style={{
+                                                                    left: `calc(${timeToPercent(vTo.prevLeaveTime)}% + 5px)`,
+                                                                    right: 0,
+                                                                    top: li * ROW_HEIGHT + 4,
+                                                                    height: ROW_HEIGHT - 8,
+                                                                    background: 'rgba(239, 68, 68, 0.12)',
+                                                                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                                                                    borderRight: 'none'
+                                                                }}
+                                                                title={`Only a ${vTo.gapHours}h reset, not a ${MIN_REST_HOURS}h reset`}
+                                                            >
+                                                                <span
+                                                                    className="text-[8px] font-bold whitespace-nowrap pr-1 ml-auto"
+                                                                    style={{ color: '#ef4444' }}
+                                                                >
+                                                                    Only a {vTo.gapHours}h reset, not a {MIN_REST_HOURS}
+                                                                    h reset
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </React.Fragment>
+                                                )
+                                            })}
                                             {/* Sent lanes — operators leaving */}
                                             {sentLanes.map((lane, i) => renderBlock(lane, i, true))}
                                             {/* Received lanes (green — operators arriving) */}
@@ -1053,8 +1112,12 @@ function PlanView() {
         loadInitialData()
     }, [])
 
+    const loadedForDateRef = useRef(null)
+    const autosaveEnabledRef = useRef(false)
     useEffect(() => {
         if (!planDate || isLoading) return
+        loadedForDateRef.current = null
+        autosaveEnabledRef.current = false
         const loadPlan = async () => {
             try {
                 const plan = await PlanService.fetchPlan(planDate)
@@ -1068,17 +1131,26 @@ function PlanView() {
                 setAssignments([createEmptyAssignment()])
                 setNotes('')
             }
+            loadedForDateRef.current = planDate
+            // Enable autosave on NEXT user-initiated change, not from this load
+            requestAnimationFrame(() => {
+                autosaveEnabledRef.current = true
+            })
         }
         loadPlan()
     }, [planDate, isLoading])
 
     // Fetch adjacent days' plans for the timeline view (3 days before, 3 days after)
+    const adjacentFetchRef = useRef(0)
     useEffect(() => {
         if (!planDate || isLoading) return
+        const fetchId = ++adjacentFetchRef.current
         const loadAdjacentPlans = async () => {
             const offsets = [-3, -2, -1, 1, 2, 3]
             const dates = offsets.map((o) => getOffsetDate(planDate, o))
             const results = await Promise.allSettled(dates.map((d) => PlanService.fetchPlan(d)))
+            // Only apply if this is still the latest fetch
+            if (adjacentFetchRef.current !== fetchId) return
             const plans = {}
             dates.forEach((d, i) => {
                 const result = results[i]
@@ -1093,6 +1165,8 @@ function PlanView() {
 
     useEffect(() => {
         if (!canEdit || !planDate || isLoading) return
+        // Only autosave if assignments belong to this date and initial load is done
+        if (loadedForDateRef.current !== planDate || !autosaveEnabledRef.current) return
         dirtyRef.current = true
         const timeout = setTimeout(async () => {
             try {
@@ -1291,11 +1365,29 @@ function PlanView() {
 
     const parsePlanMessage = (text) => {
         const parsed = []
-        // Split into assignment blocks by the separator or double newline before a route header
-        const blocks = text
-            .split(/─+/)
+        // Normalize arrow characters: →, ->, =>, ➜, ➤, ⇒ all become →
+        const normalized = text.replace(/->|=>|➜|➤|⇒/g, '→')
+        // First try splitting by separator lines
+        let blocks = normalized
+            .split(/─+|={3,}|-{5,}/)
             .map((b) => b.trim())
             .filter(Boolean)
+        // Fallback: if only 1 block but multiple routes, split by route headers
+        const routePattern = /^[A-Z0-9]+\s*→\s*[A-Z0-9]+/
+        const allLines = normalized.split('\n')
+        const routeCount = allLines.filter((l) => routePattern.test(l.trim())).length
+        if (routeCount > blocks.length) {
+            blocks = []
+            let current = []
+            for (const line of allLines) {
+                if (routePattern.test(line.trim()) && current.length > 0) {
+                    blocks.push(current.join('\n'))
+                    current = []
+                }
+                current.push(line)
+            }
+            if (current.length) blocks.push(current.join('\n'))
+        }
 
         for (const block of blocks) {
             const lines = block
@@ -1639,59 +1731,66 @@ function PlanView() {
                         >
                             Plan
                         </h1>
-                        {/* Date nav badge */}
-                        <div
-                            className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold px-2 py-1.5"
-                            style={{ backgroundColor: `${accentColor}${isDark ? '30' : '15'}`, color: accentColor }}
-                        >
-                            <button
-                                onClick={() => setPlanDate(getOffsetDate(planDate, -1))}
-                                className="border-none bg-transparent cursor-pointer p-1 rounded hover:opacity-80"
-                                style={{ color: accentColor }}
-                                title="Previous day"
-                            >
-                                <i className="fas fa-chevron-left text-xs" />
-                            </button>
-                            <button
-                                className="relative border-none bg-transparent cursor-pointer px-2 py-0.5 rounded font-semibold text-sm"
-                                style={{ color: accentColor }}
-                                title="Click to pick date"
-                            >
-                                {new Date(planDate + 'T00:00:00').toLocaleDateString('en-US', {
-                                    weekday: 'short',
-                                    month: 'short',
-                                    day: 'numeric'
-                                })}
-                                <input
-                                    type="date"
-                                    value={planDate}
-                                    onChange={(e) => e.target.value && setPlanDate(e.target.value)}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    style={{ width: '100%', height: '100%' }}
-                                />
-                            </button>
-                            <button
-                                onClick={() => setPlanDate(getOffsetDate(planDate, 1))}
-                                className="border-none bg-transparent cursor-pointer p-1 rounded hover:opacity-80"
-                                style={{ color: accentColor }}
-                                title="Next day"
-                            >
-                                <i className="fas fa-chevron-right text-xs" />
-                            </button>
-                        </div>
-                        <button
-                            onClick={() => setPlanDate(getTomorrowDate())}
-                            className="border-none rounded-lg cursor-pointer text-sm font-semibold px-3 py-1.5"
-                            style={{
-                                background:
-                                    planDate === getTomorrowDate()
-                                        ? `${accentColor}${isDark ? '30' : '15'}`
-                                        : 'var(--bg-tertiary)',
-                                color: planDate === getTomorrowDate() ? accentColor : 'var(--text-secondary)'
-                            }}
-                        >
-                            Tomorrow
-                        </button>
+                        {viewMode === 'table' && (
+                            <>
+                                {/* Date nav badge */}
+                                <div
+                                    className="inline-flex items-center gap-1 rounded-lg text-sm font-semibold px-2 py-1.5"
+                                    style={{
+                                        backgroundColor: `${accentColor}${isDark ? '30' : '15'}`,
+                                        color: accentColor
+                                    }}
+                                >
+                                    <button
+                                        onClick={() => setPlanDate(getOffsetDate(planDate, -1))}
+                                        className="border-none bg-transparent cursor-pointer p-1 rounded hover:opacity-80"
+                                        style={{ color: accentColor }}
+                                        title="Previous day"
+                                    >
+                                        <i className="fas fa-chevron-left text-xs" />
+                                    </button>
+                                    <button
+                                        className="relative border-none bg-transparent cursor-pointer px-2 py-0.5 rounded font-semibold text-sm"
+                                        style={{ color: accentColor }}
+                                        title="Click to pick date"
+                                    >
+                                        {new Date(planDate + 'T00:00:00').toLocaleDateString('en-US', {
+                                            weekday: 'short',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}
+                                        <input
+                                            type="date"
+                                            value={planDate}
+                                            onChange={(e) => e.target.value && setPlanDate(e.target.value)}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            style={{ width: '100%', height: '100%' }}
+                                        />
+                                    </button>
+                                    <button
+                                        onClick={() => setPlanDate(getOffsetDate(planDate, 1))}
+                                        className="border-none bg-transparent cursor-pointer p-1 rounded hover:opacity-80"
+                                        style={{ color: accentColor }}
+                                        title="Next day"
+                                    >
+                                        <i className="fas fa-chevron-right text-xs" />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => setPlanDate(getTomorrowDate())}
+                                    className="border-none rounded-lg cursor-pointer text-sm font-semibold px-3 py-1.5"
+                                    style={{
+                                        background:
+                                            planDate === getTomorrowDate()
+                                                ? `${accentColor}${isDark ? '30' : '15'}`
+                                                : 'var(--bg-tertiary)',
+                                        color: planDate === getTomorrowDate() ? accentColor : 'var(--text-secondary)'
+                                    }}
+                                >
+                                    Tomorrow
+                                </button>
+                            </>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
                         {/* View mode toggle */}
@@ -1720,58 +1819,66 @@ function PlanView() {
                     </div>
                 </div>
 
-                {/* Row 2: Action buttons */}
-                <div className="flex items-center gap-3 mt-4">
-                    <button
-                        onClick={copyToClipboard}
-                        className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                        style={{
-                            backgroundColor: copied ? '#16a34a' : 'var(--bg-tertiary)',
-                            color: copied ? '#fff' : 'var(--text-secondary)'
-                        }}
-                        title="Copy plan to clipboard"
-                    >
-                        <i className={`fas fa-${copied ? 'check' : 'copy'}`} />
-                        <span>{copied ? 'Copied' : 'Copy'}</span>
-                    </button>
-                    {canEdit && (
-                        <>
-                            <button
-                                onClick={() => {
-                                    setShowTemplateModal(true)
-                                    loadTemplates()
-                                }}
-                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-                                title="Plan templates"
-                            >
-                                <i className="fas fa-bookmark" />
-                                <span>Templates</span>
-                            </button>
-                            <button
-                                onClick={() => setShowImportModal(true)}
-                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
-                                title="Import plan from message"
-                            >
-                                <i className="fas fa-file-import" />
-                                <span>Import</span>
-                            </button>
-                            <button
-                                onClick={() => setShowSettings(!showSettings)}
-                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
-                                style={{
-                                    backgroundColor: showSettings ? accentColor : 'var(--bg-tertiary)',
-                                    color: showSettings ? '#fff' : 'var(--text-secondary)'
-                                }}
-                                title="Travel time settings"
-                            >
-                                <i className="fas fa-cog" />
-                                <span>Settings</span>
-                            </button>
-                        </>
-                    )}
-                </div>
+                {/* Row 2: Action buttons — table view only */}
+                {viewMode === 'table' && (
+                    <div className="flex items-center gap-3 mt-4">
+                        <button
+                            onClick={copyToClipboard}
+                            className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                            style={{
+                                backgroundColor: copied ? '#16a34a' : 'var(--bg-tertiary)',
+                                color: copied ? '#fff' : 'var(--text-secondary)'
+                            }}
+                            title="Copy plan to clipboard"
+                        >
+                            <i className={`fas fa-${copied ? 'check' : 'copy'}`} />
+                            <span>{copied ? 'Copied' : 'Copy'}</span>
+                        </button>
+                        {canEdit && (
+                            <>
+                                <button
+                                    onClick={() => {
+                                        setShowTemplateModal(true)
+                                        loadTemplates()
+                                    }}
+                                    className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                    style={{
+                                        backgroundColor: 'var(--bg-tertiary)',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                    title="Plan templates"
+                                >
+                                    <i className="fas fa-bookmark" />
+                                    <span>Templates</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowImportModal(true)}
+                                    className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                    style={{
+                                        backgroundColor: 'var(--bg-tertiary)',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                    title="Import plan from message"
+                                >
+                                    <i className="fas fa-file-import" />
+                                    <span>Import</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowSettings(!showSettings)}
+                                    className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer"
+                                    style={{
+                                        backgroundColor: showSettings ? accentColor : 'var(--bg-tertiary)',
+                                        color: showSettings ? '#fff' : 'var(--text-secondary)'
+                                    }}
+                                    title="Travel time settings"
+                                >
+                                    <i className="fas fa-cog" />
+                                    <span>Settings</span>
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
             <div
                 className="global-content-container content-container"

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [34.5] - 2026-03-17
+
+- Reworked rest violation detection in PlanView timeline to track per-plant, per-lane violations instead of global day-level checks
+- Rest violation indicators now render inline on individual sent lanes with descriptive "Only a Xh reset, not a 10h reset" labels
+- Fixed navigation menu group visibility checks to use .some() instead of requiring more than one item, so groups show when they have at least one visible item
+- Added date nav and Tomorrow button hiding when in timeline view mode, only showing them in table view
+- Moved action buttons (Copy, Templates, Import, Paste) into a conditional block that only renders in table view mode
+- Added autosave guard refs to prevent saving stale data when switching dates rapidly — autosave only fires after the initial load completes for the current date
+- Added stale-fetch protection for adjacent day plan loading using a fetch ID ref
+- Improved plan message parser to normalize various arrow characters into a single format and added fallback block splitting by route headers when separator-based splitting produces fewer blocks than routes found
+
 ## [34.4] - 2026-03-17
 
 - Added w-full and overflow-hidden to the maintenance log content wrapper to prevent table overflow issues
