@@ -1255,6 +1255,70 @@ function PlanView() {
         }))
     }
 
+    const importDailyOrderHtml = (file) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+            const parser = new DOMParser()
+            const doc = parser.parseFromString(e.target.result, 'text/html')
+            const allDivs = [...doc.querySelectorAll('div')]
+
+            // Find plant header divs (class s43 containing "NNN - NAME")
+            const plantHeaders = allDivs.filter(
+                (d) => d.classList.contains('s43') && /^\d{3}\s*-\s*.+/.test(d.textContent.trim())
+            )
+
+            const production = {}
+            plantHeaders.forEach((header, idx) => {
+                const text = header.textContent.trim()
+                const code = text.match(/^(\d{3})/)?.[1]
+                if (!code) return
+
+                // Find the page container (frpage div) that holds this header
+                // Collect all elements between this plant header and the next (or end)
+                const headerIndex = allDivs.indexOf(header)
+                const nextHeaderIndex =
+                    idx < plantHeaders.length - 1 ? allDivs.indexOf(plantHeaders[idx + 1]) : allDivs.length
+
+                // Extract start times (s48 at left:307.2px) between this header and next
+                const startTimes = []
+                for (let i = headerIndex + 1; i < nextHeaderIndex; i++) {
+                    const d = allDivs[i]
+                    const style = d.getAttribute('style') || ''
+                    if (d.classList.contains('s48') && style.includes('left:307.2px')) {
+                        const time = d.textContent.trim()
+                        if (/^\d{2}:\d{2}$/.test(time)) startTimes.push(time)
+                    }
+                }
+
+                // Extract plant total yardage (s63 div just before "Plant Total:" text)
+                let totalYardage = ''
+                for (let i = headerIndex + 1; i < nextHeaderIndex; i++) {
+                    const d = allDivs[i]
+                    if (d.classList.contains('s34') && d.textContent.trim() === 'Plant Total:') {
+                        // Look backwards for the s63 yardage value
+                        for (let j = i - 1; j > headerIndex; j--) {
+                            if (allDivs[j].classList.contains('s63')) {
+                                totalYardage = allDivs[j].textContent.trim().replace(/,/g, '')
+                                break
+                            }
+                        }
+                        break
+                    }
+                }
+
+                const sorted = startTimes.sort()
+                production[code] = {
+                    firstJobTime: sorted[0] || '',
+                    lastJobTime: sorted[sorted.length - 1] || '',
+                    totalYardage
+                }
+            })
+
+            setPlantProduction(production)
+        }
+        reader.readAsText(file)
+    }
+
     const updateAssignment = (id, field, value) => {
         setAssignments((prev) =>
             prev.map((a) => {
@@ -3463,6 +3527,28 @@ function PlanView() {
                                                 >
                                                     Production
                                                 </span>
+                                                <div className="flex-1" />
+                                                <label
+                                                    className="flex items-center gap-1.5 border-none rounded-md cursor-pointer text-[10px] font-semibold px-2 py-1"
+                                                    style={{
+                                                        background: 'var(--bg-tertiary)',
+                                                        color: 'var(--text-secondary)'
+                                                    }}
+                                                    title="Import from DailyOrder.html"
+                                                >
+                                                    <i className="fas fa-file-import text-[9px]" />
+                                                    Import
+                                                    <input
+                                                        type="file"
+                                                        accept=".html,.htm"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            if (e.target.files?.[0])
+                                                                importDailyOrderHtml(e.target.files[0])
+                                                            e.target.value = ''
+                                                        }}
+                                                    />
+                                                </label>
                                             </div>
                                             <div className="flex flex-col gap-2.5">
                                                 {stats.map((s) => {
