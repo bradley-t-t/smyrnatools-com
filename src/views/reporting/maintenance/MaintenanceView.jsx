@@ -630,14 +630,14 @@ export default function MaintenanceView() {
     const visibleTabs = TAB_DEFS.filter((tab) => !tab.permission || permissions[tab.permission])
 
     const tabBar = (
-        <div className="flex gap-1 -mx-7 px-7 border-t border-slate-200 mt-2">
+        <div className="flex gap-1 -mx-7 px-7 border-t border-slate-200 mt-2 overflow-x-auto scrollbar-hide">
             {visibleTabs.map((tab) => {
                 const isActive = activeTab === tab.key
                 const tabBadge = getBadge(tab.key)
                 return (
                     <button
                         key={tab.key}
-                        className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-none bg-transparent cursor-pointer transition-all ${
+                        className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-none bg-transparent cursor-pointer transition-all whitespace-nowrap shrink-0 ${
                             isActive
                                 ? 'border-b-2'
                                 : 'border-b-2 border-transparent text-slate-500 hover:text-slate-700'

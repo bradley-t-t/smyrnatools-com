@@ -1222,7 +1222,93 @@ export default function MaintenanceLogView({
     // ── Render ──────────────────────────────────────────────────
 
     const headers = ['Equipment', 'Plant', 'Last Service', 'Service Progress', 'Status', '']
-    const colWidths = ['', '80px', '120px', isMobile ? '140px' : '25%', '110px', '50px']
+    const colWidths = ['', '80px', '120px', '25%', '110px', '50px']
+
+    const renderEmptyState = () => (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <i className="fas fa-clipboard-list text-4xl mb-3" />
+            <p className="text-sm font-semibold">No equipment found</p>
+            <p className="text-xs mt-1">
+                {equipment.length
+                    ? 'Try adjusting your filters'
+                    : 'Add a part, unit, or component to start tracking maintenance'}
+            </p>
+        </div>
+    )
+
+    const renderMobileCards = () => (
+        <div className="flex flex-col gap-3">
+            {sorted.map((item) => {
+                const cfg = STATUS_CONFIG[item.service_status] || STATUS_CONFIG.ok
+                const progressInfo = getProgressInfo(item)
+                return (
+                    <div
+                        key={item.id}
+                        className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 cursor-pointer active:bg-slate-50"
+                        style={{
+                            borderLeftWidth: '3px',
+                            borderLeftColor: cfg.barColor
+                        }}
+                        onClick={() => setDetailTarget(item)}
+                    >
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <i
+                                    className={`fas ${item.category_icon || 'fa-cog'} text-sm shrink-0`}
+                                    style={{ color: accentColor }}
+                                />
+                                <div className="min-w-0">
+                                    <div className="text-sm font-semibold truncate">{item.name}</div>
+                                    <div className="text-[11px] text-slate-500 truncate">
+                                        {item.category_name}
+                                        {item.manufacturer ? ` · ${item.manufacturer}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <StatusBadge status={item.service_status} isDark={isDark} />
+                        </div>
+                        <div className="flex items-center gap-4 text-[11px] text-slate-500 mb-2">
+                            <span>
+                                <i className="fas fa-building mr-1" />
+                                {item.plant_code}
+                            </span>
+                            <span>
+                                <i className="fas fa-calendar mr-1" />
+                                {formatDate(item.last_service_date)}
+                            </span>
+                        </div>
+                        <ProgressBar item={item} isDark={isDark} />
+                        <div className="flex items-center justify-end mt-2">
+                            <button
+                                type="button"
+                                className="flex items-center gap-1.5 rounded-lg text-xs font-semibold px-3 py-1.5 border-none cursor-pointer"
+                                style={{
+                                    background:
+                                        item.service_status === 'overdue'
+                                            ? isDark
+                                                ? cfg.darkBg
+                                                : cfg.bg
+                                            : 'var(--bg-tertiary)',
+                                    color:
+                                        item.service_status === 'overdue'
+                                            ? isDark
+                                                ? cfg.darkColor
+                                                : cfg.color
+                                            : 'var(--text-secondary)'
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setServiceTarget(item)
+                                }}
+                            >
+                                <i className="fas fa-wrench" /> Log Service
+                            </button>
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
 
     return (
         <div className="p-3 md:p-5">
@@ -1231,119 +1317,116 @@ export default function MaintenanceLogView({
                     <ContentSkeleton isMobile={isMobile} />
                 ) : (
                     <div className={`flex gap-4 items-start ${isMobile ? 'flex-col' : ''}`}>
-                        {/* Table */}
-                        <div className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
                             {sorted.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                                    <i className="fas fa-clipboard-list text-4xl mb-3" />
-                                    <p className="text-sm font-semibold">No equipment found</p>
-                                    <p className="text-xs mt-1">
-                                        {equipment.length
-                                            ? 'Try adjusting your filters'
-                                            : 'Add a part, unit, or component to start tracking maintenance'}
-                                    </p>
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    {renderEmptyState()}
                                 </div>
+                            ) : isMobile ? (
+                                renderMobileCards()
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table
-                                        className="w-full border-collapse"
-                                        style={{ minWidth: isMobile ? '700px' : 'auto' }}
-                                    >
-                                        <thead>
-                                            <tr>
-                                                {headers.map((h, i) => (
-                                                    <th
-                                                        key={h || i}
-                                                        className="text-left text-[11px] font-bold uppercase tracking-wide text-slate-500 py-3 px-4 border-b-2 border-slate-100 cursor-pointer select-none hover:text-slate-700"
-                                                        style={{ width: colWidths[i] || 'auto' }}
-                                                        onClick={() => h && handleHeaderClick(h)}
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr>
+                                                    {headers.map((h, i) => (
+                                                        <th
+                                                            key={h || i}
+                                                            className="text-left text-[11px] font-bold uppercase tracking-wide text-slate-500 py-3 px-4 border-b-2 border-slate-100 cursor-pointer select-none hover:text-slate-700"
+                                                            style={{ width: colWidths[i] || 'auto' }}
+                                                            onClick={() => h && handleHeaderClick(h)}
+                                                        >
+                                                            <span className="inline-flex items-center gap-1.5">
+                                                                {h}
+                                                                {sortKey === h && (
+                                                                    <i
+                                                                        className={`fas fa-sort-${sortDir === 'asc' ? 'up' : 'down'} text-[10px]`}
+                                                                        style={{ color: accentColor }}
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {sorted.map((item) => (
+                                                    <tr
+                                                        key={item.id}
+                                                        className="cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50"
+                                                        style={{
+                                                            background:
+                                                                item.service_status === 'overdue'
+                                                                    ? isDark
+                                                                        ? 'rgba(239,68,68,0.04)'
+                                                                        : 'rgba(220,53,69,0.03)'
+                                                                    : 'transparent'
+                                                        }}
+                                                        onClick={() => setDetailTarget(item)}
                                                     >
-                                                        <span className="inline-flex items-center gap-1.5">
-                                                            {h}
-                                                            {sortKey === h && (
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-2.5">
                                                                 <i
-                                                                    className={`fas fa-sort-${sortDir === 'asc' ? 'up' : 'down'} text-[10px]`}
+                                                                    className={`fas ${item.category_icon || 'fa-cog'} text-sm`}
                                                                     style={{ color: accentColor }}
                                                                 />
-                                                            )}
-                                                        </span>
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {sorted.map((item) => (
-                                                <tr
-                                                    key={item.id}
-                                                    className="cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-slate-50/50"
-                                                    style={{
-                                                        background:
-                                                            item.service_status === 'overdue'
-                                                                ? isDark
-                                                                    ? 'rgba(239,68,68,0.04)'
-                                                                    : 'rgba(220,53,69,0.03)'
-                                                                : 'transparent'
-                                                    }}
-                                                    onClick={() => setDetailTarget(item)}
-                                                >
-                                                    <td className="py-3 px-4">
-                                                        <div className="flex items-center gap-2.5">
-                                                            <i
-                                                                className={`fas ${item.category_icon || 'fa-cog'} text-sm`}
-                                                                style={{ color: accentColor }}
-                                                            />
-                                                            <div className="min-w-0">
-                                                                <div className="text-sm font-semibold truncate">
-                                                                    {item.name}
-                                                                </div>
-                                                                <div className="text-[11px] text-slate-500 truncate">
-                                                                    {item.category_name}
-                                                                    {item.manufacturer ? ` · ${item.manufacturer}` : ''}
+                                                                <div className="min-w-0">
+                                                                    <div className="text-sm font-semibold truncate">
+                                                                        {item.name}
+                                                                    </div>
+                                                                    <div className="text-[11px] text-slate-500 truncate">
+                                                                        {item.category_name}
+                                                                        {item.manufacturer
+                                                                            ? ` · ${item.manufacturer}`
+                                                                            : ''}
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3 px-4 text-sm">{item.plant_code}</td>
-                                                    <td className="py-3 px-4 text-sm">
-                                                        {formatDate(item.last_service_date)}
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        <ProgressBar item={item} isDark={isDark} />
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        <StatusBadge status={item.service_status} isDark={isDark} />
-                                                    </td>
-                                                    <td className="py-3 px-4">
-                                                        <button
-                                                            type="button"
-                                                            className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer text-sm"
-                                                            style={{
-                                                                background:
-                                                                    item.service_status === 'overdue'
-                                                                        ? isDark
-                                                                            ? STATUS_CONFIG.overdue.darkBg
-                                                                            : STATUS_CONFIG.overdue.bg
-                                                                        : 'var(--bg-tertiary)',
-                                                                color:
-                                                                    item.service_status === 'overdue'
-                                                                        ? isDark
-                                                                            ? STATUS_CONFIG.overdue.darkColor
-                                                                            : STATUS_CONFIG.overdue.color
-                                                                        : 'var(--text-secondary)'
-                                                            }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                setServiceTarget(item)
-                                                            }}
-                                                            title="Log service"
-                                                        >
-                                                            <i className="fas fa-wrench" />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                                        </td>
+                                                        <td className="py-3 px-4 text-sm">{item.plant_code}</td>
+                                                        <td className="py-3 px-4 text-sm">
+                                                            {formatDate(item.last_service_date)}
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <ProgressBar item={item} isDark={isDark} />
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <StatusBadge status={item.service_status} isDark={isDark} />
+                                                        </td>
+                                                        <td className="py-3 px-4">
+                                                            <button
+                                                                type="button"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer text-sm"
+                                                                style={{
+                                                                    background:
+                                                                        item.service_status === 'overdue'
+                                                                            ? isDark
+                                                                                ? STATUS_CONFIG.overdue.darkBg
+                                                                                : STATUS_CONFIG.overdue.bg
+                                                                            : 'var(--bg-tertiary)',
+                                                                    color:
+                                                                        item.service_status === 'overdue'
+                                                                            ? isDark
+                                                                                ? STATUS_CONFIG.overdue.darkColor
+                                                                                : STATUS_CONFIG.overdue.color
+                                                                            : 'var(--text-secondary)'
+                                                                }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    setServiceTarget(item)
+                                                                }}
+                                                                title="Log service"
+                                                            >
+                                                                <i className="fas fa-wrench" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </div>
