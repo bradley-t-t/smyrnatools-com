@@ -829,7 +829,7 @@ function TimelineView({
                                                                 style={{ color: HOME_COLOR }}
                                                             >
                                                                 <i className="fas fa-home text-[7px] mr-1" />
-                                                                {homeCount} on site
+                                                                {homeCount} assigned to plant
                                                                 {hasProd && (
                                                                     <span className="font-medium ml-1.5">
                                                                         {prod.firstJobTime}–{prod.lastJobTime}

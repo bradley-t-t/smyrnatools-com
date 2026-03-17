@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.1] - 2026-03-17
+
+- Consolidated individual home operator lanes into a single summary bar showing total count and production times
+- Merged the separate production time overlay with the home operator bar, displaying time range and yardage inline
+- Removed the home count badge from plant row headers in favor of the consolidated bar label
+- Plant row sizing now reserves just one lane for home operators instead of one per operator
+- Empty state now correctly hides when home operators are present even if no sent/received lanes exist
+
 ## [35.0] - 2026-03-17
 
 - Added "home" operator lanes to the PlanView timeline, showing mixers that stay at their home plant in green alongside sent/received lanes
