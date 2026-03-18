@@ -28,7 +28,7 @@ function WebOverlay({ url, onClose }) {
                 src={url}
                 title="External Content"
                 className="flex-1 border-none"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                sandbox="allow-scripts allow-popups allow-forms"
             />
         </div>
     )

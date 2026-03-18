@@ -4,6 +4,33 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 
 const PREFERENCES_TABLE = "users_preferences";
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+function getAdminClient(): any {
+    return createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+}
+
+async function requireAuthenticated(_supabase: any, req: Request, headers: any, body?: any): Promise<string | Response> {
+    let userId = body?.__sessionUserId || req.headers.get("x-user-id") || null;
+    let sessionId = body?.__sessionId || req.headers.get("x-session-id") || null;
+    if (!userId || !sessionId) { try { const b = await req.clone().json(); userId = userId || b?.__sessionUserId; sessionId = sessionId || b?.__sessionId; } catch {} }
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const admin = getAdminClient();
+    const {data, error} = await admin.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    admin.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
+}
 
 async function parseBody(req: Request): Promise<any> {
     try { return await req.json(); } catch { return {}; }
@@ -43,32 +70,44 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "get": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const {data, error} = await supabase.from(PREFERENCES_TABLE).select("*").eq("user_id", userId).maybeSingle();
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "save-mixer-filters": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 if (body.filters == null) return errorResponse("Filters are required", headers, 400);
                 return upsertPreference(supabase, userId, "mixer_filters", body.filters, headers);
             }
             case "save-last-viewed-filters": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 if (body.filters == null) return errorResponse("Filters are required", headers, 400);
                 return upsertPreference(supabase, userId, "last_viewed_filters", body.filters, headers);
             }
             case "dismiss-tutorial": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 const tutorialId = body?.tutorialId;
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 if (!tutorialId) return errorResponse("Tutorial ID is required", headers, 400);
                 const {data: userExists} = await supabase.from("users").select("id").eq("id", userId).maybeSingle();
                 if (!userExists) return jsonResponse({success: true}, headers);
@@ -82,26 +121,35 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "get-dismissed-tutorials": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const {data, error} = await supabase.from("users_tutorials").select("tutorial_id").eq("user_id", userId);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ? data.map((d: any) => d.tutorial_id) : []}, headers);
             }
             case "reset-all-tutorials": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const {error} = await supabase.from("users_tutorials").delete().eq("user_id", userId);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "reset-tutorial": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 const tutorialId = body?.tutorialId;
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 if (!tutorialId) return errorResponse("Tutorial ID is required", headers, 400);
                 const {error} = await supabase.from("users_tutorials")
                     .delete().eq("user_id", userId).eq("tutorial_id", tutorialId);
@@ -109,10 +157,13 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "should-show-prompt": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 const promptType = body?.promptType;
                 if (!userId || !promptType) return jsonResponse({show: true}, headers);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const {data, error} = await supabase.from("app_install_prompts")
                     .select("*").eq("user_id", userId).eq("prompt_type", promptType).maybeSingle();
                 if (error) return jsonResponse({show: true}, headers);
@@ -127,11 +178,14 @@ Deno.serve(async (req) => {
                 return jsonResponse({show: false}, headers);
             }
             case "record-prompt-action": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 const promptType = body?.promptType;
                 const action = body?.action;
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 if (!promptType || !action) return errorResponse("Prompt type and action are required", headers, 400);
                 const dataToUpsert: Record<string, any> = {
                     action, device_type: body?.deviceType || null,
@@ -144,9 +198,12 @@ Deno.serve(async (req) => {
                 return jsonResponse({data, success: true}, headers);
             }
             case "save-all": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireStringId(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const upsertData = body.data;
                 if (!upsertData) return errorResponse("Data is required", headers, 400);
                 const now = nowISO();

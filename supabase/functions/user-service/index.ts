@@ -302,7 +302,13 @@ Deno.serve(async (req) => {
                 const id = resolveUserId(targetId);
                 const now = nowISO();
                 if (profile) {
-                    const {error: profErr} = await supabase.from(PROFILES_TABLE).update({...profile, updated_at: now}).eq('id', id);
+                    // Whitelist allowed profile fields to prevent mass assignment
+                    const allowedFields: Record<string, unknown> = {updated_at: now};
+                    if (profile.first_name !== undefined) allowedFields.first_name = profile.first_name;
+                    if (profile.last_name !== undefined) allowedFields.last_name = profile.last_name;
+                    if (profile.plant_code !== undefined) allowedFields.plant_code = profile.plant_code;
+                    if (profile.additional_assigned_plants !== undefined) allowedFields.additional_assigned_plants = profile.additional_assigned_plants;
+                    const {error: profErr} = await supabase.from(PROFILES_TABLE).update(allowedFields).eq('id', id);
                     if (profErr) return errorResponse("Failed to update profile", headers, 500);
                 }
                 if (managerEmail) {

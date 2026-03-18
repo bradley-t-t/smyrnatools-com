@@ -3,6 +3,38 @@ const AUTH_SERVICE_FUNCTION = '/auth-service'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
 const SESSION_EXPIRY_DAYS = 7
+
+/**
+ * Secure wrapper around sessionStorage for sensitive auth tokens.
+ * Validates values on read to guard against XSS-injected payloads.
+ */
+const SecureSessionStore = {
+    _isValidTokenValue(value) {
+        if (typeof value !== 'string' || !value) return false
+        // Session IDs must be hex strings; user IDs must be UUID-like alphanumeric with hyphens
+        return /^[a-zA-Z0-9-]+$/.test(value)
+    },
+    set(key, value) {
+        if (!this._isValidTokenValue(value)) return
+        try {
+            sessionStorage.setItem(key, value)
+        } catch {}
+    },
+    get(key) {
+        try {
+            const value = sessionStorage.getItem(key)
+            return this._isValidTokenValue(value) ? value : null
+        } catch {
+            return null
+        }
+    },
+    remove(key) {
+        try {
+            sessionStorage.removeItem(key)
+        } catch {}
+    }
+}
+
 /**
  * Authentication service managing sign-in, sign-up, sign-out, session persistence,
  * and credential updates. Tracks sessions in the database with browser/device metadata
@@ -58,12 +90,10 @@ class AuthServiceImpl {
                 },
                 { skipAuthCheck: true }
             )
-            localStorage.setItem(SESSION_KEY, userId)
-            localStorage.setItem(SESSION_ID_KEY, sessionId)
-            sessionStorage.setItem('userId', userId)
+            SecureSessionStore.set(SESSION_KEY, userId)
+            SecureSessionStore.set(SESSION_ID_KEY, sessionId)
         } catch {
-            localStorage.setItem(SESSION_KEY, userId)
-            sessionStorage.setItem('userId', userId)
+            SecureSessionStore.set(SESSION_KEY, userId)
         }
     }
     /**
@@ -71,13 +101,9 @@ class AuthServiceImpl {
      * Expires sessions older than SESSION_EXPIRY_DAYS (7).
      */
     async _validateDbSession() {
-        const userId = localStorage.getItem(SESSION_KEY)
-        const sessionId = localStorage.getItem(SESSION_ID_KEY)
+        const userId = SecureSessionStore.get(SESSION_KEY)
+        const sessionId = SecureSessionStore.get(SESSION_ID_KEY)
         if (!userId) {
-            const sessionUserId = sessionStorage.getItem('userId')
-            if (sessionUserId) {
-                return { userId: sessionUserId, valid: true }
-            }
             return { userId: null, valid: false }
         }
         if (!sessionId) {
@@ -104,15 +130,14 @@ class AuthServiceImpl {
             return { userId, valid: true }
         }
     }
-    /** Clears all local auth state (localStorage, sessionStorage). */
+    /** Clears all local auth state from sessionStorage. */
     _clearSession() {
-        localStorage.removeItem(SESSION_KEY)
-        localStorage.removeItem(SESSION_ID_KEY)
-        sessionStorage.removeItem('userId')
-        localStorage.removeItem('cachedPlants')
+        SecureSessionStore.remove(SESSION_KEY)
+        SecureSessionStore.remove(SESSION_ID_KEY)
+        sessionStorage.removeItem('cachedPlants')
     }
     _getStoredUserId() {
-        return localStorage.getItem(SESSION_KEY) || sessionStorage.getItem('userId') || null
+        return SecureSessionStore.get(SESSION_KEY) || null
     }
     /** Authenticates a user with email/password and creates a tracked session. */
     async signIn(email, password) {
@@ -183,7 +208,7 @@ class AuthServiceImpl {
     }
     /** Signs out the user, removes the DB session record, and clears local state. */
     async signOut() {
-        const sessionId = localStorage.getItem(SESSION_ID_KEY)
+        const sessionId = SecureSessionStore.get(SESSION_ID_KEY)
         if (sessionId) {
             await APIUtility.post(
                 `${AUTH_SERVICE_FUNCTION}/delete-session`,
@@ -251,7 +276,6 @@ class AuthServiceImpl {
         this.currentUser = { userId }
         this.isAuthenticated = true
         this.sessionValidated = true
-        sessionStorage.setItem('userId', userId)
         this._notifyObservers()
         return true
     }

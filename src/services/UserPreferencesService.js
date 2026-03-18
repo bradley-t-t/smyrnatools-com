@@ -7,9 +7,9 @@ const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
 const VERSION_CACHE_KEY = 'app:version'
 const VERSION_CACHE_TTL_MS = 60_000
 
-/** Resolves the current user ID from local or session storage. */
+/** Resolves the current user ID from session storage. */
 const getTutorialUserId = () => {
-    return localStorage.getItem('smyrna_session') || sessionStorage.getItem('userId') || null
+    return sessionStorage.getItem('smyrna_session') || null
 }
 
 /**

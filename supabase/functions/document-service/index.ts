@@ -62,9 +62,14 @@ Deno.serve(async (req) => {
             case "delete": {
                 const auth = await requireAuthenticated(supabase, req, headers);
                 if (auth instanceof Response) return auth;
+                const userId = auth;
                 const body = await parseBody(req);
                 const docId = typeof body?.id === "string" ? body.id : null;
                 if (!docId) return errorResponse("Document ID is required", headers, 400);
+                // Verify the authenticated user owns this document before deleting
+                const {data: doc, error: fetchErr} = await supabase.from(DOCUMENTS_TABLE).select("uploaded_by").eq("id", docId).maybeSingle();
+                if (fetchErr || !doc) return errorResponse("Document not found", headers, 404);
+                if (doc.uploaded_by !== userId) return errorResponse("Forbidden: you can only delete your own documents", headers, 403);
                 const {error} = await supabase.from(DOCUMENTS_TABLE).delete().eq("id", docId);
                 if (error) return errorResponse("Failed to delete document", headers, 500);
                 return jsonResponse(true, headers);

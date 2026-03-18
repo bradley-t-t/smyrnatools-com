@@ -216,10 +216,17 @@ Deno.serve(async (req) => {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
                 const auth = await requireAuthenticated(supabase, req, headers);
                 if (auth instanceof Response) return auth;
+                const userId = auth;
                 const body = await parseBody(req);
                 const {existingId, upsertData} = body;
                 if (!upsertData) return errorResponse("upsertData is required", headers, 400);
                 const selectFields = "id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week";
+                if (existingId) {
+                    // Verify the authenticated user owns this report before overwriting
+                    const {data: existing, error: fetchErr} = await supabase.from("reports").select("user_id").eq("id", existingId).maybeSingle();
+                    if (fetchErr || !existing) return errorResponse("Report not found", headers, 404);
+                    if (existing.user_id !== userId) return errorResponse("Forbidden: you can only update your own reports", headers, 403);
+                }
                 const {data, error} = existingId
                     ? await supabase.from("reports").update(upsertData).eq("id", existingId).select(selectFields).single()
                     : await supabase.from("reports").insert([upsertData]).select(selectFields).single();
@@ -241,9 +248,14 @@ Deno.serve(async (req) => {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
                 const auth = await requireAuthenticated(supabase, req, headers);
                 if (auth instanceof Response) return auth;
+                const userId = auth;
                 const body = await parseBody(req);
                 const reportId = typeof body?.reportId === "string" ? body.reportId : null;
                 if (!reportId) return errorResponse("reportId is required", headers, 400);
+                // Verify the authenticated user owns this report before deleting
+                const {data: existing, error: fetchErr} = await supabase.from("reports").select("user_id").eq("id", reportId).maybeSingle();
+                if (fetchErr || !existing) return errorResponse("Report not found", headers, 404);
+                if (existing.user_id !== userId) return errorResponse("Forbidden: you can only delete your own reports", headers, 403);
                 const {error} = await supabase.from("reports").delete().eq("id", reportId);
                 if (error) return errorResponse("Failed to delete report", headers, 500);
                 return jsonResponse(true, headers);

@@ -82,7 +82,7 @@ class UserServiceImpl {
         this.userPlantsCache.clear()
     }
     async getCurrentUser() {
-        const userId = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_FALLBACK_KEY)
+        const userId = sessionStorage.getItem(SESSION_KEY)
         return userId ? { id: userId } : null
     }
     async getUserById(userId) {

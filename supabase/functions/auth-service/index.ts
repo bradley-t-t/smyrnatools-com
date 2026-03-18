@@ -22,20 +22,31 @@ const RESET_PASSWORD_MESSAGE = "If an account exists for this email, a new passw
 const DEFAULT_BASE_FILTERS = {searchText: "", selectedPlant: "", statusFilter: "", viewMode: "grid"};
 const DEFAULT_ROLE_FILTERS = {roleFilter: "", searchText: "", selectedPlant: "", viewMode: "grid"};
 
-// ── In-memory rate limiting ──────────────────────────────────────────
+// ── Persistent rate limiting (database-backed) ──────────────────────
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
-const rateLimitMap = new Map<string, {count: number; resetAt: number}>();
+const RATE_LIMIT_TABLE = "rate_limits";
 
-function isRateLimited(key: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(key);
-    if (!entry || now >= entry.resetAt) {
-        rateLimitMap.set(key, {count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS});
+async function isRateLimited(key: string, supabase: any): Promise<boolean> {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS).toISOString();
+    try {
+        // Clean up expired entries and count recent attempts in one flow
+        await supabase.from(RATE_LIMIT_TABLE).delete().lt("expires_at", now.toISOString());
+        const {count, error} = await supabase.from(RATE_LIMIT_TABLE).select("*", {count: "exact", head: true}).eq("key", key).gte("created_at", windowStart);
+        if (error) return false; // Fail open if database is unavailable
+        const currentCount = count ?? 0;
+        if (currentCount >= RATE_LIMIT_MAX_ATTEMPTS) return true;
+        // Record this attempt
+        await supabase.from(RATE_LIMIT_TABLE).insert({
+            key,
+            created_at: now.toISOString(),
+            expires_at: new Date(now.getTime() + RATE_LIMIT_WINDOW_MS).toISOString()
+        });
         return false;
+    } catch {
+        return false; // Fail open on errors
     }
-    entry.count++;
-    return entry.count > RATE_LIMIT_MAX_ATTEMPTS;
 }
 
 function getRateLimitKey(req: Request, identifier: string): string {
@@ -101,7 +112,7 @@ Deno.serve(async (req) => {
                 if (!email?.trim() || !password) return errorResponse("Email and password are required", headers, 400);
                 const trimmedEmail = sanitizeEmail(email);
                 if (!isValidEmail(trimmedEmail)) return errorResponse("Invalid email format", headers, 400);
-                if (isRateLimited(getRateLimitKey(req, `sign-in:${trimmedEmail}`))) return errorResponse("Too many login attempts. Please try again later.", headers, 429);
+                if (await isRateLimited(getRateLimitKey(req, `sign-in:${trimmedEmail}`), supabase)) return errorResponse("Too many login attempts. Please try again later.", headers, 429);
 
                 const {data, error} = await supabase.from(USERS_TABLE).select("id, email, password_hash, salt").eq("email", trimmedEmail).single();
                 if (error || !data) return errorResponse("Invalid credentials", headers, 401);
@@ -262,6 +273,11 @@ Deno.serve(async (req) => {
                 const passwordHash = await hashPassword(password, salt);
                 const {error} = await supabase.from(USERS_TABLE).update({password_hash: passwordHash, salt, updated_at: nowISO()}).eq("id", userId);
                 if (error) return errorResponse("Failed to update password", headers, 500);
+                // Invalidate all other active sessions for this user (keep current session)
+                const currentSessionId = req.headers.get("x-session-id");
+                if (currentSessionId) {
+                    await supabase.from(SESSIONS_TABLE).delete().eq("user_id", userId).neq("id", currentSessionId).then(() => {}).catch(() => {});
+                }
                 return jsonResponse({success: true}, headers);
             }
 
@@ -285,7 +301,7 @@ Deno.serve(async (req) => {
                 const genericResponse = jsonResponse({message: RESET_PASSWORD_MESSAGE}, headers);
                 if (!isValidEmail(email)) return genericResponse;
                 const trimmedEmail = sanitizeEmail(email);
-                if (isRateLimited(getRateLimitKey(req, `reset:${trimmedEmail}`))) return genericResponse;
+                if (await isRateLimited(getRateLimitKey(req, `reset:${trimmedEmail}`), supabase)) return genericResponse;
                 const {data: user, error: userErr} = await supabase.from(USERS_TABLE).select("id").eq("email", trimmedEmail).single();
                 if (userErr || !user) return genericResponse;
 
@@ -297,6 +313,8 @@ Deno.serve(async (req) => {
                     password_hash: passwordHash, salt, updated_at: nowISO()
                 }).eq("id", user.id);
                 if (updateError) return genericResponse;
+                // Invalidate all active sessions for this user after password reset
+                await supabase.from(SESSIONS_TABLE).delete().eq("user_id", user.id).then(() => {}).catch(() => {});
 
                 const mailerSendToken = Deno.env.get("MAILERSEND_API_TOKEN");
                 const fromEmail = Deno.env.get("MAILERSEND_FROM_EMAIL");
@@ -355,6 +373,8 @@ Deno.serve(async (req) => {
                 const passwordHash = await hashPassword(password, salt);
                 const {error} = await supabase.from(USERS_TABLE).update({password_hash: passwordHash, salt, updated_at: nowISO()}).eq("id", userId);
                 if (error) return errorResponse("Failed to update password", headers, 500);
+                // Invalidate all active sessions for the target user
+                await supabase.from(SESSIONS_TABLE).delete().eq("user_id", userId).then(() => {}).catch(() => {});
                 return jsonResponse({success: true}, headers);
             }
 

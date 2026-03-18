@@ -12,7 +12,7 @@ export function useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSel
         const initSession = () => {
             const userId =
                 sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
-                localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
+                sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
             if (userId) setUserId(userId)
             setSessionChecked(true)
         }
@@ -20,7 +20,7 @@ export function useAuthSession(setUserId, setIsGuestOnly, setRolesLoaded, setSel
             const userId =
                 event.detail?.userId ||
                 sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
-                localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
+                sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY)
             if (userId) setUserId(userId)
         }
         const handleSignOut = () => {

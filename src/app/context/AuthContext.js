@@ -22,19 +22,19 @@ function generateSessionId() {
 }
 function storeUserId(userId) {
     sessionStorage.setItem(SESSION_STORAGE_KEYS.USER_ID, userId)
-    localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_KEY, userId)
+    sessionStorage.setItem(SESSION_STORAGE_KEYS.SESSION_KEY, userId)
 }
 function clearAllSessionData() {
     sessionStorage.removeItem(SESSION_STORAGE_KEYS.USER_ID)
-    localStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_KEY)
-    localStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_ID)
-    localStorage.removeItem(SESSION_STORAGE_KEYS.CACHED_PLANTS)
-    localStorage.removeItem(SESSION_STORAGE_KEYS.USER_ROLE)
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_KEY)
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.SESSION_ID)
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.CACHED_PLANTS)
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.USER_ROLE)
 }
 function getStoredUserId() {
     return (
         sessionStorage.getItem(SESSION_STORAGE_KEYS.USER_ID) ||
-        localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY) ||
+        sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_KEY) ||
         null
     )
 }
@@ -44,7 +44,7 @@ async function createDbSession(userId) {
     const { browser, os, device, userAgent } = getBrowserMetadata()
     try {
         await APIUtility.post(`${AUTH_FUNCTION}/create-session`, { browser, device, os, sessionId, userAgent, userId })
-        localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)
     } catch {}
     storeUserId(userId)
 }
@@ -55,7 +55,7 @@ async function createDbSession(userId) {
 async function validateDbSession() {
     const userId = getStoredUserId()
     if (!userId) return { userId: null, valid: false }
-    const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+    const sessionId = sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
     if (!sessionId) return { userId: null, valid: false }
     try {
         const { json } = await APIUtility.post(`${AUTH_FUNCTION}/validate-session`, { sessionId, userId })
@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
             return false
         }
         try {
-            const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+            const sessionId = sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
             const { json } = await APIUtility.post(`${AUTH_FUNCTION}/restore-session`, { sessionId, userId })
             if (json.success && json.user) {
                 setUser(json.user)
@@ -118,7 +118,7 @@ export function AuthProvider({ children }) {
     const loadUserProfile = useCallback(async (userId) => {
         if (!userId) return
         try {
-            const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+            const sessionId = sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
             const { json } = await APIUtility.post(`${AUTH_FUNCTION}/load-profile`, { sessionId, userId })
             if (json.profile) {
                 setUser((cu) => ({ ...cu, profile: json.profile }))
@@ -186,7 +186,7 @@ export function AuthProvider({ children }) {
     }, [])
     const signOut = useCallback(async () => {
         clearTimeout(profileTimerRef.current)
-        const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
+        const sessionId = sessionStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
         if (sessionId) {
             await APIUtility.post(`${AUTH_FUNCTION}/delete-session`, { sessionId }).catch(() => {})
         }
