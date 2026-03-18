@@ -13,6 +13,7 @@ import {
     getTomorrowDate,
     MAX_YPH,
     OVERTIME_THRESHOLD_HOURS,
+    TARGET_YPH,
     timeToMinutes
 } from '../../../utils/PlanUtility'
 import PlanAssignmentCard from './PlanAssignmentCard'
@@ -336,6 +337,11 @@ function PlanView() {
                                     hours && yardage && s.eff > 0
                                         ? Math.round((yardage / (hours * s.eff)) * 10) / 10
                                         : null
+                                const minNeeded = hours && yardage ? Math.ceil(yardage / (hours * TARGET_YPH)) : null
+                                const leaveOffCount =
+                                    yph !== null && yph < TARGET_YPH && minNeeded !== null
+                                        ? Math.max(0, s.eff - minNeeded)
+                                        : 0
                                 const isSelected = selectedPlant === s.code
                                 const isPopoverOpen = productionPopoverPlant === s.code
                                 return (
@@ -398,9 +404,24 @@ function PlanView() {
                                                 {yph !== null && (
                                                     <span
                                                         className="text-[10px] font-bold"
-                                                        style={{ color: yph > MAX_YPH ? '#ef4444' : '#16a34a' }}
+                                                        style={{
+                                                            color:
+                                                                yph > MAX_YPH
+                                                                    ? '#ef4444'
+                                                                    : leaveOffCount > 0
+                                                                      ? '#d97706'
+                                                                      : '#16a34a'
+                                                        }}
                                                     >
                                                         {yph} yph
+                                                    </span>
+                                                )}
+                                                {leaveOffCount > 0 && (
+                                                    <span
+                                                        className="text-[9px] font-bold flex items-center gap-0.5"
+                                                        style={{ color: '#d97706' }}
+                                                    >
+                                                        <i className="fas fa-user-minus text-[7px]" />-{leaveOffCount}
                                                     </span>
                                                 )}
                                                 {s.send > 0 && (

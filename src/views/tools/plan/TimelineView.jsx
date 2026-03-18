@@ -767,6 +767,11 @@ function TimelineView({
                                                 const availableToSend =
                                                     minNeeded !== null ? Math.max(0, effectiveOps - minNeeded) : null
                                                 const overMax = ydsPerHrOp !== null && ydsPerHrOp > MAX_YPH
+                                                const underTarget =
+                                                    ydsPerHrOp !== null &&
+                                                    ydsPerHrOp < TARGET_YPH &&
+                                                    availableToSend > 0
+                                                const leaveOffCount = underTarget ? availableToSend : 0
 
                                                 return (
                                                     <>
@@ -844,10 +849,16 @@ function TimelineView({
                                                                     <span
                                                                         className="text-[9px] font-bold rounded-full px-1.5 py-px"
                                                                         style={{
-                                                                            color: overMax ? '#fff' : HOME_COLOR,
+                                                                            color: overMax
+                                                                                ? '#fff'
+                                                                                : underTarget
+                                                                                  ? '#d97706'
+                                                                                  : HOME_COLOR,
                                                                             background: overMax
                                                                                 ? '#ef444490'
-                                                                                : `${HOME_COLOR}15`
+                                                                                : underTarget
+                                                                                  ? '#d9770620'
+                                                                                  : `${HOME_COLOR}15`
                                                                         }}
                                                                     >
                                                                         {ydsPerHrOp} yph
@@ -874,6 +885,18 @@ function TimelineView({
                                                                     >
                                                                         <i className="fas fa-triangle-exclamation text-[8px]" />
                                                                         Likely behind
+                                                                    </span>
+                                                                )}
+                                                                {underTarget && (
+                                                                    <span
+                                                                        className="text-[9px] font-bold rounded-full px-1.5 py-px flex items-center gap-0.5"
+                                                                        style={{
+                                                                            color: '#d97706',
+                                                                            background: '#d9770618'
+                                                                        }}
+                                                                    >
+                                                                        <i className="fas fa-user-minus text-[7px]" />
+                                                                        Leave {leaveOffCount} off
                                                                     </span>
                                                                 )}
                                                             </div>

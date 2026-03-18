@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.2] - 2026-03-18
+
+- Migrated all session storage from localStorage to sessionStorage across AuthContext, useAuth, AuthService, UserService, UserPreferencesService, and APIUtility for improved security
+- Added SecureSessionStore wrapper in AuthService that validates token values against XSS-injected payloads before reading/writing sessionStorage
+- Replaced in-memory rate limiting in auth-service with persistent database-backed rate limiting using a new rate_limits table
+- Added ownership authorization checks to document-service (delete), report-service (upsert and delete) so users can only modify their own records
+- Added full session-based authentication and per-user authorization to all user-preferences-service endpoints
+- Invalidate all other active sessions when a user changes their password, and invalidate all sessions on password reset or admin password change
+- Removed allow-same-origin from WebOverlay iframe sandbox to prevent embedded content from accessing the parent origin
+- Added SECURITY_TODO.md documenting credential rotation needed for previously committed secrets
+- Added create-rate-limits-table migration for the new persistent rate limiting system
+
 ## [36.1] - 2026-03-18
 
 - smyrnatools.com Release v36.1

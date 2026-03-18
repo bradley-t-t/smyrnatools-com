@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.3] - 2026-03-18
+
+- Added "leave off" indicator to PlanView and TimelineView that calculates how many operators can be removed when yph falls below the target threshold, displayed with an amber user-minus icon
+- Updated yph color coding in both PlanView and TimelineView to show amber when operators can be left off, instead of only red (over max) or green
+- Removed SECURITY_TODO.md now that credential rotation has been addressed
+- Added v36.2 changelog entry documenting the security hardening work from the previous release
+
 ## [36.2] - 2026-03-18
 
 - Migrated all session storage from localStorage to sessionStorage across AuthContext, useAuth, AuthService, UserService, UserPreferencesService, and APIUtility for improved security
