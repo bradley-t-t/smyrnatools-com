@@ -21,6 +21,23 @@ async function requireAuthenticated(supabase: any, headers: any): Promise<string
     return data.user.id;
 }
 
+const PERMISSIONS_TABLE = "users_permissions";
+const ROLES_SELECT = "role_id, users_roles(weight)";
+
+async function getUserWeight(supabase: any, userId: string): Promise<number> {
+    const {data} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", userId);
+    if (!data?.length) return 0;
+    return Math.max(...data.map((d: any) => d.users_roles?.weight ?? 0));
+}
+
+async function requireOwnerOrHigherRole(supabase: any, callerId: string, ownerId: string | null, headers: any): Promise<Response | null> {
+    if (!ownerId || callerId === ownerId) return null;
+    const callerWeight = await getUserWeight(supabase, callerId);
+    const ownerWeight = await getUserWeight(supabase, ownerId);
+    if (callerWeight > ownerWeight) return null;
+    return errorResponse("Forbidden: insufficient privileges to modify another user's record", headers, 403);
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -34,6 +51,7 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-travel-times": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(TRAVEL_TIMES_TABLE).select("*").order("from_plant_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
@@ -61,6 +79,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-plan": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {planDate} = body;
                 if (!planDate) return errorResponse("planDate is required", headers, 400);
@@ -81,10 +100,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-templates": {
-                const body = await parseBody(req);
-                const {userId} = body;
-                if (!userId) return errorResponse("userId is required", headers, 400);
-                const {data, error} = await supabase.from(TEMPLATES_TABLE).select("*").eq("user_id", userId).order("created_at", {ascending: false});
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const {data, error} = await supabase.from(TEMPLATES_TABLE).select("*").eq("user_id", auth).order("created_at", {ascending: false});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
@@ -104,6 +121,10 @@ Deno.serve(async (req) => {
                 const body = await parseBody(req);
                 const {templateId} = body;
                 if (!templateId) return errorResponse("templateId is required", headers, 400);
+                const {data: template} = await supabase.from(TEMPLATES_TABLE).select("user_id").eq("id", templateId).maybeSingle();
+                if (!template) return errorResponse("Template not found", headers, 404);
+                const ownerErr = await requireOwnerOrHigherRole(supabase, auth, template.user_id, headers);
+                if (ownerErr) return ownerErr;
                 const {error} = await supabase.from(TEMPLATES_TABLE).delete().eq("id", templateId);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);

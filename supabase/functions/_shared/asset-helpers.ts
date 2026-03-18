@@ -8,6 +8,24 @@ export async function requireAuthenticated(supabase: any, headers: any): Promise
     if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
     return data.user.id;
 }
+
+const PERMISSIONS_TABLE = "users_permissions";
+const ROLES_SELECT = "role_id, users_roles(weight)";
+
+export async function getUserWeight(supabase: any, userId: string): Promise<number> {
+    const {data} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", userId);
+    if (!data?.length) return 0;
+    return Math.max(...data.map((d: any) => d.users_roles?.weight ?? 0));
+}
+
+export async function requireOwnerOrHigherRole(supabase: any, callerId: string, ownerId: string | null, headers: any): Promise<Response | null> {
+    if (!ownerId || callerId === ownerId) return null;
+    const callerWeight = await getUserWeight(supabase, callerId);
+    const ownerWeight = await getUserWeight(supabase, ownerId);
+    if (callerWeight > ownerWeight) return null;
+    return errorResponse("Forbidden: insufficient privileges to modify another user's record", headers, 403);
+}
+
 const ALLOWED_SEVERITIES = ["Low", "Medium", "High"];
 const DEFAULT_HISTORY_LIMIT = 200;
 const DEFAULT_SERVICE_THRESHOLD_DAYS = 30;
@@ -214,9 +232,12 @@ export async function handleDeleteIssue(supabase: any, body: any, table: string,
     const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
-    const {error, count} = await supabase.from(table).delete({count: "exact"}).eq("id", issueId);
+    const {data: issue} = await supabase.from(table).select("created_by").eq("id", issueId).maybeSingle();
+    if (!issue) return errorResponse("Issue not found or already deleted", headers, 404);
+    const ownerErr = await requireOwnerOrHigherRole(supabase, auth, issue.created_by, headers);
+    if (ownerErr) return ownerErr;
+    const {error} = await supabase.from(table).delete().eq("id", issueId);
     if (error) return errorResponse("Operation failed", headers, 400);
-    if (!count) return errorResponse("Issue not found or already deleted", headers, 404);
     return jsonResponse({success: true}, headers);
 }
 
@@ -224,6 +245,10 @@ export async function handleDelete(supabase: any, body: any, mainTable: string, 
     const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const id = typeof body?.id === "string" ? body.id : null;
     if (!id) return errorResponse(`${entityLabel} ID is required`, headers, 400);
+    const {data: entity} = await supabase.from(mainTable).select("updated_by").eq("id", id).maybeSingle();
+    if (!entity) return errorResponse(`${entityLabel} not found`, headers, 404);
+    const ownerErr = await requireOwnerOrHigherRole(supabase, auth, entity.updated_by, headers);
+    if (ownerErr) return ownerErr;
     const {error: hErr} = await supabase.from(historyTable).delete().eq(historyIdKey, id);
     if (hErr) return errorResponse("Operation failed", headers, 400);
     const {error} = await supabase.from(mainTable).delete().eq("id", id);

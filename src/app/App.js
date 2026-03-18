@@ -16,6 +16,7 @@ import TerminatedOverlay from './components/common/TerminatedOverlay'
 import TutorialManager from './components/common/TutorialPopup'
 import VersionUpdateBanner from './components/common/VersionUpdateBanner'
 import WebOverlay from './components/common/WebOverlay'
+import { MessagesProvider } from './context/MessagesContext'
 import { usePreferences } from './context/PreferencesContext'
 import { useTutorial } from './context/TutorialContext'
 import { useAuthSession } from './hooks/useAuth'
@@ -330,18 +331,20 @@ function AppContent() {
     if (!rolesLoaded) return null
     return (
         <div className="App">
-            <Navigation
-                selectedView={selectedView.view}
-                onSelectView={handleViewSelection}
-                onExternalLink={setWebViewURL}
-                userName={userDisplayName}
-                userDisplayName={userDisplayName}
-                userId={userId}
-            >
-                <Suspense fallback={null}>
-                    <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
-                </Suspense>
-            </Navigation>
+            <MessagesProvider userId={userId}>
+                <Navigation
+                    selectedView={selectedView.view}
+                    onSelectView={handleViewSelection}
+                    onExternalLink={setWebViewURL}
+                    userName={userDisplayName}
+                    userDisplayName={userDisplayName}
+                    userId={userId}
+                >
+                    <Suspense fallback={null}>
+                        <div key={`view-${regionKey}`}>{renderCurrentView()}</div>
+                    </Suspense>
+                </Navigation>
+            </MessagesProvider>
             {offlineMode && <OfflineOverlay onRetry={handleRetryConnection} onReload={handleReloadIfOnline} />}
             {isGuestOnly && <LockedOverlay reason="guest-only" />}
         </div>

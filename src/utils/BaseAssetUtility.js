@@ -37,15 +37,6 @@ export function uppercaseVin(entity) {
     }
     return entity
 }
-export function dispatchNotificationsRefresh(detail = null) {
-    try {
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('notifications-refresh', detail ? { detail } : undefined))
-        }
-    } catch (error) {
-        console.error('Failed to dispatch notifications-refresh event:', error)
-    }
-}
 export async function apiPost(endpoint, payload = {}) {
     const { json, res } = await APIUtility.post(endpoint, payload)
     return { json, res }

@@ -4,7 +4,6 @@ import { EquipmentHistory } from '../app/models/equipment/EquipmentHistory'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
-    dispatchNotificationsRefresh,
     fetchWithDetailsBase,
     normalizeSeverity,
     requireUserId,
@@ -115,11 +114,7 @@ class EquipmentServiceImpl {
             { equipment, id, userId: resolvedUserId },
             'Failed to update equipment'
         )
-        const updated = json?.data ? new Equipment(json.data) : null
-        if (updated) {
-            dispatchNotificationsRefresh({ id, plant: updated.assignedPlant, type: 'equipment' })
-        }
-        return updated
+        return json?.data ? new Equipment(json.data) : null
     }
     /** Soft-deletes an equipment record. */
     static async deleteEquipment(id) {
@@ -244,9 +239,7 @@ class EquipmentServiceImpl {
             { id: equipmentId, userId: resolvedUserId },
             'Failed to verify equipment'
         )
-        const equipment = new Equipment(json?.data)
-        dispatchNotificationsRefresh({ id: equipmentId, plant: equipment.assignedPlant, type: 'equipment' })
-        return attachIsVerified(equipment)
+        return attachIsVerified(new Equipment(json?.data))
     }
 }
 export const EquipmentService = EquipmentServiceImpl

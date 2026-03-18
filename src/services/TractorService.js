@@ -4,7 +4,6 @@ import { TractorHistory } from '../app/models/tractors/TractorHistory'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
-    dispatchNotificationsRefresh,
     ensureSpareIfNoOperatorBase,
     fetchWithDetailsBase,
     normalizeSeverity,
@@ -119,11 +118,9 @@ export class TractorService {
             { id, tractor, userId: resolvedUserId },
             'Failed to update tractor'
         )
-        const updated = Tractor.fromApiFormat(json?.data)
-        dispatchNotificationsRefresh({ id, plant: updated.assignedPlant, type: 'tractor' })
-        return updated
+        return Tractor.fromApiFormat(json?.data)
     }
-    /** Marks a tractor as verified and dispatches a notification refresh. */
+    /** Marks a tractor as verified. */
     static async verifyTractor(tractorId, userId) {
         const id = resolveEntityId(tractorId)
         ValidationUtility.requireUUID(id, 'Tractor ID is required')
@@ -133,9 +130,7 @@ export class TractorService {
             { id, userId: resolvedUserId },
             'Failed to verify tractor'
         )
-        const tractor = Tractor.fromApiFormat(json?.data)
-        dispatchNotificationsRefresh({ id, plant: tractor.assignedPlant, type: 'tractor' })
-        return tractor
+        return Tractor.fromApiFormat(json?.data)
     }
     static async deleteTractor(id) {
         ValidationUtility.requireUUID(id, 'Tractor ID is required')

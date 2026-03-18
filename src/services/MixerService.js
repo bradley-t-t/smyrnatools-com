@@ -7,7 +7,6 @@ import { MixerImage } from '../app/models/mixers/MixerImage'
 import {
     apiPostOrThrow,
     apiPostRequireSuccess,
-    dispatchNotificationsRefresh,
     ensureSpareIfNoOperatorBase,
     fetchWithDetailsBase,
     normalizeSeverity,
@@ -306,9 +305,7 @@ class MixerServiceImpl {
             { id: mixerId, userId: resolvedUserId },
             'Failed to verify mixer'
         )
-        const mixer = new Mixer(json?.data)
-        dispatchNotificationsRefresh({ id: mixerId, plant: mixer.assignedPlant, type: 'mixer' })
-        return enrichMixerWithVerification(mixer)
+        return enrichMixerWithVerification(new Mixer(json?.data))
     }
 }
 export const MixerService = MixerServiceImpl

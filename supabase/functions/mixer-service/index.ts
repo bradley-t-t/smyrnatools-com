@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-all": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 const {data: hist, error: histErr} = await supabase.from(HISTORY_TABLE).select("mixer_id, changed_at").order("changed_at", {ascending: false});
@@ -44,6 +45,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: (data || []).map((m: any) => ({...m, latestHistoryDate: latestMap[m.id] ?? null}))}, headers);
             }
             case "fetch-by-id": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Mixer ID is required", headers, 400);
@@ -55,12 +57,15 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
-            case "fetch-history":
+            case "fetch-history": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchHistory(supabase, await parseBody(req), HISTORY_TABLE, ID_KEY, "mixerId", headers);
+            }
             case "create": {
                 const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
@@ -125,13 +130,16 @@ Deno.serve(async (req) => {
             }
             case "delete":
                 return handleDelete(supabase, await parseBody(req), MAIN_TABLE, HISTORY_TABLE, ID_KEY, "Mixer", headers);
-            case "fetch-comments":
+            case "fetch-comments": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchComments(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "mixerId", comments: COMMENTS_TABLE}, headers);
+            }
             case "add-comment":
                 return handleAddComment(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "mixerId", comments: COMMENTS_TABLE}, headers);
             case "delete-comment":
                 return handleDeleteComment(supabase, await parseBody(req), COMMENTS_TABLE, headers);
             case "fetch-images": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const mixerId = typeof body?.mixerId === "string" ? body.mixerId : null;
                 if (!mixerId) return errorResponse("Mixer ID is required", headers, 400);
@@ -171,26 +179,40 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
-            case "fetch-issues":
+            case "fetch-issues": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchIssues(supabase, await parseBody(req), MAINTENANCE_TABLE, ID_KEY, "mixerId", headers);
+            }
             case "add-issue":
                 return handleAddIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, ID_KEY, "mixerId", headers);
             case "complete-issue":
                 return handleCompleteIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, headers);
             case "delete-issue":
                 return handleDeleteIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, headers);
-            case "fetch-by-operator":
+            case "fetch-by-operator": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchByField(supabase, await parseBody(req), MAIN_TABLE, "assigned_operator", "operatorId", ORDER_BY, headers);
-            case "fetch-by-status":
+            }
+            case "fetch-by-status": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchByField(supabase, await parseBody(req), MAIN_TABLE, "status", "status", ORDER_BY, headers);
-            case "search-by-truck-number":
+            }
+            case "search-by-truck-number": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleSearchByField(supabase, await parseBody(req), MAIN_TABLE, "truck_number", ORDER_BY, headers);
-            case "search-by-vin":
+            }
+            case "search-by-vin": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleSearchByField(supabase, await parseBody(req), MAIN_TABLE, "vin", ORDER_BY, headers);
-            case "fetch-needing-service":
+            }
+            case "fetch-needing-service": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchNeedingService(supabase, await parseBody(req), MAIN_TABLE, ORDER_BY, headers);
-            case "fetch-cleanliness-history":
+            }
+            case "fetch-cleanliness-history": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchCleanlinessHistory(supabase, await parseBody(req), HISTORY_TABLE, ID_KEY, "mixerId", headers);
+            }
             case "add-history":
                 return handleAddHistory(supabase, await parseBody(req), req, HISTORY_TABLE, ID_KEY, "mixerId", headers);
             case "verify":

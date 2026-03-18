@@ -21,6 +21,29 @@ async function requireAuthenticated(supabase: any, headers: any): Promise<string
     return data.user.id;
 }
 
+const PERMISSIONS_TABLE = "users_permissions";
+const ROLES_SELECT = "role_id, users_roles(weight)";
+
+async function getUserWeight(supabase: any, userId: string): Promise<number> {
+    const {data} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", userId);
+    if (!data?.length) return 0;
+    return Math.max(...data.map((d: any) => d.users_roles?.weight ?? 0));
+}
+
+async function requireOwnerOrHigherRole(supabase: any, callerId: string, ownerId: string | null, headers: any): Promise<Response | null> {
+    if (!ownerId || callerId === ownerId) return null;
+    const callerWeight = await getUserWeight(supabase, callerId);
+    const ownerWeight = await getUserWeight(supabase, ownerId);
+    if (callerWeight > ownerWeight) return null;
+    return errorResponse("Forbidden: insufficient privileges to modify another user's record", headers, 403);
+}
+
+async function requireElevated(supabase: any, callerId: string, headers: any): Promise<Response | null> {
+    const weight = await getUserWeight(supabase, callerId);
+    if (weight > 75) return null;
+    return errorResponse("Forbidden: insufficient privileges for bulk operations", headers, 403);
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -36,11 +59,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-items": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-items-with-profiles": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data: items, error: itemsError} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
                 if (itemsError) return errorResponse("Operation failed", headers, 400);
                 const idsSet = new Set<string>();
@@ -57,11 +82,13 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: items ?? [], profiles}, headers);
             }
             case "fetch-plants": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from("plants").select("*").order("plant_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-creator-profiles": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userIds: string[] = Array.isArray(body?.userIds) ? body.userIds.filter((v: any) => typeof v === "string" && v.trim()) : [];
                 if (!userIds.length) return jsonResponse({profiles: []}, headers);
@@ -131,11 +158,16 @@ Deno.serve(async (req) => {
                 const body = await parseBody(req);
                 const {id} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
+                const {data: item} = await supabase.from(LIST_ITEMS_TABLE).select("user_id").eq("id", id).maybeSingle();
+                if (!item) return errorResponse("Item not found", headers, 404);
+                const ownerErr = await requireOwnerOrHigherRole(supabase, auth, item.user_id, headers);
+                if (ownerErr) return ownerErr;
                 const {error} = await supabase.from(LIST_ITEMS_TABLE).delete().eq("id", id);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-planned-items": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 let query = supabase.from(PLANNED_ITEMS_TABLE).select("*");
                 if (body?.startDate) query = query.gte("planned_date", body.startDate);
@@ -163,12 +195,17 @@ Deno.serve(async (req) => {
                 const {listItemId, plannedDate} = body;
                 if (typeof listItemId !== "string" || !listItemId) return errorResponse("List item ID is required", headers, 400);
                 if (typeof plannedDate !== "string" || !plannedDate) return errorResponse("Planned date is required", headers, 400);
+                const {data: planned} = await supabase.from(PLANNED_ITEMS_TABLE).select("created_by").eq("list_item_id", listItemId).eq("planned_date", plannedDate).maybeSingle();
+                if (!planned) return errorResponse("Planned item not found", headers, 404);
+                const ownerErr = await requireOwnerOrHigherRole(supabase, auth, planned.created_by, headers);
+                if (ownerErr) return ownerErr;
                 const {error} = await supabase.from(PLANNED_ITEMS_TABLE).delete().eq("list_item_id", listItemId).eq("planned_date", plannedDate);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "clear-planned-items": {
                 const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const elevErr = await requireElevated(supabase, auth, headers); if (elevErr) return elevErr;
                 const body = await parseBody(req);
                 const {startDate, endDate} = body;
                 if (!startDate && !endDate) return errorResponse("Date range required for clear operation", headers, 400);

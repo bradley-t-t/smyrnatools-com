@@ -35,6 +35,12 @@ async function requireElevatedCaller(supabase: any, headers: any): Promise<strin
     return user.id;
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
+
 async function fetchRegionIds(supabase: any, plantCode: string): Promise<number[]> {
     for (const table of REGION_PLANTS_TABLES) {
         const {data, error} = await supabase.from(table).select("region_id").eq("plant_code", plantCode);
@@ -58,11 +64,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-all": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(PLANTS_TABLE).select("*").order("plant_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-by-code": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
@@ -119,6 +127,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "get-with-regions": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);

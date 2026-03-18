@@ -3,11 +3,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SrmLogo from '../../../assets/images/srm-logo.svg'
 import { UserPresenceService } from '../../../services/UserPresenceService'
 import { UserService } from '../../../services/UserService'
+import { useSharedMessages } from '../../context/MessagesContext'
 import { usePreferences } from '../../context/PreferencesContext'
 import { useAccentColor } from '../../hooks/useAccentColor'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { useMagneticHover } from '../../hooks/useMagneticHover'
-import { useMessages } from '../../hooks/useMessages'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
 /** Menu items visible only for Office-type regions. */
@@ -39,11 +39,11 @@ const ICONS = {
     Plan: 'fa-calendar-alt',
     Plants: 'fa-industry',
     Productivity: 'fa-chart-line',
-    Reporting: 'fa-file-alt',
-    Tools: 'fa-toolbox',
     Regions: 'fa-map-marker-alt',
+    Reporting: 'fa-file-alt',
     Reports: 'fa-file-alt',
     Roles: 'fa-lock',
+    Tools: 'fa-toolbox',
     Tractors: 'fa-tractor',
     Trailers: 'fa-trailer'
 }
@@ -144,7 +144,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
-    const messagesHook = useMessages(userId)
+    const messagesHook = useSharedMessages()
     const combinedCount = messagesHook.unreadCount || 0
     const { registerElement: registerMagnetic } = useMagneticHover()
 

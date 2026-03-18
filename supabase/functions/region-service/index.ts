@@ -36,6 +36,12 @@ async function requireElevatedCaller(supabase: any, headers: any): Promise<strin
     return user.id;
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
+
 async function fetchRegionId(supabase: any, regionCode: string, headers: Record<string, string>): Promise<{ id: string } | Response> {
     const {data, error} = await supabase.from(REGIONS_TABLE).select("id").eq("region_code", regionCode).maybeSingle();
     if (error || !data) return errorResponse("Region not found", headers, 400);
@@ -57,11 +63,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-regions": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(REGIONS_TABLE).select("*").order("region_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-region-by-code": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const regionCode = requireString(body, "regionCode");
                 if (!regionCode) return errorResponse("Region code is required", headers, 400);
@@ -130,6 +138,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-region-plants": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const regionCode = requireString(body, "regionCode");
                 if (!regionCode) return errorResponse("Region code is required", headers, 400);
@@ -148,6 +157,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: (plants ?? []).map((p: any) => ({plant_code: p.plant_code, plant_name: p.plant_name, districts: districtMap[p.plant_code] ?? []}))}, headers);
             }
             case "fetch-regions-by-plant-code": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = requireString(body, "plantCode");
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);

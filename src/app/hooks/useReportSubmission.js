@@ -170,7 +170,6 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                         weekIso
                     })
                 )
-                window.dispatchEvent(new CustomEvent('notifications-refresh'))
                 return { success: true }
             }
             return { success: false }

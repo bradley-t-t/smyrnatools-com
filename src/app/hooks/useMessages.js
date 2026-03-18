@@ -13,7 +13,6 @@ import MessageService from '../../services/MessageService'
  */
 export function useMessages(userId) {
     const [allMessages, setAllMessages] = useState([])
-    const [unreadCount, setUnreadCount] = useState(0)
     const [loading, setLoading] = useState(true)
     const [resolvedUserId, setResolvedUserId] = useState(null)
     const hasLoadedRef = useRef(false)
@@ -29,32 +28,20 @@ export function useMessages(userId) {
     const refresh = useCallback(async () => {
         if (!userId) {
             setAllMessages([])
-            setUnreadCount(0)
             setLoading(false)
             return
         }
         if (!hasLoadedRef.current) setLoading(true)
         const seq = ++refreshSeqRef.current
         try {
-            const [messages, count] = await Promise.all([
-                MessageService.getAllMessages(userId),
-                MessageService.getUnreadCount(userId)
-            ])
+            const messages = await MessageService.getAllMessages(userId)
             if (refreshSeqRef.current !== seq) return
-            // DEBUG: remove after verifying read status
-            const unreadMsgs = messages.filter((m) => !m.isRead)
-            console.warn('[useMessages] loaded', messages.length, 'messages,', unreadMsgs.length, 'unread (isRead=false), getUnreadCount=', count, 'resolvedUserId will be:', userId)
-            if (messages.length > 0) {
-                console.warn('[useMessages] sample message:', { id: messages[0].id, isRead: messages[0].isRead, recipientId: messages[0].recipientId, senderId: messages[0].senderId })
-            }
             setAllMessages(messages)
-            setUnreadCount(count)
             setLoading(false)
             hasLoadedRef.current = true
         } catch {
             if (refreshSeqRef.current === seq) {
                 setAllMessages([])
-                setUnreadCount(0)
                 setLoading(false)
             }
         }
@@ -83,14 +70,10 @@ export function useMessages(userId) {
                 if (prev.some((m) => m.id === message.id)) return prev
                 return [message, ...prev]
             })
-            if (row.recipient_id === resolvedUserId && !row.is_read) {
-                setUnreadCount((prev) => prev + 1)
-            }
         }
 
         const handleUpdate = (payload) => {
             const row = payload.new
-            const old = payload.old
             if (!row?.id) return
             setAllMessages((prev) =>
                 prev.map((m) => {
@@ -102,23 +85,12 @@ export function useMessages(userId) {
                     }
                 })
             )
-            // Adjust unread count for read-state transitions
-            if (row.recipient_id === resolvedUserId) {
-                if (old && !old.is_read && row.is_read) {
-                    setUnreadCount((prev) => Math.max(0, prev - 1))
-                } else if (old && old.is_read && !row.is_read) {
-                    setUnreadCount((prev) => prev + 1)
-                }
-            }
             // Handle soft-delete flags — remove from local state
             if (
                 (row.deleted_by_recipient && row.recipient_id === resolvedUserId) ||
                 (row.deleted_by_sender && row.sender_id === resolvedUserId)
             ) {
                 setAllMessages((prev) => prev.filter((m) => m.id !== row.id))
-                if (row.recipient_id === resolvedUserId && !row.is_read) {
-                    setUnreadCount((prev) => Math.max(0, prev - 1))
-                }
             }
         }
 
@@ -126,9 +98,6 @@ export function useMessages(userId) {
             const row = payload.old
             if (!row?.id) return
             setAllMessages((prev) => prev.filter((m) => m.id !== row.id))
-            if (row.recipient_id === resolvedUserId && !row.is_read) {
-                setUnreadCount((prev) => Math.max(0, prev - 1))
-            }
         }
 
         const recipientChannel = Database.channel(`messages-recipient-${resolvedUserId}`)
@@ -198,17 +167,15 @@ export function useMessages(userId) {
         return () => window.removeEventListener('messages-refresh', handleRefresh)
     }, [refresh])
 
+    /** Unread count derived from loaded messages — avoids RLS-blocked raw table queries. */
+    const unreadCount = useMemo(
+        () => (resolvedUserId ? allMessages.filter((m) => m.recipientId === resolvedUserId && !m.isRead).length : 0),
+        [allMessages, resolvedUserId]
+    )
+
     /** Conversations grouped by the other user, sorted by most recent message. */
     const conversations = useMemo(() => {
         if (!resolvedUserId || !allMessages.length) return []
-        // DEBUG: remove after verifying
-        const inboxUnread = allMessages.filter((m) => m.recipientId === resolvedUserId && !m.isRead)
-        console.warn('[useMessages:conversations] resolvedUserId=', resolvedUserId, 'inbox unread=', inboxUnread.length, 'total=', allMessages.length)
-        if (allMessages.length > 0 && inboxUnread.length === 0) {
-            const sample = allMessages.find((m) => m.recipientId === resolvedUserId)
-            if (sample) console.warn('[useMessages:conversations] sample inbox msg:', { id: sample.id, isRead: sample.isRead, recipientId: sample.recipientId })
-            else console.warn('[useMessages:conversations] NO messages where recipientId matches resolvedUserId. Sample recipientIds:', allMessages.slice(0, 3).map((m) => m.recipientId))
-        }
         const threadMap = new Map()
         allMessages.forEach((msg) => {
             const otherId = msg.senderId === resolvedUserId ? msg.recipientId : msg.senderId
@@ -242,15 +209,13 @@ export function useMessages(userId) {
 
     const markAsRead = useCallback(async (messageId) => {
         if (!messageId) return
-        await MessageService.markAsRead(messageId)
         setAllMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, isRead: true } : m)))
-        setUnreadCount((prev) => Math.max(0, prev - 1))
+        await MessageService.markAsRead(messageId)
     }, [])
 
     const markConversationRead = useCallback(
         async (otherUserId) => {
             if (!userId || !otherUserId) return
-            await MessageService.markConversationRead(userId, otherUserId)
             setAllMessages((prev) =>
                 prev.map((m) =>
                     m.senderId === otherUserId && m.recipientId === resolvedUserId && !m.isRead
@@ -258,21 +223,15 @@ export function useMessages(userId) {
                         : m
                 )
             )
-            setUnreadCount((prev) => {
-                const conversationUnread = allMessages.filter(
-                    (m) => m.senderId === otherUserId && m.recipientId === resolvedUserId && !m.isRead
-                ).length
-                return Math.max(0, prev - conversationUnread)
-            })
+            await MessageService.markConversationRead(userId, otherUserId)
         },
-        [userId, resolvedUserId, allMessages]
+        [userId, resolvedUserId]
     )
 
     const markAllRead = useCallback(async () => {
         if (!userId) return
-        await MessageService.markAllRead(userId)
         setAllMessages((prev) => prev.map((m) => ({ ...m, isRead: true })))
-        setUnreadCount(0)
+        await MessageService.markAllRead(userId)
     }, [userId])
 
     const deleteMessage = useCallback(
@@ -287,9 +246,6 @@ export function useMessages(userId) {
                 await MessageService.deleteForRecipient(messageId)
             }
             setAllMessages((prev) => prev.filter((m) => m.id !== messageId))
-            if (!msg.isRead && msg.recipientId === resolvedUserId) {
-                setUnreadCount((prev) => Math.max(0, prev - 1))
-            }
         },
         [allMessages, resolvedUserId]
     )

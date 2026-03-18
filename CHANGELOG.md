@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.8] - 2026-03-18
+
+- Added requireOwnerOrHigherRole authorization helper to shared asset-helpers, enforcing role-weight checks before deleting issues or entities belonging to other users
+- Added requireAuthenticated guards to all read-only endpoints across equipment, mixer, tractor, pickup-truck, list, plan, plant, region, and district-manager edge functions
+- Added owner-or-higher-role checks to list-service delete and remove-planned-item endpoints, and elevated-role check to clear-planned-items
+- Added owner-or-higher-role checks to plan-service delete-template endpoint and replaced client-supplied userId with server-derived auth ID for fetch-templates
+- Removed the entire client-side notifications system: useNotifications hook, NotificationsService, and all computed notification providers (mixer/equipment/tractor verifications, overdue list tasks)
+- Removed AlertsPanel and all computed alert UI from NotificationsView, leaving it as a messages-only view
+- Removed dispatchNotificationsRefresh helper and all notification refresh dispatches from EquipmentService, MixerService, TractorService, ListService, and useReportSubmission
+- Created MessagesContext to share a single useMessages instance between Navigation and NotificationsView, preventing duplicate hook state
+- Removed separate unreadCount state tracking from useMessages, replacing it with a useMemo derived from the loaded messages array
+- Removed debug console.warn logging from useMessages
+- Applied optimistic UI to markAsRead, markConversationRead, and markAllRead in useMessages — local state updates before awaiting the server call
+- Migrated MessageService write operations (soft-delete, mark-read, mark-conversation-read, mark-all-read) from direct table mutations to SECURITY DEFINER RPC functions
+- Removed MessageService.getUnreadCount (no longer needed with derived count)
+- Removed VerifiedUtility's createVerificationNotificationProvider factory and associated imports
+- Cleaned up 30 nav-concept and 3 grid-card HTML prototype files from public/
+- Removed scripts/.claude/settings.local.json and claude-remote-loop.sh
+
 ## [35.7] - 2026-03-18
 
 - Added server-side authentication guards (requireAuthenticated / requireElevatedCaller) across all asset edge functions, replacing client-supplied userId with the authenticated user's ID from the JWT

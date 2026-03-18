@@ -35,6 +35,12 @@ async function requireElevatedCaller(supabase: any, headers: any): Promise<strin
     return user.id;
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -52,6 +58,7 @@ Deno.serve(async (req) => {
             // --- Eligible Roles ---
 
             case "fetch-eligible-roles": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase
                     .from(ELIGIBLE_ROLES_TABLE)
                     .select("id, role_id, created_at, users_roles(id, name, weight)")
@@ -87,6 +94,7 @@ Deno.serve(async (req) => {
             }
 
             case "is-role-eligible": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const roleId = requireString(body, "roleId");
                 if (!roleId) return jsonResponse({eligible: false}, headers);
@@ -102,6 +110,7 @@ Deno.serve(async (req) => {
             // --- User Plant Assignments ---
 
             case "fetch-user-plants": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userId = requireString(body, "userId");
                 if (!userId) return errorResponse("User ID is required", headers, 400);
@@ -146,6 +155,7 @@ Deno.serve(async (req) => {
             }
 
             case "fetch-plants-by-plant-code": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = requireString(body, "plantCode");
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);

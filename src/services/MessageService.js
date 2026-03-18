@@ -1,7 +1,6 @@
 import { Database } from './DatabaseService'
 import { UserService } from './UserService'
 const MESSAGES_VIEW = 'messages_decrypted'
-const MESSAGES_TABLE = 'messages'
 /**
  * Resolves the canonical users table ID from whatever ID is in session storage.
  * Handles the case where session ID (users_sessions.id) is stored instead of users.id.
@@ -18,24 +17,21 @@ async function resolveUserId(sessionId) {
 }
 /**
  * Service for direct user-to-user encrypted messaging.
- * Messages are encrypted at rest via pgcrypto and decrypted through a database view.
+ * All reads go through the messages_decrypted view (bypasses RLS via view owner).
+ * All writes use SECURITY DEFINER RPC functions (same pattern as send_message).
  */
-/** Soft-deletes a message by setting the given boolean column to true. */
-async function _softDelete(messageId, column) {
-    if (!messageId) return
-    const { error } = await Database.from(MESSAGES_TABLE)
-        .update({ [column]: true })
-        .eq('id', messageId)
-    if (error) console.error(`Failed to soft-delete message (${column}):`, error)
-}
 const MessageService = {
     /** Soft-deletes a message for the recipient. */
     async deleteForRecipient(messageId) {
-        return _softDelete(messageId, 'deleted_by_recipient')
+        if (!messageId) return
+        const { error } = await Database.rpc('soft_delete_message_for_recipient', { p_message_id: messageId })
+        if (error) console.error('Failed to soft-delete message (recipient):', error)
     },
     /** Soft-deletes a message for the sender. */
     async deleteForSender(messageId) {
-        return _softDelete(messageId, 'deleted_by_sender')
+        if (!messageId) return
+        const { error } = await Database.rpc('soft_delete_message_for_sender', { p_message_id: messageId })
+        if (error) console.error('Failed to soft-delete message (sender):', error)
     },
     /**
      * Fetches all messages the user is involved in (sent or received, not deleted).
@@ -100,45 +96,29 @@ const MessageService = {
             })
             .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`))
     },
-    /** Returns the count of unread inbox messages. */
-    async getUnreadCount(userId) {
-        const resolvedId = await resolveUserId(userId)
-        if (!resolvedId) return 0
-        const { count, error } = await Database.from(MESSAGES_TABLE)
-            .select('id', { count: 'exact', head: true })
-            .eq('recipient_id', resolvedId)
-            .eq('is_read', false)
-            .eq('deleted_by_recipient', false)
-        if (error) return 0
-        return count || 0
-    },
     /** Marks all unread inbox messages as read. */
     async markAllRead(userId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId) return
-        await Database.from(MESSAGES_TABLE)
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('recipient_id', resolvedId)
-            .eq('is_read', false)
-            .eq('deleted_by_recipient', false)
+        const { error } = await Database.rpc('mark_all_messages_read', { p_recipient_id: resolvedId })
+        if (error) console.error('Failed to mark all messages read:', error)
     },
     /** Marks a single message as read. */
     async markAsRead(messageId) {
         if (!messageId) return
-        const { error } = await Database.from(MESSAGES_TABLE)
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('id', messageId)
+        const { error } = await Database.rpc('mark_message_read', { p_message_id: messageId })
+        if (error) console.error('Failed to mark message read:', error)
         return !error
     },
     /** Marks all unread messages from a specific user as read. */
     async markConversationRead(userId, otherUserId) {
         const resolvedId = await resolveUserId(userId)
         if (!resolvedId || !otherUserId) return
-        await Database.from(MESSAGES_TABLE)
-            .update({ is_read: true, read_at: new Date().toISOString() })
-            .eq('recipient_id', resolvedId)
-            .eq('sender_id', otherUserId)
-            .eq('is_read', false)
+        const { error } = await Database.rpc('mark_conversation_read', {
+            p_recipient_id: resolvedId,
+            p_sender_id: otherUserId
+        })
+        if (error) console.error('Failed to mark conversation read:', error)
     },
     /** Resolves a session/user ID to the canonical users.id. */
     async resolveId(userId) {

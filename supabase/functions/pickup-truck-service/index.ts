@@ -35,11 +35,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-all": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order("assigned_plant", {ascending: true}).order("assigned", {ascending: true}).order("make", {ascending: true}).order("model", {ascending: true});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-by-id": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Pickup Truck ID is required", headers, 400);
@@ -107,20 +109,30 @@ Deno.serve(async (req) => {
             }
             case "delete":
                 return handleDelete(supabase, await parseBody(req), MAIN_TABLE, HISTORY_TABLE, HISTORY_ID_KEY, "Pickup Truck", headers);
-            case "search-by-vin":
+            case "search-by-vin": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleSearchByField(supabase, await parseBody(req), MAIN_TABLE, "vin", "vin", headers);
-            case "search-by-assigned":
+            }
+            case "search-by-assigned": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleSearchByField(supabase, await parseBody(req), MAIN_TABLE, "assigned", "assigned", headers);
-            case "fetch-comments":
+            }
+            case "fetch-comments": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchComments(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", comments: COMMENTS_TABLE}, headers);
+            }
             case "add-comment":
                 return handleAddComment(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", comments: COMMENTS_TABLE}, headers);
             case "delete-comment":
                 return handleDeleteComment(supabase, await parseBody(req), COMMENTS_TABLE, headers);
-            case "fetch-history":
+            case "fetch-history": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchHistory(supabase, await parseBody(req), HISTORY_TABLE, HISTORY_ID_KEY, "pickupId", headers);
-            case "fetch-issues":
+            }
+            case "fetch-issues": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 return handleFetchIssues(supabase, await parseBody(req), MAINTENANCE_TABLE, HISTORY_ID_KEY, "pickupId", headers);
+            }
             case "add-issue":
                 return handleAddIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, HISTORY_ID_KEY, "pickupId", headers);
             case "complete-issue":

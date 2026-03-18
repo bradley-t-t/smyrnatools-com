@@ -1,62 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import EmbeddedViewModal from '../../../app/components/dashboard/EmbeddedViewModal'
+import { useSharedMessages } from '../../../app/context/MessagesContext'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useAccentColor } from '../../../app/hooks/useAccentColor'
-import { useMessages } from '../../../app/hooks/useMessages'
-import { useNotifications } from '../../../app/hooks/useNotifications'
 import MessageService from '../../../services/MessageService'
 import { UserService } from '../../../services/UserService'
 import DateUtility from '../../../utils/DateUtility'
 import UserUtility from '../../../utils/UserUtility'
-
-const COMPUTED_TYPE_META = {
-    'equipment.verifications': { icon: 'fas fa-snowplow', label: 'Equipment Verifications' },
-    'list.overdue': { icon: 'fas fa-list', label: 'Overdue Tasks' },
-    'mixers.verifications': { icon: 'fas fa-truck', label: 'Mixer Verifications' },
-    reports: { icon: 'fas fa-file-alt', label: 'Overdue Reports' },
-    'tractors.verifications': { icon: 'fas fa-tractor', label: 'Tractor Verifications' }
-}
-
-function getComputedMeta(type) {
-    return (
-        COMPUTED_TYPE_META[type] ||
-        COMPUTED_TYPE_META[Object.keys(COMPUTED_TYPE_META).find((k) => type?.includes(k))] || {
-            icon: 'fas fa-exclamation-circle',
-            label: 'System Alert'
-        }
-    )
-}
-
-function getSeverityStyle(severity) {
-    switch (severity) {
-        case 'error':
-        case 'critical':
-            return {
-                badge: 'bg-red-100 text-red-700',
-                bg: 'bg-red-50',
-                border: 'border-red-200',
-                icon: 'text-red-500',
-                text: 'text-red-700'
-            }
-        case 'warning':
-            return {
-                badge: 'bg-amber-100 text-amber-700',
-                bg: 'bg-amber-50',
-                border: 'border-amber-200',
-                icon: 'text-amber-500',
-                text: 'text-amber-700'
-            }
-        default:
-            return {
-                badge: 'bg-sky-100 text-sky-700',
-                bg: 'bg-sky-50',
-                border: 'border-sky-200',
-                icon: 'text-sky-500',
-                text: 'text-sky-700'
-            }
-    }
-}
 
 function formatMessageTime(dateString) {
     if (!dateString) return ''
@@ -118,15 +69,8 @@ function NotificationsView({ userId, initialConversationId = null }) {
     const accentColor = useAccentColor()
     const [composing, setComposing] = useState(false)
     const [activeConversationId, setActiveConversationId] = useState(initialConversationId)
-    const [alertsExpanded, setAlertsExpanded] = useState(false)
     const [embeddedView, setEmbeddedView] = useState(null)
     const [embeddedViewSearch, setEmbeddedViewSearch] = useState('')
-
-    const {
-        notifications,
-        markAsRead: markNotifRead,
-        deleteNotification
-    } = useNotifications(userId, preferences?.selectedRegion)
 
     const {
         conversations,
@@ -136,7 +80,7 @@ function NotificationsView({ userId, initialConversationId = null }) {
         markConversationRead,
         sendMessage,
         resolvedUserId
-    } = useMessages(userId)
+    } = useSharedMessages()
 
     // Sync prop changes (e.g. clicking a conversation from the nav popup while already on this view)
     const handledConvoRef = useRef(initialConversationId)
@@ -154,19 +98,6 @@ function NotificationsView({ userId, initialConversationId = null }) {
     )
 
     const [userNames, setUserNames] = useState({})
-
-    const computedItems = useMemo(() => notifications.filter((n) => n.source === 'computed'), [notifications])
-    const dbItems = useMemo(() => notifications.filter((n) => n.source === 'db'), [notifications])
-    const computedGroups = useMemo(() => {
-        const grouped = {}
-        computedItems.forEach((n) => {
-            const key = n.type || 'other'
-            if (!grouped[key]) grouped[key] = { items: [], key, ...getComputedMeta(n.type) }
-            grouped[key].items.push(n)
-        })
-        return Object.values(grouped)
-    }, [computedItems])
-    const totalAlertCount = computedItems.length + dbItems.length
 
     useEffect(() => {
         const ids = new Set(conversations.map((c) => c.otherId))
@@ -326,20 +257,6 @@ function NotificationsView({ userId, initialConversationId = null }) {
             </div>
 
             <div className="max-w-4xl mx-auto p-6 flex flex-col gap-6">
-                {/* Alerts */}
-                {totalAlertCount > 0 && (
-                    <AlertsPanel
-                        alertsExpanded={alertsExpanded}
-                        setAlertsExpanded={setAlertsExpanded}
-                        computedGroups={computedGroups}
-                        dbItems={dbItems}
-                        totalAlertCount={totalAlertCount}
-                        markNotifRead={markNotifRead}
-                        deleteNotification={deleteNotification}
-                        accentColor={accentColor}
-                    />
-                )}
-
                 {/* Conversations */}
                 {msgLoading ? (
                     <div
@@ -1112,231 +1029,6 @@ function ComposeModal({ accentColor, onSend, onClose }) {
                             </button>
                         </>
                     )}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-/** Collapsible alerts panel. */
-function AlertsPanel({
-    alertsExpanded,
-    setAlertsExpanded,
-    computedGroups,
-    dbItems,
-    totalAlertCount,
-    markNotifRead,
-    deleteNotification,
-    accentColor
-}) {
-    return (
-        <div
-            className="rounded-xl border overflow-hidden"
-            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
-        >
-            <button
-                onClick={() => setAlertsExpanded((v) => !v)}
-                className="flex items-center gap-3 w-full px-5 py-3.5 text-left transition-colors select-none"
-                style={{ backgroundColor: 'var(--bg-secondary)' }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'
-                }}
-            >
-                <i className="fas fa-exclamation-triangle text-sm text-amber-500"></i>
-                <span className="text-sm font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
-                    System Alerts
-                </span>
-                <span
-                    className="text-xs font-bold text-white px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: '#f59e0b' }}
-                >
-                    {totalAlertCount}
-                </span>
-                <i
-                    className={`fas fa-chevron-down text-xs transition-transform duration-200 ${alertsExpanded ? 'rotate-180' : ''}`}
-                    style={{ color: 'var(--text-secondary)' }}
-                ></i>
-            </button>
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateRows: alertsExpanded ? '1fr' : '0fr',
-                    transition: 'grid-template-rows 0.25s ease'
-                }}
-            >
-                <div style={{ overflow: 'hidden' }}>
-                    <div className="p-4 flex flex-col gap-3 border-t" style={{ borderColor: 'var(--border-light)' }}>
-                        {computedGroups.map((group) => (
-                            <ComputedGroup key={group.key} group={group} accentColor={accentColor} />
-                        ))}
-                        {dbItems.length > 0 && (
-                            <div
-                                className="rounded-xl border overflow-hidden divide-y"
-                                style={{ borderColor: 'var(--border-light)' }}
-                            >
-                                {dbItems.map((n) => (
-                                    <DbNotificationCard
-                                        key={n.id}
-                                        notification={n}
-                                        onMarkRead={markNotifRead}
-                                        onDelete={deleteNotification}
-                                        accentColor={accentColor}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function ComputedGroup({ group, accentColor }) {
-    const shouldCollapse = group.key?.includes('verifications') || group.key?.includes('overdue')
-    const [expanded, setExpanded] = useState(!shouldCollapse)
-    const contentRef = useRef(null)
-    return (
-        <div
-            className="rounded-xl border overflow-hidden"
-            style={{ backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)' }}
-        >
-            <div
-                className="flex items-center gap-3 px-4 py-3 border-b cursor-pointer select-none transition-colors"
-                style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-light)' }}
-                onClick={() => setExpanded((v) => !v)}
-            >
-                <i className={`${group.icon} text-sm`} style={{ color: accentColor }}></i>
-                <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text-primary)' }}>
-                    {group.label}
-                </span>
-                <span
-                    className="text-xs font-bold text-white px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: accentColor }}
-                >
-                    {group.items.length}
-                </span>
-                <i
-                    className={`fas fa-chevron-down text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-                    style={{ color: 'var(--text-secondary)' }}
-                ></i>
-            </div>
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateRows: expanded ? '1fr' : '0fr',
-                    transition: 'grid-template-rows 0.25s ease'
-                }}
-            >
-                <div style={{ overflow: 'hidden' }} ref={contentRef}>
-                    <div className="p-3 flex flex-col gap-2">
-                        {group.items.map((n) => {
-                            const s = getSeverityStyle(n.severity)
-                            return (
-                                <div
-                                    key={n.id}
-                                    className={`flex items-start gap-3 px-3 py-2.5 rounded-lg border ${s.bg} ${s.border}`}
-                                >
-                                    <i className={`fas fa-circle text-[6px] mt-2 ${s.icon}`}></i>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-medium ${s.text} m-0`}>{n.title}</p>
-                                        {n.subtitle && (
-                                            <p className="text-xs text-slate-500 mt-0.5 m-0">{n.subtitle}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function DbNotificationCard({ notification: n, onMarkRead, onDelete, accentColor }) {
-    const s = getSeverityStyle(n.severity)
-    return (
-        <div
-            className="flex items-start gap-4 px-5 py-4 transition-colors"
-            style={{ backgroundColor: n.isRead ? 'transparent' : `${accentColor}06` }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = n.isRead ? 'transparent' : `${accentColor}06`
-            }}
-        >
-            <div className="flex-shrink-0 pt-1.5">
-                {n.isRead ? (
-                    <div
-                        className="w-2.5 h-2.5 rounded-full border-2"
-                        style={{ borderColor: 'var(--border-light)' }}
-                    ></div>
-                ) : (
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accentColor }}></div>
-                )}
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                        <p
-                            className="text-sm font-semibold m-0"
-                            style={{ color: 'var(--text-primary)', opacity: n.isRead ? 0.7 : 1 }}
-                        >
-                            {n.title}
-                        </p>
-                        {n.body && (
-                            <p className="text-sm mt-1 m-0 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                                {n.body}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-3 mt-2">
-                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.badge}`}>
-                                {n.type?.replace(/_/g, ' ') || 'System'}
-                            </span>
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                {DateUtility.formatTimeAgo(n.createdAt)}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                        {!n.isRead && (
-                            <button
-                                onClick={() => onMarkRead(n.dbId)}
-                                title="Mark as read"
-                                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-                                style={{ color: 'var(--text-secondary)' }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'transparent'
-                                }}
-                            >
-                                <i className="fas fa-check text-xs"></i>
-                            </button>
-                        )}
-                        <button
-                            onClick={() => onDelete(n.dbId)}
-                            title="Dismiss"
-                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-                            style={{ color: 'var(--text-secondary)' }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#ef4444'
-                                e.currentTarget.style.backgroundColor = 'var(--bg-hover)'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.color = 'var(--text-secondary)'
-                                e.currentTarget.style.backgroundColor = 'transparent'
-                            }}
-                        >
-                            <i className="fas fa-times text-xs"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
