@@ -3,7 +3,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 // @ts-ignore
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 // @ts-ignore
-import {parseBody, nowIso, toDbTimestamp, normalize, normalizeYear, buildLatestMap, buildCountMap, computeDiffs, handleFetchHistory, handleAddHistory, handleFetchComments, handleAddComment, handleDeleteComment, handleFetchIssues, handleAddIssue, handleCompleteIssue, handleDeleteIssue, handleDelete, handleFetchByField, handleSearchByField, handleFetchNeedingService, handleFetchCleanlinessHistory, handleVerify} from "../_shared/asset-helpers.ts";
+import {parseBody, nowIso, toDbTimestamp, normalize, normalizeYear, buildLatestMap, buildCountMap, computeDiffs, handleFetchHistory, handleAddHistory, handleFetchComments, handleAddComment, handleDeleteComment, handleFetchIssues, handleAddIssue, handleCompleteIssue, handleDeleteIssue, handleDelete, handleFetchByField, handleSearchByField, handleFetchNeedingService, handleFetchCleanlinessHistory, handleVerify, requireAuthenticated} from "../_shared/asset-helpers.ts";
 
 const MAIN_TABLE = "tractors";
 const HISTORY_TABLE = "tractors_history";
@@ -64,10 +64,10 @@ Deno.serve(async (req) => {
             case "fetch-history":
                 return handleFetchHistory(supabase, await parseBody(req), HISTORY_TABLE, ID_KEY, "tractorId", headers);
             case "create": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const tractor = body?.tractor || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
-                if (!userId) return errorResponse("User ID is required", headers, 400);
+                const userId = auth;
                 const now = nowIso();
                 const apiData: Record<string, any> = {
                     truck_number: tractor?.truckNumber ?? tractor?.truck_number,
@@ -88,12 +88,12 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.tractorId === "string" ? body.tractorId : (typeof body?.id === "string" ? body.id : null);
                 const tractor = body?.tractor || body?.data || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
+                const userId = auth;
                 if (!id) return errorResponse("Tractor ID is required", headers, 400);
-                if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
                 if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Tractor not found", headers, 404);

@@ -62,7 +62,6 @@ const MessageService = {
         if (sentResult.error) throw sentResult.error
         const { data: received } = receivedResult
         const { data: sent } = sentResult
-        // Merge, deduplicate by id, sort newest first
         const map = new Map()
         ;[...(received || []), ...(sent || [])].forEach((row) => {
             if (!map.has(row.id)) map.set(row.id, formatMessage(row))

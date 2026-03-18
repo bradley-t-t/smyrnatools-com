@@ -1183,7 +1183,6 @@ async function createWeekSheet(
         const aggHeaders = [
             { align: 'left', label: 'Material', mergeCount: 2 },
             { label: 'This Week', merge: true },
-            { label: 'MTD', merge: false },
             { label: 'YTD', merge: false }
         ]
         addMergedTableHeaders(ws, r, aggHeaders)
@@ -1208,13 +1207,11 @@ async function createWeekSheet(
             ['washout', 'Washout'],
             ['rip_rap', 'Rip Rap']
         ]
-        const mtdTotals = calcAggregateFromReports(allAggReports.monthly, aggFields)
         const ytdTotals = calcAggregateFromReports(allAggReports.yearly, aggFields)
         const dataSource = aggregateReport?.data || {}
         const prevDataSource = prevAggregateReport?.data || {}
         let aggTotal = 0
         let prevAggTotal = 0
-        let mtdTotal = 0
         let ytdTotal = 0
         let rowIdx = 0
         aggFields.forEach(([key, label]) => {
@@ -1222,11 +1219,9 @@ async function createWeekSheet(
             raw = raw === undefined || raw === null || raw === '' ? 0 : Number(raw)
             let prevRaw = prevDataSource[key]
             prevRaw = prevRaw === undefined || prevRaw === null || prevRaw === '' ? 0 : Number(prevRaw)
-            const mtdVal = mtdTotals[key] || 0
             const ytdVal = ytdTotals[key] || 0
             aggTotal += raw
             prevAggTotal += prevRaw
-            mtdTotal += mtdVal
             ytdTotal += ytdVal
             const changeInfo = prevAggregateReport ? getChangeText(raw, prevRaw, false) : { color: null, text: '' }
             const isAlt = rowIdx % 2 === 1
@@ -1246,13 +1241,7 @@ async function createWeekSheet(
             valCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
             valCell.alignment = { horizontal: 'left', vertical: 'middle' }
             if (isAlt) valCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-            const mtdCell = ws.getCell(r, 6)
-            mtdCell.value = mtdVal
-            mtdCell.numFmt = '#,##0.0'
-            mtdCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
-            mtdCell.alignment = { horizontal: 'left', vertical: 'middle' }
-            if (isAlt) mtdCell.fill = { fgColor: { argb: COLORS.snow }, pattern: 'solid', type: 'pattern' }
-            const ytdCell = ws.getCell(r, 7)
+            const ytdCell = ws.getCell(r, 6)
             ytdCell.value = ytdVal
             ytdCell.numFmt = '#,##0.0'
             ytdCell.font = { color: { argb: COLORS.slate700 }, name: 'Calibri', size: 11 }
@@ -1295,14 +1284,7 @@ async function createWeekSheet(
             totalValCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
             totalValCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
             totalValCell.alignment = { horizontal: 'left', vertical: 'middle' }
-            const mtdTotalCell = ws.getCell(r, 6)
-            mtdTotalCell.value = mtdTotal
-            mtdTotalCell.numFmt = '#,##0.0'
-            mtdTotalCell.font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 11 }
-            mtdTotalCell.fill = { fgColor: { argb: COLORS.slate100 }, pattern: 'solid', type: 'pattern' }
-            mtdTotalCell.border = { top: { color: { argb: COLORS.brand }, style: 'medium' } }
-            mtdTotalCell.alignment = { horizontal: 'left', vertical: 'middle' }
-            const ytdTotalCell = ws.getCell(r, 7)
+            const ytdTotalCell = ws.getCell(r, 6)
             ytdTotalCell.value = ytdTotal
             ytdTotalCell.numFmt = '#,##0.0'
             ytdTotalCell.font = { bold: true, color: { argb: COLORS.brand }, name: 'Calibri', size: 11 }

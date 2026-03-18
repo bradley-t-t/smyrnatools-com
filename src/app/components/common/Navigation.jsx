@@ -8,7 +8,6 @@ import { useAccentColor } from '../../hooks/useAccentColor'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { useMagneticHover } from '../../hooks/useMagneticHover'
 import { useMessages } from '../../hooks/useMessages'
-import { useNotifications } from '../../hooks/useNotifications'
 import NotificationsModal from './NotificationsModal'
 import OnlineUsersModal from './OnlineUsersModal'
 /** Menu items visible only for Office-type regions. */
@@ -145,9 +144,8 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
-    const notificationsHook = useNotifications(userId, preferences?.selectedRegion)
     const messagesHook = useMessages(userId)
-    const combinedCount = (notificationsHook.count || 0) + (messagesHook.unreadCount || 0)
+    const combinedCount = messagesHook.unreadCount || 0
     const { registerElement: registerMagnetic } = useMagneticHover()
 
     /* ── Tablet breakpoint for top-bar mode ── */
@@ -547,7 +545,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 <NotificationsModal
                     isOpen={showNotifications}
                     messagesHook={messagesHook}
-                    notificationsHook={notificationsHook}
                     onClose={() => {
                         setShowNotifications(false)
                         window.dispatchEvent(new CustomEvent('messages-refresh'))
@@ -953,10 +950,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     )}
                                 </select>
 
-                                {/* Notifications & Messages */}
+                                {/* Messages */}
                                 <button
                                     className="relative flex items-center justify-center cursor-pointer"
-                                    title="Notifications & Messages"
+                                    title="Messages"
                                     style={{
                                         backgroundColor: 'rgba(255,255,255,0.06)',
                                         border: '1px solid rgba(255,255,255,0.1)',
@@ -1332,15 +1329,6 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 ))
                             )}
                         </select>
-                        {renderIconButton(
-                            ICONS.MyAccount,
-                            userName ? `My Account - ${userName}` : 'My Account',
-                            () => handleMenuClick('MyAccount'),
-                            selectedView === 'MyAccount',
-                            null,
-                            '#ef4444',
-                            'account-nav'
-                        )}
                         <div
                             style={{
                                 alignItems: 'center',
@@ -1362,7 +1350,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
                                 setShowNotifications(true)
                             }}
-                            title="Notifications & Messages"
+                            title="Messages"
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
                                 e.currentTarget.style.transform = 'translateY(-1px)'
@@ -1409,6 +1397,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             false,
                             onlineUsersCount,
                             '#22c55e'
+                        )}
+                        {renderIconButton(
+                            ICONS.MyAccount,
+                            userName ? `My Account - ${userName}` : 'My Account',
+                            () => handleMenuClick('MyAccount'),
+                            selectedView === 'MyAccount',
+                            null,
+                            '#ef4444',
+                            'account-nav'
                         )}
                     </div>
                 </header>

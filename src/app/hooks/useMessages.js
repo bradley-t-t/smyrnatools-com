@@ -41,6 +41,12 @@ export function useMessages(userId) {
                 MessageService.getUnreadCount(userId)
             ])
             if (refreshSeqRef.current !== seq) return
+            // DEBUG: remove after verifying read status
+            const unreadMsgs = messages.filter((m) => !m.isRead)
+            console.warn('[useMessages] loaded', messages.length, 'messages,', unreadMsgs.length, 'unread (isRead=false), getUnreadCount=', count, 'resolvedUserId will be:', userId)
+            if (messages.length > 0) {
+                console.warn('[useMessages] sample message:', { id: messages[0].id, isRead: messages[0].isRead, recipientId: messages[0].recipientId, senderId: messages[0].senderId })
+            }
             setAllMessages(messages)
             setUnreadCount(count)
             setLoading(false)
@@ -77,7 +83,6 @@ export function useMessages(userId) {
                 if (prev.some((m) => m.id === message.id)) return prev
                 return [message, ...prev]
             })
-            // If we're the recipient and it's unread, bump the count
             if (row.recipient_id === resolvedUserId && !row.is_read) {
                 setUnreadCount((prev) => prev + 1)
             }
@@ -196,6 +201,14 @@ export function useMessages(userId) {
     /** Conversations grouped by the other user, sorted by most recent message. */
     const conversations = useMemo(() => {
         if (!resolvedUserId || !allMessages.length) return []
+        // DEBUG: remove after verifying
+        const inboxUnread = allMessages.filter((m) => m.recipientId === resolvedUserId && !m.isRead)
+        console.warn('[useMessages:conversations] resolvedUserId=', resolvedUserId, 'inbox unread=', inboxUnread.length, 'total=', allMessages.length)
+        if (allMessages.length > 0 && inboxUnread.length === 0) {
+            const sample = allMessages.find((m) => m.recipientId === resolvedUserId)
+            if (sample) console.warn('[useMessages:conversations] sample inbox msg:', { id: sample.id, isRead: sample.isRead, recipientId: sample.recipientId })
+            else console.warn('[useMessages:conversations] NO messages where recipientId matches resolvedUserId. Sample recipientIds:', allMessages.slice(0, 3).map((m) => m.recipientId))
+        }
         const threadMap = new Map()
         allMessages.forEach((msg) => {
             const otherId = msg.senderId === resolvedUserId ? msg.recipientId : msg.senderId
@@ -284,11 +297,27 @@ export function useMessages(userId) {
     const sendMessage = useCallback(
         async (recipientId, subject, body, attachment = null) => {
             if (!userId) throw new Error('Must be logged in to send messages')
+            // Optimistic: add to local state immediately so the UI updates instantly
+            const optimisticId = `optimistic-${Date.now()}`
+            const optimisticMessage = {
+                attachmentMeta: attachment?.meta || null,
+                attachmentType: attachment?.type || null,
+                body,
+                createdAt: new Date().toISOString(),
+                id: optimisticId,
+                isRead: true,
+                readAt: null,
+                recipientId,
+                senderId: resolvedUserId,
+                subject: subject || ''
+            }
+            setAllMessages((prev) => [optimisticMessage, ...prev])
             const id = await MessageService.sendMessage(userId, recipientId, subject, body, attachment)
-            // Realtime subscription will pick up the INSERT — no manual refresh needed
+            // Replace optimistic entry with real ID so the realtime subscription deduplicates
+            setAllMessages((prev) => prev.map((m) => (m.id === optimisticId ? { ...m, id } : m)))
             return id
         },
-        [userId]
+        [userId, resolvedUserId]
     )
 
     return {

@@ -63,6 +63,12 @@ async function parseBody(req: Request): Promise<any> {
     }
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return null;
+}
+
 function stringField(body: any, key: string, fallback?: string): string | null {
     return typeof body?.[key] === "string" ? body[key] : fallback ?? null;
 }
@@ -82,6 +88,8 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "table-exists": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const tableName = sanitizeTableName(stringField(body, "tableName"));
                 if (!tableName) return errorResponse("Invalid or disallowed table name", headers, 400);
@@ -91,14 +99,11 @@ Deno.serve(async (req) => {
                 return jsonResponse({exists: Array.isArray(data) && data[0]?.exists === true}, headers);
             }
             case "get-all-records": {
-                const body = await parseBody(req);
-                const tableName = sanitizeTableName(stringField(body, "tableName"));
-                if (!tableName) return errorResponse("Invalid or disallowed table name", headers, 400);
-                const {data, error} = await supabase.rpc("execute_sql", {query: `SELECT * FROM ${tableName}`, params: []});
-                if (error) return errorResponse("Operation failed", headers, 400);
-                return jsonResponse({data: data ?? []}, headers);
+                return errorResponse("Raw SQL query endpoint has been removed for security", headers, 403);
             }
             case "fetch-all": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const table = sanitizeTableName(stringField(body, "table"));
                 if (!table) return errorResponse("Invalid or disallowed table name", headers, 400);
@@ -110,6 +115,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const table = sanitizeTableName(stringField(body, "table"));
                 const filterColumnRaw = stringField(body, "filterColumn");
@@ -121,38 +128,10 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse("Failed to fetch records", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
-            case "insert": {
-                const body = await parseBody(req);
-                const table = sanitizeTableName(stringField(body, "table"));
-                const item = body?.item ?? null;
-                if (!table || !item) return errorResponse("Invalid or disallowed table name or missing item", headers, 400);
-                const {data, error} = await supabase.from(table).insert(item).select("*");
-                if (error) return errorResponse("Operation failed", headers, 400);
-                return jsonResponse({data: data ?? []}, headers);
-            }
-            case "update": {
-                const body = await parseBody(req);
-                const table = sanitizeTableName(stringField(body, "table"));
-                const filterColumnRaw = stringField(body, "filterColumn");
-                const dataUpdate = body?.data ?? null;
-                if (!table || !filterColumnRaw || dataUpdate === null) return errorResponse("Invalid or disallowed table name or missing fields", headers, 400);
-                const filterCol = sanitizeColumnName(table, filterColumnRaw);
-                if (!filterCol) return errorResponse("Invalid filter column", headers, 400);
-                const {error} = await supabase.from(table).update(dataUpdate).eq(filterCol, body?.value as any);
-                if (error) return errorResponse("Failed to update record", headers, 400);
-                return jsonResponse({success: true}, headers);
-            }
-            case "delete": {
-                const body = await parseBody(req);
-                const table = sanitizeTableName(stringField(body, "table"));
-                const filterColumnRaw = stringField(body, "filterColumn");
-                if (!table || !filterColumnRaw) return errorResponse("Invalid or disallowed table name or missing fields", headers, 400);
-                const filterCol = sanitizeColumnName(table, filterColumnRaw);
-                if (!filterCol) return errorResponse("Invalid filter column", headers, 400);
-                const {error} = await supabase.from(table).delete().eq(filterCol, body?.value as any);
-                if (error) return errorResponse("Failed to delete record", headers, 400);
-                return jsonResponse({success: true}, headers);
-            }
+            case "insert":
+            case "update":
+            case "delete":
+                return errorResponse("Generic mutation endpoints have been removed for security. Use the appropriate service endpoint instead.", headers, 403);
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }

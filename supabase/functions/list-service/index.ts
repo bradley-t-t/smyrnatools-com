@@ -15,6 +15,12 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -64,14 +70,14 @@ Deno.serve(async (req) => {
                 return jsonResponse({profiles: data ?? []}, headers);
             }
             case "create": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {userId, description, plantCode, deadline, comments, status, responsible_role} = body;
-                if (typeof userId !== "string" || !userId) return errorResponse("User ID is required", headers, 400);
+                const {description, plantCode, deadline, comments, status, responsible_role} = body;
                 if (typeof description !== "string" || !description.trim()) return errorResponse("Description is required", headers, 400);
                 const id = crypto.randomUUID();
                 const now = nowISO();
                 const {error} = await supabase.from(LIST_ITEMS_TABLE).insert({
-                    id, user_id: userId,
+                    id, user_id: auth,
                     plant_code: typeof plantCode === "string" ? plantCode.trim() : "",
                     description: description.trim(),
                     deadline: typeof deadline === "string" ? deadline : (deadline instanceof Date ? deadline.toISOString() : deadline ?? null),
@@ -84,6 +90,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true, id}, headers);
             }
             case "update": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const item = body?.item ?? body;
                 if (!item?.id || typeof item.id !== "string") return errorResponse("Item ID is required", headers, 400);
@@ -101,10 +108,10 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "toggle-completion": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {id, currentUserId, completed} = body;
+                const {id, completed} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
-                if (typeof currentUserId !== "string" || !currentUserId) return errorResponse("No authenticated user", headers, 400);
                 const now = nowISO();
                 let newStatus: boolean | null = typeof completed === "boolean" ? completed : null;
                 if (newStatus === null) {
@@ -114,12 +121,13 @@ Deno.serve(async (req) => {
                 }
                 const {error} = await supabase.from(LIST_ITEMS_TABLE).update({
                     completed: newStatus, completed_at: newStatus ? now : null,
-                    completed_by: newStatus ? currentUserId : null, status: newStatus ? "completed" : "pending"
+                    completed_by: newStatus ? auth : null, status: newStatus ? "completed" : "pending"
                 }).eq("id", id);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {id} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
@@ -137,18 +145,20 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-planned-item": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {listItemId, plannedDate, userId} = body;
+                const {listItemId, plannedDate} = body;
                 if (typeof listItemId !== "string" || !listItemId) return errorResponse("List item ID is required", headers, 400);
                 if (typeof plannedDate !== "string" || !plannedDate) return errorResponse("Planned date is required", headers, 400);
                 const id = crypto.randomUUID();
                 const {error} = await supabase.from(PLANNED_ITEMS_TABLE).insert({
-                    id, list_item_id: listItemId, planned_date: plannedDate, created_by: typeof userId === "string" ? userId : null
+                    id, list_item_id: listItemId, planned_date: plannedDate, created_by: auth
                 });
                 if (error) return errorResponse(error.code === "23505" ? "Item already planned for this date" : "Operation failed", headers, 400);
                 return jsonResponse({success: true, id}, headers);
             }
             case "remove-planned-item": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {listItemId, plannedDate} = body;
                 if (typeof listItemId !== "string" || !listItemId) return errorResponse("List item ID is required", headers, 400);
@@ -158,6 +168,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "clear-planned-items": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {startDate, endDate} = body;
                 if (!startDate && !endDate) return errorResponse("Date range required for clear operation", headers, 400);

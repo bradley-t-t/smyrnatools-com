@@ -2,6 +2,12 @@
 import {jsonResponse, errorResponse} from "./cors.ts";
 
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
+
+export async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
 const ALLOWED_SEVERITIES = ["Low", "Medium", "High"];
 const DEFAULT_HISTORY_LIMIT = 200;
 const DEFAULT_SERVICE_THRESHOLD_DAYS = 30;
@@ -118,6 +124,7 @@ export async function handleFetchComments(supabase: any, body: any, tables: Asse
 }
 
 export async function handleAddComment(supabase: any, body: any, tables: AssetTables, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[tables.idKey] === "string" ? body[tables.idKey] : null;
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     const author = typeof body?.author === "string" ? body.author.trim() : "";
@@ -131,6 +138,7 @@ export async function handleAddComment(supabase: any, body: any, tables: AssetTa
 }
 
 export async function handleDeleteComment(supabase: any, body: any, table: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const commentId = typeof body?.commentId === "string" ? body.commentId : null;
     if (!commentId) return errorResponse("Comment ID is required", headers, 400);
     const {error} = await supabase.from(table).delete().eq("id", commentId);
@@ -150,6 +158,7 @@ export async function handleFetchHistory(supabase: any, body: any, table: string
 }
 
 export async function handleAddHistory(supabase: any, body: any, req: Request, table: string, idKey: string, bodyKey: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     const fieldName = typeof body?.fieldName === "string" ? body.fieldName : null;
     if (!entityId) return errorResponse(`${bodyKey} is required`, headers, 400);
@@ -159,7 +168,7 @@ export async function handleAddHistory(supabase: any, body: any, req: Request, t
     const b = normalize(fieldName, oldValue);
     const a = normalize(fieldName, newValue);
     if (b === a) return jsonResponse({data: null, skipped: true}, headers);
-    const userId = resolveChangedBy(body, req);
+    const userId = auth;
     const {data, error} = await supabase.from(table).insert({
         [idKey]: entityId, field_name: fieldName,
         old_value: b != null ? String(b) : null, new_value: a != null ? String(a) : null,
@@ -178,22 +187,22 @@ export async function handleFetchIssues(supabase: any, body: any, table: string,
 }
 
 export async function handleAddIssue(supabase: any, body: any, table: string, idKey: string, bodyKey: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     const issue = typeof body?.issue === "string" ? body.issue.trim() : "";
     const severityIn = typeof body?.severity === "string" ? body.severity : "";
-    const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
     if (!entityId) return errorResponse(`${bodyKey} is required`, headers, 400);
     if (!issue) return errorResponse("Issue description is required", headers, 400);
-    if (!userId) return errorResponse("User ID is required", headers, 400);
     const severity = ALLOWED_SEVERITIES.includes(severityIn) ? severityIn : "Medium";
     const {data, error} = await supabase.from(table).insert({
-        id: crypto.randomUUID(), [idKey]: entityId, issue, severity, time_created: nowIso(), created_by: userId
+        id: crypto.randomUUID(), [idKey]: entityId, issue, severity, time_created: nowIso(), created_by: auth
     }).select().maybeSingle();
     if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data}, headers);
 }
 
 export async function handleCompleteIssue(supabase: any, body: any, table: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {error} = await supabase.from(table).update({time_completed: nowIso()}).eq("id", issueId);
@@ -202,6 +211,7 @@ export async function handleCompleteIssue(supabase: any, body: any, table: strin
 }
 
 export async function handleDeleteIssue(supabase: any, body: any, table: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {error, count} = await supabase.from(table).delete({count: "exact"}).eq("id", issueId);
@@ -211,6 +221,7 @@ export async function handleDeleteIssue(supabase: any, body: any, table: string,
 }
 
 export async function handleDelete(supabase: any, body: any, mainTable: string, historyTable: string, historyIdKey: string, entityLabel: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const id = typeof body?.id === "string" ? body.id : null;
     if (!id) return errorResponse(`${entityLabel} ID is required`, headers, 400);
     const {error: hErr} = await supabase.from(historyTable).delete().eq(historyIdKey, id);
@@ -258,10 +269,10 @@ export async function handleFetchCleanlinessHistory(supabase: any, body: any, ta
 }
 
 export async function handleVerify(supabase: any, body: any, req: Request, table: string, idKey: string, bodyIdKey: string, headers: Record<string, string>): Promise<Response> {
+    const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
     const id = typeof body?.id === "string" ? body.id : (typeof body?.[bodyIdKey] === "string" ? body[bodyIdKey] : null);
-    const userId = resolveUserId(body, req);
+    const userId = auth;
     if (!id) return errorResponse(`${bodyIdKey} is required`, headers, 400);
-    if (!userId) return errorResponse("User ID is required", headers, 400);
     const patch: Record<string, any> = {updated_last: nowIso(), updated_by: userId};
     const y = normalizeYear(body?.year ?? body?.data?.year);
     if (y != null) patch.year = y;

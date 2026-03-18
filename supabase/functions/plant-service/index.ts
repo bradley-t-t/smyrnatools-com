@@ -19,6 +19,22 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
+const PERMISSIONS_TABLE = "users_permissions";
+const ROLES_SELECT = "role_id, users_roles(id, name, permissions, weight)";
+const ELEVATED_WEIGHT_THRESHOLD = 75;
+
+async function requireElevatedCaller(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    const user = data?.user;
+    if (error || !user?.id) return errorResponse("Unauthorized", headers, 401);
+    const {data: perms} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", user.id);
+    const roles = perms?.map((item: any) => item.users_roles) ?? [];
+    if (!roles.some((role: any) => (role?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD)) {
+        return errorResponse("Forbidden: insufficient privileges", headers, 403);
+    }
+    return user.id;
+}
+
 async function fetchRegionIds(supabase: any, plantCode: string): Promise<number[]> {
     for (const table of REGION_PLANTS_TABLES) {
         const {data, error} = await supabase.from(table).select("region_id").eq("plant_code", plantCode);
@@ -55,6 +71,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = trimString(body?.plantCode);
                 const plantName = trimString(body?.plantName);
@@ -65,6 +82,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "update": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = trimString(body?.plantCode);
                 const plantName = trimString(body?.plantName);
@@ -74,6 +92,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = body?.plantCode;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);

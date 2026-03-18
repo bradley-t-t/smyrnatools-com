@@ -20,6 +20,22 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
+const PERMISSIONS_TABLE = "users_permissions";
+const ROLES_SELECT = "role_id, users_roles(id, name, permissions, weight)";
+const ELEVATED_WEIGHT_THRESHOLD = 75;
+
+async function requireElevatedCaller(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    const user = data?.user;
+    if (error || !user?.id) return errorResponse("Unauthorized", headers, 401);
+    const {data: perms} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", user.id);
+    const roles = perms?.map((item: any) => item.users_roles) ?? [];
+    if (!roles.some((role: any) => (role?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD)) {
+        return errorResponse("Forbidden: insufficient privileges", headers, 403);
+    }
+    return user.id;
+}
+
 async function fetchRegionId(supabase: any, regionCode: string, headers: Record<string, string>): Promise<{ id: string } | Response> {
     const {data, error} = await supabase.from(REGIONS_TABLE).select("id").eq("region_code", regionCode).maybeSingle();
     if (error || !data) return errorResponse("Region not found", headers, 400);
@@ -54,6 +70,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const regionCode = requireString(body, "regionCode");
                 const regionName = requireString(body, "regionName");
@@ -66,6 +83,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "update": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const regionCode = requireString(body, "regionCode");
                 const regionName = requireString(body, "regionName");
@@ -99,6 +117,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
+                const auth = await requireElevatedCaller(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const regionCode = requireString(body, "regionCode");
                 if (!regionCode) return errorResponse("Region code is required", headers, 400);

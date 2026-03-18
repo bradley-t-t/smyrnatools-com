@@ -15,6 +15,12 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return data.user.id;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -33,6 +39,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "upsert-travel-time": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {fromPlantCode, toPlantCode, travelMinutes} = body;
                 if (!fromPlantCode || !toPlantCode || typeof travelMinutes !== "number") {
@@ -45,6 +52,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete-travel-time": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {fromPlantCode, toPlantCode} = body;
                 if (!fromPlantCode || !toPlantCode) return errorResponse("fromPlantCode and toPlantCode are required", headers, 400);
@@ -61,6 +69,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "save-plan": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {planDate, assignments, notes, plantProduction} = body;
                 if (!planDate) return errorResponse("planDate is required", headers, 400);
@@ -80,16 +89,18 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "save-template": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {userId, name, assignments, notes} = body;
-                if (!userId || !name) return errorResponse("userId and name are required", headers, 400);
+                const {name, assignments, notes} = body;
+                if (!name) return errorResponse("name is required", headers, 400);
                 const {error} = await supabase.from(TEMPLATES_TABLE).insert({
-                    user_id: userId, name, assignments: assignments ?? [], notes: notes ?? "", created_at: nowISO()
+                    user_id: auth, name, assignments: assignments ?? [], notes: notes ?? "", created_at: nowISO()
                 });
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
             case "delete-template": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {templateId} = body;
                 if (!templateId) return errorResponse("templateId is required", headers, 400);

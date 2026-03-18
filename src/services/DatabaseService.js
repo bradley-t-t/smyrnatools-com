@@ -154,20 +154,6 @@ export const createPartialTextFilter = (column, searchTerm) => {
  * All table and column names are sanitized before being sent to the API.
  */
 export const DatabaseUtils = {
-    /** Deletes records matching a filter column/value from an allowlisted table. */
-    async delete(table, filterColumn, value) {
-        const sanitizedTable = sanitizeTableName(table)
-        const sanitizedColumn = sanitizeColumnName(filterColumn)
-        if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
-        if (!sanitizedColumn || value === undefined) throw new Error('Filter column and value are required')
-        const { res, json } = await APIUtility.post('/database-service/delete', {
-            filterColumn: sanitizedColumn,
-            table: sanitizedTable,
-            value
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to delete')
-        return true
-    },
     /** Fetches records from an allowlisted table filtered by a column/value pair. */
     async fetch(table, columns = '*', filterColumn, value) {
         const sanitizedTable = sanitizeTableName(table)
@@ -194,32 +180,5 @@ export const DatabaseUtils = {
         })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch all')
         return json?.data ?? []
-    },
-    /** Inserts a record into an allowlisted table. */
-    async insert(table, item) {
-        const sanitizedTable = sanitizeTableName(table)
-        if (!sanitizedTable || !item) throw new Error('Invalid table or item missing')
-        const { res, json } = await APIUtility.post('/database-service/insert', {
-            item,
-            table: sanitizedTable
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to insert')
-        return json?.data ?? []
-    },
-    /** Updates records in an allowlisted table matching a filter column/value pair. */
-    async update(table, filterColumn, value, data) {
-        const sanitizedTable = sanitizeTableName(table)
-        const sanitizedColumn = sanitizeColumnName(filterColumn)
-        if (!sanitizedTable) throw new Error('Invalid or disallowed table name')
-        if (!sanitizedColumn || value === undefined || !data)
-            throw new Error('Filter column, value, and data are required')
-        const { res, json } = await APIUtility.post('/database-service/update', {
-            data,
-            filterColumn: sanitizedColumn,
-            table: sanitizedTable,
-            value
-        })
-        if (!res.ok) throw new Error(json?.error || 'Failed to update')
-        return true
     }
 }

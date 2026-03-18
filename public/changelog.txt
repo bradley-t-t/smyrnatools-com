@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.6] - 2026-03-18
+
+- Migrated ~40 direct client-side database mutations to server-side edge functions across auth, sessions, preferences, presence, notifications, reports, maintenance, documents, operators, trailers, managers, and roles
+- Added new edge functions: document-service, maintenance-service, notification-service; expanded auth-service, user-service, user-preferences-service, user-presence-service, report-service, operator-service, trailer-service
+- Added SendAssetMessageModal for sending asset info as messages directly from the asset list row actions
+- Refactored NotificationsModal into a tabbed layout with separate Alerts and Messages tabs, combining notification and message counts in the nav badge
+- Refactored PlanView into extracted sub-components (PlanAssignmentCard, PlanMiniTimeline, PlanSettingsModal, PlanTemplatesModal, TimelineView) and dedicated hooks (usePlanActions, usePlanData, usePlanInsights) with shared PlanComponents and PlanUtility
+- Added Admin nav group to both sidebar and mobile navigation menus
+- Refactored MaintenanceView from card-based layout to a table-based FormTable component with animated row entries and alternating row backgrounds
+- Changed maintenance forms fetch to filter by region code instead of created-by user
+- Improved maintenance due date calculation for monthly/quarterly/yearly frequencies using calendar-period alignment instead of fixed day counts
+- Added logic to only show the current period for newly created maintenance forms with no submission history
+- Replaced manager profile/email/role updates and deletion with server-side UserService methods
+- Replaced operator updates and deletion with OperatorService methods, removing direct Database calls from OperatorDetailView
+- Migrated district manager eligible roles and user plants management from direct DB calls to edge function endpoints
+- Migrated role permission updates, weight changes, and role creation from direct Database mutations to UserService methods
+- Changed dashboard fleet overview active counts to show active operator counts instead of active asset counts
+- Added operator position field to DashboardUtility's slim operator and Operator model's rating field
+- Updated General Manager report export mixer counts to include unassigned active operators
+- Added toMondayIso normalization to report export week ISO handling with safer date parsing
+- Restyled AI Analysis cards in reports from gradient accent backgrounds to neutral slate/bordered design
+- Removed left accent border from ReportCard component
+- Replaced session management in MyAccountView with auth-service edge function calls
+- Added secure-mutation Claude skill for guided migration of client-side mutations
+- Consolidated project instructions into CLAUDE.md, removing redundant .github/instructions.md
+
 ## [35.5] - 2026-03-17
 
 - Added new Safety / Environmental Representative weekly report type with issues table field

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.7] - 2026-03-18
+
+- Added server-side authentication guards (requireAuthenticated / requireElevatedCaller) across all asset edge functions, replacing client-supplied userId with the authenticated user's ID from the JWT
+- Removed generic insert, update, and delete endpoints from database-service, returning a 403 with a message to use service-specific endpoints instead
+- Removed the raw SQL get-all-records endpoint from database-service for security
+- Removed DatabaseUtils.insert, DatabaseUtils.update, and DatabaseUtils.delete from the frontend DatabaseService, leaving only read operations
+- Added requireElevatedCaller role-weight checks to plant-service, region-service, and district-manager-service for create/update/delete and admin operations
+- Simplified NotificationsModal from a tabbed Alerts/Messages layout to a messages-only dropdown with separate Unread and Recent sections
+- Extracted ConversationRow into its own component within NotificationsModal
+- Removed useNotifications hook dependency from Navigation, now using only useMessages for the nav badge count
+- Moved My Account button after Online Users in mobile navigation header ordering
+- Renamed nav button titles from "Notifications & Messages" to "Messages"
+- Added optimistic UI updates to useMessages sendMessage so sent messages appear instantly before server confirmation
+- Removed MTD (month-to-date) column from the aggregate materials table in the General Manager report export, keeping only This Week and YTD
+- Added auth checks to list-service mutation endpoints (create, update, toggle-completion, delete, add/remove/clear planned items)
+- Added auth checks to plan-service mutation endpoints (save-plan, save/delete-template, upsert/delete-travel-time)
+- Added auth checks to mixer-service for upload-image and delete-image endpoints
+- Replaced client-supplied userId with server-derived auth ID in handleAddHistory and handleAddIssue shared helpers
+
 ## [35.6] - 2026-03-18
 
 - Migrated ~40 direct client-side database mutations to server-side edge functions across auth, sessions, preferences, presence, notifications, reports, maintenance, documents, operators, trailers, managers, and roles

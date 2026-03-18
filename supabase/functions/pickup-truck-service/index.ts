@@ -3,7 +3,7 @@ import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 // @ts-ignore
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
 // @ts-ignore
-import {parseBody, nowIso, normalize, computeDiffs, handleFetchHistory, handleFetchComments, handleAddComment, handleDeleteComment, handleFetchIssues, handleAddIssue, handleCompleteIssue, handleDeleteIssue, handleDelete, handleSearchByField} from "../_shared/asset-helpers.ts";
+import {parseBody, nowIso, normalize, computeDiffs, handleFetchHistory, handleFetchComments, handleAddComment, handleDeleteComment, handleFetchIssues, handleAddIssue, handleCompleteIssue, handleDeleteIssue, handleDelete, handleSearchByField, requireAuthenticated} from "../_shared/asset-helpers.ts";
 
 const MAIN_TABLE = "pickup_trucks";
 const HISTORY_TABLE = "pickup_trucks_history";
@@ -48,10 +48,10 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "create": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const pickup = body?.pickup || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
-                if (!userId) return errorResponse("User ID is required", headers, 400);
+                const userId = auth;
                 const now = nowIso();
                 const apiData: Record<string, any> = {
                     vin: typeof pickup?.vin === "string" ? pickup.vin : null,
@@ -71,12 +71,12 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
+                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.pickupId === "string" ? body.pickupId : (typeof body?.id === "string" ? body.id : null);
                 const pickup = body?.pickup || body?.data || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
+                const userId = auth;
                 if (!id) return errorResponse("Pickup Truck ID is required", headers, 400);
-                if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: curErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
                 if (curErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Pickup Truck not found", headers, 404);
