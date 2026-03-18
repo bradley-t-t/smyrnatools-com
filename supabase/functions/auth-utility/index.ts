@@ -43,6 +43,13 @@ function fallbackHash(input: string): string {
     return (hash >>> 0).toString(16);
 }
 
+function getAdminClient(): any {
+    return createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -81,7 +88,8 @@ Deno.serve(async (req) => {
                 const hpUserId = req.headers.get("x-user-id");
                 const hpSessionId = req.headers.get("x-session-id");
                 if (!hpUserId || !hpSessionId) return errorResponse("Unauthorized", headers, 401);
-                const {data: hpSession, error: hpSessionErr} = await supabase.from("users_sessions").select("id").eq("id", hpSessionId).eq("user_id", hpUserId).maybeSingle();
+                const hpAdmin = getAdminClient();
+                const {data: hpSession, error: hpSessionErr} = await hpAdmin.from("users_sessions").select("id").eq("id", hpSessionId).eq("user_id", hpUserId).maybeSingle();
                 if (hpSessionErr || !hpSession) return errorResponse("Unauthorized", headers, 401);
                 let body;
                 try {
@@ -104,7 +112,8 @@ Deno.serve(async (req) => {
                 const guiUserId = req.headers.get("x-user-id");
                 const guiSessionId = req.headers.get("x-session-id");
                 if (!guiUserId || !guiSessionId) return jsonResponse({userId: null}, headers);
-                const {data: guiSession} = await supabase.from("users_sessions").select("id").eq("id", guiSessionId).eq("user_id", guiUserId).maybeSingle();
+                const guiAdmin = getAdminClient();
+                const {data: guiSession} = await guiAdmin.from("users_sessions").select("id").eq("id", guiSessionId).eq("user_id", guiUserId).maybeSingle();
                 if (!guiSession) return jsonResponse({userId: null}, headers);
                 return jsonResponse({userId: guiUserId}, headers);
             }

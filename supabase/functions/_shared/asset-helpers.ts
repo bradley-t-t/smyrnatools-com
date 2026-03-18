@@ -1,16 +1,36 @@
 // @ts-ignore
+import {createClient} from "npm:@supabase/supabase-js@2.45.4";
+// @ts-ignore
 import {jsonResponse, errorResponse} from "./cors.ts";
 
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
 const SESSIONS_TABLE = "users_sessions";
 const SESSION_EXPIRY_DAYS = 7;
 
+/** Creates an admin client using the service role key to bypass RLS for session validation. */
+function getAdminClient(): any {
+    return createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+}
+
+/** Extracts session credentials from body (preferred) or request headers (fallback). */
+function extractSessionCredentials(req: Request, body?: any): { userId: string | null; sessionId: string | null } {
+    const userId = body?.__sessionUserId || req.headers.get("x-user-id") || null;
+    const sessionId = body?.__sessionId || req.headers.get("x-session-id") || null;
+    return { userId, sessionId };
+}
+
 /** Validates the caller's session against the users_sessions table and returns the authenticated userId. */
-export async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
-    const userId = req.headers.get("x-user-id");
-    const sessionId = req.headers.get("x-session-id");
+export async function requireAuthenticated(_supabase: any, req: Request, headers: any, body?: any): Promise<string | Response> {
+    let { userId, sessionId } = extractSessionCredentials(req, body);
+    if (!userId || !sessionId) {
+        try { const b = await req.clone().json(); userId = userId || b?.__sessionUserId; sessionId = sessionId || b?.__sessionId; } catch {}
+    }
     if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
-    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    const admin = getAdminClient();
+    const {data, error} = await admin.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
     if (error || !data) return errorResponse("Unauthorized", headers, 401);
     if (data.last_active) {
         const lastActive = new Date(data.last_active);
@@ -18,15 +38,16 @@ export async function requireAuthenticated(supabase: any, req: Request, headers:
         expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
         if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
     }
-    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    admin.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
     return userId;
 }
 
 const PERMISSIONS_TABLE = "users_permissions";
 const ROLES_SELECT = "role_id, users_roles(weight)";
 
-export async function getUserWeight(supabase: any, userId: string): Promise<number> {
-    const {data} = await supabase.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", userId);
+export async function getUserWeight(_supabase: any, userId: string): Promise<number> {
+    const admin = getAdminClient();
+    const {data} = await admin.from(PERMISSIONS_TABLE).select(ROLES_SELECT).eq("user_id", userId);
     if (!data?.length) return 0;
     return Math.max(...data.map((d: any) => d.users_roles?.weight ?? 0));
 }
@@ -155,7 +176,7 @@ export async function handleFetchComments(supabase: any, body: any, tables: Asse
 }
 
 export async function handleAddComment(supabase: any, body: any, req: Request, tables: AssetTables, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[tables.idKey] === "string" ? body[tables.idKey] : null;
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     const author = typeof body?.author === "string" ? body.author.trim() : "";
@@ -169,7 +190,7 @@ export async function handleAddComment(supabase: any, body: any, req: Request, t
 }
 
 export async function handleDeleteComment(supabase: any, body: any, req: Request, table: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const commentId = typeof body?.commentId === "string" ? body.commentId : null;
     if (!commentId) return errorResponse("Comment ID is required", headers, 400);
     const {error} = await supabase.from(table).delete().eq("id", commentId);
@@ -189,7 +210,7 @@ export async function handleFetchHistory(supabase: any, body: any, table: string
 }
 
 export async function handleAddHistory(supabase: any, body: any, req: Request, table: string, idKey: string, bodyKey: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     const fieldName = typeof body?.fieldName === "string" ? body.fieldName : null;
     if (!entityId) return errorResponse(`${bodyKey} is required`, headers, 400);
@@ -218,7 +239,7 @@ export async function handleFetchIssues(supabase: any, body: any, table: string,
 }
 
 export async function handleAddIssue(supabase: any, body: any, req: Request, table: string, idKey: string, bodyKey: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const entityId = typeof body?.[bodyKey] === "string" ? body[bodyKey] : null;
     const issue = typeof body?.issue === "string" ? body.issue.trim() : "";
     const severityIn = typeof body?.severity === "string" ? body.severity : "";
@@ -233,7 +254,7 @@ export async function handleAddIssue(supabase: any, body: any, req: Request, tab
 }
 
 export async function handleCompleteIssue(supabase: any, body: any, req: Request, table: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {error} = await supabase.from(table).update({time_completed: nowIso()}).eq("id", issueId);
@@ -242,7 +263,7 @@ export async function handleCompleteIssue(supabase: any, body: any, req: Request
 }
 
 export async function handleDeleteIssue(supabase: any, body: any, req: Request, table: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const issueId = typeof body?.issueId === "string" ? body.issueId : null;
     if (!issueId) return errorResponse("Issue ID is required", headers, 400);
     const {data: issue} = await supabase.from(table).select("created_by").eq("id", issueId).maybeSingle();
@@ -255,7 +276,7 @@ export async function handleDeleteIssue(supabase: any, body: any, req: Request, 
 }
 
 export async function handleDelete(supabase: any, body: any, req: Request, mainTable: string, historyTable: string, historyIdKey: string, entityLabel: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const id = typeof body?.id === "string" ? body.id : null;
     if (!id) return errorResponse(`${entityLabel} ID is required`, headers, 400);
     const {data: entity} = await supabase.from(mainTable).select("updated_by").eq("id", id).maybeSingle();
@@ -307,7 +328,7 @@ export async function handleFetchCleanlinessHistory(supabase: any, body: any, ta
 }
 
 export async function handleVerify(supabase: any, body: any, req: Request, table: string, idKey: string, bodyIdKey: string, headers: Record<string, string>): Promise<Response> {
-    const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+    const auth = await requireAuthenticated(supabase, req, headers, body); if (auth instanceof Response) return auth;
     const id = typeof body?.id === "string" ? body.id : (typeof body?.[bodyIdKey] === "string" ? body[bodyIdKey] : null);
     const userId = auth;
     if (!id) return errorResponse(`${bodyIdKey} is required`, headers, 400);

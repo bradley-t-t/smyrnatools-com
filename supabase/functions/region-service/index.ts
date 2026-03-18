@@ -23,11 +23,20 @@ function nowISO(): string {
 const SESSIONS_TABLE = "users_sessions";
 const SESSION_EXPIRY_DAYS = 7;
 
-async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
-    const userId = req.headers.get("x-user-id");
-    const sessionId = req.headers.get("x-session-id");
+function getAdminClient(): any {
+    return createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+}
+
+async function requireAuthenticated(_supabase: any, req: Request, headers: any, body?: any): Promise<string | Response> {
+    let userId = body?.__sessionUserId || req.headers.get("x-user-id") || null;
+    let sessionId = body?.__sessionId || req.headers.get("x-session-id") || null;
+    if (!userId || !sessionId) { try { const b = await req.clone().json(); userId = userId || b?.__sessionUserId; sessionId = sessionId || b?.__sessionId; } catch {} }
     if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
-    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    const admin = getAdminClient();
+    const {data, error} = await admin.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
     if (error || !data) return errorResponse("Unauthorized", headers, 401);
     if (data.last_active) {
         const lastActive = new Date(data.last_active);
@@ -35,7 +44,7 @@ async function requireAuthenticated(supabase: any, req: Request, headers: any): 
         expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
         if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
     }
-    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    admin.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
     return userId;
 }
 
@@ -44,7 +53,8 @@ const ELEVATED_WEIGHT_THRESHOLD = 75;
 async function requireElevatedCaller(supabase: any, req: Request, headers: any): Promise<Response | null> {
     const auth = await requireAuthenticated(supabase, req, headers);
     if (auth instanceof Response) return auth;
-    const {data} = await supabase.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", auth);
+    const admin = getAdminClient();
+    const {data} = await admin.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", auth);
     const isElevated = data?.some((p: any) => (p.users_roles?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD);
     if (!isElevated) return errorResponse("Forbidden: insufficient privileges", headers, 403);
     return null;

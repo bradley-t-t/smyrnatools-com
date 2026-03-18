@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.1] - 2026-03-18
+
+- smyrnatools.com Release v36.1
+
 ## [36.0] - 2026-03-18
 
 - Replaced Supabase JWT auth with custom session-based authentication across all edge functions, validating X-User-Id and X-Session-Id headers against the users_sessions table with 7-day session expiry

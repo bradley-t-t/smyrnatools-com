@@ -6,16 +6,15 @@ const DEFAULT_RETRY_DELAY_MS = 1_000
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
 
-/** Builds custom session headers from localStorage for edge function authentication. */
-const getSessionHeaders = () => {
-    const headers = {}
+/** Reads session credentials from localStorage for edge function authentication. */
+const getSessionCredentials = () => {
     try {
-        const userId = localStorage.getItem(SESSION_KEY)
-        const sessionId = localStorage.getItem(SESSION_ID_KEY)
-        if (userId) headers['X-User-Id'] = userId
-        if (sessionId) headers['X-Session-Id'] = sessionId
+        return {
+            __sessionUserId: localStorage.getItem(SESSION_KEY) || undefined,
+            __sessionId: localStorage.getItem(SESSION_ID_KEY) || undefined
+        }
     } catch {}
-    return headers
+    return {}
 }
 /**
  * Builds a plain error response in the same shape as a successful response,
@@ -44,11 +43,10 @@ const APIUtility = {
             const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
             try {
                 const res = await fetch(url, {
-                    body: JSON.stringify(data),
+                    body: JSON.stringify({ ...data, ...getSessionCredentials() }),
                     headers: {
                         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
                         'Content-Type': 'application/json',
-                        ...getSessionHeaders(),
                         ...(options.headers || {})
                     },
                     keepalive: Boolean(options.keepalive),

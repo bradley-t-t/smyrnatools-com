@@ -257,7 +257,8 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
             }
             await OperatorService.updateOperator({
                 ...updateObj,
-                employee_id: operatorId
+                employee_id: operatorId,
+                employeeId: operatorId
             })
             setMessage('Changes saved successfully!')
             fetchData()

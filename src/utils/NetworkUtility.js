@@ -26,7 +26,7 @@ const NetworkUtility = {
             }
         }
         try {
-            const res = await fetch(`/turl.json?cb=${Date.now()}`, {
+            const res = await fetch(`/nit.json?cb=${Date.now()}`, {
                 cache: 'reload',
                 method: 'GET',
                 signal: controller.signal
