@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.5] - 2026-03-17
+
+- Added new Safety / Environmental Representative weekly report type with issues table field
+- Wired safety_environmental_rep into submit, review, and validation flows using the existing safety manager plugin
+- Refactored roles permission matrix to use a fixed table layout with truncated role names instead of horizontal scrolling
+- Removed custom vertical-to-horizontal mouse wheel scroll handler from the roles matrix
+- Added return travel visualization to the plan timeline, showing a dashed block after leave time
+- Updated plan timeline overlap detection to account for return travel when calculating end-of-shift times
+- Changed operator count in the plan summary bar to show effective operators (home + received help) instead of just home count, with a colored indicator showing how many are received
+- Updated yards-per-hour-per-operator and available-to-send calculations to use effective operator count
+
 ## [35.4] - 2026-03-17
 
 - smyrnatools.com Release v35.4

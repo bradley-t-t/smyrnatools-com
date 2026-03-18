@@ -270,6 +270,40 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse("Failed to update additional plants", headers, 500);
                 return jsonResponse(true, headers);
             }
+            case "update-manager": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
+                const {userId: targetId, profile, email: managerEmail, roleId} = body;
+                if (!targetId) return errorResponse("User ID is required", headers);
+                const id = resolveUserId(targetId);
+                const now = nowISO();
+                if (profile) {
+                    const {error: profErr} = await supabase.from(PROFILES_TABLE).update({...profile, updated_at: now}).eq('id', id);
+                    if (profErr) return errorResponse("Failed to update profile", headers, 500);
+                }
+                if (managerEmail) {
+                    const {error: userErr} = await supabase.from(USERS_TABLE).update({email: managerEmail, updated_at: now}).eq('id', id);
+                    if (userErr) return errorResponse("Failed to update email", headers, 500);
+                }
+                if (roleId) {
+                    const {data: existing} = await supabase.from(PERMISSIONS_TABLE).select('user_id').eq('user_id', id);
+                    const roleUpdate = {role_id: roleId, updated_at: now};
+                    const {error: permErr} = existing?.length
+                        ? await supabase.from(PERMISSIONS_TABLE).update(roleUpdate).eq('user_id', id)
+                        : await supabase.from(PERMISSIONS_TABLE).insert({...roleUpdate, user_id: id, created_at: now});
+                    if (permErr) return errorResponse("Failed to update role assignment", headers, 500);
+                }
+                return jsonResponse(true, headers);
+            }
+            case "delete-manager": {
+                const authErr = await requireElevatedCaller(supabase, headers);
+                if (authErr) return authErr;
+                const {userId: delId} = body;
+                if (!delId) return errorResponse("User ID is required", headers);
+                const {error} = await supabase.from(USERS_TABLE).delete().eq('id', resolveUserId(delId));
+                if (error) return errorResponse("Failed to delete manager", headers, 500);
+                return jsonResponse(true, headers);
+            }
             default:
                 return jsonResponse({error: "Invalid endpoint", path: url.pathname}, headers, 404);
         }

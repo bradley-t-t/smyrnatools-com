@@ -446,6 +446,7 @@ function AssetView({
                 onOperatorComment={(op) => modalsRef.current?.openOperatorCommentModal(op)}
                 onOperatorHistory={(op) => modalsRef.current?.openOperatorHistoryModal(op)}
                 onSelect={handleSelect}
+                onSendMessage={(item, identifier) => modalsRef.current?.openSendMessageModal(item, identifier)}
                 onVerify={onVerify}
                 operators={data.operators}
                 plants={data.plants}

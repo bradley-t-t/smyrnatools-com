@@ -175,6 +175,12 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
                 operatorsTotals.lightDuty++
             }
         })
+        const mixerActiveOperators = allOperatorsRef.current.filter(
+            (o) => consider(o.plantCode) && o.status === 'Active' && o.position === 'Mixer Operator'
+        ).length
+        const tractorActiveOperators = allOperatorsRef.current.filter(
+            (o) => consider(o.plantCode) && o.status === 'Active' && o.position === 'Tractor Operator'
+        ).length
         const mixersVerifiedPercent = CALC_PERCENT(mixersTotals.verified, mixersAvailable)
         const tractorsVerifiedPercent = CALC_PERCENT(tractorsTotals.verified, tractorsAvailable)
         const verifiedValues = []
@@ -210,6 +216,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             fleetTotal,
             mixers: {
                 ...mixersTotals,
+                activeOperators: mixerActiveOperators,
                 allocationPercent: mixersAllocationPercent,
                 verifiedPercent: mixersVerifiedPercent
             },
@@ -220,6 +227,7 @@ export function useDashboardStats({ createFilterFn, dashboardRegionCode, updateP
             pickups: { ...pickupsTotals, allocationPercent: pickupsAllocationPercent },
             tractors: {
                 ...tractorsTotals,
+                activeOperators: tractorActiveOperators,
                 allocationPercent: tractorsAllocationPercent,
                 verifiedPercent: tractorsVerifiedPercent
             },

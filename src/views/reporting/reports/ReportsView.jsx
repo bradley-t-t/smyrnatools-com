@@ -13,7 +13,7 @@ import { usePagination } from '../../../app/hooks/usePagination'
 import { useReportsData } from '../../../app/hooks/useReportsData'
 import { useReportSubmission } from '../../../app/hooks/useReportSubmission'
 import { reportTypeMap, reportTypes } from '../../../app/types/ReportTypes'
-import { Database } from '../../../services/DatabaseService'
+import { ReportService } from '../../../services/ReportService'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
 /**
@@ -213,11 +213,8 @@ function ReportsView() {
     }
     const handleReview = async (report) => {
         if (report.userId !== user?.id) {
-            const { error } = await Database.from('reports_reviewed').upsert(
-                { report_id: report.id, reviewed_at: new Date().toISOString(), reviewed_by_user_id: user.id },
-                { onConflict: 'report_id,reviewed_by_user_id' }
-            )
-            if (!error) markReportReviewed(report.id)
+            const success = await ReportService.markReviewed(report.id, user.id)
+            if (success) markReportReviewed(report.id)
         }
         setReviewData(report)
         setShowReview(reportTypes.find((rt) => rt.name === report.name))

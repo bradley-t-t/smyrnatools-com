@@ -110,36 +110,76 @@ function EmptyState({ icon, title, message, children }) {
     )
 }
 
-function ItemCard({ item, status, title, description, meta, onClick }) {
-    return (
-        <div
-            className={`flex items-start gap-4 rounded-xl border border-[var(--border-light)] p-5 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                status === 'completed' ? 'bg-[var(--bg-secondary)] opacity-70' : 'bg-[var(--bg-primary)]'
-            }`}
-            onClick={onClick}
-        >
-            <ItemIcon status={status} />
-            <div className="flex-1 min-w-0">
-                <h4 className="text-base font-semibold text-[var(--text-primary)] mb-1">{title}</h4>
-                {description && <p className="text-sm text-[var(--text-secondary)] mb-3">{description}</p>}
-                <div className="flex items-center flex-wrap gap-4">
-                    {meta.map(({ icon, text, highlight }) => (
-                        <span
-                            key={text}
-                            className={`flex items-center gap-1.5 text-[0.8125rem] ${
-                                highlight
-                                    ? 'bg-[var(--bg-secondary)] border border-blue-500 rounded-md text-blue-500 font-semibold px-2.5 py-1'
-                                    : 'text-[var(--text-secondary)]'
-                            }`}
-                        >
-                            <i className={`fas ${icon}`} />
-                            {text}
-                        </span>
-                    ))}
-                </div>
+const BASE_ROW_DELAY_MS = 160
+const MIN_ROW_DELAY_MS = 12
+const DECAY_FACTOR = 0.9
+
+function getRowDelay(index) {
+    let total = 0
+    for (let i = 0; i < index; i++) {
+        total += Math.max(MIN_ROW_DELAY_MS, BASE_ROW_DELAY_MS * Math.pow(DECAY_FACTOR, i))
+    }
+    return Math.round(total)
+}
+
+function FormTable({ columns, rows, emptyIcon, emptyTitle, emptyMessage, emptyChildren, onRowClick }) {
+    const cellBase = 'text-[var(--text-primary)] font-medium text-left align-middle whitespace-nowrap text-sm py-4 px-5'
+    const cellSecondary = 'text-[var(--text-secondary)] text-left align-middle whitespace-nowrap text-[13px] py-4 px-5'
+    const headerCell = 'text-[var(--text-secondary)] font-semibold text-left text-xs uppercase tracking-wide py-3 px-5'
+
+    if (!rows || rows.length === 0) {
+        return (
+            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
+                <EmptyState icon={emptyIcon} title={emptyTitle} message={emptyMessage}>
+                    {emptyChildren}
+                </EmptyState>
             </div>
-            <div className="shrink-0">
-                <StatusBadge status={status} />
+        )
+    }
+
+    return (
+        <div className="overflow-x-auto">
+            <div className="bg-[var(--bg-primary)] border border-[var(--border-light)] w-full overflow-hidden rounded-t-xl">
+                <table className="border-collapse w-full">
+                    <thead>
+                        <tr
+                            className="border-b border-[var(--border-light)]"
+                            style={{ backgroundColor: 'var(--bg-secondary)' }}
+                        >
+                            {columns.map((col) => (
+                                <th
+                                    key={col.key}
+                                    className={headerCell}
+                                    style={col.width ? { width: col.width } : undefined}
+                                >
+                                    {col.label}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((row, index) => {
+                            const alternatingBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
+                            return (
+                                <tr
+                                    key={row.id}
+                                    className="animate-slide-in-row border-b border-[var(--border-light)] cursor-pointer hover:[&>td]:bg-[var(--bg-hover)]"
+                                    style={{
+                                        animationDelay: `${getRowDelay(index)}ms`,
+                                        backgroundColor: alternatingBg
+                                    }}
+                                    onClick={() => onRowClick?.(row)}
+                                >
+                                    {columns.map((col) => (
+                                        <td key={col.key} className={col.highlight ? cellBase : cellSecondary}>
+                                            {col.render ? col.render(row) : row[col.key]}
+                                        </td>
+                                    ))}
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </table>
             </div>
         </div>
     )
@@ -228,7 +268,7 @@ export default function MaintenanceView() {
                 perms.canReview ? MaintenanceService.fetchPendingReviews().catch(() => []) : [],
                 perms.canReview ? MaintenanceService.fetchReviewedSubmissions().catch(() => []) : [],
                 MaintenanceService.fetchMySubmissions(user?.id).catch(() => []),
-                MaintenanceService.fetchForms({ createdBy: user?.id }).catch(() => [])
+                MaintenanceService.fetchForms({ regionCode }).catch(() => [])
             ])
             setDueItems(due)
             setPendingReviews(reviews)
@@ -392,62 +432,99 @@ export default function MaintenanceView() {
 
     // ── Tab content renderers ───────────────────────────────────
 
+    const dueColumns = [
+        { highlight: true, key: 'title', label: 'Form', render: (row) => row.form?.title || '—' },
+        {
+            key: 'plant',
+            label: 'Plant',
+            render: (row) =>
+                row.plant_code ? (
+                    <span className="bg-[var(--bg-secondary)] border border-blue-500 rounded-md text-blue-500 font-semibold px-2.5 py-1 text-xs">
+                        {row.plant_code}
+                    </span>
+                ) : (
+                    '—'
+                ),
+            width: '100px'
+        },
+        { key: 'due_date', label: 'Due Date', render: (row) => formatMaintenanceDate(row.due_date), width: '140px' },
+        {
+            key: 'frequency',
+            label: 'Frequency',
+            render: (row) => formatFrequency(row.form?.frequency, row.form?.frequency_value),
+            width: '140px'
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (row) => <StatusBadge status={row.status} />,
+            width: '120px'
+        }
+    ]
+
     const renderDueTab = () => {
         if (formLoading) return <FormTabSkeleton />
 
-        const filtered = dueItems.filter((item) => {
-            if (selectedPlant && selectedPlant !== 'All' && item.plant_code !== selectedPlant) return false
-            if (searchText) {
-                const q = searchText.trim().toLowerCase()
-                const searchable = [item.form?.title, item.plant_code].filter(Boolean).join(' ').toLowerCase()
-                if (!searchable.includes(q)) return false
-            }
-            return true
-        })
-
-        if (filtered.length === 0) {
-            return (
-                <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                    <EmptyState
-                        icon="fa-check-circle"
-                        title={dueItems.length === 0 ? 'All caught up!' : 'No matching tasks'}
-                        message={
-                            dueItems.length === 0
-                                ? 'You have no maintenance tasks due at this time.'
-                                : 'Try adjusting your filters.'
-                        }
-                    />
-                </div>
-            )
-        }
+        const filtered = dueItems
+            .filter((item) => {
+                if (selectedPlant && selectedPlant !== 'All' && item.plant_code !== selectedPlant) return false
+                if (searchText) {
+                    const q = searchText.trim().toLowerCase()
+                    const searchable = [item.form?.title, item.plant_code].filter(Boolean).join(' ').toLowerCase()
+                    if (!searchable.includes(q)) return false
+                }
+                return true
+            })
+            .sort((a, b) => (a.plant_code || '').localeCompare(b.plant_code || ''))
 
         return (
-            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                <div className="flex flex-col gap-4">
-                    {filtered.map((item) => (
-                        <ItemCard
-                            key={item.id}
-                            item={item}
-                            status={item.status}
-                            title={item.form?.title}
-                            description={item.form?.description}
-                            meta={[
-                                { icon: 'fa-calendar', text: `Due: ${formatMaintenanceDate(item.due_date)}` },
-                                {
-                                    icon: 'fa-sync-alt',
-                                    text: formatFrequency(item.form?.frequency, item.form?.frequency_value)
-                                },
-                                ...(item.plant_code
-                                    ? [{ icon: 'fa-building', text: item.plant_code, highlight: true }]
-                                    : [])
-                            ]}
-                            onClick={() => handleItemClick(item)}
-                        />
-                    ))}
-                </div>
-            </div>
+            <FormTable
+                columns={dueColumns}
+                rows={filtered}
+                emptyIcon="fa-check-circle"
+                emptyTitle={dueItems.length === 0 ? 'All caught up!' : 'No matching tasks'}
+                emptyMessage={
+                    dueItems.length === 0
+                        ? 'You have no maintenance tasks due at this time.'
+                        : 'Try adjusting your filters.'
+                }
+                onRowClick={handleItemClick}
+            />
         )
     }
+
+    const reviewColumns = [
+        { highlight: true, key: 'title', label: 'Form', render: (row) => row.maintenance_forms?.title || '—' },
+        {
+            key: 'plant',
+            label: 'Plant',
+            render: (row) =>
+                row.plant_code ? (
+                    <span className="bg-[var(--bg-secondary)] border border-blue-500 rounded-md text-blue-500 font-semibold px-2.5 py-1 text-xs">
+                        {row.plant_code}
+                    </span>
+                ) : (
+                    '—'
+                ),
+            width: '100px'
+        },
+        { key: 'submitted_by', label: 'Submitted By', render: (row) => row.submitted_by_name || '—', width: '160px' },
+        {
+            key: 'date',
+            label: 'Date',
+            render: (row) =>
+                row.status === 'submitted'
+                    ? formatMaintenanceDate(row.submitted_at)
+                    : formatMaintenanceDate(row.reviewed_at),
+            width: '140px'
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (row) => <StatusBadge status={row.status} />,
+            width: '120px'
+        }
+    ]
 
     const renderReviewTab = () => {
         if (formLoading) return <FormTabSkeleton />
@@ -458,168 +535,126 @@ export default function MaintenanceView() {
             return new Date(b.submitted_at || b.reviewed_at) - new Date(a.submitted_at || a.reviewed_at)
         })
 
-        if (allReviews.length === 0) {
-            return (
-                <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                    <EmptyState
-                        icon="fa-clipboard-check"
-                        title="No submissions to review"
-                        message="Submissions requiring review will appear here."
-                    />
-                </div>
-            )
-        }
-
         return (
-            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                <div className="flex flex-col gap-4">
-                    {allReviews.map((submission) => {
-                        const isPending = submission.status === 'submitted'
-                        return (
-                            <ItemCard
-                                key={submission.id}
-                                item={submission}
-                                status={submission.status}
-                                title={submission.maintenance_forms?.title}
-                                description={
-                                    isPending
-                                        ? 'Pending review'
-                                        : submission.status === 'approved'
-                                          ? 'Approved'
-                                          : 'Rejected'
-                                }
-                                meta={[
-                                    {
-                                        icon: 'fa-calendar',
-                                        text: isPending
-                                            ? `Submitted: ${formatMaintenanceDate(submission.submitted_at)}`
-                                            : `Reviewed: ${formatMaintenanceDate(submission.reviewed_at)}`
-                                    },
-                                    { icon: 'fa-building', text: submission.plant_code || 'N/A' },
-                                    ...(submission.submitted_by_name
-                                        ? [{ icon: 'fa-user', text: submission.submitted_by_name }]
-                                        : [])
-                                ]}
-                                onClick={() =>
-                                    isPending
-                                        ? handleItemClick({
-                                              ...submission,
-                                              form: submission.maintenance_forms,
-                                              isReview: true
-                                          })
-                                        : handleViewSubmission(submission)
-                                }
-                            />
-                        )
-                    })}
-                </div>
-            </div>
+            <FormTable
+                columns={reviewColumns}
+                rows={allReviews}
+                emptyIcon="fa-clipboard-check"
+                emptyTitle="No submissions to review"
+                emptyMessage="Submissions requiring review will appear here."
+                onRowClick={(row) =>
+                    row.status === 'submitted'
+                        ? handleItemClick({ ...row, form: row.maintenance_forms, isReview: true })
+                        : handleViewSubmission(row)
+                }
+            />
         )
     }
+
+    const historyColumns = [
+        { highlight: true, key: 'title', label: 'Form', render: (row) => row.maintenance_forms?.title || '—' },
+        {
+            key: 'submitted_at',
+            label: 'Submitted',
+            render: (row) => formatMaintenanceDate(row.submitted_at),
+            width: '140px'
+        },
+        {
+            key: 'reviewed_at',
+            label: 'Reviewed',
+            render: (row) => (row.reviewed_at ? formatMaintenanceDate(row.reviewed_at) : '—'),
+            width: '140px'
+        },
+        {
+            key: 'notes',
+            label: 'Notes',
+            render: (row) => (
+                <span className="text-[var(--text-secondary)] truncate max-w-[200px] inline-block">
+                    {row.review_notes || '—'}
+                </span>
+            )
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (row) => <StatusBadge status={row.status} />,
+            width: '120px'
+        }
+    ]
 
     const renderHistoryTab = () => {
         if (formLoading) return <FormTabSkeleton />
 
-        if (mySubmissions.length === 0) {
-            return (
-                <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                    <EmptyState
-                        icon="fa-history"
-                        title="No submission history"
-                        message="Your completed submissions will appear here."
-                    />
-                </div>
-            )
-        }
-
         return (
-            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                <div className="flex flex-col gap-4">
-                    {mySubmissions.map((submission) => (
-                        <ItemCard
-                            key={submission.id}
-                            item={submission}
-                            status={submission.status}
-                            title={submission.maintenance_forms?.title}
-                            description={[
-                                submission.status === 'approved' && 'Approved',
-                                submission.status === 'rejected' && 'Rejected',
-                                submission.status === 'submitted' && 'Pending Review',
-                                submission.review_notes && `— ${submission.review_notes}`
-                            ]
-                                .filter(Boolean)
-                                .join(' ')}
-                            meta={[
-                                {
-                                    icon: 'fa-calendar',
-                                    text: `Submitted: ${formatMaintenanceDate(submission.submitted_at)}`
-                                },
-                                ...(submission.reviewed_at
-                                    ? [
-                                          {
-                                              icon: 'fa-clipboard-check',
-                                              text: `Reviewed: ${formatMaintenanceDate(submission.reviewed_at)}`
-                                          }
-                                      ]
-                                    : [])
-                            ]}
-                            onClick={() => handleViewSubmission(submission)}
-                        />
-                    ))}
-                </div>
-            </div>
+            <FormTable
+                columns={historyColumns}
+                rows={mySubmissions}
+                emptyIcon="fa-history"
+                emptyTitle="No submission history"
+                emptyMessage="Your completed submissions will appear here."
+                onRowClick={handleViewSubmission}
+            />
         )
     }
+
+    const manageColumns = [
+        { highlight: true, key: 'title', label: 'Form Title', render: (row) => row.title || '—' },
+        {
+            key: 'description',
+            label: 'Description',
+            render: (row) => (
+                <span className="text-[var(--text-secondary)] truncate max-w-[250px] inline-block">
+                    {row.description || '—'}
+                </span>
+            )
+        },
+        {
+            key: 'frequency',
+            label: 'Frequency',
+            render: (row) => formatFrequency(row.frequency, row.frequency_value),
+            width: '140px'
+        },
+        {
+            key: 'fields',
+            label: 'Fields',
+            render: (row) => `${row.maintenance_form_fields?.length || 0}`,
+            width: '80px'
+        },
+        {
+            key: 'created_at',
+            label: 'Created',
+            render: (row) => formatMaintenanceDate(row.created_at),
+            width: '140px'
+        }
+    ]
 
     const renderManageTab = () => {
         if (formLoading) return <FormTabSkeleton />
 
-        if (myForms.length === 0) {
-            return (
-                <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                    <EmptyState
-                        icon="fa-folder-open"
-                        title="No forms created"
-                        message={
-                            permissions.canCreate
-                                ? 'Create your first maintenance form to get started.'
-                                : 'No maintenance forms have been created yet.'
-                        }
-                    >
-                        {permissions.canCreate && (
-                            <button
-                                className="flex items-center gap-2 rounded-xl text-sm font-semibold px-5 py-2.5 border-none cursor-pointer text-white transition-all"
-                                style={{ background: accentColor }}
-                                onClick={() => setShowCreateForm(true)}
-                            >
-                                <i className="fas fa-plus" /> Create Form
-                            </button>
-                        )}
-                    </EmptyState>
-                </div>
-            )
-        }
-
         return (
-            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-                <div className="flex flex-col gap-4">
-                    {myForms.map((form) => (
-                        <ItemCard
-                            key={form.id}
-                            item={form}
-                            status="default"
-                            title={form.title}
-                            description={form.description}
-                            meta={[
-                                { icon: 'fa-sync-alt', text: formatFrequency(form.frequency, form.frequency_value) },
-                                { icon: 'fa-list', text: `${form.maintenance_form_fields?.length || 0} fields` },
-                                { icon: 'fa-calendar-plus', text: `Created: ${formatMaintenanceDate(form.created_at)}` }
-                            ]}
-                            onClick={() => handleEditForm(form)}
-                        />
-                    ))}
-                </div>
-            </div>
+            <FormTable
+                columns={manageColumns}
+                rows={myForms}
+                emptyIcon="fa-folder-open"
+                emptyTitle="No forms created"
+                emptyMessage={
+                    permissions.canCreate
+                        ? 'Create your first maintenance form to get started.'
+                        : 'No maintenance forms have been created yet.'
+                }
+                emptyChildren={
+                    permissions.canCreate ? (
+                        <button
+                            className="flex items-center gap-2 rounded-xl text-sm font-semibold px-5 py-2.5 border-none cursor-pointer text-white transition-all"
+                            style={{ background: accentColor }}
+                            onClick={() => setShowCreateForm(true)}
+                        >
+                            <i className="fas fa-plus" /> Create Form
+                        </button>
+                    ) : undefined
+                }
+                onRowClick={handleEditForm}
+            />
         )
     }
 
@@ -628,26 +663,30 @@ export default function MaintenanceView() {
     const visibleTabs = TAB_DEFS.filter((tab) => !tab.permission || permissions[tab.permission])
 
     const tabBar = (
-        <div className="flex gap-1 -mx-7 px-7 border-t border-slate-200 mt-2 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 mt-2 overflow-x-auto scrollbar-hide">
             {visibleTabs.map((tab) => {
                 const isActive = activeTab === tab.key
                 const tabBadge = getBadge(tab.key)
                 return (
                     <button
                         key={tab.key}
-                        className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-none bg-transparent cursor-pointer transition-all whitespace-nowrap shrink-0 ${
+                        className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border-none cursor-pointer transition-all whitespace-nowrap shrink-0 ${
                             isActive
-                                ? 'border-b-2'
-                                : 'border-b-2 border-transparent text-slate-500 hover:text-slate-700'
+                                ? 'text-white'
+                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
                         }`}
-                        style={isActive ? { borderColor: accentColor, color: accentColor } : undefined}
+                        style={isActive ? { backgroundColor: accentColor } : undefined}
                         onClick={() => setActiveTab(tab.key)}
                         type="button"
                     >
-                        <i className={`fas ${tab.icon}`} />
+                        <i className={`fas ${tab.icon} text-xs`} />
                         <span>{tab.label}</span>
                         {tabBadge && (
-                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[0.6875rem] font-bold">
+                            <span
+                                className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[0.6875rem] font-bold ${
+                                    isActive ? 'bg-white/25 text-white' : 'bg-red-500 text-white'
+                                }`}
+                            >
                                 {tabBadge}
                             </span>
                         )}
@@ -708,15 +747,13 @@ export default function MaintenanceView() {
                 onReset={handleReset}
                 customBottomContent={tabBar}
                 customBottomSkeleton={
-                    <div className="flex gap-1 -mx-7 px-7 border-t border-slate-200 mt-2">
+                    <div className="flex gap-2 mt-2">
                         {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="flex items-center gap-2 px-4 py-3">
-                                <div className="h-4 w-4 rounded bg-slate-200 animate-pulse" />
-                                <div
-                                    className="h-4 rounded bg-slate-200 animate-pulse"
-                                    style={{ width: `${50 + i * 12}px` }}
-                                />
-                            </div>
+                            <div
+                                key={i}
+                                className="h-9 rounded-full bg-slate-200 animate-pulse shrink-0"
+                                style={{ width: `${70 + i * 14}px` }}
+                            />
                         ))}
                     </div>
                 }

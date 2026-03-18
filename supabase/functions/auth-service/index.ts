@@ -340,6 +340,37 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
 
+            // ── Session Management ────────────────────────────────────
+
+            case "create-session": {
+                const {userId, sessionId, browser, os, device, userAgent} = await req.json();
+                if (!userId || !sessionId) return errorResponse("userId and sessionId are required", headers, 400);
+                const now = nowISO();
+                const {error} = await supabase.from("users_sessions").upsert(
+                    {id: sessionId, user_id: userId, browser: browser || null, os: os || null, device: device || null, user_agent: userAgent || null, created_at: now, last_active: now},
+                    {onConflict: "id"}
+                );
+                if (error) return errorResponse("Failed to create session", headers, 500);
+                return jsonResponse({success: true}, headers);
+            }
+
+            case "delete-session": {
+                const {sessionId} = await req.json();
+                if (!sessionId) return errorResponse("sessionId is required", headers, 400);
+                await supabase.from("users_sessions").delete().eq("id", sessionId);
+                return jsonResponse({success: true}, headers);
+            }
+
+            case "validate-session": {
+                const {userId, sessionId} = await req.json();
+                if (!userId || !sessionId) return jsonResponse({valid: false}, headers);
+                const {data, error} = await supabase.from("users_sessions").select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+                if (error || !data) return jsonResponse({valid: false}, headers);
+                // Refresh last_active (fire-and-forget)
+                supabase.from("users_sessions").update({last_active: nowISO()}).eq("id", sessionId).then(() => {}).catch(() => {});
+                return jsonResponse({valid: true, lastActive: data.last_active}, headers);
+            }
+
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});
         }

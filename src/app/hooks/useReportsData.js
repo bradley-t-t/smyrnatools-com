@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Database } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
+import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
@@ -380,8 +381,7 @@ export function useReportsData() {
         setLostLoadReports((prev) => [mapped, ...prev])
     }, [])
     const deleteLostLoadReport = useCallback(async (reportId) => {
-        const { error } = await Database.from('reports').delete().eq('id', reportId)
-        if (error) throw error
+        await ReportService.deleteReport(reportId)
         setLostLoadReports((prev) => prev.filter((r) => r.id !== reportId))
     }, [])
     const triggerRefresh = useCallback(() => {

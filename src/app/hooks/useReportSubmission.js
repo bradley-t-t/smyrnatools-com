@@ -2,12 +2,8 @@ import { useCallback } from 'react'
 
 import { Database } from '../../services/DatabaseService'
 import { EmailService } from '../../services/EmailService'
+import { ReportService } from '../../services/ReportService'
 import { reportTypeMap } from '../types/ReportTypes'
-const EXCLUSION_REASONS_TABLE = 'report_operator_exclusion_reasons'
-const persistExclusionReason = async (reportId, reason) => {
-    if (!reportId || !reason) return
-    await Database.from(EXCLUSION_REASONS_TABLE).upsert({ reason, report_id: reportId }, { onConflict: 'report_id' })
-}
 /**
  * Handles report upsert (create/update) and submission workflows,
  * including operator exclusion reason persistence and auto-mark-as-reviewed logic.
@@ -40,12 +36,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
         return { data, error }
     }, [])
     const saveReport = useCallback(async ({ upsertData, existingId }) => {
-        const selectFields =
-            'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
-        const response = existingId
-            ? await Database.from('reports').update(upsertData).eq('id', existingId).select(selectFields).single()
-            : await Database.from('reports').insert([upsertData]).select(selectFields).single()
-        return response
+        return ReportService.saveReport({ existingId, upsertData })
     }, [])
     const mapReportData = useCallback(
         ({ data, weekIso, monday, saturday }) => ({
@@ -103,7 +94,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 return { success: false }
             }
             if (data?.id) {
-                await persistExclusionReason(data.id, formData.operator_exclusion_reason)
+                await ReportService.saveExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
                     mapReportData({
                         data,
@@ -170,7 +161,7 @@ export function useReportSubmission({ user, setLoadError, updateLocalReport }) {
                 return { success: false }
             }
             if (data?.id) {
-                await persistExclusionReason(data.id, formData.operator_exclusion_reason)
+                await ReportService.saveExclusionReason(data.id, formData.operator_exclusion_reason)
                 updateLocalReport(
                     mapReportData({
                         data,

@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import { Database } from '../../services/DatabaseService'
 import APIUtility from '../../utils/APIUtility'
 import { SESSION_STORAGE_KEYS } from '../constants/auth'
 import { getBrowserMetadata } from '../utils/BrowserDetection'
@@ -39,34 +38,19 @@ function getStoredUserId() {
         null
     )
 }
-/** Creates a database-tracked session record with browser metadata. */
+/** Creates a database-tracked session record with browser metadata via auth-service. */
 async function createDbSession(userId) {
     const sessionId = generateSessionId()
     const { browser, os, device, userAgent } = getBrowserMetadata()
-    const now = new Date().toISOString()
     try {
-        const { error } = await Database.from('users_sessions').upsert(
-            {
-                browser,
-                created_at: now,
-                device,
-                id: sessionId,
-                last_active: now,
-                os,
-                user_agent: userAgent,
-                user_id: userId
-            },
-            { onConflict: 'id' }
-        )
-        if (!error) {
-            localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)
-        }
+        await APIUtility.post(`${AUTH_FUNCTION}/create-session`, { browser, device, os, sessionId, userAgent, userId })
+        localStorage.setItem(SESSION_STORAGE_KEYS.SESSION_ID, sessionId)
     } catch {}
     storeUserId(userId)
 }
 /**
- * Validates the current session against the database.
- * Expires sessions older than the configured threshold and refreshes the last_active timestamp.
+ * Validates the current session via auth-service.
+ * Expires sessions older than the configured threshold.
  */
 async function validateDbSession() {
     const userId = getStoredUserId()
@@ -74,25 +58,14 @@ async function validateDbSession() {
     const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
     if (!sessionId) return { userId: null, valid: false }
     try {
-        const { data, error } = await Database.from('users_sessions')
-            .select('id, last_active')
-            .eq('id', sessionId)
-            .eq('user_id', userId)
-            .maybeSingle()
-        if (error || !data) return { userId: null, valid: false }
-        const lastActive = new Date(data.last_active)
-        const expiryThreshold = new Date()
-        expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
-        if (lastActive < expiryThreshold) {
-            clearAllSessionData()
+        const { json } = await APIUtility.post(`${AUTH_FUNCTION}/validate-session`, { sessionId, userId })
+        if (!json?.valid) {
+            const lastActive = json?.lastActive ? new Date(json.lastActive) : null
+            const expiryThreshold = new Date()
+            expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
+            if (lastActive && lastActive < expiryThreshold) clearAllSessionData()
             return { userId: null, valid: false }
         }
-        // Fire-and-forget last_active refresh
-        Database.from('users_sessions')
-            .update({ last_active: new Date().toISOString() })
-            .eq('id', sessionId)
-            .then(() => {})
-            .catch(() => {})
         return { userId, valid: true }
     } catch {
         return { userId: null, valid: false }
@@ -215,9 +188,7 @@ export function AuthProvider({ children }) {
         clearTimeout(profileTimerRef.current)
         const sessionId = localStorage.getItem(SESSION_STORAGE_KEYS.SESSION_ID)
         if (sessionId) {
-            try {
-                await Database.from('users_sessions').delete().eq('id', sessionId)
-            } catch {}
+            await APIUtility.post(`${AUTH_FUNCTION}/delete-session`, { sessionId }).catch(() => {})
         }
         await APIUtility.post(`${AUTH_FUNCTION}/sign-out`).catch(() => {})
         clearAllSessionData()

@@ -210,7 +210,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
     }
     const handleDelete = async () => {
         setIsSaving(true)
-        await Database.from('operators').delete().eq('employee_id', operatorId)
+        await OperatorService.deleteOperator(operatorId)
         setIsSaving(false)
         if (onClose) onClose()
     }
@@ -255,37 +255,32 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                     }
                 }
             }
-            const { error } = await Database.from('operators').update(updateObj).eq('employee_id', operatorId)
-            if (error) {
-                setMessage('Error saving changes. Please try again.')
-            } else {
-                setMessage('Changes saved successfully!')
-                fetchData()
-                try {
-                    const currentUser = await UserService.getCurrentUser()
-                    const changedBy = currentUser?.id || 'system'
-                    const fieldsToCheck = [
-                        'smyrna_id',
-                        'name',
-                        'status',
-                        'plant_code',
-                        'position',
-                        'is_trainer',
-                        'assigned_trainer',
-                        'pending_start_date',
-                        'rating',
-                        'phone',
-                        'automatic_restriction'
-                    ]
-                    for (const field of fieldsToCheck) {
-                        const oldValue = operator[field]
-                        const newValue = updateObj[field]
-                        if (oldValue !== newValue) {
-                            await OperatorService.createHistoryEntry(operatorId, field, oldValue, newValue, changedBy)
-                        }
-                    }
-                } catch (historyError) {
-                    console.error('Failed to log history:', historyError)
+            await OperatorService.updateOperator({
+                ...updateObj,
+                employee_id: operatorId
+            })
+            setMessage('Changes saved successfully!')
+            fetchData()
+            const currentUser = await UserService.getCurrentUser()
+            const changedBy = currentUser?.id || 'system'
+            const fieldsToCheck = [
+                'smyrna_id',
+                'name',
+                'status',
+                'plant_code',
+                'position',
+                'is_trainer',
+                'assigned_trainer',
+                'pending_start_date',
+                'rating',
+                'phone',
+                'automatic_restriction'
+            ]
+            for (const field of fieldsToCheck) {
+                const oldValue = operator[field]
+                const newValue = updateObj[field]
+                if (oldValue !== newValue) {
+                    await OperatorService.createHistoryEntry(operatorId, field, oldValue, newValue, changedBy)
                 }
             }
         } catch (e) {

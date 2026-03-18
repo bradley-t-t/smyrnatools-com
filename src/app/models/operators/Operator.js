@@ -18,6 +18,7 @@ export class Operator {
         this.updatedAt = data.updated_at ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
         this.pendingStartDate = data.pending_start_date ?? data.pendingStartDate ?? null
         this.phone = data.phone ?? null
+        this.rating = typeof data.rating === 'number' ? data.rating : Number(data.rating) || 0
         this.automaticRestriction = data.automatic_restriction ?? data.automaticRestriction ?? false
     }
     static fromApiFormat(data) {
@@ -33,6 +34,7 @@ export class Operator {
             phone: data.phone ?? null,
             plant_code: data.plant_code ?? data.plantCode ?? null,
             position: data.position ?? null,
+            rating: data.rating ?? 0,
             smyrna_id: data.smyrna_id ?? data.smyrnaId ?? null,
             status: data.status ?? 'Active',
             updated_at: data.updated_at ?? data.updatedAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')
@@ -58,6 +60,7 @@ export class Operator {
             pending_start_date: this.pendingStartDate ?? null,
             phone: this.phone ?? null,
             plant_code: this.plantCode ?? null,
+            rating: typeof this.rating === 'number' ? this.rating : 0,
             position: this.position ?? null,
             smyrna_id: this.smyrnaId ?? null,
             status: this.status || 'Active',

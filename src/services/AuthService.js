@@ -1,5 +1,4 @@
 import APIUtility from '../utils/APIUtility'
-import { Database } from './DatabaseService'
 const AUTH_SERVICE_FUNCTION = '/auth-service'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_ID_KEY = 'smyrna_session_id'
@@ -40,43 +39,36 @@ class AuthServiceImpl {
         return { browser, device, os, userAgent: ua }
     }
     /**
-     * Creates a database-tracked session record with browser metadata.
-     * Falls back to local/session storage if the DB write fails.
+     * Creates a database-tracked session record with browser metadata via auth-service.
+     * Falls back to local/session storage if the call fails.
      */
     async _createDbSession(userId) {
         const sessionId = this._generateSessionId()
         const { browser, os, device, userAgent } = this._getBrowserInfo()
         try {
-            const { error } = await Database.from('users_sessions').upsert(
+            await APIUtility.post(
+                `${AUTH_SERVICE_FUNCTION}/create-session`,
                 {
                     browser,
-                    created_at: new Date().toISOString(),
                     device,
-                    id: sessionId,
-                    last_active: new Date().toISOString(),
                     os,
-                    user_agent: userAgent,
-                    user_id: userId
+                    sessionId,
+                    userAgent,
+                    userId
                 },
-                { onConflict: 'id' }
+                { skipAuthCheck: true }
             )
-            if (error) {
-                localStorage.setItem(SESSION_KEY, userId)
-                sessionStorage.setItem('userId', userId)
-                return
-            }
             localStorage.setItem(SESSION_KEY, userId)
             localStorage.setItem(SESSION_ID_KEY, sessionId)
             sessionStorage.setItem('userId', userId)
-        } catch (err) {
-            console.error('Failed to create DB session, falling back to local storage:', err)
+        } catch {
             localStorage.setItem(SESSION_KEY, userId)
             sessionStorage.setItem('userId', userId)
         }
     }
     /**
-     * Validates the current session against the database.
-     * Expires sessions older than SESSION_EXPIRY_DAYS (7) and refreshes the last_active timestamp.
+     * Validates the current session via auth-service.
+     * Expires sessions older than SESSION_EXPIRY_DAYS (7).
      */
     async _validateDbSession() {
         const userId = localStorage.getItem(SESSION_KEY)
@@ -92,29 +84,23 @@ class AuthServiceImpl {
             return { userId, valid: true }
         }
         try {
-            const { data, error } = await Database.from('users_sessions')
-                .select('id, last_active')
-                .eq('id', sessionId)
-                .eq('user_id', userId)
-                .maybeSingle()
-            if (error || !data) {
+            const { json } = await APIUtility.post(
+                `${AUTH_SERVICE_FUNCTION}/validate-session`,
+                { sessionId, userId },
+                { skipAuthCheck: true }
+            )
+            if (!json?.valid) {
+                const lastActive = json?.lastActive ? new Date(json.lastActive) : null
+                const expiryThreshold = new Date()
+                expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
+                if (lastActive && lastActive < expiryThreshold) {
+                    this._clearSession()
+                    return { userId: null, valid: false }
+                }
                 return { userId, valid: true }
             }
-            const lastActive = new Date(data.last_active)
-            const expiryThreshold = new Date()
-            expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
-            if (lastActive < expiryThreshold) {
-                this._clearSession()
-                return { userId: null, valid: false }
-            }
-            Database.from('users_sessions')
-                .update({ last_active: new Date().toISOString() })
-                .eq('id', sessionId)
-                .then(() => {})
-                .catch((err) => console.error('Failed to update session last_active:', err))
             return { userId, valid: true }
-        } catch (err) {
-            console.error('Session validation failed:', err)
+        } catch {
             return { userId, valid: true }
         }
     }
@@ -146,32 +132,33 @@ class AuthServiceImpl {
         this._notifyObservers()
         return this.currentUser
     }
-    /** Initializes a default user preferences row on first sign-up. */
+    /** Initializes a default user preferences row on first sign-up via preferences service. */
     async _createDefaultPreferencesRow(userId) {
         if (!userId) return
         try {
             const now = new Date().toISOString()
             const baseFilters = { searchText: '', selectedPlant: '', statusFilter: '', viewMode: 'grid' }
             const roleFilters = { roleFilter: '', searchText: '', selectedPlant: '', viewMode: 'grid' }
-            await Database.from('users_preferences').upsert(
+            await APIUtility.post(
+                '/user-preferences-service/save-all',
                 {
-                    created_at: now,
-                    default_view_mode: null,
-                    equipment_filters: baseFilters,
-                    last_viewed_filters: null,
-                    manager_filters: roleFilters,
-                    mixer_filters: baseFilters,
-                    operator_filters: baseFilters,
-                    tractor_filters: baseFilters,
-                    trailer_filters: baseFilters,
-                    updated_at: now,
-                    user_id: userId
+                    data: {
+                        created_at: now,
+                        default_view_mode: null,
+                        equipment_filters: baseFilters,
+                        last_viewed_filters: null,
+                        manager_filters: roleFilters,
+                        mixer_filters: baseFilters,
+                        operator_filters: baseFilters,
+                        tractor_filters: baseFilters,
+                        trailer_filters: baseFilters,
+                        updated_at: now
+                    },
+                    userId
                 },
-                { onConflict: 'user_id' }
+                { skipAuthCheck: true }
             )
-        } catch (err) {
-            console.error('Failed to create default preferences row:', err)
-        }
+        } catch {}
     }
     /** Registers a new user, creates a session, and initializes default preferences. */
     async signUp(email, password, firstName, lastName) {
@@ -198,11 +185,11 @@ class AuthServiceImpl {
     async signOut() {
         const sessionId = localStorage.getItem(SESSION_ID_KEY)
         if (sessionId) {
-            try {
-                await Database.from('users_sessions').delete().eq('id', sessionId)
-            } catch (err) {
-                console.error('Failed to delete session record on sign-out:', err)
-            }
+            await APIUtility.post(
+                `${AUTH_SERVICE_FUNCTION}/delete-session`,
+                { sessionId },
+                { skipAuthCheck: true }
+            ).catch(() => {})
         }
         try {
             await APIUtility.post(`${AUTH_SERVICE_FUNCTION}/sign-out`, {}, { skipAuthCheck: true })

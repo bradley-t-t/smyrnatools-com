@@ -107,7 +107,9 @@ export function sortPlants(plants) {
 }
 export function getPreviousWeekIso(weekIso) {
     if (!weekIso) return null
-    const [year, month, day] = weekIso.split('-').map(Number)
+    const normalized = toMondayIso(weekIso) || String(weekIso).slice(0, 10)
+    const [year, month, day] = normalized.split('-').map(Number)
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null
     const date = new Date(year, month - 1, day)
     date.setDate(date.getDate() - 7)
     return formatDateIso(date)

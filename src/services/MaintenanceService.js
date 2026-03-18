@@ -1,5 +1,8 @@
+import APIUtility from '../utils/APIUtility'
 import { Database } from './DatabaseService'
 import { UserService } from './UserService'
+
+const MAINT_FUNCTION = '/maintenance-service'
 const STORAGE_BUCKET = 'smyrna'
 const STORAGE_PREFIX = 'maintenance'
 const IMAGE_CACHE_CONTROL = '3600'
@@ -25,10 +28,6 @@ const FREQUENCY_PERIOD_DAYS = {
 }
 const DEFAULT_PERIOD_DAYS = 7
 const MS_PER_DAY = 86400000
-/** Returns the current ISO timestamp. */
-function now() {
-    return new Date().toISOString()
-}
 /** Formats a Date as YYYY-MM-DD string. */
 function toDateString(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -38,6 +37,47 @@ function startOfDay(date) {
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
     return d
+}
+/** Parses a form's start date from its start_date or created_at fields. */
+function parseFormStartDate(form) {
+    return startOfDay(
+        form.start_date
+            ? new Date(form.start_date + 'T00:00:00')
+            : form.created_at
+              ? new Date(form.created_at)
+              : new Date()
+    )
+}
+/** Returns the last day of a given month (year, zero-based month). */
+function endOfMonth(year, month) {
+    const d = new Date(year, month + 1, 0)
+    d.setHours(0, 0, 0, 0)
+    return d
+}
+/** Converts a frequency to the number of months per period. */
+function frequencyToMonths(frequency, frequencyValue) {
+    if (frequency === 'quarterly') return 3
+    if (frequency === 'yearly') return 12 * frequencyValue
+    return frequencyValue // monthly
+}
+/** Determines which calendar period index the reference date falls in. */
+function calendarPeriodIndex(frequency, frequencyValue, formStartDate, today) {
+    const months = frequencyToMonths(frequency, frequencyValue)
+    const startYear = formStartDate.getFullYear()
+    const startMonth = formStartDate.getMonth()
+    const todayYear = today.getFullYear()
+    const todayMonth = today.getMonth()
+    const totalMonthsElapsed = (todayYear - startYear) * 12 + (todayMonth - startMonth)
+    return Math.floor(totalMonthsElapsed / months)
+}
+/** Returns the due date (last day of the period's final month) for a given period index. */
+function calendarPeriodDueDate(frequency, frequencyValue, formStartDate, periodIndex) {
+    const months = frequencyToMonths(frequency, frequencyValue)
+    const startYear = formStartDate.getFullYear()
+    const startMonth = formStartDate.getMonth()
+    const targetMonth = startMonth + (periodIndex + 1) * months - 1
+    const targetYear = startYear + Math.floor(targetMonth / 12)
+    return endOfMonth(targetYear, targetMonth % 12)
 }
 /** Resolves the current authenticated user or throws if not logged in. */
 async function requireAuthenticatedUser() {
@@ -76,55 +116,11 @@ async function resolveAllowedPlantCodes(userId, hasBypass, userPlantCode) {
     }
     return allowed
 }
-/** Converts form field definitions into database-ready rows with ordering and timestamps. */
-function buildFieldRows(fields, formId) {
-    const timestamp = now()
-    return fields.map((field, index) => ({
-        created_at: timestamp,
-        description: field.description || null,
-        field_order: index,
-        field_type: field.field_type,
-        form_id: formId,
-        image_required: field.image_required || false,
-        is_required: field.is_required || false,
-        label: field.label,
-        options: field.options || null,
-        updated_at: timestamp
-    }))
-}
-/** Converts submission response data into database-ready rows with timestamps. */
-function buildResponseRows(responses, submissionId) {
-    const timestamp = now()
-    return responses.map((r) => ({
-        checklist_comments: r.checklist_comments || null,
-        checklist_images: r.checklist_images || null,
-        checklist_values: r.checklist_values || null,
-        created_at: timestamp,
-        field_id: r.field_id,
-        image_url: r.image_url || null,
-        response_value: r.response_value || null,
-        submission_id: submissionId,
-        updated_at: timestamp
-    }))
-}
-/** Inserts response rows for a submission. No-op if responses array is empty. */
-async function insertResponses(responses, submissionId) {
-    if (!responses?.length) return
-    const { error } = await Database.from('maintenance_submission_responses').insert(
-        buildResponseRows(responses, submissionId)
-    )
-    if (error) throw error
-}
-/** Replaces all existing responses for a submission (delete + re-insert). */
-async function replaceResponses(responses, submissionId) {
-    await Database.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
-    await insertResponses(responses, submissionId)
-}
-/** Inserts field definition rows for a form. No-op if fields array is empty. */
-async function insertFields(fields, formId) {
-    if (!fields?.length) return
-    const { error } = await Database.from('maintenance_form_fields').insert(buildFieldRows(fields, formId))
-    if (error) throw error
+/** Posts to the maintenance edge function. */
+async function postMaint(endpoint, data) {
+    const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/${endpoint}`, data)
+    if (!res.ok) throw new Error(json?.error || 'Operation failed')
+    return json
 }
 /**
  * Fetches submissions eligible for review, filtered by the reviewer's permissions,
@@ -208,45 +204,21 @@ export class MaintenanceService {
     /** Creates a new maintenance form with field definitions. */
     static async createForm(formData) {
         const user = await requireAuthenticatedUser()
-        const { fields, plant_codes, ...formInfo } = formData
-        const timestamp = now()
-        const { data: form, error: formError } = await Database.from('maintenance_forms')
-            .insert({
-                ...formInfo,
-                created_at: timestamp,
-                created_by: user.id,
-                plant_codes: plant_codes || [],
-                updated_at: timestamp
-            })
-            .select()
-            .single()
-        if (formError) throw formError
-        await insertFields(fields, form.id)
-        return this.fetchFormById(form.id)
+        const result = await postMaint('create-form', { formData, userId: user.id })
+        return result.data
     }
     /** Updates a form's metadata and optionally replaces its field definitions. */
     static async updateForm(formId, formData) {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
-        const { fields, plant_codes, ...formInfo } = formData
-        const { error: formError } = await Database.from('maintenance_forms')
-            .update({ ...formInfo, plant_codes: plant_codes || [], updated_at: now() })
-            .eq('id', formId)
-        if (formError) throw formError
-        if (fields) {
-            await Database.from('maintenance_form_fields').delete().eq('form_id', formId)
-            await insertFields(fields, formId)
-        }
-        return this.fetchFormById(formId)
+        const result = await postMaint('update-form', { formData, formId })
+        return result.data
     }
     /** Soft-deletes a form by marking it inactive. */
     static async deleteForm(formId) {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_CREATE)
-        const { error } = await Database.from('maintenance_forms')
-            .update({ is_active: false, updated_at: now() })
-            .eq('id', formId)
-        if (error) throw error
+        await postMaint('delete-form', { formId })
         return true
     }
     /** Fetches due items with their associated forms and submissions. */
@@ -305,10 +277,29 @@ export class MaintenanceService {
                 }
                 if (!plantsToCheck.length) continue
                 const dueDates = this.calculateDueDates(form, today)
-                // Build all plant/date combinations for this form to query in parallel
-                const combinations = plantsToCheck.flatMap((plantCode) =>
-                    dueDates.map((dueDate) => ({ dueDate, dueDateStr: toDateString(dueDate), plantCode }))
+                const currentDueDate = this.calculateCurrentDueDate(form, today)
+                const currentDueDateStr = currentDueDate ? toDateString(currentDueDate) : null
+                // Check if any submission has ever existed per plant (to detect brand-new forms)
+                const historyResults = await Promise.all(
+                    plantsToCheck.map((plantCode) => {
+                        let query = Database.from('maintenance_submissions')
+                            .select('id')
+                            .eq('form_id', form.id)
+                            .limit(1)
+                        if (plantCode) query = query.eq('plant_code', plantCode)
+                        return query
+                    })
                 )
+                const plantHasHistory = new Map(
+                    plantsToCheck.map((plantCode, i) => [plantCode, !!historyResults[i].data?.length])
+                )
+                // For plants with no history, only show the current period entry
+                const combinations = plantsToCheck.flatMap((plantCode) => {
+                    const dates = plantHasHistory.get(plantCode)
+                        ? dueDates
+                        : dueDates.filter((d) => toDateString(d) === currentDueDateStr)
+                    return dates.map((dueDate) => ({ dueDate, dueDateStr: toDateString(dueDate), plantCode }))
+                })
                 const submissionResults = await Promise.all(
                     combinations.map(({ dueDateStr, plantCode }) => {
                         let query = Database.from('maintenance_submissions')
@@ -353,18 +344,22 @@ export class MaintenanceService {
      * frequency configuration (daily, weekly, biweekly, monthly, quarterly, yearly).
      */
     static calculateDueDates(form, referenceDate) {
-        const { frequency, frequency_value: frequencyValue = 1 } = form
-        const formStartDate = startOfDay(
-            form.start_date
-                ? new Date(form.start_date + 'T00:00:00')
-                : form.created_at
-                  ? new Date(form.created_at)
-                  : new Date()
-        )
         const today = startOfDay(referenceDate)
+        const formStartDate = parseFormStartDate(form)
+        if (formStartDate > today) return [new Date(formStartDate)]
+        const { frequency, frequency_value: frequencyValue = 1 } = form
+        const useCalendarMonths = ['monthly', 'quarterly', 'yearly'].includes(frequency)
+        if (useCalendarMonths) {
+            const currentIndex = calendarPeriodIndex(frequency, frequencyValue, formStartDate, today)
+            const results = []
+            if (currentIndex > 0)
+                results.push(calendarPeriodDueDate(frequency, frequencyValue, formStartDate, currentIndex - 1))
+            results.push(calendarPeriodDueDate(frequency, frequencyValue, formStartDate, currentIndex))
+            results.push(calendarPeriodDueDate(frequency, frequencyValue, formStartDate, currentIndex + 1))
+            return results
+        }
         const periodFn = FREQUENCY_PERIOD_DAYS[frequency]
         const periodDays = periodFn ? periodFn(frequencyValue) : DEFAULT_PERIOD_DAYS
-        if (formStartDate > today) return [new Date(formStartDate)]
         const daysSinceStart = Math.floor((today - formStartDate) / MS_PER_DAY)
         const currentPeriodIndex = Math.floor(daysSinceStart / periodDays)
         const addPeriod = (index) => {
@@ -378,50 +373,43 @@ export class MaintenanceService {
         results.push(addPeriod(currentPeriodIndex + 1))
         return results
     }
+    /** Returns only the current period's due date for a form (no previous/next). */
+    static calculateCurrentDueDate(form, referenceDate) {
+        const today = startOfDay(referenceDate)
+        const formStartDate = parseFormStartDate(form)
+        if (formStartDate > today) return new Date(formStartDate)
+        const { frequency, frequency_value: frequencyValue = 1 } = form
+        if (['monthly', 'quarterly', 'yearly'].includes(frequency)) {
+            const currentIndex = calendarPeriodIndex(frequency, frequencyValue, formStartDate, today)
+            return calendarPeriodDueDate(frequency, frequencyValue, formStartDate, currentIndex)
+        }
+        const periodFn = FREQUENCY_PERIOD_DAYS[frequency]
+        const periodDays = periodFn ? periodFn(frequencyValue) : DEFAULT_PERIOD_DAYS
+        const daysSinceStart = Math.floor((today - formStartDate) / MS_PER_DAY)
+        const currentPeriodIndex = Math.floor(daysSinceStart / periodDays)
+        const d = new Date(formStartDate)
+        d.setDate(d.getDate() + currentPeriodIndex * periodDays)
+        return d
+    }
     /**
      * Submits a completed form, cleaning up any existing draft for the same form/date/user.
      * Creates the submission record and inserts all response rows.
      */
     static async submitForm(formId, dueDate, responses, plantCode = null) {
         const user = await requireAuthenticatedUser()
-        const { data: existingDraft } = await Database.from('maintenance_submissions')
-            .select('id')
-            .eq('form_id', formId)
-            .eq('due_date', dueDate)
-            .eq('submitted_by', user.id)
-            .eq('status', 'draft')
-            .maybeSingle()
-        if (existingDraft) {
-            await Database.from('maintenance_submission_responses').delete().eq('submission_id', existingDraft.id)
-            await Database.from('maintenance_submissions').delete().eq('id', existingDraft.id)
-        }
-        const timestamp = now()
-        const { data: submission, error: submissionError } = await Database.from('maintenance_submissions')
-            .insert({
-                created_at: timestamp,
-                due_date: dueDate,
-                form_id: formId,
-                plant_code: plantCode,
-                status: 'submitted',
-                submitted_at: timestamp,
-                submitted_by: user.id,
-                updated_at: timestamp
-            })
-            .select()
-            .single()
-        if (submissionError) throw submissionError
-        await insertResponses(responses, submission.id)
-        return submission
+        const result = await postMaint('submit-form', {
+            dueDate,
+            formId,
+            plantCode,
+            responses,
+            userId: user.id
+        })
+        return result.data
     }
     /** Updates the responses of an existing submission. */
     static async updateSubmission(submissionId, responses) {
         const user = await requireAuthenticatedUser()
-        const { error: updateError } = await Database.from('maintenance_submissions')
-            .update({ updated_at: now() })
-            .eq('id', submissionId)
-            .eq('submitted_by', user.id)
-        if (updateError) throw updateError
-        await replaceResponses(responses, submissionId)
+        await postMaint('update-submission', { responses, submissionId, userId: user.id })
         return true
     }
     /**
@@ -430,42 +418,15 @@ export class MaintenanceService {
      */
     static async saveDraftProgress(formId, dueDate, responses, plantCode = null, existingSubmissionId = null) {
         const user = await requireAuthenticatedUser()
-        let submissionId = existingSubmissionId
-        if (!submissionId) {
-            const { data: existing } = await Database.from('maintenance_submissions')
-                .select('id')
-                .eq('form_id', formId)
-                .eq('due_date', dueDate)
-                .eq('submitted_by', user.id)
-                .eq('status', 'draft')
-                .maybeSingle()
-            submissionId = existing?.id ?? null
-        }
-        if (submissionId) {
-            const { error: updateError } = await Database.from('maintenance_submissions')
-                .update({ updated_at: now() })
-                .eq('id', submissionId)
-            if (updateError) throw updateError
-            await Database.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
-        } else {
-            const timestamp = now()
-            const { data: submission, error: submissionError } = await Database.from('maintenance_submissions')
-                .insert({
-                    created_at: timestamp,
-                    due_date: dueDate,
-                    form_id: formId,
-                    plant_code: plantCode,
-                    status: 'draft',
-                    submitted_by: user.id,
-                    updated_at: timestamp
-                })
-                .select()
-                .single()
-            if (submissionError) throw submissionError
-            submissionId = submission.id
-        }
-        await insertResponses(responses, submissionId)
-        return submissionId
+        const result = await postMaint('save-draft', {
+            dueDate,
+            existingSubmissionId,
+            formId,
+            plantCode,
+            responses,
+            userId: user.id
+        })
+        return result.submissionId
     }
     /** Fetches a user's draft submission for a specific form/date/plant combination. */
     static async fetchDraft(formId, dueDate, plantCode = null) {
@@ -507,19 +468,13 @@ export class MaintenanceService {
     static async reviewSubmission(submissionId, status, notes = '') {
         const user = await requireAuthenticatedUser()
         await requirePermission(user.id, PERMISSION_REVIEW)
-        const { data, error } = await Database.from('maintenance_submissions')
-            .update({
-                review_notes: notes,
-                reviewed_at: now(),
-                reviewed_by: user.id,
-                status,
-                updated_at: now()
-            })
-            .eq('id', submissionId)
-            .select()
-            .single()
-        if (error) throw error
-        return data
+        const result = await postMaint('review-submission', {
+            notes,
+            status,
+            submissionId,
+            userId: user.id
+        })
+        return result.data
     }
     /** Fetches all submitted (pending review) submissions visible to the current reviewer. */
     static async fetchPendingReviews() {

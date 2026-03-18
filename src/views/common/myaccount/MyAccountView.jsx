@@ -10,6 +10,8 @@ import { useVersion } from '../../../app/hooks/useVersion'
 import { getBrowserName, getDeviceType, getOSName } from '../../../app/utils/BrowserDetection'
 import { Database } from '../../../services/DatabaseService'
 import { UserService } from '../../../services/UserService'
+import APIUtility from '../../../utils/APIUtility'
+const AUTH_FUNCTION = '/auth-service'
 import { CacheUtility } from '../../../utils/CacheUtility'
 import DashboardUtility from '../../../utils/DashboardUtility'
 const MAX_BRIGHTNESS_HEX = '#D6D6D6'
@@ -182,8 +184,7 @@ function MyAccountView({ userId }) {
             return
         }
         try {
-            const { error } = await Database.from('users_sessions').delete().eq('id', sessionId)
-            if (error) throw error
+            await APIUtility.post(`${AUTH_FUNCTION}/delete-session`, { sessionId })
             setSessions(sessions.filter((s) => s.id !== sessionId))
             setMessage('Session revoked successfully')
             setTimeout(() => setMessage(''), 3000)
@@ -288,10 +289,10 @@ function MyAccountView({ userId }) {
                             }
                         }
                         if (duplicates.length > 0) {
-                            try {
-                                await Database.from('users_sessions').delete().in('id', duplicates)
-                            } catch (err) {
-                                console.error('Failed to remove duplicate sessions:', err)
+                            for (const dupId of duplicates) {
+                                await APIUtility.post(`${AUTH_FUNCTION}/delete-session`, { sessionId: dupId }).catch(
+                                    () => {}
+                                )
                             }
                         }
                     }
@@ -299,33 +300,21 @@ function MyAccountView({ userId }) {
                     if (matchingSession) {
                         currentSessId = matchingSession.id
                         sessionStorage.setItem('sessionId', currentSessId)
-                        try {
-                            await Database.from('users_sessions')
-                                .update({ last_active: new Date().toISOString() })
-                                .eq('id', currentSessId)
-                        } catch (err) {
-                            console.error('Failed to update session:', err)
-                        }
+                        await APIUtility.post(`${AUTH_FUNCTION}/validate-session`, {
+                            sessionId: currentSessId,
+                            userId: uid
+                        }).catch(() => {})
                     } else {
                         currentSessId = `${uid}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                         sessionStorage.setItem('sessionId', currentSessId)
-                        try {
-                            await Database.from('users_sessions').upsert(
-                                {
-                                    browser: currentBrowser,
-                                    created_at: new Date().toISOString(),
-                                    device: currentDevice,
-                                    id: currentSessId,
-                                    last_active: new Date().toISOString(),
-                                    os: currentOS,
-                                    user_agent: userAgent,
-                                    user_id: uid
-                                },
-                                { onConflict: 'id' }
-                            )
-                        } catch (err) {
-                            console.error('Failed to create session:', err)
-                        }
+                        await APIUtility.post(`${AUTH_FUNCTION}/create-session`, {
+                            browser: currentBrowser,
+                            device: currentDevice,
+                            os: currentOS,
+                            sessionId: currentSessId,
+                            userAgent,
+                            userId: uid
+                        }).catch(() => {})
                     }
                     setCurrentSessionId(currentSessId)
                     const { data: userSessions } = await Database.from('users_sessions')

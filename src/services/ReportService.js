@@ -1,9 +1,12 @@
 import { reportTypes } from '../app/types/ReportTypes'
+import APIUtility from '../utils/APIUtility'
 import CacheUtility from '../utils/CacheUtility'
 import { ReportUtility } from '../utils/ReportUtility'
 import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 import { UserService } from './UserService'
+const REPORT_FUNCTION = '/report-service'
+const postReport = (endpoint, body) => APIUtility.post(`${REPORT_FUNCTION}/${endpoint}`, body)
 const TTL_SHORT = 5 * 60 * 1000
 const TTL_MED = 10 * 60 * 1000
 /** Sorts plants by plant_code numerically, falling back to string comparison. */
@@ -251,23 +254,36 @@ class ReportServiceImpl {
             warnings
         }
     }
-    /** Fetches active mixer counts grouped by plant code. */
+    /** Fetches active mixer operator counts (assigned + unassigned) grouped by plant code. */
     async fetchActiveMixerCountsByPlant(plantCodes = []) {
         if (!plantCodes || plantCodes.length === 0) return {}
-        const { data, error } = await Database.from('mixers')
-            .select('assigned_plant')
-            .eq('status', 'Active')
-            .in('assigned_plant', plantCodes)
-        if (error || !Array.isArray(data)) return {}
+        const [mixersResult, operatorsResult] = await Promise.all([
+            Database.from('mixers')
+                .select('assigned_plant, assigned_operator')
+                .eq('status', 'Active')
+                .in('assigned_plant', plantCodes),
+            Database.from('operators')
+                .select('employee_id, plant_code')
+                .eq('status', 'Active')
+                .eq('position', 'Mixer Operator')
+                .in('plant_code', plantCodes)
+        ])
         const counts = {}
         plantCodes.forEach((code) => {
             counts[code] = 0
         })
-        data.forEach((m) => {
-            if (m.assigned_plant && counts[m.assigned_plant] !== undefined) {
-                counts[m.assigned_plant]++
-            }
+        if (mixersResult.error || !Array.isArray(mixersResult.data)) return counts
+        const assignedOperatorIds = new Set()
+        mixersResult.data.forEach((m) => {
+            if (m.assigned_operator) assignedOperatorIds.add(m.assigned_operator)
         })
+        if (!operatorsResult.error && Array.isArray(operatorsResult.data)) {
+            operatorsResult.data.forEach((op) => {
+                if (op.plant_code && counts[op.plant_code] !== undefined) {
+                    counts[op.plant_code]++
+                }
+            })
+        }
         return counts
     }
     /** Fetches all plants sorted by code with a 10-minute cache. */
@@ -582,6 +598,24 @@ class ReportServiceImpl {
             console.error('Error fetching plant manager reports for week:', err)
             return { data: [], error: err }
         }
+    }
+    async saveReport({ existingId, upsertData }) {
+        const { json } = await postReport('save-report', { existingId, upsertData })
+        return { data: json, error: null }
+    }
+    async saveExclusionReason(reportId, reason) {
+        if (!reportId || !reason) return
+        await postReport('save-exclusion-reason', { reason, reportId })
+    }
+    async deleteReport(reportId) {
+        if (!reportId) throw new Error('Report ID is required')
+        const { json } = await postReport('delete-report', { reportId })
+        if (!json) throw new Error('Failed to delete report')
+    }
+    async markReviewed(reportId, userId) {
+        if (!reportId || !userId) return false
+        const { json } = await postReport('mark-reviewed', { reportId, userId })
+        return !!json
     }
 }
 export const ReportService = new ReportServiceImpl()

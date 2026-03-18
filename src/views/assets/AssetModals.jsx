@@ -1,5 +1,6 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from 'react'
 
+import SendAssetMessageModal from '../../app/components/common/SendAssetMessageModal'
 import VerificationRequirementsModal from '../../app/components/common/VerificationRequirementsModal'
 import CommentModalSection from '../../app/components/sections/CommentModalSection'
 import HistoryViewSection from '../../app/components/sections/HistoryViewSection'
@@ -13,7 +14,8 @@ const INITIAL_MODAL_STATE = {
     issue: false,
     operatorComment: false,
     operatorHistory: false,
-    recap: false
+    recap: false,
+    sendMessage: false
 }
 
 /**
@@ -46,6 +48,7 @@ const AssetModals = forwardRef(function AssetModals(
     const [modalItemNumber, setModalItemNumber] = useState('')
     const [selectedItemForHistory, setSelectedItemForHistory] = useState(null)
     const [operatorModalTarget, setOperatorModalTarget] = useState(null)
+    const [sendMessageTarget, setSendMessageTarget] = useState(null)
 
     const closeModal = useCallback((key) => {
         setModals((prev) => ({ ...prev, [key]: false }))
@@ -83,6 +86,10 @@ const AssetModals = forwardRef(function AssetModals(
             },
             openRecap() {
                 openModal('recap')
+            },
+            openSendMessageModal(item, itemNumber) {
+                setSendMessageTarget({ item, itemNumber })
+                openModal('sendMessage')
             }
         }),
         [openModal]
@@ -194,6 +201,19 @@ const AssetModals = forwardRef(function AssetModals(
                     status={verification.verifyItem.status}
                     vin={verification.verifyVin}
                     year={verification.verifyYear}
+                />
+            )}
+
+            {/* Send Asset Message Modal */}
+            {modals.sendMessage && sendMessageTarget && (
+                <SendAssetMessageModal
+                    item={sendMessageTarget.item}
+                    itemNumber={sendMessageTarget.itemNumber}
+                    itemType={config.itemTypeLabel}
+                    onClose={() => {
+                        closeModal('sendMessage')
+                        setSendMessageTarget(null)
+                    }}
                 />
             )}
 

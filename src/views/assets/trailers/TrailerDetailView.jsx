@@ -364,7 +364,7 @@ function TrailerDetailView({ trailer: initialTrailer, trailerId, onClose }) {
         if (!trailer) return
         if (!showDeleteConfirmation) return setShowDeleteConfirmation(true)
         try {
-            await Database.from('trailers').delete().eq('id', trailer.id)
+            await TrailerService.deleteTrailer(trailer.id)
             alert('Trailer deleted successfully')
             onClose()
         } catch (error) {

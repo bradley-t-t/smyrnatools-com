@@ -1,6 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
 
-import { Database } from '../../services/DatabaseService'
 import { UserService } from '../../services/UserService'
 async function assertITAccess() {
     const user = await UserService.getCurrentUser()
@@ -60,10 +59,7 @@ export function useRolesData() {
         async (roleId, permissionsText) => {
             await assertITAccess()
             const sortedPermissions = parsePermissionsText(permissionsText)
-            const { error: updateError } = await Database.from('users_roles')
-                .update({ permissions: sortedPermissions })
-                .eq('id', roleId)
-            if (updateError) throw updateError
+            await UserService.updateRole(roleId, { permissions: sortedPermissions })
             UserService.clearCache()
             await loadData()
             showMessage('Permissions updated successfully (duplicates removed, sorted alphabetically)')
@@ -73,8 +69,7 @@ export function useRolesData() {
     const updateRoleWeight = useCallback(
         async (roleId, weight) => {
             await assertITAccess()
-            const { error: updateError } = await Database.from('users_roles').update({ weight }).eq('id', roleId)
-            if (updateError) throw updateError
+            await UserService.updateRole(roleId, { weight })
             UserService.clearCache()
             await loadData()
             showMessage('Weight updated successfully')
@@ -84,10 +79,7 @@ export function useRolesData() {
     const createRole = useCallback(
         async (name, weight) => {
             await assertITAccess()
-            const { error: createError } = await Database.from('users_roles')
-                .insert([{ name: name.trim(), permissions: [], weight }])
-                .select()
-            if (createError) throw createError
+            await UserService.createRole(name.trim(), [], weight)
             UserService.clearCache()
             await loadData()
             showMessage(`Role "${name}" created successfully`)
@@ -108,10 +100,7 @@ export function useRolesData() {
                     a.localeCompare(b)
                 )
                 if (JSON.stringify(existingPermissions.sort()) !== JSON.stringify(sortedPermissions)) {
-                    const { error: updateError } = await Database.from('users_roles')
-                        .update({ permissions: sortedPermissions })
-                        .eq('id', roleId)
-                    if (updateError) throw updateError
+                    await UserService.updateRole(roleId, { permissions: sortedPermissions })
                     rolesModified++
                 }
             }
@@ -132,10 +121,7 @@ export function useRolesData() {
             const sortedPermissions = role.permissions
                 .filter((p) => p !== permission)
                 .sort((a, b) => a.localeCompare(b))
-            const { error: updateError } = await Database.from('users_roles')
-                .update({ permissions: sortedPermissions })
-                .eq('id', roleId)
-            if (updateError) throw updateError
+            await UserService.updateRole(roleId, { permissions: sortedPermissions })
             UserService.clearCache()
             await loadData()
             showMessage(`Successfully removed "${permission}" from "${role.name}"`)
@@ -151,10 +137,7 @@ export function useRolesData() {
                 const sortedPermissions = role.permissions
                     .filter((p) => p !== permission)
                     .sort((a, b) => a.localeCompare(b))
-                const { error: updateError } = await Database.from('users_roles')
-                    .update({ permissions: sortedPermissions })
-                    .eq('id', role.id)
-                if (updateError) throw updateError
+                await UserService.updateRole(role.id, { permissions: sortedPermissions })
                 rolesModified++
             }
             UserService.clearCache()

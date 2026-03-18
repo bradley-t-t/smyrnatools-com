@@ -1,7 +1,10 @@
+import APIUtility from '../utils/APIUtility'
 import { detectDeviceType } from '../utils/DeviceUtility'
 import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 import { UserService } from './UserService'
+
+const PRESENCE_FUNCTION = '/user-presence-service'
 
 let _hasActiveDevicesCol = null
 async function checkActiveDevicesCol() {
@@ -16,18 +19,11 @@ async function checkActiveDevicesCol() {
     return _hasActiveDevicesCol
 }
 
-async function mergeActiveDevice(userId, device, now) {
+async function mergeActiveDevice(userId, device) {
     const hasCol = await checkActiveDevicesCol()
     if (!hasCol) return
     try {
-        const { data } = await Database.from('users_presence')
-            .select('active_devices')
-            .eq('user_id', userId)
-            .maybeSingle()
-        const devices =
-            data?.active_devices && typeof data.active_devices === 'object' ? { ...data.active_devices } : {}
-        devices[device] = now
-        await Database.from('users_presence').update({ active_devices: devices }).eq('user_id', userId)
+        await APIUtility.post(`${PRESENCE_FUNCTION}/merge-device`, { device, userId })
     } catch (err) {
         console.error('Failed to merge active device:', err)
     }
@@ -170,16 +166,16 @@ class UserPresenceService {
     async updateActivity() {
         if (!this.currentUserId) return false
         try {
-            const now = new Date().toISOString()
-            await Database.from('users_presence')
-                .update({ last_activity: now, last_seen: now, updated_at: now })
-                .eq('user_id', this.currentUserId)
-            mergeActiveDevice(this.currentUserId, detectDeviceType(), now)
-            const today = now.split('T')[0]
+            await APIUtility.post(`${PRESENCE_FUNCTION}/update-activity`, { userId: this.currentUserId })
+            mergeActiveDevice(this.currentUserId, detectDeviceType())
+            const today = new Date().toISOString().split('T')[0]
             if (this.lastLoginDateWritten !== today) {
                 this.lastLoginDateWritten = today
                 try {
-                    await Database.from('users').update({ last_login_at: today }).eq('id', this.currentUserId)
+                    await APIUtility.post(`${PRESENCE_FUNCTION}/update-last-login`, {
+                        date: today,
+                        userId: this.currentUserId
+                    })
                 } catch (err) {
                     console.error('Failed to update last_login_at:', err)
                 }
@@ -201,25 +197,8 @@ class UserPresenceService {
     async setUserOnline(userId) {
         if (!userId) return false
         try {
-            const now = new Date().toISOString()
-            const { data: existing } = await Database.from('users_presence')
-                .select('user_id')
-                .eq('user_id', userId)
-                .maybeSingle()
-            if (existing) {
-                await Database.from('users_presence')
-                    .update({ is_online: true, last_seen: now, updated_at: now })
-                    .eq('user_id', userId)
-            } else {
-                await Database.from('users_presence').insert({
-                    is_online: true,
-                    last_activity: now,
-                    last_seen: now,
-                    updated_at: now,
-                    user_id: userId
-                })
-            }
-            mergeActiveDevice(userId, detectDeviceType(), now)
+            await APIUtility.post(`${PRESENCE_FUNCTION}/set-online`, { userId })
+            mergeActiveDevice(userId, detectDeviceType())
             return true
         } catch (err) {
             console.error('Failed to set user online:', err)
@@ -230,11 +209,8 @@ class UserPresenceService {
     async setUserBackOnline(userId) {
         if (!userId) return false
         try {
-            const now = new Date().toISOString()
-            await Database.from('users_presence')
-                .update({ is_online: true, last_seen: now, updated_at: now })
-                .eq('user_id', userId)
-            mergeActiveDevice(userId, detectDeviceType(), now)
+            await APIUtility.post(`${PRESENCE_FUNCTION}/set-online`, { userId })
+            mergeActiveDevice(userId, detectDeviceType())
             return true
         } catch (err) {
             console.error('Failed to set user back online:', err)
@@ -245,10 +221,7 @@ class UserPresenceService {
     async setUserOffline(userId) {
         if (!userId) return false
         try {
-            const now = new Date().toISOString()
-            await Database.from('users_presence')
-                .update({ is_online: false, last_seen: now, updated_at: now })
-                .eq('user_id', userId)
+            await APIUtility.post(`${PRESENCE_FUNCTION}/set-offline`, { userId })
             return true
         } catch (err) {
             console.error('Failed to set user offline:', err)
@@ -259,10 +232,7 @@ class UserPresenceService {
     async updateHeartbeat() {
         if (!this.currentUserId) return false
         try {
-            const now = new Date().toISOString()
-            await Database.from('users_presence')
-                .update({ last_seen: now, updated_at: now })
-                .eq('user_id', this.currentUserId)
+            await APIUtility.post(`${PRESENCE_FUNCTION}/heartbeat`, { userId: this.currentUserId })
             return true
         } catch (err) {
             console.error('Failed to update heartbeat:', err)
@@ -279,11 +249,7 @@ class UserPresenceService {
         if (this.cleanupInterval) clearInterval(this.cleanupInterval)
         this.cleanupInterval = setInterval(async () => {
             try {
-                const staleTime = new Date(Date.now() - STALE_THRESHOLD).toISOString()
-                await Database.from('users_presence')
-                    .update({ is_online: false, updated_at: new Date().toISOString() })
-                    .eq('is_online', true)
-                    .lt('last_seen', staleTime)
+                await APIUtility.post(`${PRESENCE_FUNCTION}/cleanup`, {})
                 this.notifyListeners()
             } catch (err) {
                 console.error('Failed to clean up stale presence records:', err)
@@ -293,16 +259,14 @@ class UserPresenceService {
 
     handleBeforeUnload() {
         if (this.currentUserId) {
-            const now = new Date().toISOString()
-            fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/users_presence?user_id=eq.${this.currentUserId}`, {
-                body: JSON.stringify({ is_online: false, last_seen: now, updated_at: now }),
+            fetch(`${process.env.REACT_APP_EDGE_FUNCTIONS_URL}${PRESENCE_FUNCTION}/set-offline`, {
+                body: JSON.stringify({ userId: this.currentUserId }),
                 headers: {
                     Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                    apikey: process.env.REACT_APP_SUPABASE_ANON_KEY
+                    'Content-Type': 'application/json'
                 },
                 keepalive: true,
-                method: 'PATCH'
+                method: 'POST'
             }).catch((err) => console.error('Failed to set offline on beforeunload:', err))
         }
     }

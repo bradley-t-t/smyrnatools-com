@@ -25,6 +25,7 @@ import {
     getChangeValue,
     getPreviousWeekIso,
     sortPlants,
+    toMondayIso,
     truncateToTenth
 } from '../../../../../utils/ExportUtility'
 import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExport } from '../ExportModule'
@@ -34,8 +35,9 @@ import { createSheet, exportWorkbook, finalizeSheet, generateFilename, initExpor
  * data for each week found in the monthly history, then builds styled sheets
  * with an AI-generated executive summary on the current week.
  */
-export async function exportGeneralManagerReport({ form, plants, weekIso, filename }) {
+export async function exportGeneralManagerReport({ form, plants, weekIso: rawWeekIso, filename }) {
     if (typeof window === 'undefined') return
+    const weekIso = toMondayIso(rawWeekIso) || rawWeekIso
     const finalFilename = filename || generateFilename('General Manager Report', weekIso)
     const sortedPlantsEarly = sortPlants(plants)
     let totalOpsEarly = 0,
@@ -647,7 +649,13 @@ async function createWeekSheet(
                 endDump: countByStatus(endDump)
             }
         }
-        const mixerCounts = countByStatus(assetData.mixers || [])
+        const mixerStatusCounts = countByStatus(assetData.mixers || [])
+        const unassignedActiveOperators = Math.max(totalOps - mixerStatusCounts.active, 0)
+        const mixerCounts = {
+            ...mixerStatusCounts,
+            active: mixerStatusCounts.active + unassignedActiveOperators,
+            total: mixerStatusCounts.total + unassignedActiveOperators
+        }
         const tractorBreakdown = countTractorsByType(assetData.tractors || [])
         const trailerCounts = countByStatus(assetData.trailers || [])
         const equipmentCounts = countByStatus(assetData.equipment || [])

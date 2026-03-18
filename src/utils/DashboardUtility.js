@@ -56,6 +56,7 @@ const slimOperator = (operator) => ({
     employeeId: operator.employeeId,
     id: operator.id,
     plantCode: operator.plantCode,
+    position: operator.position,
     status: operator.status
 })
 const normalizeDate = (dateStr, endOfDay = false) => {

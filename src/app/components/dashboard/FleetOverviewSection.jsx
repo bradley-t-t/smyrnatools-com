@@ -45,7 +45,9 @@ export default function FleetOverviewSection({
                         highlight={selectedRegion?.type === 'Concrete'}
                         accentColor={accentColor}
                     >
-                        <StatusPill>Active {displayStats.mixers.active}</StatusPill>
+                        <StatusPill>
+                            Active {displayStats.mixers.activeOperators ?? displayStats.mixers.active}
+                        </StatusPill>
                         <StatusPill>Spare {displayStats.mixers.spare}</StatusPill>
                         <StatusPill>In Shop {displayStats.mixers.shop}</StatusPill>
                         <AllocationPill percent={displayStats.mixers.allocationPercent} />
@@ -59,7 +61,9 @@ export default function FleetOverviewSection({
                     highlight={selectedRegion?.type === 'Aggregate'}
                     accentColor={accentColor}
                 >
-                    <StatusPill>Active {displayStats.tractors.active}</StatusPill>
+                    <StatusPill>
+                        Active {displayStats.tractors.activeOperators ?? displayStats.tractors.active}
+                    </StatusPill>
                     <StatusPill>Spare {displayStats.tractors.spare}</StatusPill>
                     <StatusPill>In Shop {displayStats.tractors.shop}</StatusPill>
                     <AllocationPill percent={displayStats.tractors.allocationPercent} />

@@ -17,6 +17,7 @@ export default function AssetListRow({
     onOperatorComment,
     onOperatorHistory,
     onSelect,
+    onSendMessage,
     onVerify,
     operators,
     plants,
@@ -377,6 +378,17 @@ export default function AssetListRow({
                             title="View history"
                         >
                             <i className="fas fa-history" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onSendMessage?.(item, identifier)
+                            }}
+                            style={actionBtnStyle}
+                            title="Send as message"
+                        >
+                            <i className="fas fa-paper-plane" />
                         </button>
                     </div>
                 </td>

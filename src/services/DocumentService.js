@@ -1,5 +1,8 @@
+import APIUtility from '../utils/APIUtility'
 import { Database } from './DatabaseService'
 import { UserService } from './UserService'
+const DOC_FUNCTION = '/document-service'
+const postDoc = (endpoint, body) => APIUtility.post(`${DOC_FUNCTION}/${endpoint}`, body)
 const TABLE = 'documents'
 const STORAGE_BUCKET = 'smyrna'
 const STORAGE_PREFIX = 'documents'
@@ -52,9 +55,9 @@ class DocumentServiceImpl {
             name: file.name,
             uploaded_by: user.id
         }
-        const { data, error: insertError } = await Database.from(TABLE).insert(record).select().single()
-        if (insertError) throw new Error('Failed to save document record: ' + insertError.message)
-        return data
+        const { json } = await postDoc('insert-record', { record })
+        if (!json) throw new Error('Failed to save document record')
+        return json
     }
     async delete(doc) {
         const url = doc.file_path || ''
@@ -64,8 +67,8 @@ class DocumentServiceImpl {
         if (storagePath) {
             await Database.storage.from(STORAGE_BUCKET).remove([storagePath])
         }
-        const { error } = await Database.from(TABLE).delete().eq('id', doc.id)
-        if (error) throw new Error('Failed to delete document: ' + error.message)
+        const { json } = await postDoc('delete', { id: doc.id })
+        if (!json) throw new Error('Failed to delete document')
     }
 }
 export const DocumentService = new DocumentServiceImpl()

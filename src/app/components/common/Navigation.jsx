@@ -145,9 +145,9 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const regionType = preferences.selectedRegion?.type
     const regionCode = preferences.selectedRegion?.code
     const accentColor = useAccentColor()
-    useNotifications(userId, preferences?.selectedRegion)
+    const notificationsHook = useNotifications(userId, preferences?.selectedRegion)
     const messagesHook = useMessages(userId)
-    const notificationsCount = messagesHook.unreadCount
+    const combinedCount = (notificationsHook.count || 0) + (messagesHook.unreadCount || 0)
     const { registerElement: registerMagnetic } = useMagneticHover()
 
     /* ── Tablet breakpoint for top-bar mode ── */
@@ -344,13 +344,15 @@ export default function Navigation({ selectedView, onSelectView, children, userN
     const hasProductivity = visibleMenuItems.some((i) => PRODUCTIVITY_ITEMS.includes(i.id))
     const hasReporting = visibleMenuItems.some((i) => REPORTING_ITEMS.includes(i.id))
     const hasTools = visibleMenuItems.some((i) => TOOLS_ITEMS.includes(i.id))
+    const hasAdmin = visibleMenuItems.some((i) => ADMIN_ITEMS.includes(i.id))
     const standaloneItems = visibleMenuItems.filter(
         (i) =>
             !ASSET_ITEMS.includes(i.id) &&
             !(hasPeople && PEOPLE_ITEMS.includes(i.id)) &&
             !(hasProductivity && PRODUCTIVITY_ITEMS.includes(i.id)) &&
             !(hasReporting && REPORTING_ITEMS.includes(i.id)) &&
-            !(hasTools && TOOLS_ITEMS.includes(i.id))
+            !(hasTools && TOOLS_ITEMS.includes(i.id)) &&
+            !(hasAdmin && ADMIN_ITEMS.includes(i.id))
     )
 
     /* ── Two-level: user initials for avatar ── */
@@ -545,6 +547,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                 <NotificationsModal
                     isOpen={showNotifications}
                     messagesHook={messagesHook}
+                    notificationsHook={notificationsHook}
                     onClose={() => {
                         setShowNotifications(false)
                         window.dispatchEvent(new CustomEvent('messages-refresh'))
@@ -783,6 +786,23 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                         })}
                                     </MobileSection>
                                 )}
+                                {hasAdmin && (
+                                    <MobileSection title="Admin">
+                                        {ADMIN_ITEMS.map((id) => {
+                                            const item = visibleMenuItems.find((i) => i.id === id)
+                                            if (!item) return null
+                                            return (
+                                                <MobileMenuItem
+                                                    key={id}
+                                                    item={item}
+                                                    isActive={selectedView === id}
+                                                    onClick={() => handleMenuClick(id)}
+                                                    accentColor={accentColor}
+                                                />
+                                            )
+                                        })}
+                                    </MobileSection>
+                                )}
                                 {standaloneItems
                                     .filter((i) => i.id !== 'Dashboard')
                                     .map((item) => (
@@ -933,26 +953,28 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                     )}
                                 </select>
 
-                                {/* Notifications */}
+                                {/* Notifications & Messages */}
                                 <button
                                     className="relative flex items-center justify-center cursor-pointer"
-                                    title="Notifications"
+                                    title="Notifications & Messages"
                                     style={{
                                         backgroundColor: 'rgba(255,255,255,0.06)',
                                         border: '1px solid rgba(255,255,255,0.1)',
                                         borderRadius: 8,
                                         color: 'rgba(255,255,255,0.7)',
+                                        gap: 4,
                                         height: 34,
                                         outline: 'none',
-                                        width: 34
+                                        width: 40
                                     }}
                                     onClick={(e) => {
                                         setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
                                         setShowNotifications(true)
                                     }}
                                 >
-                                    <i className="fas fa-bell" style={{ fontSize: 13 }} />
-                                    {notificationsCount > 0 && (
+                                    <i className="fas fa-bell" style={{ fontSize: 12 }} />
+                                    <i className="fas fa-envelope" style={{ fontSize: 11 }} />
+                                    {combinedCount > 0 && (
                                         <span
                                             className="absolute flex items-center justify-center rounded-full"
                                             style={{
@@ -967,7 +989,7 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                                 top: -4
                                             }}
                                         >
-                                            {notificationsCount}
+                                            {combinedCount}
                                         </span>
                                     )}
                                 </button>
@@ -1216,6 +1238,10 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                                 renderDropdown('Tools', ICONS.Tools, TOOLS_ITEMS, 'tools', () =>
                                     TOOLS_ITEMS.includes(selectedView)
                                 )}
+                            {hasAdmin &&
+                                renderDropdown('Admin', 'fa-cog', ADMIN_ITEMS, 'admin', () =>
+                                    ADMIN_ITEMS.includes(selectedView)
+                                )}
                             {standaloneItems
                                 .filter((i) => i.id !== 'Dashboard')
                                 .map((item) => (
@@ -1315,16 +1341,64 @@ export default function Navigation({ selectedView, onSelectView, children, userN
                             '#ef4444',
                             'account-nav'
                         )}
-                        {renderIconButton(
-                            'fa-bell',
-                            'Notifications',
-                            (e) => {
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                backgroundColor: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: isTablet ? '8px' : '12px',
+                                color: 'white',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexShrink: 0,
+                                gap: isTablet ? '3px' : '4px',
+                                height: isTablet ? '32px' : '42px',
+                                justifyContent: 'center',
+                                position: 'relative',
+                                transition: 'all 0.2s ease',
+                                width: isTablet ? '40px' : '52px'
+                            }}
+                            onClick={(e) => {
                                 setNotificationsAnchor(e.currentTarget.getBoundingClientRect())
                                 setShowNotifications(true)
-                            },
-                            false,
-                            notificationsCount
-                        )}
+                            }}
+                            title="Notifications & Messages"
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'
+                                e.currentTarget.style.transform = 'translateY(-1px)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                                e.currentTarget.style.transform = 'translateY(0)'
+                            }}
+                        >
+                            <i className="fas fa-bell" style={{ fontSize: isTablet ? '12px' : '14px' }} />
+                            <i className="fas fa-envelope" style={{ fontSize: isTablet ? '11px' : '13px' }} />
+                            {combinedCount > 0 && (
+                                <span
+                                    style={{
+                                        alignItems: 'center',
+                                        backgroundColor: '#ef4444',
+                                        border: `2px solid ${accentColor}`,
+                                        borderRadius: '10px',
+                                        boxShadow: '0 2px 8px #ef444466',
+                                        color: 'white',
+                                        display: 'flex',
+                                        fontSize: isTablet ? '9px' : '11px',
+                                        fontWeight: 700,
+                                        height: isTablet ? '16px' : '20px',
+                                        justifyContent: 'center',
+                                        minWidth: isTablet ? '16px' : '20px',
+                                        padding: '0 4px',
+                                        position: 'absolute',
+                                        right: '-4px',
+                                        top: '-4px'
+                                    }}
+                                >
+                                    {combinedCount}
+                                </span>
+                            )}
+                        </div>
                         {renderIconButton(
                             'fa-users',
                             'Online Users',

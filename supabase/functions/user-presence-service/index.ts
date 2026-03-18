@@ -71,6 +71,38 @@ Deno.serve(async (req) => {
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
+            case "merge-device": {
+                const body = await parseBody(req);
+                supabase = resolveClient(headerAuth, body);
+                const userId = body?.userId;
+                const device = body?.device;
+                if (typeof userId !== "string" || !userId || !device) return errorResponse("User ID and device are required", headers, 400);
+                const now = nowISO();
+                const {data} = await supabase.from(PRESENCE_TABLE)
+                    .select("active_devices")
+                    .eq("user_id", userId)
+                    .maybeSingle();
+                const devices = data?.active_devices && typeof data.active_devices === "object"
+                    ? {...data.active_devices} : {};
+                devices[device] = now;
+                const {error} = await supabase.from(PRESENCE_TABLE)
+                    .update({active_devices: devices})
+                    .eq("user_id", userId);
+                if (error) return errorResponse("Operation failed", headers, 400);
+                return jsonResponse({success: true}, headers);
+            }
+            case "update-last-login": {
+                const body = await parseBody(req);
+                supabase = resolveClient(headerAuth, body);
+                const userId = body?.userId;
+                if (typeof userId !== "string" || !userId) return errorResponse("User ID is required", headers, 400);
+                const loginDate = body?.date || nowISO().split("T")[0];
+                const {error} = await supabase.from("users")
+                    .update({last_login_at: loginDate})
+                    .eq("id", userId);
+                if (error) return errorResponse("Operation failed", headers, 400);
+                return jsonResponse({success: true}, headers);
+            }
             case "fetch-online-users": {
                 const {data, error} = await supabase.from(PRESENCE_TABLE)
                     .select("user_id, last_seen, last_activity")

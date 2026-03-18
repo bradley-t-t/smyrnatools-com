@@ -1,8 +1,8 @@
 import APIUtility from '../utils/APIUtility'
 import { CacheUtility } from '../utils/CacheUtility'
 import { detectPlatformType } from '../utils/DeviceUtility'
-import { Database } from './DatabaseService'
 
+const PREFS_FUNCTION = '/user-preferences-service'
 const TUTORIAL_STORAGE_KEY = 'dismissed_tutorials'
 const VERSION_CACHE_KEY = 'app:version'
 const VERSION_CACHE_TTL_MS = 60_000
@@ -60,22 +60,7 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: userExists, error: userError } = await Database.from('users')
-                .select('id')
-                .eq('id', userId)
-                .maybeSingle()
-            if (userError || !userExists) return true
-            const { data: existing } = await Database.from('users_tutorials')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('tutorial_id', tutorialId)
-                .maybeSingle()
-            if (existing) return true
-            await Database.from('users_tutorials').insert({
-                dismissed_at: new Date().toISOString(),
-                tutorial_id: tutorialId,
-                user_id: userId
-            })
+            await APIUtility.post(`${PREFS_FUNCTION}/dismiss-tutorial`, { tutorialId, userId })
             return true
         } catch {
             return true
@@ -92,9 +77,8 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return localDismissed
-            const { data, error } = await Database.from('users_tutorials').select('tutorial_id').eq('user_id', userId)
-            if (error) return localDismissed
-            const dbDismissed = data ? data.map((d) => d.tutorial_id) : []
+            const { json } = await APIUtility.post(`${PREFS_FUNCTION}/get-dismissed-tutorials`, { userId })
+            const dbDismissed = json?.data || []
             return [...new Set([...localDismissed, ...dbDismissed])]
         } catch {
             return localDismissed
@@ -107,17 +91,8 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: existing } = await Database.from('users_tutorials')
-                .select('id, tutorial_id')
-                .eq('user_id', userId)
-            if (!existing || existing.length === 0) return true
-            const ids = existing.map((row) => row.id)
-            const { error } = await Database.from('users_tutorials').delete().in('id', ids)
-            if (error) {
-                console.error('Error deleting tutorials:', error)
-                return false
-            }
-            return true
+            const { json } = await APIUtility.post(`${PREFS_FUNCTION}/reset-all-tutorials`, { userId })
+            return json?.success !== false
         } catch (err) {
             console.error('Exception in resetAllTutorials:', err)
             return false
@@ -133,18 +108,8 @@ class UserPreferencesService {
         try {
             const userId = getTutorialUserId()
             if (!userId) return true
-            const { data: existing } = await Database.from('users_tutorials')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('tutorial_id', tutorialId)
-                .maybeSingle()
-            if (!existing) return true
-            const { error } = await Database.from('users_tutorials').delete().eq('id', existing.id)
-            if (error) {
-                console.error('Error deleting tutorial:', error)
-                return false
-            }
-            return true
+            const { json } = await APIUtility.post(`${PREFS_FUNCTION}/reset-tutorial`, { tutorialId, userId })
+            return json?.success !== false
         } catch (err) {
             console.error('Exception in resetTutorial:', err)
             return false
@@ -172,25 +137,8 @@ class UserPreferencesService {
     static async shouldShowPrompt(userId, promptType) {
         if (!userId) return false
         try {
-            const { data, error } = await Database.from('app_install_prompts')
-                .select('*')
-                .eq('user_id', userId)
-                .eq('prompt_type', promptType)
-                .single()
-            if (error && error.code !== 'PGRST116') {
-                console.error('Error checking app install prompt:', error)
-                return true
-            }
-            if (!data) return true
-            if (data.action === 'dismissed_forever' || data.action === 'installed') {
-                return false
-            }
-            if (data.action === 'remind_later' && data.reminded_at) {
-                const remindedDate = new Date(data.reminded_at)
-                const daysSinceReminder = (Date.now() - remindedDate.getTime()) / (1000 * 60 * 60 * 24)
-                return daysSinceReminder >= 7
-            }
-            return false
+            const { json } = await APIUtility.post(`${PREFS_FUNCTION}/should-show-prompt`, { promptType, userId })
+            return json?.show !== false
         } catch (err) {
             console.error('Error in shouldShowPrompt:', err)
             return true
@@ -201,27 +149,17 @@ class UserPreferencesService {
     static async recordPromptAction(userId, promptType, action, deviceType = null) {
         if (!userId) return { error: 'No user ID', success: false }
         try {
-            const dataToUpsert = {
-                action: action,
-                device_type: deviceType,
-                prompt_type: promptType,
-                updated_at: new Date().toISOString(),
-                user_id: userId
+            const { json } = await APIUtility.post(`${PREFS_FUNCTION}/record-prompt-action`, {
+                action,
+                deviceType,
+                promptType,
+                userId
+            })
+            if (!json?.success) {
+                console.error('Error recording prompt action:', json?.error)
+                return { error: json?.error, success: false }
             }
-            if (action === 'remind_later') {
-                dataToUpsert.reminded_at = new Date().toISOString()
-            }
-            const { data, error } = await Database.from('app_install_prompts')
-                .upsert(dataToUpsert, {
-                    onConflict: 'user_id,prompt_type'
-                })
-                .select()
-                .single()
-            if (error) {
-                console.error('Error recording prompt action:', error)
-                return { error, success: false }
-            }
-            return { data, success: true }
+            return { data: json.data, success: true }
         } catch (err) {
             console.error('Error in recordPromptAction:', err)
             return { error: err, success: false }

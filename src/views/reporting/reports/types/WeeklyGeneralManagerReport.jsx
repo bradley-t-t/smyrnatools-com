@@ -576,8 +576,8 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
     return (
         <>
             {aiLoading && (
-                <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
-                    <div className="flex items-center justify-center gap-2 p-4 text-sm opacity-80">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 mb-6">
+                    <div className="flex items-center justify-center gap-2 p-4 text-sm text-slate-500">
                         <i className="fas fa-circle-notch fa-spin"></i>
                         <span>Generating AI Analysis...</span>
                     </div>
@@ -596,21 +596,23 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                 </div>
             )}
             {aiAnalysis && !aiLoading && (
-                <div className="rounded-xl bg-gradient-to-br from-accent to-accent/70 p-5 mb-6 text-white">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 mb-6">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-base">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent text-base">
                             <i className="fas fa-robot"></i>
                         </div>
                         <div>
-                            <div className="font-semibold text-[0.9375rem] m-0">AI Regional Analysis</div>
-                            <div className="text-xs opacity-80 m-0">
+                            <div className="font-semibold text-[0.9375rem] text-slate-800 m-0">
+                                AI Regional Analysis
+                            </div>
+                            <div className="text-xs text-slate-500 m-0">
                                 Based on report data for {plants.length} plant{plants.length !== 1 ? 's' : ''}
                             </div>
                         </div>
                     </div>
-                    <div className="text-sm leading-relaxed opacity-95 whitespace-pre-wrap">{aiAnalysis}</div>
+                    <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">{aiAnalysis}</div>
                     <button
-                        className="mt-3 rounded-md border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white cursor-pointer hover:bg-white/25"
+                        className="mt-3 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-600 cursor-pointer hover:bg-slate-100"
                         onClick={handleRegenerateAI}
                     >
                         <i className="fas fa-sync-alt mr-1.5"></i>
@@ -618,7 +620,7 @@ export function GeneralManagerSubmitPlugin({ form, setForm, plants = [], readOnl
                     </button>
                 </div>
             )}
-            <div className="rounded-xl border border-gray-200 border-l-4 border-l-accent bg-white p-6 mb-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                     <div className="text-lg font-semibold text-slate-800 m-0">Per-Plant Summary</div>
                 </div>

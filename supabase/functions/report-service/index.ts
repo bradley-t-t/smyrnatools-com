@@ -50,6 +50,12 @@ function extractLostYardage(form: any): number | null {
     return null;
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return null;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -183,6 +189,56 @@ Deno.serve(async (req) => {
                 saturday.setDate(monday.getDate() + 5);
                 saturday.setHours(0, 0, 0, 0);
                 return jsonResponse({data: {monday: toISO(monday), saturday: toISO(saturday)}}, headers);
+            }
+            case "save-report": {
+                const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
+                const body = await parseBody(req);
+                const {existingId, upsertData} = body;
+                if (!upsertData) return errorResponse("upsertData is required", headers, 400);
+                const selectFields = "id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week";
+                const {data, error} = existingId
+                    ? await supabase.from("reports").update(upsertData).eq("id", existingId).select(selectFields).single()
+                    : await supabase.from("reports").insert([upsertData]).select(selectFields).single();
+                if (error) return errorResponse("Failed to save report", headers, 500);
+                return jsonResponse(data, headers);
+            }
+            case "save-exclusion-reason": {
+                const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
+                const body = await parseBody(req);
+                const {reportId, reason} = body;
+                if (!reportId || !reason) return jsonResponse(true, headers);
+                const {error} = await supabase.from("report_operator_exclusion_reasons").upsert({reason, report_id: reportId}, {onConflict: "report_id"});
+                if (error) return errorResponse("Failed to save exclusion reason", headers, 500);
+                return jsonResponse(true, headers);
+            }
+            case "delete-report": {
+                const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
+                const body = await parseBody(req);
+                const reportId = typeof body?.reportId === "string" ? body.reportId : null;
+                if (!reportId) return errorResponse("reportId is required", headers, 400);
+                const {error} = await supabase.from("reports").delete().eq("id", reportId);
+                if (error) return errorResponse("Failed to delete report", headers, 500);
+                return jsonResponse(true, headers);
+            }
+            case "mark-reviewed": {
+                const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
+                const body = await parseBody(req);
+                const {reportId, userId} = body;
+                if (!reportId || !userId) return errorResponse("reportId and userId are required", headers, 400);
+                const {error} = await supabase.from("reports_reviewed").upsert(
+                    {report_id: reportId, reviewed_at: new Date().toISOString(), reviewed_by_user_id: userId},
+                    {onConflict: "report_id,reviewed_by_user_id"}
+                );
+                if (error) return errorResponse("Failed to mark reviewed", headers, 500);
+                return jsonResponse(true, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});

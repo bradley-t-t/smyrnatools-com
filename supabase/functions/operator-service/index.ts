@@ -25,6 +25,12 @@ function requireOperatorId(body: any, key = "operatorId"): string | null {
     return typeof val === "string" && val && val !== "undefined" ? val : null;
 }
 
+async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
+    const {data, error} = await supabase.auth.getUser();
+    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
+    return null;
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -84,6 +90,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "create": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const input = body?.operator ?? body;
                 const now = nowTimestamp();
@@ -113,6 +121,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const input = body?.operator ?? body;
                 const employeeId = typeof input?.employee_id === "string" ? input.employee_id : null;
@@ -132,6 +142,7 @@ Deno.serve(async (req) => {
                     updated_at: now,
                     pending_start_date: input?.pending_start_date ?? null,
                     phone: input?.phone ?? null,
+                    rating: typeof input?.rating === "number" ? input.rating : Number(input?.rating) || 0,
                     automatic_restriction: toBool(input?.automatic_restriction)
                 };
                 Object.keys(updateObj).forEach((k) => updateObj[k] === undefined && delete updateObj[k]);
@@ -141,6 +152,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "delete": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const employeeId = typeof body?.employeeId === "string" ? body.employeeId : null;
                 if (!employeeId) return errorResponse("Invalid Employee ID", headers, 400);
@@ -161,6 +174,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-history": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 const fieldName = typeof body?.fieldName === "string" ? body.fieldName : null;
@@ -185,6 +200,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-comment": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 const text = typeof body?.text === "string" && body.text.trim() ? body.text.trim() : null;
@@ -199,6 +216,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "delete-comment": {
+                const authErr = await requireAuthenticated(supabase, headers);
+                if (authErr) return authErr;
                 const body = await parseBody(req);
                 const commentId = typeof body?.commentId === "string" && body.commentId !== "undefined" ? body.commentId : null;
                 if (!commentId) return errorResponse("Comment ID is required", headers, 400);

@@ -1,5 +1,8 @@
+import APIUtility from '../utils/APIUtility'
 import { Database } from './DatabaseService'
 import { UserService } from './UserService'
+
+const MAINT_FUNCTION = '/maintenance-service'
 
 const EQUIPMENT_TABLE = 'maintenance_log_equipment'
 const ENTRIES_TABLE = 'maintenance_log_entries'
@@ -79,34 +82,27 @@ export const MaintenanceLogService = {
     /** Creates a new equipment record. */
     async createEquipment(equipment) {
         const user = await requireAuth()
-        const { data, error } = await Database.from(EQUIPMENT_TABLE)
-            .insert({ ...equipment, created_by: user.id })
-            .select()
-            .single()
-        if (error) throw error
-        return data
+        const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/create-equipment`, {
+            equipment,
+            userId: user.id
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to create equipment')
+        return json.data
     },
 
     /** Deletes an equipment record and its service history by ID. */
     async deleteEquipment(id) {
         await requireAuth()
-        // Delete service entries first to avoid FK constraint violations
-        const { error: entriesError } = await Database.from(ENTRIES_TABLE).delete().eq('equipment_id', id)
-        if (entriesError) throw entriesError
-        const { error } = await Database.from(EQUIPMENT_TABLE).delete().eq('id', id)
-        if (error) throw error
+        const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/delete-equipment`, { id })
+        if (!res.ok) throw new Error(json?.error || 'Failed to delete equipment')
     },
 
     /** Updates an equipment record by ID. */
     async updateEquipment(id, updates) {
         await requireAuth()
-        const { data, error } = await Database.from(EQUIPMENT_TABLE)
-            .update({ ...updates, updated_at: new Date().toISOString() })
-            .eq('id', id)
-            .select()
-            .single()
-        if (error) throw error
-        return data
+        const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/update-equipment`, { id, updates })
+        if (!res.ok) throw new Error(json?.error || 'Failed to update equipment')
+        return json.data
     },
 
     // ── Service Log Entries ─────────────────────────────────────
@@ -136,28 +132,21 @@ export const MaintenanceLogService = {
     async createEntry(entry) {
         const user = await requireAuth()
         const userName = user.name || `User ${user.id.slice(0, 8)}`
-        const { data, error } = await Database.from(ENTRIES_TABLE)
-            .insert({
-                ...entry,
-                performed_by: user.id,
-                performed_by_name: entry.performed_by_name || userName
-            })
-            .select()
-            .single()
-        if (error) throw error
-        return data
+        const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/create-entry`, {
+            entry,
+            userId: user.id,
+            userName
+        })
+        if (!res.ok) throw new Error(json?.error || 'Failed to create entry')
+        return json.data
     },
 
     /** Updates a service log entry by ID. */
     async updateEntry(id, updates) {
         await requireAuth()
-        const { data, error } = await Database.from(ENTRIES_TABLE)
-            .update({ ...updates, updated_at: new Date().toISOString() })
-            .eq('id', id)
-            .select()
-            .single()
-        if (error) throw error
-        return data
+        const { res, json } = await APIUtility.post(`${MAINT_FUNCTION}/update-entry`, { id, updates })
+        if (!res.ok) throw new Error(json?.error || 'Failed to update entry')
+        return json.data
     },
 
     // ── Attachments ─────────────────────────────────────────────

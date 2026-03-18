@@ -286,43 +286,18 @@ function ManagerDetailView({ managerId, onClose }) {
                 .eq('id', manager.id)
                 .single()
             if (!checkManager) throw new Error(`Manager with ID ${manager.id} not found`)
-            const [{ error: profileError }, { error: userError }] = await Promise.all([
-                Database.from('users_profiles')
-                    .update({
-                        additional_assigned_plants: additionalPlants.length ? additionalPlants : null,
-                        first_name: firstName,
-                        last_name: lastName,
-                        plant_code: plantCode,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', manager.id),
-                Database.from('users')
-                    .update({
-                        email,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', manager.id)
-            ])
-            if (profileError) throw profileError
-            if (userError) throw userError
             const selectedRole = availableRoles.find((role) => role.name === roleName)
             if (!selectedRole) throw new Error(`Role '${roleName}' not found in available roles.`)
-            // Upsert the role assignment — insert if this is the user's first role, otherwise update.
-            const { data: existingPermission } = await Database.from('users_permissions')
-                .select('user_id')
-                .eq('user_id', managerId)
-            const updateData = {
-                role_id: selectedRole.id,
-                updated_at: new Date().toISOString()
-            }
-            const { error: permError } = existingPermission?.length
-                ? await Database.from('users_permissions').update(updateData).eq('user_id', managerId)
-                : await Database.from('users_permissions').insert({
-                      ...updateData,
-                      created_at: new Date().toISOString(),
-                      user_id: managerId
-                  })
-            if (permError) throw permError
+            await UserService.updateManager(managerId, {
+                email,
+                profile: {
+                    additional_assigned_plants: additionalPlants.length ? additionalPlants : null,
+                    first_name: firstName,
+                    last_name: lastName,
+                    plant_code: plantCode
+                },
+                roleId: selectedRole.id
+            })
             if (showPasswordField && password) {
                 const { res: pwRes, json: pwJson } = await APIUtility.post('/auth-service/admin-update-password', {
                     password,
@@ -352,8 +327,7 @@ function ManagerDetailView({ managerId, onClose }) {
             return
         }
         try {
-            const { error } = await Database.from('users').delete().eq('id', managerId)
-            if (error) throw error
+            await UserService.deleteManager(managerId)
             setMessage('Manager deleted successfully')
             setTimeout(() => onClose(), 1500)
         } catch {

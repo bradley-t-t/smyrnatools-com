@@ -2,8 +2,11 @@ import EquipmentVerificationProvider from '../app/notifications/EquipmentVerific
 import MixerVerificationProvider from '../app/notifications/MixerVerificationNotifications'
 import OverdueListProvider from '../app/notifications/OverdueListNotifications'
 import TractorVerificationProvider from '../app/notifications/TractorVerificationNotifications'
+import APIUtility from '../utils/APIUtility'
 import { Database } from './DatabaseService'
 import { UserService } from './UserService'
+const NOTIF_FUNCTION = '/notification-service'
+const postNotif = (endpoint, body) => APIUtility.post(`${NOTIF_FUNCTION}/${endpoint}`, body)
 
 /** Computed providers that derive notifications from live asset/task state. */
 const computedProviders = [
@@ -22,11 +25,7 @@ const computedProviders = [
 const NotificationsService = {
     async deleteNotification(userId, dbId) {
         if (!userId || !dbId) return
-        const now = new Date().toISOString()
-        await Database.from('notification_reads').upsert(
-            { deleted_at: now, notification_id: dbId, read_at: now, user_id: userId },
-            { onConflict: 'notification_id,user_id' }
-        )
+        await postNotif('delete-notification', { dbId, userId })
     },
 
     async getDbNotifications(userId, selectedRegion) {
@@ -99,23 +98,13 @@ const NotificationsService = {
 
     async markAllRead(userId, dbIds) {
         if (!userId || !dbIds?.length) return
-        await Database.from('notification_reads').upsert(
-            dbIds.map((id) => ({
-                notification_id: id,
-                read_at: new Date().toISOString(),
-                user_id: userId
-            })),
-            { onConflict: 'notification_id,user_id' }
-        )
+        await postNotif('mark-all-read', { dbIds, userId })
     },
 
     async markAsRead(userId, dbId) {
         if (!userId || !dbId) return
-        const { error } = await Database.from('notification_reads').upsert(
-            { notification_id: dbId, read_at: new Date().toISOString(), user_id: userId },
-            { onConflict: 'notification_id,user_id' }
-        )
-        return !error
+        const { json } = await postNotif('mark-read', { dbId, userId })
+        return !!json
     }
 }
 export default NotificationsService

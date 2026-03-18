@@ -1,9 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import { Database, logDatabaseError } from '../../services/DatabaseService'
+import { logDatabaseError } from '../../services/DatabaseService'
 import { PlantService } from '../../services/PlantService'
 import { UserPreferencesService } from '../../services/UserPreferencesService'
 import { UserService } from '../../services/UserService'
+import APIUtility from '../../utils/APIUtility'
+const PREFS_FUNCTION = '/user-preferences-service'
 /**
  * User preferences context managing per-entity filter states, region selection,
  * view modes, accent color, and tutorial toggles. Persists to the database on change.
@@ -122,7 +124,7 @@ export const PreferencesProvider = ({ children }) => {
                     user_id: userId
                 }
                 try {
-                    await Database.from('users_preferences').upsert(upsertData, { onConflict: 'user_id' })
+                    await APIUtility.post(`${PREFS_FUNCTION}/save-all`, { data: upsertData, userId })
                 } catch (e) {
                     logDatabaseError('upserting preferences', e)
                 }

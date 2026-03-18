@@ -3,9 +3,8 @@ import { requireEntityId, resolveEntityId } from '../utils/BaseAssetUtility'
 import { Database } from './DatabaseService'
 import { PlantService } from './PlantService'
 const USER_FUNCTION = '/user-service'
+const DM_FUNCTION = '/district-manager-service'
 const PROFILES_TABLE = 'users_profiles'
-const ELIGIBLE_ROLES_TABLE = 'district_manager_eligible_roles'
-const PLANTS_TABLE = 'district_manager_plants'
 const USER_ID_REQUIRED = 'User ID is required'
 const SESSION_KEY = 'smyrna_session'
 const SESSION_FALLBACK_KEY = 'userId'
@@ -15,6 +14,7 @@ const ALWAYS_PERMITTED = 'my_account.view'
 const ALL_REGIONS_PERMISSION = 'regions.select.all'
 /** Centralized API helper for all user-service endpoints. */
 const postUser = (endpoint, body, options) => APIUtility.post(`${USER_FUNCTION}/${endpoint}`, body, options)
+const postDM = (endpoint, body, options) => APIUtility.post(`${DM_FUNCTION}/${endpoint}`, body, options)
 const resolveUser = (userId) => requireEntityId(userId, USER_ID_REQUIRED)
 const fallbackName = (userId) => `User ${userId.slice(0, 8)}`
 /**
@@ -313,29 +313,35 @@ class UserServiceImpl {
             return []
         })
     }
+    async updateManager(userId, { profile, email, roleId }) {
+        if (!userId) throw new Error(USER_ID_REQUIRED)
+        await postUser('update-manager', { email, profile, roleId, userId: resolveEntityId(userId) })
+        this.clearCache()
+        return true
+    }
+    async deleteManager(userId) {
+        if (!userId) throw new Error(USER_ID_REQUIRED)
+        await postUser('delete-manager', { userId: resolveEntityId(userId) })
+        this.clearCache()
+        return true
+    }
     // --- District Manager: Eligible Roles ---
     async fetchEligibleRoles() {
-        const { data, error } = await Database.from(ELIGIBLE_ROLES_TABLE)
-            .select('id, role_id, created_at, users_roles(id, name, weight)')
-            .order('created_at')
-        if (error) throw new Error('Failed to fetch eligible roles')
-        this.eligibleRolesCache = data ?? []
+        const { json } = await postDM('fetch-eligible-roles', {})
+        this.eligibleRolesCache = json?.data ?? []
         return this.eligibleRolesCache
     }
     async addEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
-        const { error } = await Database.from(ELIGIBLE_ROLES_TABLE).insert({
-            created_at: new Date().toISOString(),
-            role_id: roleId
-        })
-        if (error) throw new Error(error.code === '23505' ? 'Role is already eligible' : 'Failed to add eligible role')
+        const { res, json } = await postDM('add-eligible-role', { roleId })
+        if (!res.ok) throw new Error(json?.error || 'Failed to add eligible role')
         this.eligibleRolesCache = null
         return true
     }
     async removeEligibleRole(roleId) {
         if (!roleId) throw new Error('Role ID is required')
-        const { error } = await Database.from(ELIGIBLE_ROLES_TABLE).delete().eq('role_id', roleId)
-        if (error) throw new Error('Failed to remove eligible role')
+        const { res, json } = await postDM('remove-eligible-role', { roleId })
+        if (!res.ok) throw new Error(json?.error || 'Failed to remove eligible role')
         this.eligibleRolesCache = null
         return true
     }
@@ -345,12 +351,8 @@ class UserServiceImpl {
             return this.eligibleRolesCache.some((r) => r.role_id === roleId)
         }
         try {
-            const { data, error } = await Database.from(ELIGIBLE_ROLES_TABLE)
-                .select('id')
-                .eq('role_id', roleId)
-                .maybeSingle()
-            if (error) return false
-            return !!data
+            const { json } = await postDM('is-role-eligible', { roleId })
+            return !!json?.eligible
         } catch {
             return false
         }
@@ -359,30 +361,15 @@ class UserServiceImpl {
     async fetchUserPlants(userId) {
         if (!userId) throw new Error('User ID is required')
         if (this.userPlantsCache.has(userId)) return this.userPlantsCache.get(userId)
-        const { data, error } = await Database.from(PLANTS_TABLE)
-            .select('id, user_id, plant_code, created_at')
-            .eq('user_id', userId)
-            .order('plant_code')
-        if (error) throw new Error('Failed to fetch user plants')
-        const plants = data ?? []
+        const { json } = await postDM('fetch-user-plants', { userId })
+        const plants = json?.data ?? []
         this.userPlantsCache.set(userId, plants)
         return plants
     }
     async updateUserPlants(userId, plantCodes = []) {
         if (!userId) throw new Error('User ID is required')
-        const { error: deleteError } = await Database.from(PLANTS_TABLE).delete().eq('user_id', userId)
-        if (deleteError) throw new Error('Failed to clear existing assignments')
-        const validCodes = plantCodes.filter((v) => typeof v === 'string' && v.trim())
-        if (validCodes.length) {
-            const now = new Date().toISOString()
-            const rows = validCodes.map((code) => ({
-                created_at: now,
-                plant_code: code.trim(),
-                user_id: userId
-            }))
-            const { error: insertError } = await Database.from(PLANTS_TABLE).insert(rows)
-            if (insertError) throw new Error('Failed to assign plants')
-        }
+        const { res, json } = await postDM('update-user-plants', { plantCodes, userId })
+        if (!res.ok) throw new Error(json?.error || 'Failed to update user plants')
         this.userPlantsCache.delete(userId)
         return true
     }
