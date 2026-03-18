@@ -63,10 +63,23 @@ async function parseBody(req: Request): Promise<any> {
     }
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 function stringField(body: any, key: string, fallback?: string): string | null {
@@ -88,8 +101,8 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "table-exists": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const tableName = sanitizeTableName(stringField(body, "tableName"));
                 if (!tableName) return errorResponse("Invalid or disallowed table name", headers, 400);
@@ -102,8 +115,8 @@ Deno.serve(async (req) => {
                 return errorResponse("Raw SQL query endpoint has been removed for security", headers, 403);
             }
             case "fetch-all": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const table = sanitizeTableName(stringField(body, "table"));
                 if (!table) return errorResponse("Invalid or disallowed table name", headers, 400);
@@ -115,8 +128,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const table = sanitizeTableName(stringField(body, "table"));
                 const filterColumnRaw = stringField(body, "filterColumn");

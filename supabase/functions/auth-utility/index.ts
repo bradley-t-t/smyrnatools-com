@@ -78,8 +78,11 @@ Deno.serve(async (req) => {
                 return jsonResponse({salt: bytesToHex(randomBytes)}, headers);
             }
             case "hash-password": {
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
+                const hpUserId = req.headers.get("x-user-id");
+                const hpSessionId = req.headers.get("x-session-id");
+                if (!hpUserId || !hpSessionId) return errorResponse("Unauthorized", headers, 401);
+                const {data: hpSession, error: hpSessionErr} = await supabase.from("users_sessions").select("id").eq("id", hpSessionId).eq("user_id", hpUserId).maybeSingle();
+                if (hpSessionErr || !hpSession) return errorResponse("Unauthorized", headers, 401);
                 let body;
                 try {
                     body = await req.json();
@@ -98,12 +101,12 @@ Deno.serve(async (req) => {
                 }
             }
             case "get-user-id": {
-                try {
-                    const {data} = await supabase.auth.getSession();
-                    return jsonResponse({userId: data?.session?.user?.id ?? null}, headers);
-                } catch (error) {
-                    return jsonResponse({userId: null, error: "Failed to get user ID"}, headers);
-                }
+                const guiUserId = req.headers.get("x-user-id");
+                const guiSessionId = req.headers.get("x-session-id");
+                if (!guiUserId || !guiSessionId) return jsonResponse({userId: null}, headers);
+                const {data: guiSession} = await supabase.from("users_sessions").select("id").eq("id", guiSessionId).eq("user_id", guiUserId).maybeSingle();
+                if (!guiSession) return jsonResponse({userId: null}, headers);
+                return jsonResponse({userId: guiUserId}, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});

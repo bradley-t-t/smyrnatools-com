@@ -7,6 +7,8 @@ const OPERATORS_TABLE = "operators";
 const HISTORY_TABLE = "operators_history";
 const COMMENTS_TABLE = "operators_comments";
 const SYSTEM_USER_ID = "00000000-0000-0000-0000-000000000000";
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
 
 async function parseBody(req: Request): Promise<any> {
     try { return await req.json(); } catch { return {}; }
@@ -25,10 +27,20 @@ function requireOperatorId(body: any, key = "operatorId"): string | null {
     return typeof val === "string" && val && val !== "undefined" ? val : null;
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 Deno.serve(async (req) => {
@@ -46,16 +58,22 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "list": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").order("name");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-active": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("status", "Active").order("name");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-by-plant": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const plantCode = typeof body?.plantCode === "string" ? body.plantCode : null;
                 if (!plantCode) return errorResponse("Plant code is required", headers, 400);
@@ -64,16 +82,22 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-tractor": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("position", "Tractor Operator").order("name");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "list-trainers": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(OPERATORS_TABLE).select("*").eq("is_trainer", true).order("name");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-operators": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const [{data: activeData, error: activeError}, {data: otherData, error: otherError}] = await Promise.all([
                     supabase.from(OPERATORS_TABLE).select("*").eq("status", "Active").order("name"),
                     supabase.from(OPERATORS_TABLE).select("*").not("status", "eq", "Active").order("name")
@@ -82,6 +106,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: [...(activeData ?? []), ...(otherData ?? [])]}, headers);
             }
             case "get-by-employee-id": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const employeeId = typeof body?.employeeId === "string" ? body.employeeId : null;
                 if (!employeeId) return errorResponse("Invalid Employee ID", headers, 400);
@@ -90,8 +116,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "create": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const input = body?.operator ?? body;
                 const now = nowTimestamp();
@@ -121,8 +147,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const input = body?.operator ?? body;
                 const employeeId = typeof input?.employee_id === "string" ? input.employee_id : null;
@@ -152,8 +178,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "delete": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const employeeId = typeof body?.employeeId === "string" ? body.employeeId : null;
                 if (!employeeId) return errorResponse("Invalid Employee ID", headers, 400);
@@ -163,6 +189,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-history": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 const limit = Number.isInteger(body?.limit) ? body.limit : null;
@@ -174,8 +202,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-history": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 const fieldName = typeof body?.fieldName === "string" ? body.fieldName : null;
@@ -184,7 +212,7 @@ Deno.serve(async (req) => {
                 const oldValue = body?.oldValue == null ? null : String(body.oldValue);
                 const newValue = body?.newValue == null ? null : String(body.newValue);
                 if (oldValue === newValue) return jsonResponse({data: null, skipped: true}, headers);
-                const userId = (typeof body?.changedBy === "string" && body.changedBy) ? body.changedBy : (req.headers.get("X-User-Id") || SYSTEM_USER_ID);
+                const userId = auth;
                 const {data, error} = await supabase.from(HISTORY_TABLE).insert({
                     operator_id: operatorId, field_name: fieldName, old_value: oldValue, new_value: newValue, changed_at: new Date().toISOString(), changed_by: userId
                 }).select().maybeSingle();
@@ -192,6 +220,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "fetch-comments": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 if (!operatorId) return errorResponse("Operator ID is required", headers, 400);
@@ -200,8 +230,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-comment": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const operatorId = requireOperatorId(body);
                 const text = typeof body?.text === "string" && body.text.trim() ? body.text.trim() : null;
@@ -216,8 +246,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "delete-comment": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const commentId = typeof body?.commentId === "string" && body.commentId !== "undefined" ? body.commentId : null;
                 if (!commentId) return errorResponse("Comment ID is required", headers, 400);

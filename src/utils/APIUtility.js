@@ -1,21 +1,21 @@
-import { Database } from '../services/DatabaseService'
 const EDGE_FUNCTIONS_URL = process.env.REACT_APP_EDGE_FUNCTIONS_URL
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY
 const REQUEST_TIMEOUT_MS = 30_000
 const DEFAULT_MAX_RETRIES = 2
 const DEFAULT_RETRY_DELAY_MS = 1_000
-/**
- * Resolves the current session's JWT. Falls back to the anon key if the
- * user is unauthenticated or the session cannot be read.
- */
-const getAuthToken = async () => {
+const SESSION_KEY = 'smyrna_session'
+const SESSION_ID_KEY = 'smyrna_session_id'
+
+/** Builds custom session headers from localStorage for edge function authentication. */
+const getSessionHeaders = () => {
+    const headers = {}
     try {
-        const { data } = await Database.auth.getSession()
-        if (data?.session?.access_token) return data.session.access_token
-    } catch (error) {
-        console.error('Failed to retrieve auth session, falling back to anon key:', error)
-    }
-    return SUPABASE_ANON_KEY
+        const userId = localStorage.getItem(SESSION_KEY)
+        const sessionId = localStorage.getItem(SESSION_ID_KEY)
+        if (userId) headers['X-User-Id'] = userId
+        if (sessionId) headers['X-Session-Id'] = sessionId
+    } catch {}
+    return headers
 }
 /**
  * Builds a plain error response in the same shape as a successful response,
@@ -28,10 +28,10 @@ const errorResponse = (message) => ({
 /**
  * Authenticated HTTP client for edge functions.
  *
- * Each attempt fetches a fresh auth token so that retries succeed even if
- * the previous token expired mid-session. Requests are aborted after
- * REQUEST_TIMEOUT_MS. Failed attempts are retried with linear backoff up to
- * DEFAULT_MAX_RETRIES times (configurable via options).
+ * Sends the anon key for database access and custom session headers
+ * (X-User-Id, X-Session-Id) for user authentication. Requests are aborted
+ * after REQUEST_TIMEOUT_MS. Failed attempts are retried with linear backoff
+ * up to DEFAULT_MAX_RETRIES times (configurable via options).
  */
 const APIUtility = {
     async post(path, data, options = {}) {
@@ -40,15 +40,15 @@ const APIUtility = {
         const retryDelay = options.retryDelay ?? DEFAULT_RETRY_DELAY_MS
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const isLastAttempt = attempt === maxRetries
-            const token = await getAuthToken()
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
             try {
                 const res = await fetch(url, {
                     body: JSON.stringify(data),
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
                         'Content-Type': 'application/json',
+                        ...getSessionHeaders(),
                         ...(options.headers || {})
                     },
                     keepalive: Boolean(options.keepalive),

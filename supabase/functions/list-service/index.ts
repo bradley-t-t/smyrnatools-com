@@ -15,10 +15,23 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return data.user.id;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 const PERMISSIONS_TABLE = "users_permissions";
@@ -59,13 +72,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-items": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-items-with-profiles": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const {data: items, error: itemsError} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
                 if (itemsError) return errorResponse("Operation failed", headers, 400);
                 const idsSet = new Set<string>();
@@ -82,13 +95,13 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: items ?? [], profiles}, headers);
             }
             case "fetch-plants": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from("plants").select("*").order("plant_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-creator-profiles": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const userIds: string[] = Array.isArray(body?.userIds) ? body.userIds.filter((v: any) => typeof v === "string" && v.trim()) : [];
                 if (!userIds.length) return jsonResponse({profiles: []}, headers);
@@ -97,7 +110,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({profiles: data ?? []}, headers);
             }
             case "create": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {description, plantCode, deadline, comments, status, responsible_role} = body;
                 if (typeof description !== "string" || !description.trim()) return errorResponse("Description is required", headers, 400);
@@ -117,7 +130,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true, id}, headers);
             }
             case "update": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const item = body?.item ?? body;
                 if (!item?.id || typeof item.id !== "string") return errorResponse("Item ID is required", headers, 400);
@@ -135,7 +148,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "toggle-completion": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {id, completed} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
@@ -154,7 +167,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {id} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
@@ -167,7 +180,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-planned-items": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 let query = supabase.from(PLANNED_ITEMS_TABLE).select("*");
                 if (body?.startDate) query = query.gte("planned_date", body.startDate);
@@ -177,7 +190,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "add-planned-item": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {listItemId, plannedDate} = body;
                 if (typeof listItemId !== "string" || !listItemId) return errorResponse("List item ID is required", headers, 400);
@@ -190,7 +203,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true, id}, headers);
             }
             case "remove-planned-item": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {listItemId, plannedDate} = body;
                 if (typeof listItemId !== "string" || !listItemId) return errorResponse("List item ID is required", headers, 400);
@@ -204,7 +217,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "clear-planned-items": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const elevErr = await requireElevated(supabase, auth, headers); if (elevErr) return elevErr;
                 const body = await parseBody(req);
                 const {startDate, endDate} = body;

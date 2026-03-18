@@ -9,10 +9,23 @@ async function parseBody(req: Request): Promise<any> {
     try { return await req.json(); } catch { return {}; }
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 Deno.serve(async (req) => {
@@ -26,8 +39,8 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "mark-read": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {userId, dbId} = body;
                 if (!userId || !dbId) return errorResponse("userId and dbId are required", headers, 400);
@@ -39,8 +52,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "mark-all-read": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {userId, dbIds} = body;
                 if (!userId || !Array.isArray(dbIds) || !dbIds.length) return errorResponse("userId and dbIds are required", headers, 400);
@@ -50,8 +63,8 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-notification": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {userId, dbId} = body;
                 if (!userId || !dbId) return errorResponse("userId and dbId are required", headers, 400);

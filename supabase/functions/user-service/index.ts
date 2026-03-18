@@ -45,20 +45,31 @@ function fallbackUserName(userId: string): string {
     return `User ${userId.slice(0, 8)}`;
 }
 
-/** Returns an error Response if the caller is not authenticated, null otherwise. */
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
-/** Returns an error Response if the caller is not authenticated and elevated, null otherwise. */
-async function requireElevatedCaller(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    const user = data?.user;
-    if (error || !user?.id) return errorResponse("Unauthorized", headers, 401);
-    const roles = await fetchUserRoles(supabase, user.id);
-    if (!isElevatedUser(roles)) return errorResponse("Forbidden: insufficient privileges", headers, 403);
+async function requireElevatedCaller(supabase: any, req: Request, headers: any): Promise<Response | null> {
+    const auth = await requireAuthenticated(supabase, req, headers);
+    if (auth instanceof Response) return auth;
+    const {data} = await supabase.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", auth);
+    const isElevated = data?.some((p: any) => (p.users_roles?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD);
+    if (!isElevated) return errorResponse("Forbidden: insufficient privileges", headers, 403);
     return null;
 }
 
@@ -83,16 +94,17 @@ Deno.serve(async (req) => {
                         if (data?.id) return jsonResponse({id: userId}, headers);
                     } catch (_) {}
                 }
-                try {
-                    const {data} = await supabase.auth.getUser();
-                    return jsonResponse(data?.user ?? null, headers);
-                } catch (_) {
-                    return jsonResponse(null, headers);
+                const headerUserId = req.headers.get("x-user-id");
+                const headerSessionId = req.headers.get("x-session-id");
+                if (headerUserId && headerSessionId) {
+                    const {data: sessionData} = await supabase.from(SESSIONS_TABLE).select("id").eq("id", headerSessionId).eq("user_id", headerUserId).maybeSingle();
+                    if (sessionData) return jsonResponse({id: headerUserId}, headers);
                 }
+                return jsonResponse(null, headers);
             }
             case "user-by-id": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {userId} = body;
                 if (!userId) return jsonResponse({id: 'unknown', name: 'Unknown User'}, headers);
                 const {data} = await supabase.from(USERS_TABLE).select('id, name, email').eq('id', userId).single();
@@ -196,7 +208,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(roles.sort((a: any, b: any) => b.weight - a.weight)[0], headers);
             }
             case "assign-role": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
@@ -209,7 +221,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "remove-role": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
@@ -218,7 +230,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "create-role": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {name, permissions = [], weight = 0} = body;
                 if (!name) return errorResponse("Role name is required", headers);
@@ -228,7 +240,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(data, headers);
             }
             case "update-role": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {roleId, updates} = body;
                 if (!roleId || !updates) return errorResponse("Role ID and updates are required", headers);
@@ -237,7 +249,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-role": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {roleId} = body;
                 if (!roleId) return errorResponse("Role ID is required", headers);
@@ -258,7 +270,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(data?.additional_assigned_plants ?? [], headers);
             }
             case "update-additional-plants": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId, additionalPlants} = body;
                 if (!userId) return errorResponse("User ID is required", headers);
@@ -271,7 +283,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "update-manager": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId: targetId, profile, email: managerEmail, roleId} = body;
                 if (!targetId) return errorResponse("User ID is required", headers);
@@ -296,7 +308,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-manager": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId: delId} = body;
                 if (!delId) return errorResponse("User ID is required", headers);

@@ -50,10 +50,23 @@ function extractLostYardage(form: any): number | null {
     return null;
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 Deno.serve(async (req) => {
@@ -192,8 +205,8 @@ Deno.serve(async (req) => {
             }
             case "save-report": {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {existingId, upsertData} = body;
                 if (!upsertData) return errorResponse("upsertData is required", headers, 400);
@@ -206,8 +219,8 @@ Deno.serve(async (req) => {
             }
             case "save-exclusion-reason": {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {reportId, reason} = body;
                 if (!reportId || !reason) return jsonResponse(true, headers);
@@ -217,8 +230,8 @@ Deno.serve(async (req) => {
             }
             case "delete-report": {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const reportId = typeof body?.reportId === "string" ? body.reportId : null;
                 if (!reportId) return errorResponse("reportId is required", headers, 400);
@@ -228,8 +241,8 @@ Deno.serve(async (req) => {
             }
             case "mark-reviewed": {
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {global: {headers: {Authorization: req.headers.get("Authorization") || ""}}});
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {reportId, userId} = body;
                 if (!reportId || !userId) return errorResponse("reportId and userId are required", headers, 400);

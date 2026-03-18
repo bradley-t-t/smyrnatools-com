@@ -15,10 +15,23 @@ function nowISO(): string {
     return new Date().toISOString();
 }
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<string | Response> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return data.user.id;
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
+
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 const PERMISSIONS_TABLE = "users_permissions";
@@ -51,13 +64,13 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-travel-times": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(TRAVEL_TIMES_TABLE).select("*").order("from_plant_code");
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "upsert-travel-time": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {fromPlantCode, toPlantCode, travelMinutes} = body;
                 if (!fromPlantCode || !toPlantCode || typeof travelMinutes !== "number") {
@@ -70,7 +83,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete-travel-time": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {fromPlantCode, toPlantCode} = body;
                 if (!fromPlantCode || !toPlantCode) return errorResponse("fromPlantCode and toPlantCode are required", headers, 400);
@@ -79,7 +92,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-plan": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {planDate} = body;
                 if (!planDate) return errorResponse("planDate is required", headers, 400);
@@ -88,7 +101,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: data ?? null}, headers);
             }
             case "save-plan": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {planDate, assignments, notes, plantProduction} = body;
                 if (!planDate) return errorResponse("planDate is required", headers, 400);
@@ -100,13 +113,13 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "fetch-templates": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(TEMPLATES_TABLE).select("*").eq("user_id", auth).order("created_at", {ascending: false});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "save-template": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {name, assignments, notes} = body;
                 if (!name) return errorResponse("name is required", headers, 400);
@@ -117,7 +130,7 @@ Deno.serve(async (req) => {
                 return jsonResponse({success: true}, headers);
             }
             case "delete-template": {
-                const auth = await requireAuthenticated(supabase, headers); if (auth instanceof Response) return auth;
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const {templateId} = body;
                 if (!templateId) return errorResponse("templateId is required", headers, 400);

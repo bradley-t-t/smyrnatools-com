@@ -12,11 +12,23 @@ const MAINTENANCE_TABLE = "trailers_maintenance";
 const ID_KEY = "trailer_id";
 const ORDER_BY = "trailer_number";
 const DIFF_FIELDS = ["trailer_number", "assigned_plant", "trailer_type", "assigned_tractor", "cleanliness_rating", "status"];
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
 
-async function requireAuthenticated(supabase: any, headers: any): Promise<Response | null> {
-    const {data, error} = await supabase.auth.getUser();
-    if (error || !data?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    return null;
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
 }
 
 function normTrailer(v: any, field: string): any {
@@ -41,6 +53,8 @@ Deno.serve(async (req) => {
 
         switch (endpoint) {
             case "fetch-all": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").order(ORDER_BY, {ascending: true});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 const {data: hist} = await supabase.from(HISTORY_TABLE).select("trailer_id, changed_at").order("changed_at", {ascending: false});
@@ -52,6 +66,8 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: (data || []).map((m: any) => ({...m, latestHistoryDate: latestMap[m.id] ?? null, openIssuesCount: issuesMap[m.id] ?? 0, commentsCount: commentsMap[m.id] ?? 0}))}, headers);
             }
             case "fetch-by-id": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.id === "string" ? body.id : null;
                 if (!id) return errorResponse("Trailer ID is required", headers, 400);
@@ -62,19 +78,23 @@ Deno.serve(async (req) => {
                 return jsonResponse({data: {...data, latestHistoryDate: hist?.changed_at ?? null}}, headers);
             }
             case "fetch-active": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const {data, error} = await supabase.from(MAIN_TABLE).select("*").eq("status", "Active").order(ORDER_BY, {ascending: true});
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
-            case "fetch-history":
+            case "fetch-history": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleFetchHistory(supabase, await parseBody(req), HISTORY_TABLE, ID_KEY, "trailerId", headers);
+            }
             case "create": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const trailer = body?.trailer || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
-                if (!userId) return errorResponse("User ID is required", headers, 400);
+                const userId = auth;
                 const now = nowIso();
                 const apiData: Record<string, any> = {
                     trailer_number: trailer?.trailerNumber ?? trailer?.trailer_number,
@@ -91,14 +111,13 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
                 const id = typeof body?.trailerId === "string" ? body.trailerId : (typeof body?.id === "string" ? body.id : null);
                 const trailer = body?.trailer || body?.data || body;
-                const userId = typeof body?.userId === "string" && body.userId ? body.userId : null;
+                const userId = auth;
                 if (!id) return errorResponse("Trailer ID is required", headers, 400);
-                if (!userId) return errorResponse("User ID is required", headers, 400);
                 const {data: current, error: currentErr} = await supabase.from(MAIN_TABLE).select("*").eq("id", id).maybeSingle();
                 if (currentErr) return errorResponse("Operation failed", headers, 400);
                 if (!current) return errorResponse("Trailer not found", headers, 404);
@@ -125,48 +144,63 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "delete": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleDelete(supabase, await parseBody(req), MAIN_TABLE, HISTORY_TABLE, ID_KEY, "Trailer", headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleDelete(supabase, await parseBody(req), req, MAIN_TABLE, HISTORY_TABLE, ID_KEY, "Trailer", headers);
             }
-            case "fetch-comments":
+            case "fetch-comments": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleFetchComments(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "trailerId", comments: COMMENTS_TABLE}, headers);
+            }
             case "add-comment": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleAddComment(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "trailerId", comments: COMMENTS_TABLE}, headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleAddComment(supabase, await parseBody(req), req, {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "trailerId", comments: COMMENTS_TABLE}, headers);
             }
             case "delete-comment": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleDeleteComment(supabase, await parseBody(req), COMMENTS_TABLE, headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleDeleteComment(supabase, await parseBody(req), req, COMMENTS_TABLE, headers);
             }
-            case "fetch-issues":
+            case "fetch-issues": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleFetchIssues(supabase, await parseBody(req), MAINTENANCE_TABLE, ID_KEY, "trailerId", headers);
+            }
             case "add-issue": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleAddIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, ID_KEY, "trailerId", headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleAddIssue(supabase, await parseBody(req), req, MAINTENANCE_TABLE, ID_KEY, "trailerId", headers);
             }
             case "complete-issue": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleCompleteIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleCompleteIssue(supabase, await parseBody(req), req, MAINTENANCE_TABLE, headers);
             }
             case "delete-issue": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
-                return handleDeleteIssue(supabase, await parseBody(req), MAINTENANCE_TABLE, headers);
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
+                return handleDeleteIssue(supabase, await parseBody(req), req, MAINTENANCE_TABLE, headers);
             }
-            case "fetch-by-status":
+            case "fetch-by-status": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleFetchByField(supabase, await parseBody(req), MAIN_TABLE, "status", "status", ORDER_BY, headers);
-            case "search-by-trailer-number":
+            }
+            case "search-by-trailer-number": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleSearchByField(supabase, await parseBody(req), MAIN_TABLE, "trailer_number", ORDER_BY, headers);
-            case "fetch-cleanliness-history":
+            }
+            case "fetch-cleanliness-history": {
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleFetchCleanlinessHistory(supabase, await parseBody(req), HISTORY_TABLE, ID_KEY, "trailerId", headers);
+            }
             case "add-history": {
-                const authErr = await requireAuthenticated(supabase, headers);
-                if (authErr) return authErr;
+                const auth = await requireAuthenticated(supabase, req, headers);
+                if (auth instanceof Response) return auth;
                 return handleAddHistory(supabase, await parseBody(req), req, HISTORY_TABLE, ID_KEY, "trailerId", headers);
             }
             default:

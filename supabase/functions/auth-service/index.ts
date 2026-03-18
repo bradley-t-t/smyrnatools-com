@@ -44,14 +44,32 @@ function getRateLimitKey(req: Request, identifier: string): string {
     return `${ip}:${identifier}`;
 }
 
-// ── Elevated caller check for admin operations ────────────────────────
+// ── Session-based auth for protected operations ────────────────────────
+const SESSIONS_TABLE = "users_sessions";
+const SESSION_EXPIRY_DAYS = 7;
 const ELEVATED_WEIGHT_THRESHOLD = 75;
 
-async function requireElevatedCaller(supabase: any, headers: Record<string, string>): Promise<Response | null> {
-    const {data: authResult, error: authErr} = await supabase.auth.getUser();
-    if (authErr || !authResult?.user?.id) return errorResponse("Unauthorized", headers, 401);
-    const {data: permissions} = await supabase.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", authResult.user.id);
-    const isElevated = permissions?.some((p: any) => (p.users_roles?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD);
+async function requireAuthenticated(supabase: any, req: Request, headers: any): Promise<string | Response> {
+    const userId = req.headers.get("x-user-id");
+    const sessionId = req.headers.get("x-session-id");
+    if (!userId || !sessionId) return errorResponse("Unauthorized", headers, 401);
+    const {data, error} = await supabase.from(SESSIONS_TABLE).select("id, last_active").eq("id", sessionId).eq("user_id", userId).maybeSingle();
+    if (error || !data) return errorResponse("Unauthorized", headers, 401);
+    if (data.last_active) {
+        const lastActive = new Date(data.last_active);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() - SESSION_EXPIRY_DAYS);
+        if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+    }
+    supabase.from(SESSIONS_TABLE).update({last_active: new Date().toISOString()}).eq("id", sessionId).then(() => {}).catch(() => {});
+    return userId;
+}
+
+async function requireElevatedCaller(supabase: any, req: Request, headers: any): Promise<Response | null> {
+    const auth = await requireAuthenticated(supabase, req, headers);
+    if (auth instanceof Response) return auth;
+    const {data} = await supabase.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", auth);
+    const isElevated = data?.some((p: any) => (p.users_roles?.weight ?? 0) > ELEVATED_WEIGHT_THRESHOLD);
     if (!isElevated) return errorResponse("Forbidden: insufficient privileges", headers, 403);
     return null;
 }
@@ -203,9 +221,9 @@ Deno.serve(async (req) => {
             case "update-profile": {
                 const {userId, firstName, lastName, plantCode} = await req.json();
                 if (!userId || !firstName || !lastName) return errorResponse("User ID, first name, and last name required", headers, 400);
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
+                const authProfile = await requireAuthenticated(supabase, req, headers);
+                if (authProfile instanceof Response) return authProfile;
+                if (authProfile !== userId) return errorResponse("Forbidden", headers, 403);
                 const normFirst = normalizeName(firstName);
                 const normLast = normalizeName(lastName);
                 if (!normFirst || !normLast) return errorResponse("Invalid name format", headers, 400);
@@ -221,9 +239,9 @@ Deno.serve(async (req) => {
             case "update-email": {
                 const {email, userId} = await req.json();
                 if (!userId) return errorResponse("No authenticated user", headers, 401);
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
+                const authEmail = await requireAuthenticated(supabase, req, headers);
+                if (authEmail instanceof Response) return authEmail;
+                if (authEmail !== userId) return errorResponse("Forbidden", headers, 403);
                 if (!isValidEmail(email)) return errorResponse("Invalid email", headers, 400);
                 const trimmedEmail = sanitizeEmail(email);
                 const {data: existingUser} = await supabase.from(USERS_TABLE).select("id").eq("email", trimmedEmail).neq("id", userId).single();
@@ -236,9 +254,9 @@ Deno.serve(async (req) => {
             case "update-password": {
                 const {password, userId} = await req.json();
                 if (!userId) return errorResponse("No authenticated user", headers, 401);
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
+                const authPwd = await requireAuthenticated(supabase, req, headers);
+                if (authPwd instanceof Response) return authPwd;
+                if (authPwd !== userId) return errorResponse("Forbidden", headers, 403);
                 if (validatePasswordStrength(password).value === "weak") return errorResponse("Weak password", headers, 400);
                 const salt = generateSalt();
                 const passwordHash = await hashPassword(password, salt);
@@ -250,9 +268,9 @@ Deno.serve(async (req) => {
             case "verify-password": {
                 const {userId, currentPassword} = await req.json();
                 if (!userId || !currentPassword) return errorResponse("User ID and current password are required", headers, 400);
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
+                const authVerify = await requireAuthenticated(supabase, req, headers);
+                if (authVerify instanceof Response) return authVerify;
+                if (authVerify !== userId) return errorResponse("Forbidden", headers, 403);
                 const {data, error} = await supabase.from(USERS_TABLE).select("id, password_hash, salt").eq("id", userId).single();
                 if (error || !data) return errorResponse("User not found", headers, 404);
                 const {valid} = await verifyPassword(currentPassword, data.salt, data.password_hash);
@@ -328,7 +346,7 @@ Deno.serve(async (req) => {
             // ── Admin Operations ─────────────────────────────────────
 
             case "admin-update-password": {
-                const authErr = await requireElevatedCaller(supabase, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers);
                 if (authErr) return authErr;
                 const {userId, password} = await req.json();
                 if (!userId || !password) return errorResponse("User ID and password are required", headers, 400);

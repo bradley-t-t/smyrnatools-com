@@ -207,9 +207,19 @@ Deno.serve(async (req) => {
             case "update-profile": {
                 const {userId, firstName, lastName, plantCode} = await req.json();
                 if (!userId || !firstName || !lastName) return errorResponse("User ID, first name, and last name required", headers, 400);
-                const {data: authData, error: authError} = await supabase.auth.getUser();
-                if (authError || !authData?.user?.id) return errorResponse("Unauthorized", headers, 401);
-                if (authData.user.id !== userId) return errorResponse("Forbidden", headers, 403);
+                const authUserId = req.headers.get("x-user-id");
+                const authSessionId = req.headers.get("x-session-id");
+                if (!authUserId || !authSessionId) return errorResponse("Unauthorized", headers, 401);
+                const {data: sessionData, error: sessionErr} = await supabase.from("users_sessions").select("id, last_active").eq("id", authSessionId).eq("user_id", authUserId).maybeSingle();
+                if (sessionErr || !sessionData) return errorResponse("Unauthorized", headers, 401);
+                if (sessionData.last_active) {
+                    const lastActive = new Date(sessionData.last_active);
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() - 7);
+                    if (lastActive < expiryDate) return errorResponse("Session expired", headers, 401);
+                }
+                supabase.from("users_sessions").update({last_active: new Date().toISOString()}).eq("id", authSessionId).then(() => {}).catch(() => {});
+                if (authUserId !== userId) return errorResponse("Forbidden", headers, 403);
                 const normFirst = normalizeName(firstName);
                 const normLast = normalizeName(lastName);
                 if (!normFirst || !normLast) return errorResponse("Invalid name format", headers, 400);
