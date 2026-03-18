@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [35.9] - 2026-03-18
+
+- Replaced Supabase JWT auth (supabase.auth.getUser / getSession) with custom session-based authentication across all edge functions, validating X-User-Id and X-Session-Id headers against the users_sessions table with 7-day session expiry
+- Updated APIUtility to send X-User-Id and X-Session-Id headers from localStorage instead of fetching a JWT from the Supabase auth session, using the anon key directly for the Authorization header
+- Added X-User-Id and X-Session-Id to the CORS allowed headers list
+- Updated requireAuthenticated in the shared asset-helpers to accept the Request object and validate sessions via users_sessions table lookup instead of supabase.auth.getUser
+- Propagated the new requireAuthenticated(supabase, req, headers) signature through all shared asset helper functions: handleAddComment, handleDeleteComment, handleAddHistory, handleAddIssue, handleCompleteIssue, handleDeleteIssue, handleDelete, and handleVerify
+- Added session-based requireAuthenticated and updated requireElevatedCaller in auth-service, district-manager-service, and database-service to use session validation instead of supabase.auth
+- Replaced supabase.auth.getUser checks in auth-context update-profile with direct session validation against users_sessions
+- Replaced supabase.auth calls in auth-utility hash-password and get-user-id endpoints with session header validation
+- Added requireAuthenticated guards to previously unguarded read endpoints in trailer-service (fetch-all, fetch-by-id, fetch-active, fetch-history, fetch-comments, fetch-issues, fetch-by-status, search-by-trailer-number, fetch-cleanliness-history)
+- Replaced client-supplied userId with server-derived auth ID for trailer-service create and update operations
+- Updated session touch (last_active update) to fire-and-forget on every authenticated request across all edge functions
+- Removed DatabaseService import from APIUtility, decoupling the HTTP client from the Supabase auth SDK
+
 ## [35.8] - 2026-03-18
 
 - Added requireOwnerOrHigherRole authorization helper to shared asset-helpers, enforcing role-weight checks before deleting issues or entities belonging to other users
