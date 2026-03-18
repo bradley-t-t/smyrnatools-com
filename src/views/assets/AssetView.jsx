@@ -343,13 +343,11 @@ function AssetView({
         const normalizedSearch = q.replace(/\s+/g, '')
         const scoped = data.items.filter((item) => {
             let matchesSearch = true
-            if (q) {
-                const searchableText = config.searchableFields
-                    .map((fn) => fn(item, { operators: data.operators, plants: data.plants, tractors: data.tractors }))
-                    .join(' ')
-                    .toLowerCase()
-                matchesSearch =
-                    searchableText.includes(q) || searchableText.replace(/\s+/g, '').includes(normalizedSearch)
+            if (q && config.searchFields) {
+                matchesSearch = config.searchFields(item, q, {
+                    operators: data.operators,
+                    tractors: data.tractors
+                })
             }
             const itemPlantCode = String(item.assignedPlant || '')
                 .trim()
@@ -374,13 +372,12 @@ function AssetView({
     }, [
         data.items,
         data.operators,
-        data.plants,
         data.tractors,
         data.regionPlantCodes,
         filters.searchText,
         filters.selectedPlant,
         districtPlantCodes,
-        config.searchableFields
+        config.searchFields
     ])
 
     const canShowOperatorBadge =

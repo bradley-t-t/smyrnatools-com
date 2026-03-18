@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.4] - 2026-03-18
+
+- Refactored AssetView search filtering to use a single config.searchFields function instead of mapping over config.searchableFields, simplifying the search logic and removing the plants dependency
+- Added v36.3 changelog entry documenting the "leave off" indicator, yph color coding updates, and SECURITY_TODO cleanup
+
 ## [36.3] - 2026-03-18
 
 - Added "leave off" indicator to PlanView and TimelineView that calculates how many operators can be removed when yph falls below the target threshold, displayed with an amber user-minus icon
