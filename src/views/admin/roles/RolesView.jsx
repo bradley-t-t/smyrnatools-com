@@ -263,6 +263,35 @@ function RolesView() {
                             )}
                         </div>
                         <div className="flex items-center gap-2.5">
+                            <button
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold border-none cursor-pointer transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                onClick={() => {
+                                    const exportData = roles.map((r) => ({
+                                        name: r.name,
+                                        weight: r.weight,
+                                        permissions: Array.isArray(r.permissions) ? [...r.permissions].sort() : []
+                                    }))
+                                    const json = JSON.stringify(exportData, null, 2)
+                                    navigator.clipboard
+                                        .writeText(json)
+                                        .then(() => {
+                                            alert('Permissions copied to clipboard')
+                                        })
+                                        .catch(() => {
+                                            const blob = new Blob([json], { type: 'application/json' })
+                                            const url = URL.createObjectURL(blob)
+                                            const a = document.createElement('a')
+                                            a.href = url
+                                            a.download = 'roles-permissions.json'
+                                            a.click()
+                                            URL.revokeObjectURL(url)
+                                        })
+                                }}
+                                type="button"
+                            >
+                                <i className="fas fa-download" />
+                                Export
+                            </button>
                             {hasITAccess && (
                                 <>
                                     <button

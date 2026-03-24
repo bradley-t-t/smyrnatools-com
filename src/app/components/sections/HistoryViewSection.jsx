@@ -273,7 +273,6 @@ function HistoryViewSection({ item, type, onClose }) {
             operatorDurations[operatorData[i].operator] = (operatorDurations[operatorData[i].operator] ?? 0) + days
             i = endIndex
         }
-        const totalAssignments = operatorData.length
         const uniqueOperators = Object.keys(operatorCounts).filter((op) => op !== 'Empty').length
         const lastEntry = operatorData[operatorData.length - 1]
         const currentOperator = lastEntry ? (lastEntry.isEmpty ? 'Empty' : lastEntry.operator) : null
@@ -332,7 +331,6 @@ function HistoryViewSection({ item, type, onClose }) {
             <div className="flex flex-col gap-2.5">
                 <StatCardGrid>
                     <StatCard label="Current Operator" value={currentOperator ?? 'Not Assigned'} />
-                    <StatCard label="Total Assignments" value={totalAssignments} />
                     <StatCard label="Unique Operators" value={uniqueOperators} />
                     <StatCard label="Most Frequent" value={mostFrequentOperator} />
                 </StatCardGrid>

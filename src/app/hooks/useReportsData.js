@@ -60,12 +60,14 @@ export function useReportsData() {
     const fetchReportsBatch = useCallback(
         async ({ weeks, scope }) => {
             if (!user || !Array.isArray(weeks) || weeks.length === 0) return
-            const isoList = weeks.map((w) => new Date(w).toISOString())
+            const dateStrs = weeks.map((w) => new Date(w).toISOString().slice(0, 10))
+            const fullIsos = weeks.map((w) => new Date(w).toISOString())
+            const weekFieldList = Array.from(new Set([...dateStrs, ...fullIsos]))
             let query = Database.from('reports')
                 .select(
                     'id,report_name,user_id,submitted_at,data,completed,report_date_range_start,report_date_range_end,week'
                 )
-                .in('week', isoList)
+                .in('week', weekFieldList)
             if (scope === 'my') {
                 const allowedMy =
                     regionType === 'office'
@@ -333,13 +335,17 @@ export function useReportsData() {
     )
     const loadReviewReports = useCallback(async () => {
         if (!user || isLoadingPermissions) return
-        const desiredWeeks = new Set(ReportUtility.getLastNWeekIsos(52, new Date()))
-        const toLoad = Array.from(desiredWeeks).filter((w) => !reviewLoadedWeeks.has(w))
+        const allWeeks = ReportUtility.getLastNWeekIsos(52, new Date())
+        const newWeeks = allWeeks.filter((w) => !reviewLoadedWeeks.has(w))
+        // On subsequent calls (all weeks already loaded), re-fetch last 4 weeks
+        // so newly submitted reports appear without a full page refresh
+        const recentWeeks = newWeeks.length === 0 ? allWeeks.slice(0, 4) : []
+        const toLoad = [...newWeeks, ...recentWeeks]
         if (toLoad.length === 0) {
             if (isLoadingReview) setIsLoadingReview(false)
             return
         }
-        setIsLoadingReview(true)
+        if (newWeeks.length > 0) setIsLoadingReview(true)
         await fetchReportsBatch({ scope: 'review', weeks: toLoad })
         setReviewLoadedWeeks((prev) => new Set([...toLoad, ...prev]))
         setIsLoadingReview(false)
