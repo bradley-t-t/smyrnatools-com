@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.5] - 2026-03-24
+
+- Added export button to RolesView that copies role permissions as JSON to clipboard, with a file download fallback
+- Fixed report fetching to match on both date-only and full ISO strings, resolving mismatches in the week field query
+- Review reports now re-fetch the last 4 weeks on subsequent loads so newly submitted reports appear without a full page refresh
+- Removed "Total Assignments" stat card from HistoryViewSection operator history
+- Added v36.4 changelog entry
+
 ## [36.4] - 2026-03-18
 
 - Refactored AssetView search filtering to use a single config.searchFields function instead of mapping over config.searchableFields, simplifying the search logic and removing the plants dependency
