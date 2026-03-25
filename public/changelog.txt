@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.6] - 2026-03-24
+
+- Removed GM email notification on final report submission from useReportSubmission, along with the EmailService import
+- Added v36.5 changelog entry
+
 ## [36.5] - 2026-03-24
 
 - Added export button to RolesView that copies role permissions as JSON to clipboard, with a file download fallback

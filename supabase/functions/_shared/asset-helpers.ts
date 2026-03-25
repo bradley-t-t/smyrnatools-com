@@ -186,6 +186,26 @@ export async function handleAddComment(supabase: any, body: any, req: Request, t
     const fkCol = tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
     const {data, error} = await supabase.from(tables.comments!).insert([{[fkCol]: entityId, text, author, created_at: nowIso()}]).select().maybeSingle();
     if (error) return errorResponse("Operation failed", headers, 400);
+
+    // Fire-and-forget: notify plant managers and district managers about the comment
+    try {
+        const {data: asset} = await supabase.from(tables.main).select("assigned_plant, unit_number, number, name").eq("id", entityId).maybeSingle();
+        const plantCode = asset?.assigned_plant;
+        if (plantCode) {
+            const assetLabel = asset?.unit_number || asset?.number || asset?.name || entityId;
+            const assetType = tables.main.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()).replace(/s$/, "");
+            const {data: authorProfile} = await supabase.from("users_profiles").select("first_name, last_name").eq("id", author).maybeSingle();
+            const commenterName = authorProfile ? [authorProfile.first_name, authorProfile.last_name].filter(Boolean).join(" ") : "A team member";
+            const baseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+            fetch(`${baseUrl}/functions/v1/email-service/notify-comment-added`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json", "Authorization": `Bearer ${serviceKey}`},
+                body: JSON.stringify({commenterId: author, commenterName, commentText: text, assetType, assetNumber: assetLabel, plantCode})
+            }).catch(() => {});
+        }
+    } catch { /* notification failure must never block the comment response */ }
+
     return jsonResponse({data}, headers);
 }
 

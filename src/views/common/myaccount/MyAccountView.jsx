@@ -750,6 +750,22 @@ function MyAccountView({ userId }) {
                                         <i className="fas fa-cog w-5 text-center"></i>
                                         <span className="font-medium">Preferences</span>
                                     </button>
+                                    <button
+                                        onClick={() => setActiveTab('notifications')}
+                                        className={`flex items-center gap-3 px-5 py-4 text-left transition-all ${activeTab === 'notifications' ? 'border-l-4' : 'border-l-4 border-transparent text-gray-600 hover:bg-gray-50'}`}
+                                        style={
+                                            activeTab === 'notifications'
+                                                ? {
+                                                      backgroundColor: `${preferences.accentColor || '#2A3163'}10`,
+                                                      borderLeftColor: preferences.accentColor || '#2A3163',
+                                                      color: preferences.accentColor || '#2A3163'
+                                                  }
+                                                : {}
+                                        }
+                                    >
+                                        <i className="fas fa-bell w-5 text-center"></i>
+                                        <span className="font-medium">Notifications</span>
+                                    </button>
                                     <div className="mx-4 my-2 border-t border-border-light"></div>
                                     <button
                                         onClick={handleSignOut}
@@ -1314,6 +1330,65 @@ function MyAccountView({ userId }) {
                                     </button>
                                 </div>
                             </>
+                        )}
+                        {activeTab === 'notifications' && (
+                            <div className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
+                                <div className="mb-6 flex items-center gap-3">
+                                    <div
+                                        className="flex h-10 w-10 items-center justify-center rounded-xl"
+                                        style={{ backgroundColor: `${preferences.accentColor || '#2A3163'}15` }}
+                                    >
+                                        <i
+                                            className="fas fa-bell text-base"
+                                            style={{ color: preferences.accentColor || '#2A3163' }}
+                                        ></i>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-gray-900">Email Notifications</h2>
+                                        <p className="text-sm text-gray-500">
+                                            Control which email notifications you receive
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <i className="fas fa-comment-dots text-sm text-gray-400"></i>
+                                                <span className="text-sm font-semibold text-gray-800">
+                                                    Asset Comment Emails
+                                                </span>
+                                            </div>
+                                            <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+                                                Receive an email when someone comments on an asset assigned to your
+                                                plant. Applies to Plant Managers and District Managers only.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                updatePreferences(
+                                                    'acceptCommentEmails',
+                                                    !preferences.acceptCommentEmails
+                                                )
+                                            }
+                                            className={`relative ml-4 inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 ${preferences.acceptCommentEmails ? '' : 'bg-gray-300'}`}
+                                            style={
+                                                preferences.acceptCommentEmails
+                                                    ? { backgroundColor: preferences.accentColor || '#2A3163' }
+                                                    : {}
+                                            }
+                                            role="switch"
+                                            aria-checked={preferences.acceptCommentEmails}
+                                            aria-label="Toggle asset comment email notifications"
+                                        >
+                                            <span
+                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${preferences.acceptCommentEmails ? 'translate-x-5' : 'translate-x-0'}`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -6,6 +6,8 @@ import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_sh
 import {envOrDefault, buildThemeConfig} from "../_shared/auth-helpers.ts";
 // @ts-ignore
 import {buildReportSubmittedEmail} from "../../../emails/report-submitted-email.js";
+// @ts-ignore
+import {buildCommentNotificationEmail} from "../../../emails/comment-notification-email.js";
 
 const MAILERSEND_API_URL = "https://api.mailersend.com/v1/email";
 const DEFAULT_FROM_NAME = "Smyrna Tools";
@@ -13,6 +15,8 @@ const DEFAULT_LOGO_URL = "https://smyrnatools.com/static/media/SmyrnaLogo.d7f873
 const DEFAULT_FRONTEND_URL = "https://smyrnatools.com";
 const GM_ROLE_NAME = "General Manager";
 const DM_ROLE_NAME = "District Manager";
+const PM_ROLE_NAME = "Plant Manager";
+const PM_EQUIP_ROLE_NAME = "Plant Manager & Equipment Manager";
 
 /**
  * Parses comma-separated whitelist from env var into a normalized Set.
@@ -438,6 +442,188 @@ Deno.serve(async (req) => {
             } catch (err) {
                 console.error("notify-report-submitted failed:", err);
                 return errorResponse("Failed to send report notification", headers, 500);
+            }
+        }
+
+        /**
+         * POST /email-service/notify-comment-added
+         *
+         * Notifies Plant Managers and District Managers when a comment is added
+         * to an asset at their plant. Excludes the commenter and users who
+         * opted out via accept_comment_emails preference.
+         *
+         * ONLY sends to Plant Managers and District Managers. No other roles.
+         */
+        case "notify-comment-added": {
+            const body = await req.json().catch(() => null);
+            if (!body) return errorResponse("Invalid request body", headers, 400);
+
+            const {commenterId, commenterName, commentText, assetType, assetNumber, plantCode, debug} = body;
+            if (!commenterId || !plantCode || !commentText) {
+                return jsonResponse({success: false, sent: false, reason: "Missing required fields"}, headers);
+            }
+
+            const supabase = createAdminClient();
+            const debugMode = debug === true;
+
+            try {
+                // 1. Find Plant Manager role IDs
+                const {data: pmRoles} = await supabase
+                    .from("users_roles")
+                    .select("id")
+                    .in("name", [PM_ROLE_NAME, PM_EQUIP_ROLE_NAME]);
+
+                const pmRoleIds = (pmRoles || []).map((r: {id: string}) => r.id);
+
+                // 2. Find District Manager role ID
+                const {data: dmRole} = await supabase
+                    .from("users_roles")
+                    .select("id")
+                    .eq("name", DM_ROLE_NAME)
+                    .maybeSingle();
+
+                // 3. Get Plant Managers for this plant
+                let pmRecipients: Array<{email: string; name?: string}> = [];
+                if (pmRoleIds.length > 0) {
+                    // Get users with PM roles
+                    const {data: pmPerms} = await supabase
+                        .from("users_permissions")
+                        .select("user_id")
+                        .in("role_id", pmRoleIds);
+                    const pmUserIds = (pmPerms || []).map((p: {user_id: string}) => p.user_id);
+
+                    if (pmUserIds.length > 0) {
+                        // Filter to those assigned to this plant (primary or additional)
+                        const {data: pmProfiles} = await supabase
+                            .from("users_profiles")
+                            .select("id, first_name, last_name, plant_code, additional_assigned_plants")
+                            .in("id", pmUserIds);
+
+                        const matchingPmIds = (pmProfiles || [])
+                            .filter((p: any) => {
+                                if (p.id === commenterId) return false;
+                                if (p.plant_code === plantCode) return true;
+                                const additional = Array.isArray(p.additional_assigned_plants) ? p.additional_assigned_plants : [];
+                                return additional.includes(plantCode);
+                            })
+                            .map((p: any) => p.id);
+
+                        if (matchingPmIds.length > 0) {
+                            // Check preferences — exclude those who opted out
+                            const {data: prefs} = await supabase
+                                .from("users_preferences")
+                                .select("user_id, accept_comment_emails")
+                                .in("user_id", matchingPmIds);
+                            const optedOut = new Set(
+                                (prefs || []).filter((p: any) => p.accept_comment_emails === false).map((p: any) => p.user_id)
+                            );
+                            const eligiblePmIds = matchingPmIds.filter((id: string) => !optedOut.has(id));
+
+                            if (eligiblePmIds.length > 0) {
+                                const [{data: profiles}, {data: users}] = await Promise.all([
+                                    supabase.from("users_profiles").select("id, first_name, last_name").in("id", eligiblePmIds),
+                                    supabase.from("users").select("id, email").in("id", eligiblePmIds)
+                                ]);
+                                const emailMap = new Map((users || []).map((u: any) => [u.id, u.email]));
+                                pmRecipients = (profiles || [])
+                                    .filter((p: any) => emailMap.has(p.id))
+                                    .map((p: any) => ({
+                                        email: emailMap.get(p.id)!,
+                                        name: [p.first_name, p.last_name].filter(Boolean).join(" ") || undefined
+                                    }));
+                            }
+                        }
+                    }
+                }
+
+                // 4. Get District Managers for this plant
+                let dmRecipients: Array<{email: string; name?: string}> = [];
+                if (dmRole) {
+                    const {data: dmAssignments} = await supabase
+                        .from("district_manager_plants")
+                        .select("user_id")
+                        .eq("plant_code", plantCode);
+
+                    const dmUserIds = (dmAssignments || [])
+                        .map((a: any) => a.user_id)
+                        .filter((id: string) => id !== commenterId);
+
+                    if (dmUserIds.length > 0) {
+                        // Verify DM role
+                        const {data: dmPerms} = await supabase
+                            .from("users_permissions")
+                            .select("user_id")
+                            .eq("role_id", dmRole.id)
+                            .in("user_id", dmUserIds);
+                        const verifiedDmIds = (dmPerms || []).map((p: any) => p.user_id);
+
+                        if (verifiedDmIds.length > 0) {
+                            // Check preferences
+                            const {data: prefs} = await supabase
+                                .from("users_preferences")
+                                .select("user_id, accept_comment_emails")
+                                .in("user_id", verifiedDmIds);
+                            const optedOut = new Set(
+                                (prefs || []).filter((p: any) => p.accept_comment_emails === false).map((p: any) => p.user_id)
+                            );
+                            const eligibleDmIds = verifiedDmIds.filter((id: string) => !optedOut.has(id));
+
+                            if (eligibleDmIds.length > 0) {
+                                const [{data: profiles}, {data: users}] = await Promise.all([
+                                    supabase.from("users_profiles").select("id, first_name, last_name").in("id", eligibleDmIds),
+                                    supabase.from("users").select("id, email").in("id", eligibleDmIds)
+                                ]);
+                                const emailMap = new Map((users || []).map((u: any) => [u.id, u.email]));
+                                dmRecipients = (profiles || [])
+                                    .filter((p: any) => emailMap.has(p.id))
+                                    .map((p: any) => ({
+                                        email: emailMap.get(p.id)!,
+                                        name: [p.first_name, p.last_name].filter(Boolean).join(" ") || undefined
+                                    }));
+                            }
+                        }
+                    }
+                }
+
+                // 5. Combine and deduplicate
+                const allRecipients = [...pmRecipients, ...dmRecipients];
+                const seen = new Set<string>();
+                const uniqueRecipients = allRecipients.filter(r => {
+                    const key = r.email.toLowerCase();
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+
+                if (uniqueRecipients.length === 0) {
+                    return jsonResponse({success: true, sent: false, reason: "No eligible recipients"}, headers);
+                }
+
+                // 6. Build and send email
+                const {subject, html, text} = buildCommentNotificationEmail({
+                    commenterName: commenterName || "A team member",
+                    commentText,
+                    assetType: assetType || "Asset",
+                    assetNumber: assetNumber || "",
+                    plantCode,
+                    frontendUrl: envOrDefault("FRONTEND_URL", DEFAULT_FRONTEND_URL),
+                    theme: buildThemeConfig(),
+                    logoUrl: envOrDefault("LOGO_URL", DEFAULT_LOGO_URL)
+                });
+
+                console.log("[notify-comment-added] Recipients:", JSON.stringify(uniqueRecipients.map(r => r.email)));
+
+                const result = await sendEmail({
+                    subject, html, text,
+                    toList: uniqueRecipients,
+                    debugMode
+                });
+
+                return jsonResponse({...result, debug: debugMode, recipientCount: uniqueRecipients.length}, headers);
+
+            } catch (err) {
+                console.error("notify-comment-added failed:", err);
+                return errorResponse("Failed to send comment notification", headers, 500);
             }
         }
 

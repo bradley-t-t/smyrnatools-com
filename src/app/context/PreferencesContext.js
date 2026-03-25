@@ -24,6 +24,7 @@ export function usePreferences() {
 /** Default preference values used for new users or when DB fetch fails. */
 const defaultPreferences = {
     accentColor: '#1e3a5f',
+    acceptCommentEmails: true,
     acceptReportSubmittedEmails: true,
     defaultViewMode: null,
     equipmentFilters: {
@@ -105,6 +106,7 @@ export const PreferencesProvider = ({ children }) => {
             if (userId) {
                 const now = new Date().toISOString()
                 const upsertData = {
+                    accept_comment_emails: updatedPreferences.acceptCommentEmails,
                     accent_color: updatedPreferences.accentColor,
                     created_at: now,
                     default_view_mode: updatedPreferences.defaultViewMode,
@@ -157,6 +159,8 @@ export const PreferencesProvider = ({ children }) => {
                     const data = await UserPreferencesService.getUserPreferences(user.id)
                     if (data) {
                         prefs = {
+                            acceptCommentEmails:
+                                data.accept_comment_emails === undefined ? true : data.accept_comment_emails,
                             accentColor: data.accent_color || defaultPreferences.accentColor,
                             accept_report_submitted_emails:
                                 data.accept_report_submitted_emails === undefined

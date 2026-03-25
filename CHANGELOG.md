@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.7] - 2026-03-25
+
+- Added comment notification emails for Plant Managers and District Managers when someone comments on an asset at their plant
+- Created the comment notification email template with asset details, commenter info, and a branded layout
+- Added notify-comment-added endpoint to the email service that resolves eligible PM and DM recipients, respects opt-out preferences, and deduplicates before sending
+- Wired up fire-and-forget email dispatch from the shared handleAddComment helper after a comment is inserted
+- Added accept_comment_emails preference with toggle in a new Notifications tab on the My Account page
+- Added database migration to add the accept_comment_emails column to users_preferences
+
 ## [36.6] - 2026-03-24
 
 - Removed GM email notification on final report submission from useReportSubmission, along with the EmailService import
