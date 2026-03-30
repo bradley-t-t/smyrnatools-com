@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import LoadingScreen from '../../../app/components/common/LoadingScreen'
+import TopSection from '../../../app/components/sections/TopSection'
 import RoleModal, {
     RoleFormField,
     RoleModalBody,
@@ -8,24 +9,13 @@ import RoleModal, {
     RoleTextInput
 } from '../../../app/components/ui/RoleModal'
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { useIsMobile } from '../../../app/hooks/useIsMobile'
 import { useRolesData } from '../../../app/hooks/useRolesData'
-/** Extracts the namespace prefix from a permission string (e.g. "dashboard" from "dashboard.view"). */
+
 const getNamespace = (perm) => {
     const dot = perm.indexOf('.')
     return dot > 0 ? perm.substring(0, dot) : perm
 }
-/** Groups an array of permission strings by their namespace prefix, sorted alphabetically. */
-const groupByNamespace = (permissions) => {
-    const groups = {}
-    for (const perm of permissions) {
-        const ns = getNamespace(perm)
-        if (!groups[ns]) groups[ns] = []
-        groups[ns].push(perm)
-    }
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
-}
-/** Namespace icon mapping for visual variety. */
+
 const NAMESPACE_ICONS = {
     dashboard: 'fa-tachometer-alt',
     equipment: 'fa-truck',
@@ -41,13 +31,382 @@ const NAMESPACE_ICONS = {
     trailers: 'fa-trailer',
     users: 'fa-users'
 }
-const getNamespaceIcon = (ns) => NAMESPACE_ICONS[ns] || 'fa-key'
-/**
- * Admin view for managing roles and their permission nodes via an interactive
- * permission matrix. Rows are permission nodes grouped by namespace, columns
- * are roles. IT users can toggle individual cells, add new permissions, and
- * create roles. Non-IT users see a read-only view.
- */
+
+const NAMESPACE_COLORS = {
+    dashboard: 'bg-blue-600',
+    equipment: 'bg-slate-600',
+    managers: 'bg-purple-600',
+    mixers: 'bg-teal-600',
+    operators: 'bg-orange-500',
+    plants: 'bg-emerald-600',
+    regions: 'bg-cyan-600',
+    reports: 'bg-indigo-600',
+    roles: 'bg-red-600',
+    system: 'bg-slate-700',
+    tractors: 'bg-amber-600',
+    trailers: 'bg-lime-600',
+    users: 'bg-violet-600'
+}
+
+/** Single permission row inside a role card. */
+const PermissionRow = ({ permission, onRemove, hasITAccess, isSaving }) => {
+    const ns = getNamespace(permission)
+    const icon = NAMESPACE_ICONS[ns] || 'fa-key'
+    const bgColor = NAMESPACE_COLORS[ns] || 'bg-slate-500'
+    return (
+        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-50 group transition-colors">
+            <div className={`w-5 h-5 rounded ${bgColor} flex items-center justify-center shrink-0`}>
+                <i className={`fas ${icon} text-white text-[8px]`} />
+            </div>
+            <span className="text-sm text-slate-700 flex-1 font-mono text-[13px]">{permission}</span>
+            {hasITAccess && (
+                <button
+                    onClick={() => onRemove(permission)}
+                    disabled={isSaving}
+                    className="w-6 h-6 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer border-none bg-transparent shrink-0 disabled:opacity-30"
+                    title="Remove permission"
+                >
+                    <i className="fas fa-times text-[10px]" />
+                </button>
+            )}
+        </div>
+    )
+}
+
+/** Expandable role card showing name, weight, permission count, and permission list. */
+const RoleCard = ({
+    role,
+    isExpanded,
+    onToggle,
+    hasITAccess,
+    accentColor,
+    onRemovePermission,
+    onAddPermission,
+    onEditWeight,
+    savingPerms
+}) => {
+    const [addingPerm, setAddingPerm] = useState(false)
+    const [newPerm, setNewPerm] = useState('')
+    const permissions = Array.isArray(role.permissions) ? [...role.permissions].sort() : []
+    const namespaces = [...new Set(permissions.map(getNamespace))].sort()
+    const isElevated = (role.weight || 0) > 75
+
+    const handleAddPerm = () => {
+        const trimmed = newPerm.trim()
+        if (!trimmed) return
+        onAddPermission(role.id, trimmed)
+        setNewPerm('')
+        setAddingPerm(false)
+    }
+
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* Header — always visible */}
+            <div
+                className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={onToggle}
+            >
+                <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${accentColor}15`, color: accentColor }}
+                >
+                    <i className="fas fa-shield-alt text-sm" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-sm font-bold text-slate-800">{role.name}</span>
+                        {isElevated && (
+                            <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                                Elevated
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-0.5">
+                        <span className="text-xs text-slate-400">Weight: {role.weight || 0}</span>
+                        <span className="text-slate-200 text-[8px]">●</span>
+                        <span className="text-xs text-slate-400">{permissions.length} permissions</span>
+                        <span className="text-slate-200 text-[8px]">●</span>
+                        <span className="text-xs text-slate-400">{namespaces.length} namespaces</span>
+                    </div>
+                </div>
+                <i
+                    className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-slate-300 text-xs transition-transform`}
+                />
+            </div>
+
+            {/* Expanded content */}
+            {isExpanded && (
+                <div className="border-t border-slate-100">
+                    {/* Actions bar */}
+                    {hasITAccess && (
+                        <div className="flex items-center gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setAddingPerm(true)
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border-none cursor-pointer transition-colors"
+                                style={{ background: `${accentColor}15`, color: accentColor }}
+                            >
+                                <i className="fas fa-plus text-[9px]" />
+                                Add Permission
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    onEditWeight(role)
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-600 border-none cursor-pointer hover:bg-slate-300 transition-colors"
+                            >
+                                <i className="fas fa-balance-scale text-[9px]" />
+                                Edit Weight
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Add permission inline */}
+                    {addingPerm && (
+                        <div className="flex items-center gap-2 px-5 py-3 bg-blue-50 border-b border-blue-100">
+                            <input
+                                type="text"
+                                value={newPerm}
+                                onChange={(e) => setNewPerm(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAddPerm()}
+                                placeholder="e.g. reports.qc_strength"
+                                autoFocus
+                                className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400"
+                            />
+                            <button
+                                onClick={handleAddPerm}
+                                disabled={!newPerm.trim()}
+                                className="px-3 py-2 rounded-lg text-xs font-semibold text-white border-none cursor-pointer disabled:opacity-40"
+                                style={{ background: accentColor }}
+                            >
+                                Add
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setAddingPerm(false)
+                                    setNewPerm('')
+                                }}
+                                className="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-200 text-slate-600 border-none cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Permissions grouped by namespace */}
+                    <div className="px-4 py-3">
+                        {permissions.length === 0 ? (
+                            <div className="text-center py-6 text-slate-400 text-sm">
+                                <i className="fas fa-lock text-2xl mb-2 block" />
+                                No permissions assigned
+                            </div>
+                        ) : (
+                            namespaces.map((ns) => {
+                                const nsPerms = permissions.filter((p) => getNamespace(p) === ns)
+                                const icon = NAMESPACE_ICONS[ns] || 'fa-key'
+                                return (
+                                    <div key={ns} className="mb-3 last:mb-0">
+                                        <div className="flex items-center gap-2 px-1 mb-1">
+                                            <i className={`fas ${icon} text-[10px] text-slate-400`} />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                                {ns}
+                                            </span>
+                                            <span className="text-[10px] text-slate-300">{nsPerms.length}</span>
+                                        </div>
+                                        {nsPerms.map((perm) => (
+                                            <PermissionRow
+                                                key={perm}
+                                                permission={perm}
+                                                hasITAccess={hasITAccess}
+                                                isSaving={savingPerms.has(`${role.id}:${perm}`)}
+                                                onRemove={(p) => onRemovePermission(role.id, p)}
+                                            />
+                                        ))}
+                                    </div>
+                                )
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+/** Modal for creating a new role. */
+const CreateRoleModal = ({ isOpen, onClose, onCreate }) => {
+    const [name, setName] = useState('')
+    const [weight, setWeight] = useState(10)
+    if (!isOpen) return null
+    return (
+        <RoleModal isOpen={isOpen} onClose={onClose} title="Create Role">
+            <RoleModalBody>
+                <RoleFormField label="Role Name">
+                    <RoleTextInput value={name} onChange={setName} placeholder="e.g. Plant Manager" autoFocus />
+                </RoleFormField>
+                <RoleFormField label="Weight">
+                    <RoleTextInput value={weight} onChange={(v) => setWeight(Number(v) || 0)} type="number" />
+                </RoleFormField>
+            </RoleModalBody>
+            <RoleModalFooter
+                onCancel={onClose}
+                onConfirm={() => {
+                    if (!name.trim()) return
+                    onCreate(name.trim(), weight)
+                    setName('')
+                    setWeight(10)
+                    onClose()
+                }}
+                confirmLabel="Create"
+                confirmDisabled={!name.trim()}
+            />
+        </RoleModal>
+    )
+}
+
+/** Modal for editing role weight. */
+const EditWeightModal = ({ role, onClose, onSave }) => {
+    const [weight, setWeight] = useState(role?.weight || 0)
+    if (!role) return null
+    return (
+        <RoleModal isOpen={true} onClose={onClose} title={`Edit Weight — ${role.name}`}>
+            <RoleModalBody>
+                <RoleFormField label="Weight" hint="Roles with weight > 75 are elevated (admin)">
+                    <RoleTextInput value={weight} onChange={(v) => setWeight(Number(v) || 0)} type="number" autoFocus />
+                </RoleFormField>
+            </RoleModalBody>
+            <RoleModalFooter
+                onCancel={onClose}
+                onConfirm={() => {
+                    onSave(role.id, weight)
+                    onClose()
+                }}
+                confirmLabel="Save"
+            />
+        </RoleModal>
+    )
+}
+
+/** Modal for bulk-adding a permission to one or more roles. */
+const BulkAddModal = ({ isOpen, onClose, roles, onBulkAdd, accentColor }) => {
+    const [permission, setPermission] = useState('')
+    const [selectedRoleIds, setSelectedRoleIds] = useState(new Set())
+    const [saving, setSaving] = useState(false)
+
+    const toggleRole = (id) => {
+        setSelectedRoleIds((prev) => {
+            const next = new Set(prev)
+            next.has(id) ? next.delete(id) : next.add(id)
+            return next
+        })
+    }
+
+    const selectAll = () => {
+        setSelectedRoleIds(new Set(roles.map((r) => r.id)))
+    }
+
+    const selectNone = () => {
+        setSelectedRoleIds(new Set())
+    }
+
+    const handleSubmit = async () => {
+        if (!permission.trim() || selectedRoleIds.size === 0) return
+        setSaving(true)
+        await onBulkAdd(selectedRoleIds, permission.trim())
+        setSaving(false)
+        setPermission('')
+        setSelectedRoleIds(new Set())
+        onClose()
+    }
+
+    if (!isOpen) return null
+
+    const sortedRoles = [...roles].sort((a, b) => (b.weight || 0) - (a.weight || 0))
+    const alreadyHave = sortedRoles.filter(
+        (r) => permission.trim() && Array.isArray(r.permissions) && r.permissions.includes(permission.trim())
+    )
+
+    return (
+        <RoleModal isOpen={isOpen} onClose={onClose} title="Bulk Add Permission">
+            <RoleModalBody>
+                <RoleFormField label="Permission Node">
+                    <RoleTextInput
+                        value={permission}
+                        onChange={setPermission}
+                        placeholder="e.g. reports.qc_strength"
+                        autoFocus
+                    />
+                </RoleFormField>
+                {permission.trim() && alreadyHave.length > 0 && (
+                    <div className="text-xs text-slate-400 -mt-2 mb-2 px-1">
+                        Already on: {alreadyHave.map((r) => r.name).join(', ')}
+                    </div>
+                )}
+                <RoleFormField label="Add to Roles">
+                    <div className="flex items-center gap-2 mb-2">
+                        <button
+                            onClick={selectAll}
+                            className="text-[11px] font-semibold px-2 py-1 rounded bg-slate-100 text-slate-600 border-none cursor-pointer hover:bg-slate-200"
+                        >
+                            Select All
+                        </button>
+                        <button
+                            onClick={selectNone}
+                            className="text-[11px] font-semibold px-2 py-1 rounded bg-slate-100 text-slate-600 border-none cursor-pointer hover:bg-slate-200"
+                        >
+                            Select None
+                        </button>
+                        <span className="text-[11px] text-slate-400 ml-auto">{selectedRoleIds.size} selected</span>
+                    </div>
+                    <div className="max-h-[280px] overflow-y-auto border border-slate-200 rounded-lg">
+                        {sortedRoles.map((role) => {
+                            const isSelected = selectedRoleIds.has(role.id)
+                            const alreadyHasIt =
+                                permission.trim() &&
+                                Array.isArray(role.permissions) &&
+                                role.permissions.includes(permission.trim())
+                            return (
+                                <label
+                                    key={role.id}
+                                    className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors border-b border-slate-100 last:border-b-0 ${
+                                        isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'
+                                    } ${alreadyHasIt ? 'opacity-40' : ''}`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => toggleRole(role.id)}
+                                        disabled={alreadyHasIt}
+                                        className="w-4 h-4 rounded cursor-pointer accent-blue-600"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-sm font-medium text-slate-800">{role.name}</span>
+                                        <span className="text-xs text-slate-400 ml-2">w:{role.weight || 0}</span>
+                                    </div>
+                                    {alreadyHasIt && (
+                                        <span className="text-[10px] text-slate-400 shrink-0">already has</span>
+                                    )}
+                                </label>
+                            )
+                        })}
+                    </div>
+                </RoleFormField>
+            </RoleModalBody>
+            <RoleModalFooter
+                onCancel={onClose}
+                onConfirm={handleSubmit}
+                confirmLabel={
+                    saving ? 'Adding...' : `Add to ${selectedRoleIds.size} Role${selectedRoleIds.size !== 1 ? 's' : ''}`
+                }
+                confirmDisabled={!permission.trim() || selectedRoleIds.size === 0 || saving}
+            />
+        </RoleModal>
+    )
+}
+
 function RolesView() {
     const {
         bulkAddPermissions,
@@ -66,67 +425,54 @@ function RolesView() {
     } = useRolesData()
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
-    const isMobile = useIsMobile()
     const [searchQuery, setSearchQuery] = useState('')
-    const [collapsedNamespaces, setCollapsedNamespaces] = useState(null)
     const [showCreateModal, setShowCreateModal] = useState(false)
-    const [addPermModal, setAddPermModal] = useState({ initialPerm: '', open: false })
-    const [editingWeight, setEditingWeight] = useState(null)
-    const [pendingWeightValue, setPendingWeightValue] = useState(0)
-    const [savingCells, setSavingCells] = useState(new Set())
-    const [showMobileRole, setShowMobileRole] = useState(null)
-    const matrixScrollRef = useRef(null)
+    const [showBulkAddModal, setShowBulkAddModal] = useState(false)
+    const [editingWeightRole, setEditingWeightRole] = useState(null)
+    const [expandedRoleId, setExpandedRoleId] = useState(null)
+    const [savingPerms, setSavingPerms] = useState(new Set())
+
     useEffect(() => {
         loadData()
     }, [loadData])
-    // Build the full permission set from all roles
-    const allPermissions = useMemo(() => {
+
+    const sortedRoles = useMemo(() => {
+        let filtered = [...roles].sort((a, b) => (b.weight || 0) - (a.weight || 0))
+        if (searchQuery.trim()) {
+            const q = searchQuery.trim().toLowerCase()
+            filtered = filtered.filter((r) => {
+                const perms = Array.isArray(r.permissions) ? r.permissions : []
+                return r.name.toLowerCase().includes(q) || perms.some((p) => p.toLowerCase().includes(q))
+            })
+        }
+        return filtered
+    }, [roles, searchQuery])
+
+    const totalPermissions = useMemo(() => {
         const permSet = new Set()
         for (const role of roles) {
             if (Array.isArray(role.permissions)) {
                 for (const p of role.permissions) permSet.add(p)
             }
         }
-        return [...permSet].sort((a, b) => a.localeCompare(b))
+        return permSet.size
     }, [roles])
-    // Filter permissions by search
-    const filteredPermissions = useMemo(() => {
-        if (!searchQuery.trim()) return allPermissions
-        const q = searchQuery.trim().toLowerCase()
-        return allPermissions.filter((p) => p.toLowerCase().includes(q))
-    }, [allPermissions, searchQuery])
-    const groupedPermissions = useMemo(() => groupByNamespace(filteredPermissions), [filteredPermissions])
-    // Collapse all namespaces by default once permissions are loaded
-    useEffect(() => {
-        if (collapsedNamespaces === null && allPermissions.length > 0) {
-            setCollapsedNamespaces(new Set(allPermissions.map(getNamespace)))
-        }
-    }, [allPermissions, collapsedNamespaces])
-    const toggleNamespace = useCallback((ns) => {
-        setCollapsedNamespaces((prev) => {
-            const next = new Set(prev || [])
-            next.has(ns) ? next.delete(ns) : next.add(ns)
-            return next
-        })
-    }, [])
-    // Toggle a single cell in the matrix
-    const handleTogglePermission = useCallback(
-        async (roleId, permission, currentlyHas) => {
+
+    const handleRemovePermission = useCallback(
+        async (roleId, permission) => {
             if (!hasITAccess) return
             const cellKey = `${roleId}:${permission}`
-            setSavingCells((prev) => new Set(prev).add(cellKey))
+            setSavingPerms((prev) => new Set(prev).add(cellKey))
             try {
                 const role = roles.find((r) => r.id === roleId)
                 if (!role) return
                 const currentPerms = Array.isArray(role.permissions) ? role.permissions : []
-                const newPerms = currentlyHas
-                    ? currentPerms.filter((p) => p !== permission)
-                    : [...currentPerms, permission]
+                const newPerms = currentPerms.filter((p) => p !== permission)
                 await updateRolePermissions(roleId, newPerms.join('\n'))
             } catch (err) {
-                setError(`Failed to update: ${err.message}`)
+                setError(`Failed to remove: ${err.message}`)
             } finally {
-                setSavingCells((prev) => {
+                setSavingPerms((prev) => {
                     const next = new Set(prev)
                     next.delete(cellKey)
                     return next
@@ -135,54 +481,24 @@ function RolesView() {
         },
         [hasITAccess, roles, updateRolePermissions, setError]
     )
-    // Grant a permission to ALL roles at once
-    const handleGrantToAll = useCallback(
-        async (permission) => {
+
+    const handleAddPermission = useCallback(
+        async (roleId, permission) => {
             if (!hasITAccess) return
             try {
-                const roleIds = new Set(
-                    roles
-                        .filter((r) => {
-                            const perms = Array.isArray(r.permissions) ? r.permissions : []
-                            return !perms.includes(permission)
-                        })
-                        .map((r) => r.id)
-                )
-                if (roleIds.size === 0) return
-                await bulkAddPermissions(roleIds, permission)
+                const role = roles.find((r) => r.id === roleId)
+                if (!role) return
+                const currentPerms = Array.isArray(role.permissions) ? role.permissions : []
+                if (currentPerms.includes(permission)) return
+                const newPerms = [...currentPerms, permission]
+                await updateRolePermissions(roleId, newPerms.join('\n'))
             } catch (err) {
-                setError(`Failed to grant: ${err.message}`)
+                setError(`Failed to add: ${err.message}`)
             }
         },
-        [hasITAccess, roles, bulkAddPermissions, setError]
+        [hasITAccess, roles, updateRolePermissions, setError]
     )
-    // Revoke a permission from ALL roles
-    const handleRevokeFromAll = useCallback(
-        async (permission) => {
-            if (!hasITAccess) return
-            if (!window.confirm(`Remove "${permission}" from all roles?`)) return
-            try {
-                const affected = roles
-                    .filter((r) => Array.isArray(r.permissions) && r.permissions.includes(permission))
-                    .map((r) => ({ role: r }))
-                if (affected.length === 0) return
-                await removePermissionFromAllRoles(permission, affected)
-            } catch (err) {
-                setError(`Failed to revoke: ${err.message}`)
-            }
-        },
-        [hasITAccess, roles, removePermissionFromAllRoles, setError]
-    )
-    // Save weight edit
-    const handleSaveWeight = useCallback(async () => {
-        if (editingWeight === null) return
-        try {
-            await updateRoleWeight(editingWeight, pendingWeightValue)
-        } catch (err) {
-            setError(`Failed to update weight: ${err.message}`)
-        }
-        setEditingWeight(null)
-    }, [editingWeight, pendingWeightValue, updateRoleWeight, setError])
+
     const handleCreateRole = useCallback(
         async (name, weight) => {
             try {
@@ -193,10 +509,20 @@ function RolesView() {
         },
         [createRole, setError]
     )
-    // Stats
-    const totalPermissions = allPermissions.length
-    const totalRoles = roles.length
-    const namespacesCount = new Set(allPermissions.map(getNamespace)).size
+
+    const handleSaveWeight = useCallback(
+        async (roleId, weight) => {
+            try {
+                await updateRoleWeight(roleId, weight)
+            } catch (err) {
+                setError(`Failed to update weight: ${err.message}`)
+            }
+        },
+        [updateRoleWeight, setError]
+    )
+
+    const badge = `${roles.length} Total`
+
     if (isLoading && roles.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 p-6">
@@ -204,777 +530,126 @@ function RolesView() {
             </div>
         )
     }
-    // Mobile: show a role-centric card list instead of the matrix
-    if (isMobile) {
-        return (
-            <div className="min-h-screen bg-slate-50">
-                <MobileHeader
-                    accentColor={accentColor}
-                    hasITAccess={hasITAccess}
-                    totalRoles={totalRoles}
-                    totalPermissions={totalPermissions}
-                    onCreateRole={() => setShowCreateModal(true)}
-                />
-                <div className="px-4 py-4">
-                    <AlertMessage message={message} type="success" />
-                    <AlertMessage message={error} type="error" />
-                    <MobileRoleList
-                        roles={roles}
-                        hasITAccess={hasITAccess}
-                        accentColor={accentColor}
-                        showMobileRole={showMobileRole}
-                        setShowMobileRole={setShowMobileRole}
-                        onTogglePermission={handleTogglePermission}
-                        savingCells={savingCells}
-                    />
-                </div>
-                <CreateRoleModal
-                    isOpen={showCreateModal}
-                    onClose={() => setShowCreateModal(false)}
-                    onCreate={handleCreateRole}
-                />
-            </div>
-        )
-    }
+
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Header */}
-            <div
-                className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm"
-                style={{
-                    backgroundImage: `
-                        linear-gradient(${accentColor}10 1px, transparent 1px),
-                        linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
-                        radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
-                    `,
-                    backgroundPosition: '0 0, 0 0, 0 0',
-                    backgroundSize: '20px 20px, 20px 20px, 40px 40px'
-                }}
-            >
-                <div className="px-6 py-4">
-                    <div className="flex items-center justify-between gap-4 mb-3">
-                        <div className="flex items-center gap-4">
-                            <h1 className="text-2xl font-bold text-slate-800 m-0">Roles & Permissions</h1>
-                            {hasITAccess && (
-                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold">
-                                    <i className="fas fa-shield-alt text-[10px]" />
-                                    IT Access
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2.5">
+        <div className="min-h-screen bg-slate-50 pb-16">
+            <TopSection
+                title="Roles & Permissions"
+                badge={badge}
+                hideViewModeToggle
+                hidePlantFilter
+                sticky
+                searchPlaceholder="Search roles or permissions..."
+                searchInput={searchQuery}
+                onSearchInputChange={setSearchQuery}
+                onClearSearch={() => setSearchQuery('')}
+                addButtonLabel={hasITAccess ? 'New Role' : undefined}
+                onAddClick={hasITAccess ? () => setShowCreateModal(true) : undefined}
+                customActions={
+                    hasITAccess ? (
+                        <div className="flex items-center gap-2">
                             <button
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold border-none cursor-pointer transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700"
-                                onClick={() => {
-                                    const exportData = roles.map((r) => ({
-                                        name: r.name,
-                                        weight: r.weight,
-                                        permissions: Array.isArray(r.permissions) ? [...r.permissions].sort() : []
-                                    }))
-                                    const json = JSON.stringify(exportData, null, 2)
-                                    navigator.clipboard
-                                        .writeText(json)
-                                        .then(() => {
-                                            alert('Permissions copied to clipboard')
-                                        })
-                                        .catch(() => {
-                                            const blob = new Blob([json], { type: 'application/json' })
-                                            const url = URL.createObjectURL(blob)
-                                            const a = document.createElement('a')
-                                            a.href = url
-                                            a.download = 'roles-permissions.json'
-                                            a.click()
-                                            URL.revokeObjectURL(url)
-                                        })
-                                }}
-                                type="button"
+                                onClick={() => setShowBulkAddModal(true)}
+                                className="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer transition-all bg-slate-100 text-slate-600 hover:bg-slate-200"
                             >
-                                <i className="fas fa-download" />
-                                Export
+                                <i className="fas fa-layer-group" />
+                                Bulk Add
                             </button>
-                            {hasITAccess && (
-                                <>
-                                    <button
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold border-none cursor-pointer transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700"
-                                        onClick={() => setAddPermModal({ initialPerm: '', open: true })}
-                                        type="button"
-                                    >
-                                        <i className="fas fa-key" />
-                                        Add Permission
-                                    </button>
-                                    <button
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white border-none cursor-pointer"
-                                        style={{ backgroundColor: accentColor }}
-                                        onClick={() => setShowCreateModal(true)}
-                                        type="button"
-                                    >
-                                        <i className="fas fa-plus" />
-                                        New Role
-                                    </button>
-                                </>
-                            )}
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold">
+                                <i className="fas fa-shield-alt text-[10px]" />
+                                IT Access
+                            </div>
+                        </div>
+                    ) : null
+                }
+            />
+
+            <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
+                {/* Alerts */}
+                {message && (
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700 text-sm">
+                        <i className="fas fa-check-circle shrink-0" />
+                        {message}
+                    </div>
+                )}
+                {error && (
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <i className="fas fa-exclamation-circle shrink-0" />
+                        {error}
+                    </div>
+                )}
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 mb-5 px-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <i className="fas fa-shield-alt text-slate-500 text-xs" />
+                        </div>
+                        <div>
+                            <span className="text-lg font-bold text-slate-800">{roles.length}</span>
+                            <span className="text-xs text-slate-400 ml-1.5">roles</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Search */}
-                        <div className="relative flex-1 max-w-md">
-                            <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
-                            <input
-                                type="text"
-                                className="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 outline-none py-2.5 pl-10 pr-4 placeholder:text-slate-400"
-                                placeholder="Filter permissions..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            {searchQuery && (
-                                <button
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 bg-slate-200 rounded text-slate-500 text-[10px] cursor-pointer border-none"
-                                    onClick={() => setSearchQuery('')}
-                                    type="button"
-                                >
-                                    <i className="fas fa-times" />
-                                </button>
-                            )}
+                    <div className="w-px h-8 bg-slate-200" />
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                            <i className="fas fa-key text-slate-500 text-xs" />
                         </div>
-                        {/* Stats */}
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                            <span className="flex items-center gap-1.5">
-                                <i className="fas fa-user-shield" />
-                                {totalRoles} roles
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <i className="fas fa-key" />
-                                {totalPermissions} permissions
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <i className="fas fa-folder" />
-                                {namespacesCount} namespaces
-                            </span>
+                        <div>
+                            <span className="text-lg font-bold text-slate-800">{totalPermissions}</span>
+                            <span className="text-xs text-slate-400 ml-1.5">unique permissions</span>
                         </div>
                     </div>
+                </div>
+
+                {/* Role cards */}
+                <div className="space-y-3">
+                    {sortedRoles.map((role) => (
+                        <RoleCard
+                            key={role.id}
+                            role={role}
+                            isExpanded={expandedRoleId === role.id}
+                            onToggle={() => setExpandedRoleId(expandedRoleId === role.id ? null : role.id)}
+                            hasITAccess={hasITAccess}
+                            accentColor={accentColor}
+                            onRemovePermission={handleRemovePermission}
+                            onAddPermission={handleAddPermission}
+                            onEditWeight={setEditingWeightRole}
+                            savingPerms={savingPerms}
+                        />
+                    ))}
+                    {sortedRoles.length === 0 && (
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center text-slate-400">
+                            <i className="fas fa-search text-3xl mb-3 block" />
+                            <div className="text-sm">No roles match your search</div>
+                        </div>
+                    )}
                 </div>
             </div>
-            {/* Messages */}
-            <div className="px-6 pt-4">
-                <AlertMessage message={message} type="success" />
-                <AlertMessage message={error} type="error" />
-            </div>
-            {/* Matrix */}
-            {roles.length === 0 || allPermissions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-slate-400">
-                    <i className="fas fa-th text-5xl mb-4" />
-                    <p className="text-lg font-semibold text-slate-600 mb-1">No Data Yet</p>
-                    <p className="text-sm">Create a role and add permissions to populate the matrix.</p>
-                </div>
-            ) : (
-                <div className="px-6 py-4">
-                    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                        <div
-                            className="overflow-y-auto"
-                            ref={matrixScrollRef}
-                            style={{ maxHeight: 'calc(100vh - 320px)' }}
-                        >
-                            <table className="w-full border-collapse table-fixed">
-                                <thead className="sticky top-0 z-[6]">
-                                    <tr>
-                                        <th className="sticky left-0 z-[7] bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-2 border-b border-r border-slate-200 w-52">
-                                            Permission
-                                        </th>
-                                        {roles.map((role) => {
-                                            const permCount = Array.isArray(role.permissions)
-                                                ? role.permissions.length
-                                                : 0
-                                            return (
-                                                <th
-                                                    key={role.id}
-                                                    className="text-center border-b border-slate-200 px-1 py-2 bg-slate-50"
-                                                >
-                                                    <div className="flex flex-col items-center gap-0.5">
-                                                        <span
-                                                            className="text-[11px] font-bold text-slate-700 leading-tight truncate max-w-full"
-                                                            title={role.name}
-                                                        >
-                                                            {role.name}
-                                                        </span>
-                                                        {editingWeight === role.id ? (
-                                                            <div className="flex items-center gap-0.5">
-                                                                <input
-                                                                    type="number"
-                                                                    className="w-10 text-center text-[10px] border border-slate-300 rounded px-0.5 py-0 outline-none"
-                                                                    value={pendingWeightValue}
-                                                                    onChange={(e) =>
-                                                                        setPendingWeightValue(
-                                                                            parseInt(e.target.value) || 0
-                                                                        )
-                                                                    }
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === 'Enter') handleSaveWeight()
-                                                                        if (e.key === 'Escape') setEditingWeight(null)
-                                                                    }}
-                                                                    autoFocus
-                                                                />
-                                                                <button
-                                                                    className="text-emerald-600 text-[9px] cursor-pointer bg-transparent border-none p-0"
-                                                                    onClick={handleSaveWeight}
-                                                                    type="button"
-                                                                >
-                                                                    <i className="fas fa-check" />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <span
-                                                                className={`text-[9px] text-slate-400 leading-none ${hasITAccess ? 'cursor-pointer hover:text-slate-600' : ''}`}
-                                                                onClick={() => {
-                                                                    if (!hasITAccess) return
-                                                                    setEditingWeight(role.id)
-                                                                    setPendingWeightValue(role.weight || 0)
-                                                                }}
-                                                            >
-                                                                w:{role.weight || 0} &middot; {permCount}
-                                                                {hasITAccess && (
-                                                                    <i className="fas fa-pencil-alt ml-0.5 text-[7px]" />
-                                                                )}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </th>
-                                            )
-                                        })}
-                                        {hasITAccess && (
-                                            <th
-                                                className="text-center border-b border-slate-200 px-1 py-2 bg-slate-50"
-                                                style={{ width: 52 }}
-                                            />
-                                        )}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {groupedPermissions.map(([namespace, perms]) => {
-                                        const isCollapsed = !collapsedNamespaces || collapsedNamespaces.has(namespace)
-                                        const nsIcon = getNamespaceIcon(namespace)
-                                        const nsCounts = roles.map((role) => {
-                                            const rp = Array.isArray(role.permissions) ? role.permissions : []
-                                            return perms.filter((p) => rp.includes(p)).length
-                                        })
-                                        return (
-                                            <React.Fragment key={namespace}>
-                                                <tr
-                                                    className="cursor-pointer hover:bg-slate-100 transition-colors"
-                                                    onClick={() => toggleNamespace(namespace)}
-                                                >
-                                                    <td className="sticky left-0 z-[4] bg-slate-50 px-3 py-1.5 border-b border-r border-slate-100 text-[12px] font-semibold text-slate-600">
-                                                        <div className="flex items-center gap-2">
-                                                            <i
-                                                                className={`fas fa-chevron-${isCollapsed ? 'right' : 'down'} text-[8px] text-slate-400 w-2.5`}
-                                                            />
-                                                            <i className={`fas ${nsIcon} text-slate-400 text-[10px]`} />
-                                                            <span>{namespace}</span>
-                                                            <span className="text-[10px] text-slate-400 font-normal">
-                                                                ({perms.length})
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    {nsCounts.map((count, i) => (
-                                                        <td
-                                                            key={roles[i].id}
-                                                            className="text-center border-b border-slate-100 px-1 py-1.5"
-                                                        >
-                                                            <span
-                                                                className={`text-[10px] font-semibold ${count === perms.length ? 'text-emerald-600' : count > 0 ? 'text-slate-500' : 'text-slate-300'}`}
-                                                            >
-                                                                {count}/{perms.length}
-                                                            </span>
-                                                        </td>
-                                                    ))}
-                                                    {hasITAccess && <td className="border-b border-slate-100" />}
-                                                </tr>
-                                                {!isCollapsed &&
-                                                    perms.map((perm) => {
-                                                        const shortName = perm.substring(namespace.length + 1) || perm
-                                                        return (
-                                                            <tr
-                                                                key={perm}
-                                                                className="hover:bg-blue-50 transition-colors group"
-                                                            >
-                                                                <td className="sticky left-0 z-[3] bg-white group-hover:bg-blue-50 transition-colors px-3 py-[5px] border-b border-r border-slate-100">
-                                                                    <code className="text-[11px] text-slate-500 font-mono pl-5">
-                                                                        <span className="text-slate-300">
-                                                                            {namespace}.
-                                                                        </span>
-                                                                        {shortName}
-                                                                    </code>
-                                                                </td>
-                                                                {roles.map((role) => {
-                                                                    const rp = Array.isArray(role.permissions)
-                                                                        ? role.permissions
-                                                                        : []
-                                                                    const has = rp.includes(perm)
-                                                                    const cellKey = `${role.id}:${perm}`
-                                                                    const isSaving = savingCells.has(cellKey)
-                                                                    return (
-                                                                        <td
-                                                                            key={role.id}
-                                                                            className="text-center border-b border-slate-100 px-1 py-[5px]"
-                                                                        >
-                                                                            <MatrixCell
-                                                                                has={has}
-                                                                                isSaving={isSaving}
-                                                                                canEdit={hasITAccess}
-                                                                                accentColor={accentColor}
-                                                                                onClick={() =>
-                                                                                    handleTogglePermission(
-                                                                                        role.id,
-                                                                                        perm,
-                                                                                        has
-                                                                                    )
-                                                                                }
-                                                                            />
-                                                                        </td>
-                                                                    )
-                                                                })}
-                                                                {hasITAccess && (
-                                                                    <td className="text-center border-b border-slate-100 px-1 py-[5px]">
-                                                                        <RowActions
-                                                                            perm={perm}
-                                                                            roles={roles}
-                                                                            onGrantAll={() => handleGrantToAll(perm)}
-                                                                            onRevokeAll={() =>
-                                                                                handleRevokeFromAll(perm)
-                                                                            }
-                                                                            onSelectRoles={() =>
-                                                                                setAddPermModal({
-                                                                                    initialPerm: perm,
-                                                                                    open: true
-                                                                                })
-                                                                            }
-                                                                        />
-                                                                    </td>
-                                                                )}
-                                                            </tr>
-                                                        )
-                                                    })}
-                                            </React.Fragment>
-                                        )
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {/* Legend bar */}
-                    <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mt-3">
-                        <div className="flex items-center gap-5 text-[11px] text-slate-500">
-                            <span className="flex items-center gap-1.5">
-                                <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-emerald-500 border border-emerald-400">
-                                    <i className="fas fa-check text-white text-[7px]" />
-                                </span>
-                                Granted
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="inline-block w-4 h-4 rounded border border-slate-200 bg-slate-50" />
-                                Not granted
-                            </span>
-                            <span className="text-slate-300">|</span>
-                            <span>
-                                {totalPermissions} permissions across {totalRoles} roles
-                            </span>
-                        </div>
-                        {hasITAccess && (
-                            <span className="text-[11px] text-slate-400">
-                                <i className="fas fa-mouse-pointer mr-1 text-[9px]" />
-                                Click cells to toggle permissions
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
+
             <CreateRoleModal
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onCreate={handleCreateRole}
             />
-            <AddPermissionModal
-                isOpen={addPermModal.open}
-                initialPerm={addPermModal.initialPerm}
+            <EditWeightModal
+                role={editingWeightRole}
+                onClose={() => setEditingWeightRole(null)}
+                onSave={handleSaveWeight}
+            />
+            <BulkAddModal
+                isOpen={showBulkAddModal}
+                onClose={() => setShowBulkAddModal(false)}
                 roles={roles}
-                onClose={() => setAddPermModal({ initialPerm: '', open: false })}
-                onGrant={async (roleIds, perm) => {
-                    await bulkAddPermissions(roleIds, perm)
-                    setAddPermModal({ initialPerm: '', open: false })
+                accentColor={accentColor}
+                onBulkAdd={async (roleIds, permission) => {
+                    try {
+                        await bulkAddPermissions(roleIds, permission)
+                    } catch (err) {
+                        setError(`Bulk add failed: ${err.message}`)
+                    }
                 }}
             />
-        </div>
-    )
-}
-/** Single cell in the permission matrix — a compact styled checkbox. */
-function MatrixCell({ has, isSaving, canEdit, accentColor: _accentColor, onClick }) {
-    if (isSaving) {
-        return (
-            <div className="inline-flex items-center justify-center w-5 h-5">
-                <i className="fas fa-spinner fa-spin text-slate-400 text-[9px]" />
-            </div>
-        )
-    }
-    return (
-        <button
-            type="button"
-            className={`inline-flex items-center justify-center w-5 h-5 rounded border transition-all duration-100 ${
-                has
-                    ? 'border-emerald-400 bg-emerald-500 hover:bg-emerald-600'
-                    : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-            } ${canEdit ? 'cursor-pointer' : 'cursor-default'}`}
-            onClick={canEdit ? onClick : undefined}
-            disabled={!canEdit}
-            aria-label={has ? 'Granted' : 'Not granted'}
-        >
-            {has && <i className="fas fa-check text-white text-[8px]" />}
-        </button>
-    )
-}
-/** Row-level actions: select specific roles, grant to all, revoke from all. */
-function RowActions({ perm, roles, onGrantAll, onRevokeAll, onSelectRoles }) {
-    const allHave = roles.every((r) => Array.isArray(r.permissions) && r.permissions.includes(perm))
-    const noneHave = roles.every((r) => !Array.isArray(r.permissions) || !r.permissions.includes(perm))
-    return (
-        <div className="flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-                type="button"
-                className="w-5 h-5 rounded bg-slate-100 text-slate-500 text-[8px] cursor-pointer hover:bg-slate-200 transition-colors flex items-center justify-center border-none"
-                onClick={onSelectRoles}
-                title="Grant to specific roles..."
-            >
-                <i className="fas fa-list-check" />
-            </button>
-            {!allHave && (
-                <button
-                    type="button"
-                    className="w-5 h-5 rounded bg-emerald-50 text-emerald-600 text-[8px] cursor-pointer hover:bg-emerald-100 transition-colors flex items-center justify-center border-none"
-                    onClick={onGrantAll}
-                    title="Grant to all roles"
-                >
-                    <i className="fas fa-plus" />
-                </button>
-            )}
-            {!noneHave && (
-                <button
-                    type="button"
-                    className="w-5 h-5 rounded bg-red-50 text-red-500 text-[8px] cursor-pointer hover:bg-red-100 transition-colors flex items-center justify-center border-none"
-                    onClick={onRevokeAll}
-                    title="Revoke from all roles"
-                >
-                    <i className="fas fa-times" />
-                </button>
-            )}
-        </div>
-    )
-}
-/**
- * Modal for adding a new permission node and granting it to one or more roles at once.
- * When initialPerm is provided (triggered from a matrix row), the permission field is pre-filled
- * and locked so the user just picks which roles to grant it to.
- */
-function AddPermissionModal({ isOpen, onClose, onGrant, roles, initialPerm }) {
-    const [perm, setPerm] = useState('')
-    const [selectedRoleIds, setSelectedRoleIds] = useState(new Set())
-    const [submitting, setSubmitting] = useState(false)
-    const isPreFilled = !!initialPerm
-    useEffect(() => {
-        if (isOpen) {
-            setPerm(initialPerm || '')
-            setSelectedRoleIds(new Set())
-        }
-    }, [isOpen, initialPerm])
-    const toggleRole = (id) =>
-        setSelectedRoleIds((prev) => {
-            const next = new Set(prev)
-            next.has(id) ? next.delete(id) : next.add(id)
-            return next
-        })
-    const toggleAll = () =>
-        setSelectedRoleIds((prev) => (prev.size === roles.length ? new Set() : new Set(roles.map((r) => r.id))))
-    const handleSubmit = async () => {
-        if (!perm.trim() || !selectedRoleIds.size) return
-        setSubmitting(true)
-        try {
-            await onGrant(selectedRoleIds, perm.trim())
-        } finally {
-            setSubmitting(false)
-        }
-    }
-    const trimmedPerm = perm.trim()
-    const canSubmit = trimmedPerm.length > 0 && selectedRoleIds.size > 0
-    return (
-        <RoleModal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={isPreFilled ? 'Grant to Roles' : 'Add Permission'}
-            subtitle={
-                isPreFilled
-                    ? `Select which roles should receive "${trimmedPerm}"`
-                    : 'Define a permission node and grant it to one or more roles'
-            }
-            titleIcon="fas fa-key"
-        >
-            <RoleModalBody>
-                <RoleFormField label="Permission Node">
-                    <RoleTextInput
-                        value={perm}
-                        onChange={isPreFilled ? () => {} : setPerm}
-                        placeholder="e.g. reports.lostloads"
-                        disabled={isPreFilled}
-                    />
-                    {!isPreFilled && (
-                        <p className="text-xs text-slate-400 mt-1">
-                            Use dot notation: <code className="font-mono">namespace.action</code>
-                        </p>
-                    )}
-                </RoleFormField>
-                <RoleFormField label={`Roles — ${selectedRoleIds.size} of ${roles.length} selected`}>
-                    <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto border border-slate-200 rounded-lg">
-                        <button
-                            type="button"
-                            className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 text-left border-b border-slate-100 sticky top-0 bg-white"
-                            onClick={toggleAll}
-                        >
-                            <div
-                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                                    selectedRoleIds.size === roles.length
-                                        ? 'border-emerald-400 bg-emerald-500'
-                                        : 'border-slate-300'
-                                }`}
-                            >
-                                {selectedRoleIds.size === roles.length && (
-                                    <i className="fas fa-check text-white text-[7px]" />
-                                )}
-                            </div>
-                            {selectedRoleIds.size === roles.length ? 'Deselect all' : 'Select all'}
-                        </button>
-                        {roles.map((role) => {
-                            const isSelected = selectedRoleIds.has(role.id)
-                            const alreadyHas =
-                                trimmedPerm && Array.isArray(role.permissions) && role.permissions.includes(trimmedPerm)
-                            return (
-                                <button
-                                    key={role.id}
-                                    type="button"
-                                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-slate-50 transition-colors"
-                                    onClick={() => toggleRole(role.id)}
-                                >
-                                    <div
-                                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                                            isSelected ? 'border-emerald-400 bg-emerald-500' : 'border-slate-300'
-                                        }`}
-                                    >
-                                        {isSelected && <i className="fas fa-check text-white text-[7px]" />}
-                                    </div>
-                                    <span className="flex-1 text-slate-700">{role.name}</span>
-                                    {alreadyHas && (
-                                        <span className="text-[11px] text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded">
-                                            already granted
-                                        </span>
-                                    )}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </RoleFormField>
-            </RoleModalBody>
-            <RoleModalFooter
-                disabled={!canSubmit}
-                isLoading={submitting}
-                loadingText="Granting..."
-                onCancel={onClose}
-                onSubmit={handleSubmit}
-                submitText={
-                    selectedRoleIds.size > 0
-                        ? `Grant to ${selectedRoleIds.size} Role${selectedRoleIds.size !== 1 ? 's' : ''}`
-                        : 'Select roles to continue'
-                }
-            />
-        </RoleModal>
-    )
-}
-function AlertMessage({ message, type = 'success' }) {
-    if (!message) return null
-    const isSuccess = type === 'success'
-    return (
-        <div
-            className={`mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border ${isSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}
-        >
-            <i className={`fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'}`} />
-            <span className="text-sm font-medium">{message}</span>
-        </div>
-    )
-}
-function CreateRoleModal({ isOpen, onClose, onCreate }) {
-    const [name, setName] = useState('')
-    const [weight, setWeight] = useState(0)
-    const [isCreating, setIsCreating] = useState(false)
-    const handleCreate = async () => {
-        if (!name.trim()) return
-        setIsCreating(true)
-        try {
-            await onCreate(name, weight)
-            setName('')
-            setWeight(0)
-            onClose()
-        } finally {
-            setIsCreating(false)
-        }
-    }
-    return (
-        <RoleModal
-            isOpen={isOpen}
-            onClose={onClose}
-            subtitle="Add a new role column to the matrix"
-            title="Create New Role"
-            titleIcon="fas fa-plus-circle"
-        >
-            <RoleModalBody>
-                <RoleFormField label="Role Name">
-                    <RoleTextInput onChange={setName} placeholder="Enter role name" value={name} />
-                </RoleFormField>
-                <RoleFormField label="Weight">
-                    <RoleTextInput
-                        onChange={setWeight}
-                        placeholder="Enter weight (0-100)"
-                        type="number"
-                        value={weight}
-                    />
-                </RoleFormField>
-            </RoleModalBody>
-            <RoleModalFooter
-                disabled={!name.trim()}
-                isLoading={isCreating}
-                loadingText="Creating..."
-                onCancel={onClose}
-                onSubmit={handleCreate}
-                submitText="Create Role"
-            />
-        </RoleModal>
-    )
-}
-/** Mobile header with compact stats. */
-function MobileHeader({ accentColor, hasITAccess, totalRoles, totalPermissions, onCreateRole }) {
-    return (
-        <div
-            className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm px-4 py-3"
-            style={{
-                backgroundImage: `
-                    linear-gradient(${accentColor}10 1px, transparent 1px),
-                    linear-gradient(90deg, ${accentColor}10 1px, transparent 1px),
-                    radial-gradient(circle at center, ${accentColor}08 0%, transparent 50%)
-                `,
-                backgroundPosition: '0 0, 0 0, 0 0',
-                backgroundSize: '20px 20px, 20px 20px, 40px 40px'
-            }}
-        >
-            <div className="flex items-center justify-between mb-2">
-                <h1 className="text-lg font-bold text-slate-800 m-0">Roles</h1>
-                <div className="flex items-center gap-2">
-                    {hasITAccess && (
-                        <button
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white border-none cursor-pointer"
-                            style={{ backgroundColor: accentColor }}
-                            onClick={onCreateRole}
-                            type="button"
-                        >
-                            <i className="fas fa-plus text-xs" />
-                            New Role
-                        </button>
-                    )}
-                </div>
-            </div>
-            <div className="flex items-center gap-4 text-xs text-slate-500">
-                <span>{totalRoles} roles</span>
-                <span>{totalPermissions} permissions</span>
-            </div>
-        </div>
-    )
-}
-/** Mobile role list — each role is an expandable card showing its permissions. */
-function MobileRoleList({
-    roles,
-    hasITAccess: _hasITAccess,
-    accentColor,
-    showMobileRole,
-    setShowMobileRole,
-    onTogglePermission: _onTogglePermission,
-    savingCells: _savingCells
-}) {
-    if (roles.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                <i className="fas fa-user-shield text-4xl mb-4" />
-                <p>No roles found</p>
-            </div>
-        )
-    }
-    return (
-        <div className="space-y-3">
-            {roles.map((role) => {
-                const isOpen = showMobileRole === role.id
-                const perms = Array.isArray(role.permissions) ? [...role.permissions].sort() : []
-                const grouped = groupByNamespace(perms)
-                return (
-                    <div key={role.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                        <button
-                            className="w-full flex items-center justify-between px-4 py-3.5 cursor-pointer bg-transparent border-none text-left"
-                            onClick={() => setShowMobileRole(isOpen ? null : role.id)}
-                            type="button"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="w-9 h-9 rounded-lg flex items-center justify-center"
-                                    style={{ backgroundColor: `${accentColor}15` }}
-                                >
-                                    <i className="fas fa-user-shield" style={{ color: accentColor, fontSize: 14 }} />
-                                </div>
-                                <div>
-                                    <div className="font-bold text-slate-800 text-sm">{role.name}</div>
-                                    <div className="text-xs text-slate-400">
-                                        w:{role.weight || 0} &middot; {perms.length} permissions
-                                    </div>
-                                </div>
-                            </div>
-                            <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'} text-slate-400 text-xs`} />
-                        </button>
-                        {isOpen && (
-                            <div className="border-t border-slate-100 px-4 py-3 bg-slate-50/50">
-                                {grouped.length === 0 ? (
-                                    <p className="text-sm text-slate-400 text-center py-4">No permissions</p>
-                                ) : (
-                                    grouped.map(([ns, nsPerms]) => (
-                                        <div key={ns} className="mb-3 last:mb-0">
-                                            <div className="flex items-center gap-2 mb-1.5">
-                                                <i
-                                                    className={`fas ${getNamespaceIcon(ns)} text-slate-400 text-[10px]`}
-                                                />
-                                                <span className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                                                    {ns}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {nsPerms.map((perm) => {
-                                                    const short = perm.substring(ns.length + 1) || perm
-                                                    return (
-                                                        <span
-                                                            key={perm}
-                                                            className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-600"
-                                                        >
-                                                            <i className="fas fa-check-circle text-emerald-500 text-[9px]" />
-                                                            {short}
-                                                        </span>
-                                                    )
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )
-            })}
         </div>
     )
 }

@@ -11,6 +11,8 @@ import ReportsEmptyState from '../../../app/components/reports/ReportsEmptyState
 import ReportsStatsCards from '../../../app/components/reports/ReportsStatsCards'
 import ReportsToolbar from '../../../app/components/reports/ReportsToolbar'
 import ReviewReportsList from '../../../app/components/reports/ReviewReportsList'
+import ThirdPartyLabDetailModal from '../../../app/components/reports/ThirdPartyLabDetailModal'
+import ThirdPartyLabReportModal from '../../../app/components/reports/ThirdPartyLabReportModal'
 import { usePagination } from '../../../app/hooks/usePagination'
 import { useReportsData } from '../../../app/hooks/useReportsData'
 import { useReportSubmission } from '../../../app/hooks/useReportSubmission'
@@ -81,13 +83,15 @@ function ReportsView() {
     const [tab, setTab] = useState('all')
     const [showLostLoadModal, setShowLostLoadModal] = useState(false)
     const [showQCStrengthModal, setShowQCStrengthModal] = useState(false)
+    const [showLabReportModal, setShowLabReportModal] = useState(false)
     const [qcReports, setQcReports] = useState([])
     const [isLoadingQC, setIsLoadingQC] = useState(false)
+    const [qcLoaded, setQcLoaded] = useState(false)
     const [selectedQCReport, setSelectedQCReport] = useState(null)
+    const [selectedLabReport, setSelectedLabReport] = useState(null)
     const [currentUserWeight, setCurrentUserWeight] = useState(0)
     const [userWeights, setUserWeights] = useState({})
     const [selectedLostLoad, setSelectedLostLoad] = useState(null)
-    const [bannerDismissed, setBannerDismissed] = useState(false)
     const [submitInitialData, setSubmitInitialData] = useState(null)
     const [filterReportType, setFilterReportType] = useState('')
     const [filterPlant, setFilterPlant] = useState('')
@@ -215,42 +219,54 @@ function ReportsView() {
         if (tab === 'quality') loadQCReports()
     }, [tab, loadReviewReports, loadLostLoadReports]) // eslint-disable-line react-hooks/exhaustive-deps
     const loadQCReports = useCallback(async () => {
-        if (!user) return
+        if (!user || qcLoaded) return
         setIsLoadingQC(true)
         try {
-            const [{ data, error }, myWeight] = await Promise.all([
-                Database.from('reports')
-                    .select('id,report_name,user_id,submitted_at,data,completed,week,been_reviewed')
-                    .eq('report_name', 'qc_strength')
-                    .eq('completed', true)
-                    .order('submitted_at', { ascending: false }),
-                UserService.getUserWeight(user.id)
-            ])
-            setCurrentUserWeight(myWeight)
+            const { data, error } = await Database.from('reports')
+                .select('id,report_name,user_id,submitted_at,data,completed,week,been_reviewed')
+                .in('report_name', ['qc_strength', 'third_party_lab'])
+                .eq('completed', true)
+                .order('submitted_at', { ascending: false })
             if (!error && Array.isArray(data)) {
-                const mapped = data.map((r) => ({
-                    id: r.id,
-                    name: r.report_name,
-                    userId: r.user_id,
-                    data: r.data,
-                    week: r.week,
-                    submittedAt: r.submitted_at,
-                    reviewed: r.been_reviewed
-                }))
-                setQcReports(mapped)
-                // Fetch weights for all submitters
-                const uniqueUserIds = [...new Set(mapped.map((r) => r.userId).filter(Boolean))]
-                const weights = {}
-                await Promise.all(
-                    uniqueUserIds.map(async (uid) => {
-                        weights[uid] = await UserService.getUserWeight(uid)
-                    })
+                setQcReports(
+                    data.map((r) => ({
+                        id: r.id,
+                        name: r.report_name,
+                        userId: r.user_id,
+                        data: r.data,
+                        week: r.week,
+                        submittedAt: r.submitted_at,
+                        reviewed: r.been_reviewed
+                    }))
                 )
-                setUserWeights(weights)
             }
         } catch {}
         setIsLoadingQC(false)
+        setQcLoaded(true)
+        // Fetch current user weight in background — doesn't block loading
+        UserService.getUserWeight(user.id)
+            .then(setCurrentUserWeight)
+            .catch(() => {})
     }, [user])
+    const fetchWeightForUser = useCallback(
+        async (userId) => {
+            if (userWeights[userId] !== undefined) return userWeights[userId]
+            const weight = await UserService.getUserWeight(userId).catch(() => 0)
+            setUserWeights((prev) => ({ ...prev, [userId]: weight }))
+            return weight
+        },
+        [userWeights]
+    )
+    const handleDeleteQCReport = useCallback(
+        async (report) => {
+            const submitterWeight = await fetchWeightForUser(report.userId)
+            if (currentUserWeight < submitterWeight) return
+            if (!window.confirm('Delete this QC Strength Report?')) return
+            await Database.from('reports').delete().eq('id', report.id)
+            setQcReports((prev) => prev.filter((r) => r.id !== report.id))
+        },
+        [currentUserWeight, fetchWeightForUser]
+    )
     const handleSubmitReport = async (formData, completed = true) => {
         const result = await submitReport({ completed, formData, showForm })
         if (result.success) setShowForm(null)
@@ -296,6 +312,20 @@ function ReportsView() {
     const handleFormSubmit = (form, submitType) => {
         managerEditUser ? handleManagerEditSubmit(form) : handleSubmitReport(form, submitType === 'submit')
     }
+    const qcReviewedSet = useMemo(() => new Set(qcReports.filter((r) => r.reviewed).map((r) => r.id)), [qcReports])
+    const qcAsReviewItems = useMemo(
+        () => qcReports.map((r) => ({ id: r.id, week: r.week, completed: true })),
+        [qcReports]
+    )
+    const lostLoadsAsItems = useMemo(
+        () =>
+            (Array.isArray(lostLoadReports) ? lostLoadReports : []).map((r) => ({
+                id: r.id,
+                week: r.week,
+                completed: true
+            })),
+        [lostLoadReports]
+    )
     if (showForm) {
         const report = reportTypeMap[showForm.name]
             ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
@@ -338,8 +368,11 @@ function ReportsView() {
                 ? isLoadingQC
                 : isLoadingLostLoads
     const statsContent = (() => {
-        if (isCurrentTabLoading || tab === 'lost_loads' || tab === 'quality') return null
+        if (isCurrentTabLoading) return null
         if (tab === 'all') return <ReportsStatsCards items={allMyItems} tab={tab} />
+        if (tab === 'quality')
+            return <ReportsStatsCards items={qcAsReviewItems} tab="review" reviewedByCurrentUser={qcReviewedSet} />
+        if (tab === 'lost_loads') return <ReportsStatsCards items={lostLoadsAsItems} tab="all" />
         return (
             <ReportsStatsCards items={visibleReviewReports} tab={tab} reviewedByCurrentUser={reviewedByCurrentUser} />
         )
@@ -374,31 +407,6 @@ function ReportsView() {
                     {loadError}
                 </div>
             )}
-            {hasLostLoadsPermission && !bannerDismissed && (
-                <div className="flex items-center gap-3 mx-3 sm:mx-4 md:mx-6 lg:mx-8 mt-3 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
-                    <i className="fas fa-exclamation-triangle text-amber-500 shrink-0" />
-                    <span className="flex-1">
-                        <strong>Lost loads:</strong> You no longer need to email lost load reports to your General
-                        Manager or District Manager. Instead, complete the report on{' '}
-                        <button
-                            onClick={() => setShowLostLoadModal(true)}
-                            className="underline font-semibold hover:text-amber-900 border-none bg-transparent text-amber-800 cursor-pointer p-0 text-xs inline"
-                            type="button"
-                        >
-                            Smyrna Tools
-                        </button>
-                        , write the reason on the ticket, and scan it into the O: Drive.
-                    </span>
-                    <button
-                        onClick={() => setBannerDismissed(true)}
-                        className="shrink-0 w-5 h-5 flex items-center justify-center rounded hover:bg-amber-200 text-amber-500"
-                        type="button"
-                        aria-label="Dismiss"
-                    >
-                        <i className="fas fa-times text-[10px]" />
-                    </button>
-                </div>
-            )}
             <ReportsToolbar
                 isLoading={isCurrentTabLoading}
                 tab={tab}
@@ -416,8 +424,7 @@ function ReportsView() {
                 hasQCReviewPermission={hasOneOffReviewPermission?.qc_strength}
                 onLostLoadClick={() => setShowLostLoadModal(true)}
                 regionType={regionType}
-                statsContent={statsContent}
-                statsSkeleton={tab !== 'lost_loads' && tab !== 'quality' ? statsSkeleton : null}
+                statsContent={isCurrentTabLoading ? statsSkeleton : statsContent}
                 searchInput={searchInput}
                 onSearchInputChange={setSearchInput}
                 onClearSearch={() => setSearchInput('')}
@@ -448,6 +455,34 @@ function ReportsView() {
                                                     </span>
                                                     <span className="text-xs text-slate-400 block">
                                                         Concrete cylinder strength testing and sample data
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span
+                                                className="text-xs font-semibold shrink-0 hidden sm:block"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            >
+                                                Submit New →
+                                            </span>
+                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                        </div>
+                                    )}
+                                    {/* Third Party Lab Report */}
+                                    {hasQCStrengthPermission && (
+                                        <div
+                                            className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
+                                            onClick={() => setShowLabReportModal(true)}
+                                        >
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <div className="w-7 h-7 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
+                                                    <i className="fas fa-vial text-white text-[10px]" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <span className="text-sm font-medium text-slate-800">
+                                                        Third Party Lab Report
+                                                    </span>
+                                                    <span className="text-xs text-slate-400 block">
+                                                        Report issues with third party lab results
                                                     </span>
                                                 </div>
                                             </div>
@@ -554,13 +589,31 @@ function ReportsView() {
                 )}
                 {tab === 'quality' && (
                     <div>
-                        <div className="flex items-center gap-3 mb-2 px-1">
-                            <span className="text-sm font-bold text-slate-700">Quality Control Strength Reports</span>
-                            <span className="text-xs text-slate-400">{qcReports.length} total</span>
-                        </div>
                         {isLoadingQC ? (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 flex items-center justify-center">
-                                <i className="fas fa-spinner fa-spin text-slate-400 text-lg" />
+                            <div className="mb-5">
+                                <div className="flex items-center gap-3 mb-2 px-1">
+                                    <div className="h-4 w-48 rounded bg-slate-200 animate-pulse" />
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0"
+                                        >
+                                            <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="h-4 w-44 rounded bg-slate-200 animate-pulse mb-1.5" />
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-5 h-5 rounded-full bg-slate-200 animate-pulse" />
+                                                    <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+                                                    <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
+                                                </div>
+                                            </div>
+                                            <div className="h-6 w-16 rounded bg-slate-200 animate-pulse shrink-0" />
+                                            <div className="h-7 w-14 rounded bg-slate-200 animate-pulse shrink-0 hidden sm:block" />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ) : qcReports.length === 0 ? (
                             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -570,96 +623,132 @@ function ReportsView() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                {qcReports.map((report) => {
-                                    const submittedDate = report.submittedAt
-                                        ? new Date(report.submittedAt).toLocaleDateString(undefined, {
-                                              month: 'short',
-                                              day: 'numeric',
-                                              year: 'numeric'
-                                          })
-                                        : ''
-                                    const d = report.data || {}
-                                    return (
-                                        <div
-                                            key={report.id}
-                                            className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
-                                            onClick={() => setSelectedQCReport(report)}
-                                        >
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
-                                                    <i className="fas fa-flask text-white text-[10px]" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-slate-800 truncate">
-                                                            {d.project || 'QC Strength Report'}
+                            <div>
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    {qcReports.map((report) => {
+                                        const submittedLabel = report.submittedAt
+                                            ? new Date(report.submittedAt).toLocaleDateString(undefined, {
+                                                  month: 'short',
+                                                  day: 'numeric'
+                                              })
+                                            : ''
+                                        const submitterName = getUserName(report.userId) || 'Unknown'
+                                        const initials = submitterName
+                                            .split(' ')
+                                            .map((w) => w[0])
+                                            .join('')
+                                            .slice(0, 2)
+                                            .toUpperCase()
+                                        const d = report.data || {}
+                                        const isLabReport = report.name === 'third_party_lab'
+                                        const title = isLabReport
+                                            ? d.lab_company_name || 'Third Party Lab Report'
+                                            : d.project || 'QC Strength Report'
+                                        const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
+                                        const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
+                                        return (
+                                            <div
+                                                key={report.id}
+                                                className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
+                                                onClick={() =>
+                                                    isLabReport
+                                                        ? setSelectedLabReport(report)
+                                                        : setSelectedQCReport(report)
+                                                }
+                                            >
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div
+                                                        className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}
+                                                    >
+                                                        <i className={`fas ${iconClass} text-white text-[10px]`} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <span className="text-sm font-medium text-slate-800 block truncate">
+                                                            {title}
                                                         </span>
-                                                        {d.mix_id && (
-                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-violet-100 text-violet-700 shrink-0">
-                                                                Mix {d.mix_id}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
-                                                        {d.contractor && <span>{d.contractor}</span>}
-                                                        {d.sample_location && (
-                                                            <>
-                                                                <span className="text-slate-300 text-[8px]">●</span>
-                                                                <span>{d.sample_location}</span>
-                                                            </>
-                                                        )}
-                                                        {d.psi && (
-                                                            <>
-                                                                <span className="text-slate-300 text-[8px]">●</span>
-                                                                <span>{d.psi} PSI</span>
-                                                            </>
-                                                        )}
-                                                        <span className="text-slate-300 text-[8px]">●</span>
-                                                        <span>{getUserName(report.userId)}</span>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div
+                                                                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                                                    style={{
+                                                                        background: `${preferences.accentColor || '#1e3a5f'}20`,
+                                                                        color: preferences.accentColor || '#1e3a5f'
+                                                                    }}
+                                                                >
+                                                                    <span className="text-[8px] font-bold">
+                                                                        {initials}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-xs text-slate-500 truncate">
+                                                                    {submitterName}
+                                                                </span>
+                                                            </div>
+                                                            {submittedLabel && (
+                                                                <>
+                                                                    <span className="text-slate-300 text-[8px]">●</span>
+                                                                    <span className="text-xs text-slate-400">
+                                                                        {submittedLabel}
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                            {isLabReport && d.customer && (
+                                                                <>
+                                                                    <span className="text-slate-300 text-[8px]">●</span>
+                                                                    <span className="text-xs text-slate-400">
+                                                                        {d.customer}
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                            {!isLabReport && d.mix_id && (
+                                                                <>
+                                                                    <span className="text-slate-300 text-[8px]">●</span>
+                                                                    <span className="text-xs text-slate-400">
+                                                                        Mix {d.mix_id}
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            {report.reviewed ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
-                                                    <i className="fas fa-check text-[9px]" />
-                                                    Reviewed
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
-                                                    <i className="fas fa-flag text-[9px]" />
-                                                    Pending
-                                                </span>
-                                            )}
-                                            <span className="text-xs text-slate-400 ml-3 shrink-0 hidden sm:block">
-                                                {submittedDate}
-                                            </span>
-                                            {currentUserWeight >= (userWeights[report.userId] || 0) && (
+                                                {report.reviewed ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
+                                                        <i className="fas fa-check text-[9px]" />
+                                                        Reviewed
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
+                                                        <i className="fas fa-flag text-[9px]" />
+                                                        Pending
+                                                    </span>
+                                                )}
+                                                <button
+                                                    className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
+                                                    style={{ background: preferences.accentColor || '#1e3a5f' }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        isLabReport
+                                                            ? setSelectedLabReport(report)
+                                                            : setSelectedQCReport(report)
+                                                    }}
+                                                >
+                                                    {report.reviewed ? 'View' : 'Review'}
+                                                </button>
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        if (window.confirm('Delete this QC Strength Report?')) {
-                                                            Database.from('reports')
-                                                                .delete()
-                                                                .eq('id', report.id)
-                                                                .then(() => {
-                                                                    setQcReports((prev) =>
-                                                                        prev.filter((r) => r.id !== report.id)
-                                                                    )
-                                                                })
-                                                        }
+                                                        handleDeleteQCReport(report)
                                                     }}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2"
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
                                                     title="Delete"
                                                 >
                                                     <i className="fas fa-trash-alt text-xs" />
                                                 </button>
-                                            )}
-                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3" />
-                                        </div>
-                                    )
-                                })}
+                                                <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -701,6 +790,27 @@ function ReportsView() {
                 <QCStrengthReportModal
                     onClose={() => setShowQCStrengthModal(false)}
                     onSubmitted={() => triggerRefresh()}
+                    user={user}
+                />
+            )}
+            {selectedLabReport && (
+                <ThirdPartyLabDetailModal
+                    report={selectedLabReport}
+                    getUserName={getUserName}
+                    onClose={() => setSelectedLabReport(null)}
+                    onReviewed={(id) => {
+                        setQcReports((prev) => prev.map((r) => (r.id === id ? { ...r, reviewed: true } : r)))
+                        setSelectedLabReport(null)
+                    }}
+                />
+            )}
+            {showLabReportModal && (
+                <ThirdPartyLabReportModal
+                    onClose={() => setShowLabReportModal(false)}
+                    onSubmitted={() => {
+                        setQcLoaded(false)
+                        if (tab === 'quality') loadQCReports()
+                    }}
                     user={user}
                 />
             )}

@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
-import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
 
@@ -47,17 +46,24 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
     </div>
 )
 
-/** Single lost load row in the card-style layout. */
+/** Single lost load row matching the ReviewRow pattern. */
 const LostLoadRow = ({ report, getUserName, accentColor, canDelete, onDelete, onClick }) => {
     const lostDate = report.data?.lost_load_date
         ? new Date(report.data.lost_load_date + 'T12:00:00')
         : report.submitted_at
           ? new Date(report.submitted_at)
           : null
-    const dateLabel = lostDate
-        ? lostDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-        : ''
+    const dateLabel = lostDate ? lostDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''
     const submitterName = getUserName(report.userId) || 'Unknown'
+    const initials = submitterName
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    const title = report.data?.truck_number
+        ? `Truck ${report.data.truck_number}${report.data?.yardage != null ? ` — ${report.data.yardage} yds` : ''}`
+        : 'Lost Load'
 
     return (
         <div
@@ -68,35 +74,47 @@ const LostLoadRow = ({ report, getUserName, accentColor, canDelete, onDelete, on
                 <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0">
                     <i className="fas fa-truck text-white text-[10px]" />
                 </div>
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-slate-800 truncate">
-                            {report.data?.truck_number ? `Truck ${report.data.truck_number}` : 'Lost Load'}
-                            {report.data?.yardage != null && (
-                                <span className="text-slate-400 font-normal ml-1.5">{report.data.yardage} yds</span>
-                            )}
-                        </span>
-                        {report.data?.plant && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 shrink-0">
-                                {report.data.plant}
-                            </span>
-                        )}
-                    </div>
+                <div className="min-w-0">
+                    <span className="text-sm font-medium text-slate-800 block truncate">{title}</span>
                     <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-slate-400">{submitterName}</span>
-                        {report.data?.customer_name && (
+                        <div className="flex items-center gap-1.5">
+                            <div
+                                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                style={{ background: `${accentColor}20`, color: accentColor }}
+                            >
+                                <span className="text-[8px] font-bold">{initials}</span>
+                            </div>
+                            <span className="text-xs text-slate-500 truncate">{submitterName}</span>
+                        </div>
+                        {dateLabel && (
                             <>
                                 <span className="text-slate-300 text-[8px]">●</span>
-                                <span className="text-xs text-slate-400 truncate">{report.data.customer_name}</span>
+                                <span className="text-xs text-slate-400">{dateLabel}</span>
+                            </>
+                        )}
+                        {report.data?.plant && (
+                            <>
+                                <span className="text-slate-300 text-[8px]">●</span>
+                                <span className="text-xs text-slate-400">{report.data.plant}</span>
                             </>
                         )}
                     </div>
-                    {report.data?.reason && (
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-1">{report.data.reason}</p>
-                    )}
                 </div>
             </div>
-            <span className="text-xs text-slate-400 shrink-0 ml-3 hidden sm:block">{dateLabel}</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
+                <i className="fas fa-check text-[9px]" />
+                Submitted
+            </span>
+            <button
+                className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
+                style={{ background: accentColor }}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    onClick?.(report)
+                }}
+            >
+                View
+            </button>
             {canDelete && (
                 <button
                     type="button"
@@ -104,18 +122,18 @@ const LostLoadRow = ({ report, getUserName, accentColor, canDelete, onDelete, on
                         e.stopPropagation()
                         if (window.confirm('Delete this lost load report?')) onDelete(report.id)
                     }}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
                     title="Delete"
                 >
                     <i className="fas fa-trash-alt text-xs" />
                 </button>
             )}
-            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3" />
+            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
         </div>
     )
 }
 
-/** Paginated list of lost load reports in the grouped card style. */
+/** Paginated list of lost load reports matching the review grouped style. */
 function LostLoadsList({
     isLoading,
     items,
@@ -137,7 +155,7 @@ function LostLoadsList({
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
                     <i className="fas fa-truck text-4xl mb-3" />
-                    <div className="text-sm">No lost load reports</div>
+                    <div className="text-sm">No loss reports</div>
                 </div>
             </div>
         )
@@ -145,26 +163,45 @@ function LostLoadsList({
 
     return (
         <div>
-            <div className="flex items-center gap-3 mb-2 px-1">
-                <span className="text-sm font-bold text-slate-700">Lost Load Reports</span>
-                <span className="text-xs text-slate-400">{items.length} total</span>
-            </div>
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                {isLoading ? (
-                    <ReportsListSkeleton columnCount={6} />
-                ) : (
-                    items.map((report) => (
-                        <LostLoadRow
-                            key={report.id}
-                            report={report}
-                            getUserName={getUserName}
-                            accentColor={accentColor}
-                            canDelete={canDelete}
-                            onDelete={onDelete}
-                            onClick={onRowClick}
-                        />
-                    ))
-                )}
+            <div className="mb-5">
+                <div className="flex items-center gap-3 mb-2 px-1">
+                    <span className="text-sm font-bold text-slate-700">Loss Reports</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-slate-600 bg-slate-100">
+                        {items.length} submitted
+                    </span>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    {isLoading
+                        ? [1, 2, 3, 4, 5].map((i) => (
+                              <div
+                                  key={i}
+                                  className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0"
+                              >
+                                  <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                      <div className="h-4 w-40 rounded bg-slate-200 animate-pulse mb-1.5" />
+                                      <div className="flex items-center gap-2">
+                                          <div className="w-5 h-5 rounded-full bg-slate-200 animate-pulse" />
+                                          <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+                                          <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
+                                      </div>
+                                  </div>
+                                  <div className="h-6 w-16 rounded bg-slate-200 animate-pulse shrink-0" />
+                                  <div className="h-7 w-14 rounded bg-slate-200 animate-pulse shrink-0 hidden sm:block" />
+                              </div>
+                          ))
+                        : items.map((report) => (
+                              <LostLoadRow
+                                  key={report.id}
+                                  report={report}
+                                  getUserName={getUserName}
+                                  accentColor={accentColor}
+                                  canDelete={canDelete}
+                                  onDelete={onDelete}
+                                  onClick={onRowClick}
+                              />
+                          ))}
+                </div>
             </div>
             {items.length > 0 && totalPages > 1 && (
                 <Pagination

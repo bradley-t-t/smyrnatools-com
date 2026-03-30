@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.2] - 2026-03-30
+
+- Added new Third Party Lab Report type with submission modal, detail/review modal, and file attachment support
+- Redesigned the Lost Loads list to match the review row pattern with user avatar initials, status badges, and View buttons
+- Renamed "Lost Loads" tab to "Loss Reports" and reordered the Quality/Review tabs in the reports toolbar
+- Overhauled the QC Strength Report form to support role_select fields (fetches region-filtered users by role) and select dropdowns
+- Reorganized QC Strength Report field order into logical groups (identification, job info, delivery, test results, cylinders, personnel) and changed Technician to a role-based dropdown and Initial Curing Conditions to a select
+- Rewrote RolesView from a permission matrix table into expandable role cards with per-role permission lists grouped by namespace, inline add/remove, edit weight modals, and a bulk-add permission modal
+- Replaced the RolesView custom header with the shared TopSection component and removed the separate mobile layout
+- Added stats cards to the Quality and Lost Loads tabs in ReportsView
+- Removed the lost loads instructional banner from ReportsView
+- Changed QC report deletion to lazily fetch submitter weights instead of bulk-loading all weights upfront
+- Quality tab now fetches both qc_strength and third_party_lab reports together
+- Replaced the statsSkeleton/statsContent split with a unified loading pattern in the reports toolbar
+- Added consistent skeleton loading states for the quality and lost loads report lists
+
 ## [37.1] - 2026-03-30
 
 - smyrnatools.com Release v37.1

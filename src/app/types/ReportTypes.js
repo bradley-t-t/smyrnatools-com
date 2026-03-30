@@ -151,31 +151,67 @@ const oneOffReportTypes = [
         permission: 'reports.qc_strength',
         reviewPermission: 'reports.review.qc_strength',
         fields: [
-            { label: 'Sample Location', name: 'sample_location', required: true, type: 'text' },
+            // Identification
+            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
+            { label: 'Mix ID', name: 'mix_id', required: true, type: 'text' },
+            { label: 'PSI', name: 'psi', required: true, type: 'number' },
+            { label: 'Ticket No.', name: 'ticket_no', required: true, type: 'text' },
+            // Job info
             { label: 'Project', name: 'project', required: true, type: 'text' },
             { label: 'Contractor', name: 'contractor', required: true, type: 'text' },
+            { label: 'Sample Location', name: 'sample_location', required: true, type: 'text' },
             { label: 'Location of Pour', name: 'location_of_pour', required: true, type: 'text' },
-            { label: 'Technician', name: 'technician', required: true, type: 'text' },
-            { label: 'No. of Cylinders', name: 'num_cylinders', required: true, type: 'number' },
-            { label: 'Set Identifying Number', name: 'set_id_number', required: true, type: 'text' },
-            { label: 'Total Sets', name: 'total_sets', required: true, type: 'number' },
-            { label: 'Water Added on Job', name: 'water_added_on_job', required: false, type: 'text' },
-            { label: 'Water Requested By', name: 'water_requested_by', required: false, type: 'text' },
-            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
-            { label: 'Date Molded', name: 'date_molded', required: true, type: 'date' },
+            // Delivery
             { label: 'Truck No.', name: 'truck_no', required: true, type: 'text' },
-            { label: 'Ticket No.', name: 'ticket_no', required: true, type: 'text' },
+            { label: 'Date Molded', name: 'date_molded', required: true, type: 'date' },
             { label: 'Time Batched', name: 'time_batched', required: true, type: 'time' },
             { label: 'Time Sampled', name: 'time_sampled', required: true, type: 'time' },
+            // Test results
             { label: 'Slump / Spread (inches)', name: 'slump_spread', required: true, type: 'text' },
             { label: 'Air Content (%)', name: 'air_content', required: true, type: 'text' },
             { label: 'Unit Weight', name: 'unit_weight', required: true, type: 'text' },
             { label: 'Concrete Temp (\u00B0F)', name: 'concrete_temp', required: true, type: 'text' },
             { label: 'Atmospheric Temp (\u00B0F)', name: 'atmospheric_temp', required: true, type: 'text' },
-            { label: 'Mix ID', name: 'mix_id', required: true, type: 'text' },
-            { label: 'PSI', name: 'psi', required: true, type: 'number' },
-            { label: 'Initial Curing Conditions', name: 'initial_curing_conditions', required: true, type: 'textarea' },
+            // Cylinder info
+            { label: 'No. of Cylinders', name: 'num_cylinders', required: true, type: 'number' },
+            { label: 'Set Identifying Number', name: 'set_id_number', required: true, type: 'text' },
+            { label: 'Total Sets', name: 'total_sets', required: true, type: 'number' },
+            // Water
+            { label: 'Water Added on Job', name: 'water_added_on_job', required: false, type: 'text' },
+            { label: 'Water Requested By', name: 'water_requested_by', required: false, type: 'text' },
+            // Personnel & curing
+            {
+                label: 'Technician',
+                name: 'technician',
+                required: true,
+                type: 'role_select',
+                roleName: 'Quality Control Technician'
+            },
+            {
+                label: 'Initial Curing Conditions',
+                name: 'initial_curing_conditions',
+                required: true,
+                type: 'select',
+                options: ['Moisture Caps', 'Moisture Caps & Cooler', 'Cooler', 'Curing Tank']
+            },
             { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: true, type: 'text' }
+        ]
+    },
+    {
+        name: 'third_party_lab',
+        title: 'Third Party Lab Report',
+        icon: 'fa-vial',
+        iconBg: 'bg-rose-600',
+        description: 'Report issues with third party lab results',
+        permission: 'reports.qc_strength',
+        reviewPermission: 'reports.review.qc_strength',
+        fields: [
+            { label: 'Lab Company Name', name: 'lab_company_name', required: true, type: 'text' },
+            { label: 'Customer', name: 'customer', required: true, type: 'text' },
+            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
+            { label: 'Date', name: 'report_date', required: true, type: 'date' },
+            { label: 'What did the lab do wrong?', name: 'lab_issue', required: true, type: 'textarea' },
+            { label: 'Attachments', name: 'attachments', required: false, type: 'file_upload' }
         ]
     }
 ]

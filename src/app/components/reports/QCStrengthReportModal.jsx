@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Database } from '../../../services/DatabaseService'
+import { UserService } from '../../../services/UserService'
 import { oneOffReportTypeMap } from '../../types/ReportTypes'
 
 const REPORT_DEF = oneOffReportTypeMap.qc_strength
@@ -20,6 +21,68 @@ function getCurrentWeekBounds() {
     return { monday, saturday }
 }
 
+/** Fetches users assigned to a role, filtered to the current user's region. */
+async function fetchUsersForRole(roleName, currentUserId) {
+    try {
+        // Get the role
+        const role = await UserService.getRoleByName(roleName)
+        if (!role?.id) return []
+
+        // Get all users with this role
+        const { data: perms } = await Database.from('users_permissions').select('user_id').eq('role_id', role.id)
+        if (!perms?.length) return []
+        const userIds = perms.map((p) => p.user_id)
+
+        // Get current user's plant to resolve region
+        const { data: currentProfile } = await Database.from('users_profiles')
+            .select('plant_code')
+            .eq('id', currentUserId)
+            .maybeSingle()
+
+        let regionUserIds = userIds
+        if (currentProfile?.plant_code) {
+            // Find region for current user's plant
+            const { data: regionLink } = await Database.from('regions_plants')
+                .select('region_id')
+                .eq('plant_code', currentProfile.plant_code)
+                .limit(1)
+                .maybeSingle()
+
+            if (regionLink?.region_id) {
+                // Get all plants in this region
+                const { data: regionPlants } = await Database.from('regions_plants')
+                    .select('plant_code')
+                    .eq('region_id', regionLink.region_id)
+                const regionPlantCodes = new Set((regionPlants || []).map((p) => p.plant_code))
+
+                // Filter users to those whose plant is in the region
+                const { data: profiles } = await Database.from('users_profiles')
+                    .select('id, plant_code')
+                    .in('id', userIds)
+                regionUserIds = (profiles || [])
+                    .filter((p) => p.plant_code && regionPlantCodes.has(p.plant_code))
+                    .map((p) => p.id)
+            }
+        }
+
+        if (regionUserIds.length === 0) return []
+
+        // Get names
+        const { data: profiles } = await Database.from('users_profiles')
+            .select('id, first_name, last_name')
+            .in('id', regionUserIds)
+
+        return (profiles || [])
+            .map((p) => ({
+                id: p.id,
+                name: [p.first_name, p.last_name].filter(Boolean).join(' ') || 'Unknown'
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    } catch {
+        return []
+    }
+}
+
 /** Modal form for submitting a QC Strength Report. */
 function QCStrengthReportModal({ onClose, onSubmitted, user }) {
     const { preferences } = usePreferences()
@@ -27,6 +90,17 @@ function QCStrengthReportModal({ onClose, onSubmitted, user }) {
     const [formData, setFormData] = useState({})
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState('')
+    const [roleUsers, setRoleUsers] = useState({})
+
+    // Fetch users for any role_select fields on mount
+    useEffect(() => {
+        if (!user?.id) return
+        const roleFields = REPORT_DEF.fields.filter((f) => f.type === 'role_select' && f.roleName)
+        roleFields.forEach(async (field) => {
+            const users = await fetchUsersForRole(field.roleName, user.id)
+            setRoleUsers((prev) => ({ ...prev, [field.name]: users }))
+        })
+    }, [user?.id])
 
     const updateField = (name, value) => {
         setFormData((prev) => ({ ...prev, [name]: value }))
@@ -63,6 +137,95 @@ function QCStrengthReportModal({ onClose, onSubmitted, user }) {
         } finally {
             setSubmitting(false)
         }
+    }
+
+    const renderField = (field) => {
+        if (field.type === 'role_select') {
+            const users = roleUsers[field.name] || []
+            const isLoading = !(field.name in roleUsers)
+            return (
+                <div className="relative">
+                    <select
+                        value={formData[field.name] || ''}
+                        onChange={(e) => updateField(field.name, e.target.value)}
+                        disabled={isLoading}
+                        className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 pr-10 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 10px center',
+                            backgroundSize: '16px'
+                        }}
+                    >
+                        <option value="">
+                            {isLoading
+                                ? 'Loading...'
+                                : users.length === 0
+                                  ? `No ${field.label}s found`
+                                  : `Select ${field.label}...`}
+                        </option>
+                        <option value="No Technician">No Technician</option>
+                        {users.map((u) => (
+                            <option key={u.id} value={u.name}>
+                                {u.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )
+        }
+        if (field.type === 'select') {
+            return (
+                <div className="relative">
+                    <select
+                        value={formData[field.name] || ''}
+                        onChange={(e) => updateField(field.name, e.target.value)}
+                        className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 pr-10 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors cursor-pointer"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 10px center',
+                            backgroundSize: '16px'
+                        }}
+                    >
+                        <option value="">Select {field.label}...</option>
+                        {(field.options || []).map((opt) => (
+                            <option key={opt} value={opt}>
+                                {opt}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )
+        }
+        if (field.type === 'textarea') {
+            return (
+                <textarea
+                    value={formData[field.name] || ''}
+                    onChange={(e) => updateField(field.name, e.target.value)}
+                    rows={3}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors resize-none"
+                    placeholder={field.label}
+                />
+            )
+        }
+        return (
+            <input
+                type={
+                    field.type === 'number'
+                        ? 'number'
+                        : field.type === 'date'
+                          ? 'date'
+                          : field.type === 'time'
+                            ? 'time'
+                            : 'text'
+                }
+                value={formData[field.name] || ''}
+                onChange={(e) => updateField(field.name, e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors"
+                placeholder={field.label}
+            />
+        )
     }
 
     return (
@@ -105,31 +268,7 @@ function QCStrengthReportModal({ onClose, onSubmitted, user }) {
                                     {field.label}
                                     {field.required && <span className="text-red-400 ml-0.5">*</span>}
                                 </label>
-                                {field.type === 'textarea' ? (
-                                    <textarea
-                                        value={formData[field.name] || ''}
-                                        onChange={(e) => updateField(field.name, e.target.value)}
-                                        rows={3}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors resize-none"
-                                        placeholder={field.label}
-                                    />
-                                ) : (
-                                    <input
-                                        type={
-                                            field.type === 'number'
-                                                ? 'number'
-                                                : field.type === 'date'
-                                                  ? 'date'
-                                                  : field.type === 'time'
-                                                    ? 'time'
-                                                    : 'text'
-                                        }
-                                        value={formData[field.name] || ''}
-                                        onChange={(e) => updateField(field.name, e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors"
-                                        placeholder={field.label}
-                                    />
-                                )}
+                                {renderField(field)}
                             </div>
                         ))}
                     </div>

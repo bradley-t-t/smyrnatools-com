@@ -4,7 +4,12 @@ import TopSection from '../../../app/components/sections/TopSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { reportTypes } from '../../types/ReportTypes'
 
-const TAB_LABELS = { all: 'My Reports', lost_loads: 'Lost Loads', review: 'Review', quality: 'Quality Reports' }
+const TAB_LABELS = {
+    all: 'My Reports',
+    lost_loads: 'Loss Reports',
+    quality: 'Quality Reports',
+    review: 'Review Reports'
+}
 
 const RefreshButton = ({ accentColor, isRefreshing, onClick }) => (
     <button
@@ -63,7 +68,6 @@ function ReportsToolbar({
     regionType,
     isLoading = false,
     statsContent = null,
-    statsSkeleton = null,
     searchInput,
     onSearchInputChange,
     onClearSearch
@@ -109,14 +113,6 @@ function ReportsToolbar({
                             label={TAB_LABELS.all}
                             onClick={() => onTabChange('all')}
                         />
-                        {hasAnyReviewPermission && (
-                            <TabButton
-                                isActive={tab === 'review'}
-                                accentColor={accentColor}
-                                label={TAB_LABELS.review}
-                                onClick={() => onTabChange('review')}
-                            />
-                        )}
                         {hasLostLoadsPermission && (
                             <TabButton
                                 isActive={tab === 'lost_loads'}
@@ -133,11 +129,18 @@ function ReportsToolbar({
                                 onClick={() => onTabChange('quality')}
                             />
                         )}
+                        {hasAnyReviewPermission && (
+                            <TabButton
+                                isActive={tab === 'review'}
+                                accentColor={accentColor}
+                                label={TAB_LABELS.review}
+                                onClick={() => onTabChange('review')}
+                            />
+                        )}
                     </div>
                 </div>
             }
             customBottomContent={statsContent}
-            customBottomSkeleton={statsSkeleton}
         />
     )
 }
