@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.9] - 2026-03-30
+
+- Updated Operator model to use ValidationUtility.isUUID instead of isValidUUID and safeUUID for consistent UUID validation
+- Changed assigned_trainer serialization to use an inline UUID check with null fallback instead of safeUUID helper
+- Added v36.8 changelog entry documenting the operator-service body parsing fix and v36.7 changelog addition
+
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
 ## [36.8] - 2026-03-30
 
 - Fixed operator-service update endpoint to parse the request body before authenticating, passing the body to requireAuthenticated for validation

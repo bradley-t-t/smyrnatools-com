@@ -44,14 +44,14 @@ export class Operator {
         return this.fromApiFormat(row)
     }
     toApiFormat() {
-        if (!ValidationUtility.isValidUUID(this.employeeId)) {
+        if (!ValidationUtility.isUUID(this.employeeId)) {
             throw new Error('Invalid employee_id: Must be a valid UUID')
         }
-        if (this.smyrnaId && ValidationUtility.isValidUUID(this.smyrnaId)) {
+        if (this.smyrnaId && ValidationUtility.isUUID(this.smyrnaId)) {
             throw new Error('smyrna_id cannot be a UUID')
         }
         return {
-            assigned_trainer: ValidationUtility.safeUUID(this.assignedTrainer),
+            assigned_trainer: ValidationUtility.isUUID(this.assignedTrainer) ? this.assignedTrainer : null,
             automatic_restriction: this.automaticRestriction ?? false,
             created_at: this.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
             employee_id: this.employeeId,
