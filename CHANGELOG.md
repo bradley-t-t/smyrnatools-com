@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.1] - 2026-03-30
+
+- smyrnatools.com Release v37.1
+
 ## [37.0] - 2026-03-30
 
 - Updated Operator model to use ValidationUtility.isUUID instead of isValidUUID and safeUUID for consistent UUID validation

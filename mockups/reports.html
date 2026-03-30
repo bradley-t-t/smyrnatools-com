@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SmyrnaTools Reports — Mockups</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; }
+  .mockup { display: none; }
+  .mockup.active { display: block; }
+  .nav-overlay {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 100; display: flex; align-items: center; gap: 12px;
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(12px);
+    padding: 12px 24px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .nav-btn {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+    color: white; padding: 10px 20px; border-radius: 10px; cursor: pointer;
+    font-size: 13px; font-weight: 600; transition: all 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.22); }
+  .nav-btn.disabled { opacity: 0.25; pointer-events: none; }
+  .nav-label { color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 500; min-width: 180px; text-align: center; }
+  /* TopSection pattern */
+  .top-section {
+    background: white; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    padding: 20px 28px 24px; position: sticky; top: 0; z-index: 50;
+    background-image:
+      linear-gradient(#003896 0.7px, transparent 0.7px),
+      linear-gradient(90deg, #003896 0.7px, transparent 0.7px),
+      radial-gradient(circle at center, #003896 0%, transparent 50%);
+    background-position: 0 0, 0 0, 0 0;
+    background-size: 20px 20px, 20px 20px, 40px 40px;
+    background-blend-mode: normal;
+  }
+  .top-section::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.92); z-index: -1;
+  }
+  .accent { color: #003896; }
+  .accent-bg { background: #003896; }
+  .filter-select {
+    appearance: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    color: #0f172a; font-size: 14px; cursor: pointer; padding: 12px 40px 12px 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; background-size: 18px;
+  }
+  .search-input {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    font-size: 14px; padding: 12px 16px 12px 44px; outline: none; min-width: 220px;
+  }
+  .tab-btn { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+  .tab-active { background: #003896; color: white; }
+  .tab-inactive { background: transparent; color: #64748b; }
+  .tab-inactive:hover { color: #334155; }
+  .list-header {
+    display: flex; align-items: center; background: #f8fafc; border-top: 1px solid #e2e8f0;
+    margin: 16px -28px -24px; padding: 0 28px;
+  }
+  .list-header span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; padding: 12px 8px; }
+  .card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; }
+  .report-row { display: flex; align-items: center; padding: 14px 28px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.1s; }
+  .report-row:hover { background: #f8fafc; }
+  .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+  .badge-submitted { color: #15803d; background: rgba(22,163,74,0.1); }
+  .badge-draft { color: #b45309; background: rgba(245,158,11,0.1); }
+  .badge-overdue { color: #dc2626; background: rgba(239,68,68,0.1); }
+  .badge-not-started { color: #64748b; background: rgba(100,116,139,0.08); }
+  .badge-reviewed { color: #2563eb; background: rgba(59,130,246,0.1); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ==================== MOCKUP 1: TopSection + Tabs + List Rows ==================== -->
+<div id="mockup1" class="mockup active">
+<div class="bg-slate-50 min-h-screen w-full pb-20">
+  <!-- TopSection -->
+  <div class="top-section relative">
+    <div class="flex flex-col gap-4 relative">
+      <!-- Row 1: Title + Actions -->
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-[28px] font-bold text-slate-900 tracking-tight m-0">Reports</h1>
+          <div class="flex items-center gap-1.5">
+            <span class="pill" style="background: rgba(22,163,74,0.1); color: #15803d;"><i class="fas fa-check-circle text-[10px]"></i> 12 Submitted</span>
+            <span class="pill" style="background: rgba(245,158,11,0.1); color: #b45309;"><i class="fas fa-clock text-[10px]"></i> 3 Draft</span>
+            <span class="pill" style="background: rgba(239,68,68,0.1); color: #dc2626;"><i class="fas fa-exclamation-triangle text-[10px]"></i> 1 Overdue</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer bg-slate-100 text-slate-600"><i class="fas fa-sync"></i> Refresh</button>
+          <button class="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer accent-bg text-white"><i class="fas fa-plus"></i> Lost Load</button>
+        </div>
+      </div>
+      <!-- Row 2: Search + Filters -->
+      <div class="flex items-center flex-wrap gap-3.5 justify-between">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]"></i>
+          <input class="search-input" placeholder="Search reports..." />
+        </div>
+        <div class="flex items-center gap-3 ml-auto">
+          <!-- Tabs inline -->
+          <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
+            <button class="tab-btn tab-active">My Reports</button>
+            <button class="tab-btn tab-inactive">Review</button>
+            <button class="tab-btn tab-inactive">Lost Loads</button>
+          </div>
+          <select class="filter-select"><option>All Types</option><option>Plant Manager</option><option>District Manager</option><option>Production</option><option>Safety</option></select>
+          <button class="filter-select" style="min-width: auto;">All Plants</button>
+        </div>
+      </div>
+      <!-- Row 3: Tabs as category chips -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border-2 cursor-pointer accent-bg text-white border-transparent">All</button>
+        <button class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border-2 cursor-pointer bg-white text-slate-600 border-slate-200 hover:border-slate-300">
+          <i class="fas fa-redo text-[9px] text-slate-400"></i> Recurring
+        </button>
+        <button class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border-2 cursor-pointer bg-white text-slate-600 border-slate-200 hover:border-slate-300">
+          <i class="fas fa-file-alt text-[9px] text-slate-400"></i> One-Off
+        </button>
+      </div>
+      <!-- List Header -->
+      <div class="list-header">
+        <span style="width: 30%; min-width: 0;">Report</span>
+        <span style="width: 12%;">Category</span>
+        <span style="width: 12%;">Plant</span>
+        <span style="width: 12%;">Week / Date</span>
+        <span style="width: 12%;">Status</span>
+        <span style="width: 14%;">Submitted</span>
+        <span style="width: 8%;"></span>
+      </div>
+    </div>
+  </div>
+  <!-- List Content -->
+  <div>
+    <div class="report-row">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg accent-bg flex items-center justify-center shrink-0"><i class="fas fa-building text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">Plant Manager Report</div><div class="text-xs text-slate-400">Weekly yardage, hours, operator help</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Recurring</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">SMYR-01</div>
+      <div style="width: 12%;" class="text-sm text-slate-600">Week 13</div>
+      <div style="width: 12%;"><span class="badge badge-submitted">Submitted</span></div>
+      <div style="width: 14%;" class="text-sm text-slate-400">2h ago</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+    <div class="report-row">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-map-marker-alt text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">District Manager Report</div><div class="text-xs text-slate-400">Daily recaps Mon-Sat</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Recurring</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">District 4</div>
+      <div style="width: 12%;" class="text-sm text-slate-600">Week 13</div>
+      <div style="width: 12%;"><span class="badge badge-draft">Draft</span></div>
+      <div style="width: 14%;" class="text-sm text-slate-400">In progress</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+    <div class="report-row" style="background: rgba(239,68,68,0.02);">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shrink-0"><i class="fas fa-chart-bar text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">Plant Production Report</div><div class="text-xs text-slate-400">Production rows with efficiency</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Recurring</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">SMYR-01</div>
+      <div style="width: 12%;" class="text-sm text-red-500 font-medium">Week 12</div>
+      <div style="width: 12%;"><span class="badge badge-overdue">Overdue</span></div>
+      <div style="width: 14%;" class="text-sm text-red-400">2 days late</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+    <div class="report-row">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center shrink-0"><i class="fas fa-truck text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">Lost Load Report</div><div class="text-xs text-slate-400">Spilled load on HWY-41</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-file-alt text-[8px]"></i> One-Off</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">SMYR-03</div>
+      <div style="width: 12%;" class="text-sm text-slate-600">Mar 28</div>
+      <div style="width: 12%;"><span class="badge badge-submitted">Submitted</span></div>
+      <div style="width: 14%;" class="text-sm text-slate-400">Mar 28</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+    <div class="report-row">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center shrink-0"><i class="fas fa-hard-hat text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">Safety Manager Report</div><div class="text-xs text-slate-400">Safety issues and incidents</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Recurring</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">SMYR-01</div>
+      <div style="width: 12%;" class="text-sm text-slate-600">Week 13</div>
+      <div style="width: 12%;"><span class="badge badge-not-started">Not Started</span></div>
+      <div style="width: 14%;" class="text-sm text-slate-400">Due Sat</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+    <div class="report-row">
+      <div style="width: 30%;" class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center shrink-0"><i class="fas fa-cubes text-white text-xs"></i></div><div><div class="text-sm font-semibold text-slate-800">Aggregate Production</div><div class="text-xs text-slate-400">18 material types</div></div></div>
+      <div style="width: 12%;" class="text-xs text-slate-500 font-medium"><span class="inline-flex items-center gap-1"><i class="fas fa-redo text-[8px]"></i> Recurring</span></div>
+      <div style="width: 12%;" class="text-sm text-slate-600">SMYR-02</div>
+      <div style="width: 12%;" class="text-sm text-slate-600">Week 13</div>
+      <div style="width: 12%;"><span class="badge badge-submitted">Submitted</span></div>
+      <div style="width: 14%;" class="text-sm text-slate-400">1d ago</div>
+      <div style="width: 8%;" class="text-right"><i class="fas fa-chevron-right text-slate-300 text-xs"></i></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== MOCKUP 2: TopSection + Grouped by Week ==================== -->
+<div id="mockup2" class="mockup">
+<div class="bg-slate-50 min-h-screen w-full pb-20">
+  <div class="top-section relative">
+    <div class="flex flex-col gap-4 relative">
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-[28px] font-bold text-slate-900 tracking-tight m-0">Reports</h1>
+          <div class="flex items-center gap-1.5">
+            <span class="pill" style="background: rgba(22,163,74,0.1); color: #15803d;"><i class="fas fa-check-circle text-[10px]"></i> 12 Submitted</span>
+            <span class="pill" style="background: rgba(239,68,68,0.1); color: #dc2626;"><i class="fas fa-exclamation-triangle text-[10px]"></i> 1 Overdue</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer bg-slate-100 text-slate-600"><i class="fas fa-sync"></i> Refresh</button>
+          <button class="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer accent-bg text-white"><i class="fas fa-plus"></i> Lost Load</button>
+        </div>
+      </div>
+      <div class="flex items-center flex-wrap gap-3.5 justify-between">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]"></i>
+          <input class="search-input" placeholder="Search reports..." />
+        </div>
+        <div class="flex items-center gap-3 ml-auto">
+          <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
+            <button class="tab-btn tab-active">My Reports</button>
+            <button class="tab-btn tab-inactive">Review</button>
+            <button class="tab-btn tab-inactive">Lost Loads</button>
+          </div>
+          <select class="filter-select"><option>All Types</option><option>Plant Manager</option><option>Production</option></select>
+          <button class="filter-select" style="min-width: auto;">All Plants</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Grouped by Week -->
+  <div class="px-4 md:px-6 lg:px-8 py-4">
+    <!-- Week 13 -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-3 px-1">
+        <h2 class="text-sm font-bold text-slate-700">Week 13</h2>
+        <span class="text-xs text-slate-400">Mar 24 – Mar 29, 2026</span>
+        <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">3/5 complete</span>
+        <div class="flex-1 h-1.5 rounded-full bg-slate-200 max-w-[120px]"><div class="h-full rounded-full bg-emerald-500" style="width: 60%"></div></div>
+      </div>
+      <div class="card divide-y divide-slate-100 overflow-hidden">
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg accent-bg flex items-center justify-center shrink-0"><i class="fas fa-building text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Plant Manager</span><span class="text-xs text-slate-400 ml-2">SMYR-01</span></div>
+          <span class="badge badge-submitted">Submitted</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">2h ago</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-purple-600 flex items-center justify-center shrink-0"><i class="fas fa-map-marker-alt text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">District Manager</span><span class="text-xs text-slate-400 ml-2">District 4</span></div>
+          <span class="badge badge-draft">Draft</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">In progress</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-cyan-600 flex items-center justify-center shrink-0"><i class="fas fa-cubes text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Aggregate Production</span><span class="text-xs text-slate-400 ml-2">SMYR-02</span></div>
+          <span class="badge badge-submitted">Submitted</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">1d ago</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center shrink-0"><i class="fas fa-hard-hat text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Safety Manager</span><span class="text-xs text-slate-400 ml-2">SMYR-01</span></div>
+          <span class="badge badge-not-started">Not Started</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">Due Sat</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center shrink-0"><i class="fas fa-user-tie text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">General Manager</span><span class="text-xs text-slate-400 ml-2">SMYR-01</span></div>
+          <span class="badge badge-not-started">Not Started</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">Due Sat</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+      </div>
+    </div>
+    <!-- Week 12 -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-3 px-1">
+        <h2 class="text-sm font-bold text-slate-700">Week 12</h2>
+        <span class="text-xs text-slate-400">Mar 17 – Mar 22, 2026</span>
+        <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">4/5 complete</span>
+        <div class="flex-1 h-1.5 rounded-full bg-slate-200 max-w-[120px]"><div class="h-full rounded-full bg-red-400" style="width: 80%"></div></div>
+      </div>
+      <div class="card divide-y divide-slate-100 overflow-hidden">
+        <div class="report-row" style="padding: 12px 20px; background: rgba(239,68,68,0.02);">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center shrink-0"><i class="fas fa-chart-bar text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Production Report</span><span class="text-xs text-red-400 ml-2">SMYR-01 · OVERDUE</span></div>
+          <span class="badge badge-overdue">Overdue</span>
+          <span class="text-xs text-red-400 ml-4 w-20">2 days late</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg accent-bg flex items-center justify-center shrink-0"><i class="fas fa-building text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Plant Manager</span><span class="text-xs text-slate-400 ml-2">SMYR-01</span></div>
+          <span class="badge badge-reviewed"><i class="fas fa-check text-[8px] mr-1"></i> Reviewed</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">Mar 22</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+      </div>
+    </div>
+    <!-- One-Off Reports Section -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-3 px-1">
+        <h2 class="text-sm font-bold text-slate-700">One-Off Reports</h2>
+        <span class="text-xs text-slate-400">3 submitted</span>
+      </div>
+      <div class="card divide-y divide-slate-100 overflow-hidden">
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0"><i class="fas fa-truck text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Lost Load — HWY-41 Spill</span><span class="text-xs text-slate-400 ml-2">SMYR-03</span></div>
+          <span class="badge badge-submitted">Submitted</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">Mar 28</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+        <div class="report-row" style="padding: 12px 20px;">
+          <div class="flex items-center gap-3 flex-1"><div class="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0"><i class="fas fa-truck text-white text-[10px]"></i></div><span class="text-sm font-medium text-slate-800">Lost Load — Mixer 412</span><span class="text-xs text-slate-400 ml-2">SMYR-01</span></div>
+          <span class="badge badge-submitted">Submitted</span>
+          <span class="text-xs text-slate-400 ml-4 w-20">Mar 25</span>
+          <i class="fas fa-chevron-right text-slate-300 text-xs ml-3"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== MOCKUP 3: TopSection + Compact Cards Grid ==================== -->
+<div id="mockup3" class="mockup">
+<div class="bg-slate-50 min-h-screen w-full pb-20">
+  <div class="top-section relative">
+    <div class="flex flex-col gap-4 relative">
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-[28px] font-bold text-slate-900 tracking-tight m-0">Reports</h1>
+          <div class="flex items-center gap-1.5">
+            <span class="pill" style="background: rgba(22,163,74,0.1); color: #15803d;"><i class="fas fa-check-circle text-[10px]"></i> 12 Submitted</span>
+            <span class="pill" style="background: rgba(245,158,11,0.1); color: #b45309;"><i class="fas fa-clock text-[10px]"></i> 3 Draft</span>
+            <span class="pill" style="background: rgba(239,68,68,0.1); color: #dc2626;"><i class="fas fa-exclamation-triangle text-[10px]"></i> 1 Overdue</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
+            <button class="flex items-center justify-center w-10 h-10 rounded-lg text-[15px] border-none cursor-pointer text-slate-500 bg-transparent"><i class="fas fa-list"></i></button>
+            <button class="flex items-center justify-center w-10 h-10 rounded-lg text-[15px] border-none cursor-pointer accent-bg text-white"><i class="fas fa-th-large"></i></button>
+          </div>
+          <button class="flex items-center gap-2 border-none rounded-xl text-sm font-semibold px-5 py-3 cursor-pointer accent-bg text-white"><i class="fas fa-plus"></i> Lost Load</button>
+        </div>
+      </div>
+      <div class="flex items-center flex-wrap gap-3.5 justify-between">
+        <div class="relative">
+          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[15px]"></i>
+          <input class="search-input" placeholder="Search reports..." />
+        </div>
+        <div class="flex items-center gap-3 ml-auto">
+          <div class="flex items-center bg-slate-100 border border-slate-200 rounded-lg p-1">
+            <button class="tab-btn tab-active">My Reports</button>
+            <button class="tab-btn tab-inactive">Review</button>
+            <button class="tab-btn tab-inactive">Lost Loads</button>
+          </div>
+          <select class="filter-select"><option>All Types</option></select>
+          <button class="filter-select" style="min-width: auto;">All Plants</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Grid Content -->
+  <div class="px-4 md:px-6 lg:px-8 py-5">
+    <div class="flex items-center gap-3 mb-4 px-1">
+      <h2 class="text-sm font-bold text-slate-700">Week 13</h2>
+      <span class="text-xs text-slate-400">Mar 24 – Mar 29</span>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <!-- Card: Plant Manager -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg accent-bg flex items-center justify-center"><i class="fas fa-building text-white text-sm"></i></div>
+          <span class="badge badge-submitted">Submitted</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">Plant Manager Report</div>
+        <div class="text-xs text-slate-400 mt-0.5">SMYR-01 · 2h ago</div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] text-slate-400 font-medium"><i class="fas fa-redo text-[8px] mr-1"></i> Recurring</span>
+          <span class="text-xs font-semibold accent">Open →</span>
+        </div>
+      </div>
+      <!-- Card: District Manager -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center"><i class="fas fa-map-marker-alt text-white text-sm"></i></div>
+          <span class="badge badge-draft">Draft</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">District Manager Report</div>
+        <div class="text-xs text-slate-400 mt-0.5">District 4 · In progress</div>
+        <div class="w-full h-1 rounded-full bg-slate-100 mt-2"><div class="h-full rounded-full bg-amber-400" style="width: 60%"></div></div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] text-slate-400 font-medium"><i class="fas fa-redo text-[8px] mr-1"></i> Recurring</span>
+          <span class="text-xs font-semibold accent">Continue →</span>
+        </div>
+      </div>
+      <!-- Card: Safety -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-orange-500 flex items-center justify-center"><i class="fas fa-hard-hat text-white text-sm"></i></div>
+          <span class="badge badge-not-started">Not Started</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">Safety Manager Report</div>
+        <div class="text-xs text-slate-400 mt-0.5">SMYR-01 · Due Saturday</div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] text-slate-400 font-medium"><i class="fas fa-redo text-[8px] mr-1"></i> Recurring</span>
+          <span class="text-xs font-semibold accent">Start →</span>
+        </div>
+      </div>
+      <!-- Card: Production (overdue) -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group border-red-200 bg-red-50/30">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center"><i class="fas fa-chart-bar text-white text-sm"></i></div>
+          <span class="badge badge-overdue">Overdue</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">Production Report</div>
+        <div class="text-xs text-red-400 mt-0.5">SMYR-01 · Week 12 · 2 days late</div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-red-100">
+          <span class="text-[10px] text-red-400 font-medium"><i class="fas fa-exclamation-triangle text-[8px] mr-1"></i> Overdue</span>
+          <span class="text-xs font-semibold text-red-600">Submit Now →</span>
+        </div>
+      </div>
+      <!-- Card: Lost Load (one-off) -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-red-500 flex items-center justify-center"><i class="fas fa-truck text-white text-sm"></i></div>
+          <span class="badge badge-submitted">Submitted</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">Lost Load — HWY-41</div>
+        <div class="text-xs text-slate-400 mt-0.5">SMYR-03 · Mar 28</div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] text-slate-400 font-medium"><i class="fas fa-file-alt text-[8px] mr-1"></i> One-Off</span>
+          <span class="text-xs font-semibold accent">View →</span>
+        </div>
+      </div>
+      <!-- Card: Aggregate -->
+      <div class="card p-4 hover:shadow-md transition-shadow cursor-pointer group">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-9 h-9 rounded-lg bg-cyan-600 flex items-center justify-center"><i class="fas fa-cubes text-white text-sm"></i></div>
+          <span class="badge badge-submitted">Submitted</span>
+        </div>
+        <div class="text-sm font-semibold text-slate-800 group-hover:text-[#003896] transition-colors">Aggregate Production</div>
+        <div class="text-xs text-slate-400 mt-0.5">SMYR-02 · 1d ago</div>
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] text-slate-400 font-medium"><i class="fas fa-redo text-[8px] mr-1"></i> Recurring</span>
+          <span class="text-xs font-semibold accent">Open →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Navigation Overlay -->
+<div class="nav-overlay">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Previous</button>
+  <span class="nav-label" id="navLabel"></span>
+  <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+</div>
+<script>
+const mockups = [
+  { id: 'mockup1', label: 'TopSection + Flat List' },
+  { id: 'mockup2', label: 'TopSection + Grouped by Week' },
+  { id: 'mockup3', label: 'TopSection + Grid Cards' },
+];
+let current = 0;
+function navigate(dir) {
+  const next = current + dir;
+  if (next < 0 || next >= mockups.length) return;
+  document.getElementById(mockups[current].id).classList.remove('active');
+  current = next;
+  document.getElementById(mockups[current].id).classList.add('active');
+  update();
+}
+function update() {
+  document.getElementById('navLabel').textContent = `Mockup ${current + 1} of ${mockups.length} — ${mockups[current].label}`;
+  document.getElementById('prevBtn').classList.toggle('disabled', current === 0);
+  document.getElementById('nextBtn').classList.toggle('disabled', current === mockups.length - 1);
+}
+update();
+</script>
+</body>
+</html>

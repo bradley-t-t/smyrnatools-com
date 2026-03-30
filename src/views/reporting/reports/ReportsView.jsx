@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 
 import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
 import LostLoadDetailModal from '../../../app/components/reports/LostLoadDetailModal'
 import LostLoadReportModal from '../../../app/components/reports/LostLoadReportModal'
 import LostLoadsList from '../../../app/components/reports/LostLoadsList'
 import MyReportsList from '../../../app/components/reports/MyReportsList'
+import QCStrengthDetailModal from '../../../app/components/reports/QCStrengthDetailModal'
+import QCStrengthReportModal from '../../../app/components/reports/QCStrengthReportModal'
 import ReportsEmptyState from '../../../app/components/reports/ReportsEmptyState'
 import ReportsStatsCards from '../../../app/components/reports/ReportsStatsCards'
 import ReportsToolbar from '../../../app/components/reports/ReportsToolbar'
@@ -13,9 +15,12 @@ import { usePagination } from '../../../app/hooks/usePagination'
 import { useReportsData } from '../../../app/hooks/useReportsData'
 import { useReportSubmission } from '../../../app/hooks/useReportSubmission'
 import { reportTypeMap, reportTypes } from '../../../app/types/ReportTypes'
+import { Database } from '../../../services/DatabaseService'
 import { ReportService } from '../../../services/ReportService'
+import { UserService } from '../../../services/UserService'
 import ReportsReviewView from './ReportsReviewView'
 import ReportsSubmitView from './ReportsSubmitView'
+
 /**
  * Top-level reports hub. Shows the user's submitted reports grouped by week
  * and a reviewable reports list (for managers with review permissions).
@@ -32,6 +37,8 @@ function ReportsView() {
         hasAssigned,
         hasLostLoadsDeletePermission,
         hasLostLoadsPermission,
+        hasOneOffReviewPermission,
+        hasQCStrengthPermission,
         hasReviewPermission,
         isLoadingLostLoads,
         isLoadingMy,
@@ -73,6 +80,12 @@ function ReportsView() {
     const [reviewData, setReviewData] = useState(null)
     const [tab, setTab] = useState('all')
     const [showLostLoadModal, setShowLostLoadModal] = useState(false)
+    const [showQCStrengthModal, setShowQCStrengthModal] = useState(false)
+    const [qcReports, setQcReports] = useState([])
+    const [isLoadingQC, setIsLoadingQC] = useState(false)
+    const [selectedQCReport, setSelectedQCReport] = useState(null)
+    const [currentUserWeight, setCurrentUserWeight] = useState(0)
+    const [userWeights, setUserWeights] = useState({})
     const [selectedLostLoad, setSelectedLostLoad] = useState(null)
     const [bannerDismissed, setBannerDismissed] = useState(false)
     const [submitInitialData, setSubmitInitialData] = useState(null)
@@ -199,7 +212,45 @@ function ReportsView() {
     useEffect(() => {
         if (tab === 'review') loadReviewReports()
         if (tab === 'lost_loads') loadLostLoadReports()
-    }, [tab, loadReviewReports, loadLostLoadReports])
+        if (tab === 'quality') loadQCReports()
+    }, [tab, loadReviewReports, loadLostLoadReports]) // eslint-disable-line react-hooks/exhaustive-deps
+    const loadQCReports = useCallback(async () => {
+        if (!user) return
+        setIsLoadingQC(true)
+        try {
+            const [{ data, error }, myWeight] = await Promise.all([
+                Database.from('reports')
+                    .select('id,report_name,user_id,submitted_at,data,completed,week,been_reviewed')
+                    .eq('report_name', 'qc_strength')
+                    .eq('completed', true)
+                    .order('submitted_at', { ascending: false }),
+                UserService.getUserWeight(user.id)
+            ])
+            setCurrentUserWeight(myWeight)
+            if (!error && Array.isArray(data)) {
+                const mapped = data.map((r) => ({
+                    id: r.id,
+                    name: r.report_name,
+                    userId: r.user_id,
+                    data: r.data,
+                    week: r.week,
+                    submittedAt: r.submitted_at,
+                    reviewed: r.been_reviewed
+                }))
+                setQcReports(mapped)
+                // Fetch weights for all submitters
+                const uniqueUserIds = [...new Set(mapped.map((r) => r.userId).filter(Boolean))]
+                const weights = {}
+                await Promise.all(
+                    uniqueUserIds.map(async (uid) => {
+                        weights[uid] = await UserService.getUserWeight(uid)
+                    })
+                )
+                setUserWeights(weights)
+            }
+        } catch {}
+        setIsLoadingQC(false)
+    }, [user])
     const handleSubmitReport = async (formData, completed = true) => {
         const result = await submitReport({ completed, formData, showForm })
         if (result.success) setShowForm(null)
@@ -279,9 +330,15 @@ function ReportsView() {
         )
     }
     const isCurrentTabLoading =
-        tab === 'all' ? isMyReportsLoading : tab === 'review' ? isReviewLoading : isLoadingLostLoads
+        tab === 'all'
+            ? isMyReportsLoading
+            : tab === 'review'
+              ? isReviewLoading
+              : tab === 'quality'
+                ? isLoadingQC
+                : isLoadingLostLoads
     const statsContent = (() => {
-        if (isCurrentTabLoading || tab === 'lost_loads') return null
+        if (isCurrentTabLoading || tab === 'lost_loads' || tab === 'quality') return null
         if (tab === 'all') return <ReportsStatsCards items={allMyItems} tab={tab} />
         return (
             <ReportsStatsCards items={visibleReviewReports} tab={tab} reviewedByCurrentUser={reviewedByCurrentUser} />
@@ -356,31 +413,113 @@ function ReportsView() {
                 hasReviewPermission={hasReviewPermission}
                 hasAnyReviewPermission={hasAnyReviewPermission}
                 hasLostLoadsPermission={hasLostLoadsPermission}
+                hasQCReviewPermission={hasOneOffReviewPermission?.qc_strength}
                 onLostLoadClick={() => setShowLostLoadModal(true)}
                 regionType={regionType}
                 statsContent={statsContent}
-                statsSkeleton={tab !== 'lost_loads' ? statsSkeleton : null}
+                statsSkeleton={tab !== 'lost_loads' && tab !== 'quality' ? statsSkeleton : null}
                 searchInput={searchInput}
                 onSearchInputChange={setSearchInput}
                 onClearSearch={() => setSearchInput('')}
             />
             <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
-                {tab === 'all' &&
-                    (allMyItems.length === 0 && !isMyReportsLoading ? (
-                        <ReportsEmptyState tab={tab} hasAssigned={hasAssigned} />
-                    ) : (
-                        <MyReportsList
-                            isLoading={isMyReportsLoading}
-                            items={myPagination.paginatedItems}
-                            weeksToShow={weeksToShow}
-                            pageSize={myPagination.pageSize}
-                            currentPage={myPagination.currentPage}
-                            totalPages={myPagination.totalPages}
-                            onPageSizeChange={myPagination.changePageSize}
-                            onPageChange={myPagination.goToPage}
-                            onShowForm={handleShowForm}
-                        />
-                    ))}
+                {tab === 'all' && (
+                    <>
+                        {/* One-Off Reports section — above recurring */}
+                        {(hasQCStrengthPermission || hasLostLoadsPermission) && (
+                            <div className="mb-5">
+                                <div className="flex items-center gap-3 mb-2 px-1">
+                                    <span className="text-sm font-bold text-slate-700">One-Off Reports</span>
+                                </div>
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    {/* QC Strength Report */}
+                                    {hasQCStrengthPermission && (
+                                        <div
+                                            className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
+                                            onClick={() => setShowQCStrengthModal(true)}
+                                        >
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
+                                                    <i className="fas fa-flask text-white text-[10px]" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <span className="text-sm font-medium text-slate-800">
+                                                        Quality Control Strength Report
+                                                    </span>
+                                                    <span className="text-xs text-slate-400 block">
+                                                        Concrete cylinder strength testing and sample data
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span
+                                                className="text-xs font-semibold shrink-0 hidden sm:block"
+                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                            >
+                                                Submit New →
+                                            </span>
+                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                        </div>
+                                    )}
+                                    {/* Lost Load Report */}
+                                    {hasLostLoadsPermission && (
+                                        <>
+                                            <div
+                                                className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50"
+                                                onClick={() => setShowLostLoadModal(true)}
+                                            >
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0">
+                                                        <i className="fas fa-truck text-white text-[10px]" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <span className="text-sm font-medium text-slate-800">
+                                                            Lost Load Report
+                                                        </span>
+                                                        <span className="text-xs text-slate-400 block">
+                                                            Report lost or spilled loads with details
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {lostLoadReports.length > 0 && (
+                                                    <span className="text-xs text-slate-400 shrink-0 mr-3">
+                                                        {lostLoadReports.length} submitted
+                                                    </span>
+                                                )}
+                                                <span
+                                                    className="text-xs font-semibold shrink-0 hidden sm:block"
+                                                    style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                >
+                                                    Submit New →
+                                                </span>
+                                                <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        {/* Recurring Reports */}
+                        {allMyItems.length === 0 && !isMyReportsLoading ? (
+                            <ReportsEmptyState
+                                tab={tab}
+                                hasAssigned={hasAssigned}
+                                hasOneOffAccess={hasLostLoadsPermission || hasQCStrengthPermission}
+                            />
+                        ) : (
+                            <MyReportsList
+                                isLoading={isMyReportsLoading}
+                                items={myPagination.paginatedItems}
+                                weeksToShow={weeksToShow}
+                                pageSize={myPagination.pageSize}
+                                currentPage={myPagination.currentPage}
+                                totalPages={myPagination.totalPages}
+                                onPageSizeChange={myPagination.changePageSize}
+                                onPageChange={myPagination.goToPage}
+                                onShowForm={handleShowForm}
+                            />
+                        )}
+                    </>
+                )}
                 {tab === 'review' &&
                     (visibleReviewReports.length === 0 && !isReviewLoading ? (
                         <ReportsEmptyState tab={tab} />
@@ -413,6 +552,118 @@ function ReportsView() {
                         onRowClick={setSelectedLostLoad}
                     />
                 )}
+                {tab === 'quality' && (
+                    <div>
+                        <div className="flex items-center gap-3 mb-2 px-1">
+                            <span className="text-sm font-bold text-slate-700">Quality Control Strength Reports</span>
+                            <span className="text-xs text-slate-400">{qcReports.length} total</span>
+                        </div>
+                        {isLoadingQC ? (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 flex items-center justify-center">
+                                <i className="fas fa-spinner fa-spin text-slate-400 text-lg" />
+                            </div>
+                        ) : qcReports.length === 0 ? (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
+                                    <i className="fas fa-flask text-4xl mb-3" />
+                                    <div className="text-sm">No quality reports submitted yet</div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                {qcReports.map((report) => {
+                                    const submittedDate = report.submittedAt
+                                        ? new Date(report.submittedAt).toLocaleDateString(undefined, {
+                                              month: 'short',
+                                              day: 'numeric',
+                                              year: 'numeric'
+                                          })
+                                        : ''
+                                    const d = report.data || {}
+                                    return (
+                                        <div
+                                            key={report.id}
+                                            className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
+                                            onClick={() => setSelectedQCReport(report)}
+                                        >
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
+                                                    <i className="fas fa-flask text-white text-[10px]" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-medium text-slate-800 truncate">
+                                                            {d.project || 'QC Strength Report'}
+                                                        </span>
+                                                        {d.mix_id && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-violet-100 text-violet-700 shrink-0">
+                                                                Mix {d.mix_id}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                                                        {d.contractor && <span>{d.contractor}</span>}
+                                                        {d.sample_location && (
+                                                            <>
+                                                                <span className="text-slate-300 text-[8px]">●</span>
+                                                                <span>{d.sample_location}</span>
+                                                            </>
+                                                        )}
+                                                        {d.psi && (
+                                                            <>
+                                                                <span className="text-slate-300 text-[8px]">●</span>
+                                                                <span>{d.psi} PSI</span>
+                                                            </>
+                                                        )}
+                                                        <span className="text-slate-300 text-[8px]">●</span>
+                                                        <span>{getUserName(report.userId)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {report.reviewed ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
+                                                    <i className="fas fa-check text-[9px]" />
+                                                    Reviewed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
+                                                    <i className="fas fa-flag text-[9px]" />
+                                                    Pending
+                                                </span>
+                                            )}
+                                            <span className="text-xs text-slate-400 ml-3 shrink-0 hidden sm:block">
+                                                {submittedDate}
+                                            </span>
+                                            {currentUserWeight >= (userWeights[report.userId] || 0) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        if (window.confirm('Delete this QC Strength Report?')) {
+                                                            Database.from('reports')
+                                                                .delete()
+                                                                .eq('id', report.id)
+                                                                .then(() => {
+                                                                    setQcReports((prev) =>
+                                                                        prev.filter((r) => r.id !== report.id)
+                                                                    )
+                                                                })
+                                                        }
+                                                    }}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2"
+                                                    title="Delete"
+                                                >
+                                                    <i className="fas fa-trash-alt text-xs" />
+                                                </button>
+                                            )}
+                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3" />
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
             {isPlantModalOpen && (
                 <PlantDropdownModal
@@ -444,6 +695,24 @@ function ReportsView() {
                     report={selectedLostLoad}
                     getUserName={getUserName}
                     onClose={() => setSelectedLostLoad(null)}
+                />
+            )}
+            {showQCStrengthModal && (
+                <QCStrengthReportModal
+                    onClose={() => setShowQCStrengthModal(false)}
+                    onSubmitted={() => triggerRefresh()}
+                    user={user}
+                />
+            )}
+            {selectedQCReport && (
+                <QCStrengthDetailModal
+                    report={selectedQCReport}
+                    getUserName={getUserName}
+                    onClose={() => setSelectedQCReport(null)}
+                    onReviewed={(id) => {
+                        setQcReports((prev) => prev.map((r) => (r.id === id ? { ...r, reviewed: true } : r)))
+                        setSelectedQCReport(null)
+                    }}
                 />
             )}
         </div>

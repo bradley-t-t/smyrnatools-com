@@ -6,7 +6,7 @@ import { ReportService } from '../../services/ReportService'
 import { UserService } from '../../services/UserService'
 import { ReportUtility } from '../../utils/ReportUtility'
 import { usePreferences } from '../context/PreferencesContext'
-import { reportTypeMap, reportTypes } from '../types/ReportTypes'
+import { oneOffReportTypeMap, oneOffReportTypes, reportTypeMap, reportTypes } from '../types/ReportTypes'
 const REPORTS_START_DATE = new Date('2025-07-20')
 /**
  * Loads all reports data: user's own reports, review permissions, assigned report types,
@@ -37,6 +37,8 @@ export function useReportsData() {
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [hasLostLoadsPermission, setHasLostLoadsPermission] = useState(false)
     const [hasLostLoadsDeletePermission, setHasLostLoadsDeletePermission] = useState(false)
+    const [hasQCStrengthPermission, setHasQCStrengthPermission] = useState(false)
+    const [hasOneOffReviewPermission, setHasOneOffReviewPermission] = useState({})
     const [lostLoadReports, setLostLoadReports] = useState([])
     const [isLoadingLostLoads, setIsLoadingLostLoads] = useState(false)
     const [lostLoadsLoaded, setLostLoadsLoaded] = useState(false)
@@ -78,7 +80,7 @@ export function useReportsData() {
                 query = query.eq('user_id', user.id)
                 if (allowedMy.length > 0) query = query.in('report_name', allowedMy)
             } else if (scope === 'review') {
-                const allowedReview =
+                const recurringAllowed =
                     regionType === 'office'
                         ? hasReviewPermission['general_manager']
                             ? ['general_manager']
@@ -86,6 +88,10 @@ export function useReportsData() {
                         : reportTypes
                               .filter((rt) => hasReviewPermission[rt.name] && rt.name !== 'general_manager')
                               .map((rt) => rt.name)
+                const oneOffAllowed = oneOffReportTypes
+                    .filter((rt) => hasOneOffReviewPermission[rt.name])
+                    .map((rt) => rt.name)
+                const allowedReview = [...recurringAllowed, ...oneOffAllowed]
                 query = query.neq('user_id', user.id).eq('completed', true)
                 if (allowedReview.length > 0) query = query.in('report_name', allowedReview)
             }
@@ -122,7 +128,9 @@ export function useReportsData() {
                         name: r.report_name,
                         report_date_range_end: r.report_date_range_end ? new Date(r.report_date_range_end) : null,
                         report_date_range_start: r.report_date_range_start ? new Date(r.report_date_range_start) : null,
-                        title: (reportTypeMap[r.report_name] || {}).title || r.report_name,
+                        title:
+                            (reportTypeMap[r.report_name] || oneOffReportTypeMap[r.report_name] || {}).title ||
+                            r.report_name,
                         userId: r.user_id,
                         week: r.week || r.data?.week || null
                     }))
@@ -179,14 +187,25 @@ export function useReportsData() {
                     ).some(Boolean)
                 })
             )
-            const [lostLoads, lostLoadsDelete] = await Promise.all([
+            const oneOffReview = {}
+            await Promise.all(
+                oneOffReportTypes
+                    .filter((rt) => rt.reviewPermission)
+                    .map(async (rt) => {
+                        oneOffReview[rt.name] = await UserService.hasPermission(user.id, rt.reviewPermission)
+                    })
+            )
+            const [lostLoads, lostLoadsDelete, qcStrength] = await Promise.all([
                 UserService.hasPermission(user.id, 'reports.lostloads'),
-                UserService.hasPermission(user.id, 'reports.lostloads.delete')
+                UserService.hasPermission(user.id, 'reports.lostloads.delete'),
+                UserService.hasPermission(user.id, 'reports.qc_strength')
             ])
             setHasAssigned(assigned)
             setHasReviewPermission(review)
+            setHasOneOffReviewPermission(oneOffReview)
             setHasLostLoadsPermission(lostLoads)
             setHasLostLoadsDeletePermission(lostLoadsDelete)
+            setHasQCStrengthPermission(qcStrength)
             setIsLoadingPermissions(false)
         }
         checkAssignedAndReview()
@@ -327,11 +346,11 @@ export function useReportsData() {
                         r.week &&
                         r.userId &&
                         r.userId !== user?.id &&
-                        hasReviewPermission[r.name] &&
+                        (hasReviewPermission[r.name] || hasOneOffReviewPermission[r.name]) &&
                         (regionType !== 'office' || r.name === 'general_manager')
                 )
                 .sort((a, b) => new Date(b.week).getTime() - new Date(a.week).getTime()),
-        [localReports, hasReviewPermission, user?.id, regionType]
+        [localReports, hasReviewPermission, hasOneOffReviewPermission, user?.id, regionType]
     )
     const loadReviewReports = useCallback(async () => {
         if (!user || isLoadingPermissions) return
@@ -424,6 +443,8 @@ export function useReportsData() {
         hasAssigned,
         hasLostLoadsDeletePermission,
         hasLostLoadsPermission,
+        hasOneOffReviewPermission,
+        hasQCStrengthPermission,
         hasReviewPermission,
         isLoadingLostLoads,
         isLoadingMy,

@@ -74,8 +74,8 @@ async function requireAuthenticated(_supabase: any, req: Request, headers: any, 
     return userId;
 }
 
-async function requireElevatedCaller(_supabase: any, req: Request, headers: any): Promise<Response | null> {
-    const auth = await requireAuthenticated(_supabase, req, headers);
+async function requireElevatedCaller(_supabase: any, req: Request, headers: any, body?: any): Promise<Response | null> {
+    const auth = await requireAuthenticated(_supabase, req, headers, body);
     if (auth instanceof Response) return auth;
     const admin = getAdminClient();
     const {data} = await admin.from("users_permissions").select("role_id, users_roles(weight)").eq("user_id", auth);
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(null, headers);
             }
             case "user-by-id": {
-                const auth = await requireAuthenticated(supabase, req, headers);
+                const auth = await requireAuthenticated(supabase, req, headers, body);
                 if (auth instanceof Response) return auth;
                 const {userId} = body;
                 if (!userId) return jsonResponse({id: 'unknown', name: 'Unknown User'}, headers);
@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(roles.sort((a: any, b: any) => b.weight - a.weight)[0], headers);
             }
             case "assign-role": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "remove-role": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {userId, roleId} = body;
                 if (!userId || !roleId) return errorResponse("User ID and role ID are required", headers);
@@ -242,7 +242,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "create-role": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {name, permissions = [], weight = 0} = body;
                 if (!name) return errorResponse("Role name is required", headers);
@@ -252,7 +252,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(data, headers);
             }
             case "update-role": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {roleId, updates} = body;
                 if (!roleId || !updates) return errorResponse("Role ID and updates are required", headers);
@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-role": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {roleId} = body;
                 if (!roleId) return errorResponse("Role ID is required", headers);
@@ -282,7 +282,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(data?.additional_assigned_plants ?? [], headers);
             }
             case "update-additional-plants": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {userId, additionalPlants} = body;
                 if (!userId) return errorResponse("User ID is required", headers);
@@ -295,7 +295,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "update-manager": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {userId: targetId, profile, email: managerEmail, roleId} = body;
                 if (!targetId) return errorResponse("User ID is required", headers);
@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
                 return jsonResponse(true, headers);
             }
             case "delete-manager": {
-                const authErr = await requireElevatedCaller(supabase, req, headers);
+                const authErr = await requireElevatedCaller(supabase, req, headers, body);
                 if (authErr) return authErr;
                 const {userId: delId} = body;
                 if (!delId) return errorResponse("User ID is required", headers);

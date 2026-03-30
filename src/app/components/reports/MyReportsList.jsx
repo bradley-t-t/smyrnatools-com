@@ -1,41 +1,31 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { ReportService } from '../../../services/ReportService'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { ReportsListSkeleton } from '../ui/AssetListSkeleton'
-const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24
+
+const REPORT_ICONS = {
+    district_manager: { icon: 'fa-map-marker-alt', bg: 'bg-purple-600' },
+    plant_manager: { icon: 'fa-building', bg: 'bg-blue-700' },
+    plant_production: { icon: 'fa-chart-bar', bg: 'bg-teal-600' },
+    aggregate_production: { icon: 'fa-cubes', bg: 'bg-cyan-600' },
+    safety_manager: { icon: 'fa-hard-hat', bg: 'bg-orange-500' },
+    safety_environmental_rep: { icon: 'fa-leaf', bg: 'bg-green-600' },
+    general_manager: { icon: 'fa-user-tie', bg: 'bg-slate-700' },
+    ready_mix_instructor: { icon: 'fa-chalkboard-teacher', bg: 'bg-indigo-600' },
+    test: { icon: 'fa-flask', bg: 'bg-gray-500' }
+}
+
+const STATUS_STYLES = {
+    error: { badge: 'bg-red-100 text-red-700', label: 'Overdue' },
+    info: { badge: 'bg-blue-100 text-blue-700', label: 'Not Started' },
+    success: { badge: 'bg-emerald-100 text-emerald-700', label: 'Submitted' },
+    warning: { badge: 'bg-amber-100 text-amber-700', label: 'Draft' }
+}
+
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 9999]
-const BASE_ROW_DELAY_MS = 160
-const MIN_ROW_DELAY_MS = 12
-const DECAY_FACTOR = 0.9
-function getRowDelay(index) {
-    let total = 0
-    for (let i = 0; i < index; i++) {
-        total += Math.max(MIN_ROW_DELAY_MS, BASE_ROW_DELAY_MS * Math.pow(DECAY_FACTOR, i))
-    }
-    return Math.round(total)
-}
-/** Computes urgency label and color based on days until the Saturday deadline. */
-const getDueDateStatus = (saturday) => {
-    const diffDays = Math.ceil((saturday - new Date()) / MILLISECONDS_PER_DAY)
-    if (diffDays < 0) return { color: '#dc2626', label: 'Overdue', urgent: true }
-    if (diffDays === 0) return { color: '#dc2626', label: 'Due Today', urgent: true }
-    if (diffDays === 1) return { color: '#f59e0b', label: 'Due Tomorrow', urgent: true }
-    if (diffDays <= 3) return { color: '#f59e0b', label: `${diffDays} days left`, urgent: false }
-    return { color: 'var(--text-secondary)', label: saturday.toLocaleDateString(), urgent: false }
-}
-const BADGE_COLORS = {
-    'Last Week': 'bg-amber-100 text-amber-800',
-    Older: 'bg-slate-100 text-slate-600',
-    'This Week': 'bg-blue-100 text-blue-800'
-}
-const STATUS_COLORS = {
-    error: 'bg-red-100 text-red-700',
-    info: 'bg-blue-100 text-blue-700',
-    success: 'bg-emerald-100 text-emerald-700',
-    warning: 'bg-amber-100 text-amber-700'
-}
+
 const PageSizeSelect = ({ value, onChange }) => (
     <div className="flex items-center gap-2 text-sm text-slate-500">
         <label className="hidden sm:inline">Show:</label>
@@ -52,8 +42,9 @@ const PageSizeSelect = ({ value, onChange }) => (
         </select>
     </div>
 )
+
 const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPageChange }) => (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-slate-50">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-4">
         <PageSizeSelect value={pageSize} onChange={onPageSizeChange} />
         <div className="flex items-center gap-2">
             <button
@@ -78,11 +69,10 @@ const Pagination = ({ currentPage, totalPages, pageSize, onPageSizeChange, onPag
         </div>
     </div>
 )
-/** Compact card layout for a single report item on mobile viewports. */
-const MobileReportCard = ({ item, accentColor, onShowForm, index = 0 }) => {
-    const { completed, report, title, weekIso } = item
-    const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
-    const weekRange = ReportService.getWeekRangeString(monday, saturday)
+
+/** Single report row inside a week group. */
+const ReportRow = ({ item, accentColor, onShowForm }) => {
+    const { completed, report, title, name, weekIso } = item
     const hasSavedData = !!report?.data
     const { statusText, statusClass, buttonLabel } = ReportUtility.computeMyReportStatus({
         completed,
@@ -90,124 +80,119 @@ const MobileReportCard = ({ item, accentColor, onShowForm, index = 0 }) => {
         today: new Date(),
         weekIso
     })
-    const badge = ReportUtility.getWeekBadge(weekIso)
-    const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
+    const iconConfig = REPORT_ICONS[name] || { icon: 'fa-file-alt', bg: 'bg-slate-500' }
+    const statusStyle = STATUS_STYLES[statusClass] || STATUS_STYLES.info
+    const { saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
+    const isOverdue = statusClass === 'error'
+
     return (
         <div
-            className={`reports-row-animated p-4 last:border-b-0`}
-            style={{
-                animationDelay: `${getRowDelay(index)}ms`,
-                backgroundColor: altBg,
-                borderBottom: '1px solid var(--border-light)',
-                ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
-            }}
+            className={`flex items-center px-4 sm:px-5 py-3 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50 ${isOverdue ? 'bg-red-50/40' : ''}`}
+            onClick={() => onShowForm(item)}
         >
-            <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${BADGE_COLORS[badge] || BADGE_COLORS.Older}`}
-                        >
-                            {badge}
-                        </span>
-                        <span
-                            className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${STATUS_COLORS[statusClass] || STATUS_COLORS.info}`}
-                        >
-                            {statusClass === 'success' && <i className="fas fa-check text-[9px]" />}
-                            {statusText}
-                        </span>
-                    </div>
-                    <h4 className="font-semibold text-slate-800 text-sm truncate">{title}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{weekRange}</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className={`w-7 h-7 rounded-lg ${iconConfig.bg} flex items-center justify-center shrink-0`}>
+                    <i className={`fas ${iconConfig.icon} text-white text-[10px]`} />
                 </div>
-                <button
-                    className="shrink-0 px-3 py-2 rounded-lg text-white text-xs font-semibold"
-                    style={{ background: accentColor }}
-                    onClick={() => onShowForm(item)}
-                >
-                    {buttonLabel}
-                </button>
+                <span className="text-sm font-medium text-slate-800 truncate">{title}</span>
             </div>
-            {!completed && dueDateInfo && (
-                <div className="flex items-center gap-1.5 text-xs" style={{ color: dueDateInfo.color }}>
-                    {dueDateInfo.urgent && <i className="fas fa-clock text-[10px]" />}
-                    <span className={dueDateInfo.urgent ? 'font-semibold' : ''}>{dueDateInfo.label}</span>
-                </div>
-            )}
+            <span
+                className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 shrink-0 ${statusStyle.badge}`}
+            >
+                {statusClass === 'success' && <i className="fas fa-check text-[9px]" />}
+                {statusText}
+            </span>
+            <span className="text-xs text-slate-400 ml-4 w-20 shrink-0 hidden sm:block text-right">
+                {completed
+                    ? saturday?.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                    : isOverdue
+                      ? 'Overdue'
+                      : 'Due Sat'}
+            </span>
+            <button
+                className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
+                style={{ background: accentColor }}
+                onClick={(e) => {
+                    e.stopPropagation()
+                    onShowForm(item)
+                }}
+            >
+                {buttonLabel}
+            </button>
+            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
         </div>
     )
 }
-/** Table row layout for a single report item on desktop viewports. */
-const DesktopReportRow = ({ item, accentColor, onShowForm, index = 0 }) => {
-    const { weekIso, completed, report, title } = item
+
+/** A group of reports for a single week with header and progress bar. */
+const WeekGroup = ({ weekIso, items, accentColor, onShowForm }) => {
     const { monday, saturday } = ReportUtility.getWeekDatesFromIso(weekIso)
     const weekRange = ReportService.getWeekRangeString(monday, saturday)
-    const hasSavedData = !!report?.data
-    const { statusText, statusClass, buttonLabel } = ReportUtility.computeMyReportStatus({
-        completed,
-        hasSavedData,
-        today: new Date(),
-        weekIso
-    })
     const badge = ReportUtility.getWeekBadge(weekIso)
-    const dueDateInfo = completed ? null : getDueDateStatus(saturday)
-    const altBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
+    const completedCount = items.filter((i) => i.completed).length
+    const totalCount = items.length
+    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+    const allDone = completedCount === totalCount
+    const hasOverdue = items.some((i) => {
+        const { statusClass } = ReportUtility.computeMyReportStatus({
+            completed: i.completed,
+            hasSavedData: !!i.report?.data,
+            today: new Date(),
+            weekIso: i.weekIso
+        })
+        return statusClass === 'error'
+    })
+
+    const badgeColors = {
+        'This Week': 'text-blue-700 bg-blue-100',
+        'Last Week': 'text-amber-700 bg-amber-100',
+        Older: 'text-slate-600 bg-slate-100'
+    }
+
     return (
-        <div
-            className={`reports-row-animated flex items-center py-3 px-4 lg:px-7 ${dueDateInfo?.urgent ? '' : ''}`}
-            style={{
-                animationDelay: `${getRowDelay(index)}ms`,
-                backgroundColor: altBg,
-                borderBottom: '1px solid var(--border-light)',
-                cursor: 'default',
-                ...(dueDateInfo?.urgent ? { borderLeftColor: dueDateInfo.color, borderLeftWidth: '3px' } : {})
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-hover)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = altBg)}
-        >
-            <div className="flex-1 min-w-0 pr-3">
+        <div className="mb-5">
+            <div className="flex items-center gap-3 mb-2 px-1">
                 <span
-                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide mr-2 ${BADGE_COLORS[badge] || BADGE_COLORS.Older}`}
+                    className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${badgeColors[badge] || badgeColors.Older}`}
                 >
                     {badge}
                 </span>
-                <span className="text-sm text-slate-800">{weekRange}</span>
-            </div>
-            <div className="flex-1 min-w-0 pr-3">
-                <span className="text-sm font-medium text-slate-800">{title}</span>
-            </div>
-            <div className="w-28 shrink-0 pr-3">
+                <span className="text-xs text-slate-400">{weekRange}</span>
                 <span
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${STATUS_COLORS[statusClass] || STATUS_COLORS.info}`}
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        allDone
+                            ? 'text-emerald-700 bg-emerald-50'
+                            : hasOverdue
+                              ? 'text-red-600 bg-red-50'
+                              : 'text-slate-600 bg-slate-100'
+                    }`}
                 >
-                    {statusClass === 'success' && <i className="fas fa-check text-[9px]" />}
-                    {statusText}
+                    {completedCount}/{totalCount} complete
                 </span>
+                <div className="flex-1 h-1.5 rounded-full bg-slate-200 max-w-[120px]">
+                    <div
+                        className={`h-full rounded-full transition-all ${
+                            allDone ? 'bg-emerald-500' : hasOverdue ? 'bg-red-400' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
             </div>
-            <div className="w-28 shrink-0 pr-3 text-sm">
-                {completed ? (
-                    <span className="text-slate-500">{saturday.toLocaleDateString()}</span>
-                ) : (
-                    <span style={{ color: dueDateInfo?.color }} className={dueDateInfo?.urgent ? 'font-semibold' : ''}>
-                        {dueDateInfo?.urgent && <i className="fas fa-clock text-[10px] mr-1" />}
-                        {dueDateInfo?.label}
-                    </span>
-                )}
-            </div>
-            <div className="w-24 shrink-0 text-right">
-                <button
-                    className="px-3 py-1.5 rounded-md text-white text-xs font-semibold"
-                    style={{ background: accentColor }}
-                    onClick={() => onShowForm(item)}
-                >
-                    {buttonLabel}
-                </button>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                {items.map((item) => (
+                    <ReportRow
+                        key={item.name + item.weekIso}
+                        item={item}
+                        accentColor={accentColor}
+                        onShowForm={onShowForm}
+                    />
+                ))}
             </div>
         </div>
     )
 }
-/** Paginated list of the current user's assigned reports with responsive mobile/desktop layouts. */
+
+/** Paginated list of reports grouped by week. */
 function MyReportsList({
     isLoading,
     items,
@@ -221,47 +206,40 @@ function MyReportsList({
 }) {
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
+
+    /** Group items by weekIso, maintaining week order. */
+    const groupedByWeek = useMemo(() => {
+        const groups = {}
+        for (const item of items) {
+            const key = item.weekIso || 'unknown'
+            if (!groups[key]) groups[key] = []
+            groups[key].push(item)
+        }
+        // Sort weeks descending (most recent first)
+        const sortedKeys = Object.keys(groups).sort((a, b) => (a > b ? -1 : 1))
+        return sortedKeys.map((key) => ({ weekIso: key, items: groups[key] }))
+    }, [items])
+
     if (weeksToShow.length === 0 && !isLoading) return null
+
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <style>{`
-                @keyframes slideInRow {
-                    from { opacity: 0; transform: translateX(-20px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-                .reports-row-animated {
-                    animation: slideInRow 0.4s ease-out both;
-                }
-            `}</style>
+        <div>
             {isLoading ? (
-                <ReportsListSkeleton columnCount={5} />
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <ReportsListSkeleton columnCount={5} />
+                </div>
             ) : (
-                <>
-                    <div className="hidden md:block">
-                        {items.map((item, index) => (
-                            <DesktopReportRow
-                                key={item.name + item.weekIso}
-                                item={item}
-                                index={index}
-                                accentColor={accentColor}
-                                onShowForm={onShowForm}
-                            />
-                        ))}
-                    </div>
-                    <div className="md:hidden">
-                        {items.map((item, index) => (
-                            <MobileReportCard
-                                key={item.name + item.weekIso}
-                                item={item}
-                                index={index}
-                                accentColor={accentColor}
-                                onShowForm={onShowForm}
-                            />
-                        ))}
-                    </div>
-                </>
+                groupedByWeek.map(({ weekIso, items: weekItems }) => (
+                    <WeekGroup
+                        key={weekIso}
+                        weekIso={weekIso}
+                        items={weekItems}
+                        accentColor={accentColor}
+                        onShowForm={onShowForm}
+                    />
+                ))
             )}
-            {items.length > 0 && (
+            {items.length > 0 && totalPages > 1 && (
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

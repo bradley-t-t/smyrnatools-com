@@ -70,9 +70,9 @@ const ReviewEmptyState = () => (
  * Shows "No Reports Assigned", "All Caught Up", or "No Reports to Review"
  * based on the active tab and assignment status.
  */
-function ReportsEmptyState({ tab, hasAssigned }) {
+function ReportsEmptyState({ tab, hasAssigned, hasOneOffAccess }) {
     if (tab !== 'all') return <ReviewEmptyState />
-    const hasAnyAssignment = Object.values(hasAssigned || {}).some(Boolean)
+    const hasAnyAssignment = Object.values(hasAssigned || {}).some(Boolean) || hasOneOffAccess
     return hasAnyAssignment ? <AllCaughtUpState /> : <NoAssignmentsState />
 }
 export default ReportsEmptyState

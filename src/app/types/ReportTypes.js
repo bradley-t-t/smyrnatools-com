@@ -131,5 +131,54 @@ const reportTypes = [
         title: 'Test'
     })
 ]
+/** One-off report types (not weekly recurring). */
+const oneOffReportTypes = [
+    {
+        name: 'lost_load',
+        title: 'Lost Load Report',
+        icon: 'fa-truck',
+        iconBg: 'bg-red-500',
+        description: 'Report lost or spilled loads with details',
+        permission: 'reports.lostloads',
+        reviewPermission: 'reports.review.lost_load'
+    },
+    {
+        name: 'qc_strength',
+        title: 'Quality Control Strength Report',
+        icon: 'fa-flask',
+        iconBg: 'bg-violet-600',
+        description: 'Concrete cylinder strength testing and sample data',
+        permission: 'reports.qc_strength',
+        reviewPermission: 'reports.review.qc_strength',
+        fields: [
+            { label: 'Sample Location', name: 'sample_location', required: true, type: 'text' },
+            { label: 'Project', name: 'project', required: true, type: 'text' },
+            { label: 'Contractor', name: 'contractor', required: true, type: 'text' },
+            { label: 'Location of Pour', name: 'location_of_pour', required: true, type: 'text' },
+            { label: 'Technician', name: 'technician', required: true, type: 'text' },
+            { label: 'No. of Cylinders', name: 'num_cylinders', required: true, type: 'number' },
+            { label: 'Set Identifying Number', name: 'set_id_number', required: true, type: 'text' },
+            { label: 'Total Sets', name: 'total_sets', required: true, type: 'number' },
+            { label: 'Water Added on Job', name: 'water_added_on_job', required: false, type: 'text' },
+            { label: 'Water Requested By', name: 'water_requested_by', required: false, type: 'text' },
+            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
+            { label: 'Date Molded', name: 'date_molded', required: true, type: 'date' },
+            { label: 'Truck No.', name: 'truck_no', required: true, type: 'text' },
+            { label: 'Ticket No.', name: 'ticket_no', required: true, type: 'text' },
+            { label: 'Time Batched', name: 'time_batched', required: true, type: 'time' },
+            { label: 'Time Sampled', name: 'time_sampled', required: true, type: 'time' },
+            { label: 'Slump / Spread (inches)', name: 'slump_spread', required: true, type: 'text' },
+            { label: 'Air Content (%)', name: 'air_content', required: true, type: 'text' },
+            { label: 'Unit Weight', name: 'unit_weight', required: true, type: 'text' },
+            { label: 'Concrete Temp (\u00B0F)', name: 'concrete_temp', required: true, type: 'text' },
+            { label: 'Atmospheric Temp (\u00B0F)', name: 'atmospheric_temp', required: true, type: 'text' },
+            { label: 'Mix ID', name: 'mix_id', required: true, type: 'text' },
+            { label: 'PSI', name: 'psi', required: true, type: 'number' },
+            { label: 'Initial Curing Conditions', name: 'initial_curing_conditions', required: true, type: 'textarea' },
+            { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: true, type: 'text' }
+        ]
+    }
+]
+const oneOffReportTypeMap = Object.fromEntries(oneOffReportTypes.map((rt) => [rt.name, rt]))
 const reportTypeMap = Object.fromEntries(reportTypes.map((rt) => [rt.name, rt]))
-export { reportTypeMap, reportTypes }
+export { oneOffReportTypeMap, oneOffReportTypes, reportTypeMap, reportTypes }
