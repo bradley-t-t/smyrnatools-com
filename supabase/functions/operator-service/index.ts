@@ -156,9 +156,9 @@ Deno.serve(async (req) => {
                 return jsonResponse({data}, headers);
             }
             case "update": {
-                const auth = await requireAuthenticated(supabase, req, headers);
-                if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
+                const auth = await requireAuthenticated(supabase, req, headers, body);
+                if (auth instanceof Response) return auth;
                 const input = body?.operator ?? body;
                 const employeeId = typeof input?.employee_id === "string" ? input.employee_id : null;
                 if (!employeeId) return errorResponse("Invalid Employee ID", headers, 400);

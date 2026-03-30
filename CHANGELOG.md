@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [36.8] - 2026-03-30
+
+- Fixed operator-service update endpoint to parse the request body before authenticating, passing the body to requireAuthenticated for validation
+- Added v36.7 changelog entry documenting comment notification emails for Plant and District Managers
+
 ## [36.7] - 2026-03-25
 
 - Added comment notification emails for Plant Managers and District Managers when someone comments on an asset at their plant
