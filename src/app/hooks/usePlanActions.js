@@ -64,42 +64,94 @@ export function usePlanActions({
             const doc = parser.parseFromString(e.target.result, 'text/html')
             const allDivs = [...doc.querySelectorAll('div')]
 
-            const plantHeaders = allDivs.filter(
-                (d) => d.classList.contains('s43') && /^\d{3}\s*-\s*.+/.test(d.textContent.trim())
-            )
+            // Find plant headers — any element matching "###" or "### - Name" pattern
+            const plantHeaders = allDivs.filter((d) => {
+                const text = d.textContent.trim()
+                return /^\d{3}\s*-\s*.+/.test(text) || /^\d{3}\s*$/.test(text)
+            })
+
+            // Deduplicate — sometimes multiple nested divs match the same header
+            const seenCodes = new Set()
+            const uniqueHeaders = plantHeaders.filter((h) => {
+                const code = h.textContent.trim().match(/^(\d{3})/)?.[1]
+                if (!code || seenCodes.has(code)) return false
+                seenCodes.add(code)
+                return true
+            })
 
             const production = {}
-            plantHeaders.forEach((header, idx) => {
+            uniqueHeaders.forEach((header, idx) => {
                 const text = header.textContent.trim()
                 const code = text.match(/^(\d{3})/)?.[1]
                 if (!code) return
 
                 const headerIndex = allDivs.indexOf(header)
                 const nextHeaderIndex =
-                    idx < plantHeaders.length - 1 ? allDivs.indexOf(plantHeaders[idx + 1]) : allDivs.length
+                    idx < uniqueHeaders.length - 1 ? allDivs.indexOf(uniqueHeaders[idx + 1]) : allDivs.length
 
+                // Collect all HH:MM times in the plant section
                 const startTimes = []
                 for (let i = headerIndex + 1; i < nextHeaderIndex; i++) {
                     const d = allDivs[i]
-                    const style = d.getAttribute('style') || ''
-                    if (d.classList.contains('s48') && style.includes('left:307.2px')) {
-                        const time = d.textContent.trim()
-                        if (/^\d{2}:\d{2}$/.test(time)) startTimes.push(time)
+                    const time = d.textContent.trim()
+                    // Match HH:MM patterns (start times) — check by class or by position/style
+                    if (/^\d{1,2}:\d{2}$/.test(time)) {
+                        const style = d.getAttribute('style') || ''
+                        // Accept times at the known position OR from known time classes
+                        if (
+                            style.includes('left:307') ||
+                            style.includes('left:308') ||
+                            d.classList.contains('s48') ||
+                            d.classList.contains('s49') ||
+                            d.classList.contains('s50')
+                        ) {
+                            startTimes.push(time.padStart(5, '0'))
+                        }
                     }
                 }
 
+                // Find total yardage — look for "Plant Total:" then search nearby for a number
                 let totalYardage = ''
                 for (let i = headerIndex + 1; i < nextHeaderIndex; i++) {
                     const d = allDivs[i]
-                    if (d.classList.contains('s34') && d.textContent.trim() === 'Plant Total:') {
-                        for (let j = i - 1; j > headerIndex; j--) {
-                            if (allDivs[j].classList.contains('s63')) {
-                                totalYardage = allDivs[j].textContent.trim().replace(/,/g, '')
-                                break
+                    const dt = d.textContent.trim()
+                    if (dt === 'Plant Total:' || dt === 'Plant Total') {
+                        // Search backward and forward for a numeric value
+                        for (let offset = 1; offset <= 10; offset++) {
+                            for (const j of [i - offset, i + offset]) {
+                                if (j > headerIndex && j < nextHeaderIndex) {
+                                    const val = allDivs[j].textContent.trim().replace(/,/g, '')
+                                    if (/^\d+(\.\d+)?$/.test(val) && parseFloat(val) > 0) {
+                                        totalYardage = val
+                                        break
+                                    }
+                                }
                             }
+                            if (totalYardage) break
                         }
                         break
                     }
+                }
+
+                // Fallback: if no "Plant Total:" found, sum all numeric values that look like yardage
+                if (!totalYardage) {
+                    let maxVal = 0
+                    for (let i = headerIndex + 1; i < nextHeaderIndex; i++) {
+                        const d = allDivs[i]
+                        const dt = d.textContent.trim()
+                        if (dt.toLowerCase().includes('total')) {
+                            // Look for the nearest number
+                            for (let j = i - 1; j > Math.max(headerIndex, i - 5); j--) {
+                                const val = allDivs[j].textContent.trim().replace(/,/g, '')
+                                if (/^\d+(\.\d+)?$/.test(val)) {
+                                    const num = parseFloat(val)
+                                    if (num > maxVal) maxVal = num
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    if (maxVal > 0) totalYardage = String(maxVal)
                 }
 
                 const sorted = startTimes.sort()
@@ -113,6 +165,10 @@ export function usePlanActions({
             setPlantProduction(production)
         }
         reader.readAsText(file)
+    }
+
+    const clearPlantProduction = () => {
+        setPlantProduction({})
     }
 
     const updateAssignment = (id, field, value) => {
@@ -280,6 +336,7 @@ export function usePlanActions({
         activeRowId,
         addTravelTime,
         calcClockIn,
+        clearPlantProduction,
         copied,
         copyToClipboard,
         deleteTemplate,

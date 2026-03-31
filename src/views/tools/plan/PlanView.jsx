@@ -71,6 +71,7 @@ function PlanView() {
         copied,
         copyToClipboard,
         deleteTemplate,
+        clearPlantProduction,
         importDailyOrderHtml,
         loadTemplate,
         loadTemplates,
@@ -226,6 +227,17 @@ function PlanView() {
                                     e.target.value = ''
                                 }}
                             />
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Clear all production data?')) clearPlantProduction()
+                                }}
+                                className="flex items-center gap-1.5 border-none rounded-lg cursor-pointer text-xs font-semibold px-3 py-2"
+                                style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}
+                                title="Clear production data"
+                            >
+                                <i className="fas fa-eraser" />
+                                {!isMobile && <span>Clear Production</span>}
+                            </button>
                             <button
                                 onClick={() => setShowSettings(!showSettings)}
                                 className="flex items-center gap-1.5 border-none rounded-lg cursor-pointer text-xs font-semibold px-3 py-2"

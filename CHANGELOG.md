@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.3] - 2026-03-31
+
+- Hardened the daily order HTML import parser to handle more plant header formats, deduplicate nested headers, and match start times across multiple CSS class/position variants
+- Made total yardage extraction more resilient with bidirectional search around "Plant Total" and a fallback that finds the largest numeric value near any "total" label
+- Added a Clear Production button to the Plan toolbar that resets all imported plant production data with a confirmation prompt
+
 ## [37.2] - 2026-03-30
 
 - Added new Third Party Lab Report type with submission modal, detail/review modal, and file attachment support
