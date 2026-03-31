@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 
+import MediaViewer from '../../../app/components/common/MediaViewer'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { Database } from '../../../services/DatabaseService'
 
@@ -7,6 +8,7 @@ function ThirdPartyLabDetailModal({ report, getUserName, onClose, onReviewed }) 
     const { preferences } = usePreferences()
     const accentColor = preferences.accentColor || '#1e3a5f'
     const [marking, setMarking] = useState(false)
+    const [viewerIndex, setViewerIndex] = useState(null)
     const data = report?.data || {}
     const submitterName = getUserName?.(report?.userId) || 'Unknown'
     const submittedDate = report?.submittedAt
@@ -48,11 +50,11 @@ function ThirdPartyLabDetailModal({ report, getUserName, onClose, onReviewed }) 
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto p-4"
+            className="fixed inset-0 z-[100] flex items-start sm:justify-center bg-black/40 backdrop-blur-sm overflow-y-auto sm:p-4"
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl my-8"
+                className="bg-white rounded-none sm:rounded-2xl shadow-xl border-0 sm:border border-slate-200 w-full sm:max-w-2xl min-h-screen sm:min-h-0 sm:my-8"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -81,7 +83,7 @@ function ThirdPartyLabDetailModal({ report, getUserName, onClose, onReviewed }) 
                 </div>
 
                 {/* Fields */}
-                <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 flex-1 sm:flex-none sm:max-h-[70vh] overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {fields.map(
                             (field) =>
@@ -114,36 +116,50 @@ function ThirdPartyLabDetailModal({ report, getUserName, onClose, onReviewed }) 
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {attachments.map((att, i) => {
-                                    const isVideo = att.type?.startsWith('video/')
+                                    const isVid = att.type?.startsWith('video/')
                                     return (
-                                        <a
+                                        <button
                                             key={i}
-                                            href={att.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="block rounded-lg border border-slate-200 overflow-hidden hover:shadow-md transition-shadow"
+                                            type="button"
+                                            onClick={() => setViewerIndex(i)}
+                                            className="block rounded-lg border border-slate-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer bg-transparent p-0 text-left w-full"
                                         >
-                                            {isVideo ? (
-                                                <div className="bg-slate-100 h-24 flex items-center justify-center">
+                                            {isVid ? (
+                                                <div className="bg-slate-100 h-24 flex items-center justify-center relative">
                                                     <i className="fas fa-play-circle text-slate-400 text-2xl" />
+                                                    <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/50 text-white px-1.5 py-0.5 rounded">
+                                                        Video
+                                                    </span>
                                                 </div>
                                             ) : (
-                                                <img
-                                                    src={att.url}
-                                                    alt={att.name}
-                                                    className="w-full h-24 object-cover"
-                                                />
+                                                <div className="relative group">
+                                                    <img
+                                                        src={att.url}
+                                                        alt={att.name}
+                                                        className="w-full h-24 object-cover"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                        <i className="fas fa-search-plus text-white opacity-0 group-hover:opacity-100 transition-opacity text-sm" />
+                                                    </div>
+                                                </div>
                                             )}
                                             <div className="px-2 py-1.5">
                                                 <span className="text-xs text-slate-600 truncate block">
                                                     {att.name}
                                                 </span>
                                             </div>
-                                        </a>
+                                        </button>
                                     )
                                 })}
                             </div>
                         </div>
+                    )}
+                    {viewerIndex !== null && (
+                        <MediaViewer
+                            items={attachments}
+                            initialIndex={viewerIndex}
+                            onClose={() => setViewerIndex(null)}
+                        />
                     )}
                 </div>
 

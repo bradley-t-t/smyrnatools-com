@@ -35,11 +35,11 @@ function QCStrengthDetailModal({ report, getUserName, onClose, onReviewed }) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto p-4"
+            className="fixed inset-0 z-[100] flex items-start sm:justify-center bg-black/40 backdrop-blur-sm overflow-y-auto sm:p-4"
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl my-8"
+                className="bg-white rounded-none sm:rounded-2xl shadow-xl border-0 sm:border border-slate-200 w-full sm:max-w-2xl min-h-screen sm:min-h-0 sm:my-8"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -68,7 +68,7 @@ function QCStrengthDetailModal({ report, getUserName, onClose, onReviewed }) {
                 </div>
 
                 {/* Fields */}
-                <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 flex-1 sm:flex-none sm:max-h-[70vh] overflow-y-auto">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {(REPORT_DEF?.fields || []).map((field) => {
                             const value = data[field.name]

@@ -120,9 +120,9 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
     const isVideo = (file) => file.type?.startsWith('video/')
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-black/40 backdrop-blur-sm overflow-y-auto p-4">
+        <div className="fixed inset-0 z-[100] flex items-start sm:justify-center bg-black/40 backdrop-blur-sm overflow-y-auto sm:p-4">
             <div
-                className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl my-8"
+                className="bg-white rounded-none sm:rounded-2xl shadow-xl border-0 sm:border border-slate-200 w-full sm:max-w-2xl min-h-screen sm:min-h-0 sm:my-8"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -145,7 +145,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                 </div>
 
                 {/* Form */}
-                <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">
+                <div className="px-4 sm:px-6 py-4 sm:py-5 flex-1 sm:flex-none sm:max-h-[70vh] overflow-y-auto">
                     {error && (
                         <div className="flex items-center gap-2 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                             <i className="fas fa-exclamation-circle shrink-0" />

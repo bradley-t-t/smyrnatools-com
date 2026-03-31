@@ -90,14 +90,14 @@ const ReportRow = ({ item, accentColor, onShowForm }) => {
             className={`flex items-center px-4 sm:px-5 py-3 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50 ${isOverdue ? 'bg-red-50/40' : ''}`}
             onClick={() => onShowForm(item)}
         >
-            <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                 <div className={`w-7 h-7 rounded-lg ${iconConfig.bg} flex items-center justify-center shrink-0`}>
                     <i className={`fas ${iconConfig.icon} text-white text-[10px]`} />
                 </div>
-                <span className="text-sm font-medium text-slate-800 truncate">{title}</span>
+                <span className="text-xs sm:text-sm font-medium text-slate-800 truncate">{title}</span>
             </div>
             <span
-                className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 shrink-0 ${statusStyle.badge}`}
+                className={`px-1.5 sm:px-2 py-1 rounded text-[10px] sm:text-xs font-semibold flex items-center gap-1 shrink-0 ${statusStyle.badge}`}
             >
                 {statusClass === 'success' && <i className="fas fa-check text-[9px]" />}
                 {statusText}

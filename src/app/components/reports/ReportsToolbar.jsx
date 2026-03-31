@@ -106,7 +106,7 @@ function ReportsToolbar({
                     >
                         {plantDisplayText}
                     </button>
-                    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 overflow-x-auto max-w-full">
                         <TabButton
                             isActive={tab === 'all'}
                             accentColor={accentColor}

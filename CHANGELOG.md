@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.4] - 2026-03-31
+
+- Added a fullscreen MediaViewer component with zoom/pan, pinch-to-zoom, swipe navigation, keyboard shortcuts, and thumbnail strip for browsing image/video attachments
+- Integrated MediaViewer into the Third Party Lab detail modal so attachments open in a rich viewer instead of navigating to a new tab, with hover overlays and video badges on thumbnails
+- Made all report modals (QC Strength, Third Party Lab, submission and detail variants) fully mobile-responsive with edge-to-edge layout on small screens, tighter padding, and scrollable content areas
+- Improved mobile responsiveness in MyReportsList with smaller text and tighter spacing on narrow viewports
+- Fixed the ReportsToolbar tab bar to scroll horizontally when tabs overflow on small screens
+
 ## [37.3] - 2026-03-31
 
 - Hardened the daily order HTML import parser to handle more plant header formats, deduplicate nested headers, and match start times across multiple CSS class/position variants
