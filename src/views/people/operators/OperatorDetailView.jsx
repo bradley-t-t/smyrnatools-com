@@ -12,6 +12,9 @@ import { UserService } from '../../../services/UserService'
 import GrammarUtility from '../../../utils/GrammarUtility'
 import OperatorCommentModal from './OperatorCommentModal'
 import OperatorHistoryView from './OperatorHistoryView'
+
+const SELECT_CLASS =
+    "w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent cursor-pointer bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
 /**
  * Full detail/edit view for a single operator. Supports editing name, Smyrna ID,
  * status, plant (with region-scoped picker), position, trainer assignment,
@@ -196,7 +199,11 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                 ...operator,
                 plant_code: newPlantCode
             }
-            await OperatorService.updateOperator(operator.employeeId, updatedOperator, userId)
+            await OperatorService.updateOperator({
+                ...updatedOperator,
+                employee_id: operator.employeeId,
+                employeeId: operator.employeeId
+            })
             setAssignedPlant(newPlantCode)
             setMessage(`Successfully transferred to ${newRegion.regionName}`)
             setTimeout(() => setMessage(''), 3000)
@@ -391,7 +398,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             type="text"
                             value={smyrnaId}
                             onChange={(e) => setSmyrnaId(e.target.value)}
-                            className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         />
                     </div>
@@ -401,7 +408,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             disabled={!canEditOperator}
                         />
                     </div>
@@ -411,7 +418,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             type="tel"
                             value={GrammarUtility.formatPhone(phone)}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                            className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                             placeholder="(555) 555-5555"
                             disabled={!canEditOperator}
                         />
@@ -483,7 +490,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                                 setStatus(value)
                                 if (value === 'Active') setAssignedTrainer('')
                             }}
-                            className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                            className={SELECT_CLASS}
                             disabled={!canEditOperator}
                         >
                             <option value="Active">Active</option>
@@ -501,7 +508,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                                 type="date"
                                 value={pendingStartDate || ''}
                                 onChange={(e) => setPendingStartDate(e.target.value)}
-                                className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                                className="w-full rounded-xl border border-border-light bg-bg-secondary px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                                 disabled={!canEditOperator}
                             />
                         </div>
@@ -522,7 +529,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                         <select
                             value={position}
                             onChange={(e) => setPosition(e.target.value)}
-                            className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                            className={SELECT_CLASS}
                             disabled={!canEditOperator}
                         >
                             <option value="">Select Position</option>
@@ -539,7 +546,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                             <label>Trainer Status</label>
                             <select
                                 id="trainer-status"
-                                className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                                className={SELECT_CLASS}
                                 value={isTrainer ? 'true' : 'false'}
                                 onChange={(e) => {
                                     const isTrainerValue = e.target.value === 'true'
@@ -560,7 +567,7 @@ function OperatorDetailView({ operatorId, onClose, allowedPlantCodes }) {
                                 <select
                                     value={assignedTrainer}
                                     onChange={(e) => setAssignedTrainer(e.target.value)}
-                                    className="w-full appearance-none rounded-xl border border-border-light bg-bg-secondary px-4 py-3 pr-10 text-sm text-text-primary outline-none transition-colors focus:border-accent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%2364748b%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22M19%209l-7%207-7-7%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_12px_center] bg-no-repeat"
+                                    className={SELECT_CLASS}
                                     disabled={isTrainer || !canEditOperator}
                                 >
                                     <option value="">None</option>

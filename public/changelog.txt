@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.7] - 2026-03-31
+
+- Added custom chevron dropdown icons and consistent styling to all form inputs and selects in OperatorDetailView (Smyrna ID, name, phone, status, pending start date, position, trainer status, assigned trainer)
+- Updated changelog with v37.6 release notes
+
 ## [37.6] - 2026-03-31
 
 - Added a "Quality Reports" section header with submitted count badge above the QC reports list in ReportsView

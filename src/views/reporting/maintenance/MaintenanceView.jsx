@@ -217,9 +217,36 @@ export default function MaintenanceView() {
 
     // ── Data Loading ────────────────────────────────────────────
 
-    useEffect(() => {
-        loadLogData()
-        loadFormData()
+    const loadFormData = useCallback(async () => {
+        setFormLoading(true)
+        try {
+            const perms = await MaintenanceService.checkPermissions().catch(() => ({
+                canCreate: false,
+                canReview: false
+            }))
+            setPermissions(perms)
+            const currentUser = await UserService.getCurrentUser()
+            const [due, reviews, reviewed, submissions, forms] = await Promise.all([
+                MaintenanceService.fetchMyDueItems().catch(() => []),
+                perms.canReview ? MaintenanceService.fetchPendingReviews().catch(() => []) : [],
+                perms.canReview ? MaintenanceService.fetchReviewedSubmissions().catch(() => []) : [],
+                MaintenanceService.fetchMySubmissions(currentUser?.id).catch(() => []),
+                MaintenanceService.fetchForms({ regionCode }).catch(() => [])
+            ])
+            setDueItems(due)
+            setPendingReviews(reviews)
+            setReviewedSubmissions(reviewed)
+            setMySubmissions(submissions)
+            setMyForms(forms)
+        } catch {
+            setDueItems([])
+            setPendingReviews([])
+            setReviewedSubmissions([])
+            setMySubmissions([])
+            setMyForms([])
+        } finally {
+            setFormLoading(false)
+        }
     }, [regionCode])
 
     const loadLogData = useCallback(async () => {
@@ -244,37 +271,10 @@ export default function MaintenanceView() {
         }
     }, [regionCode])
 
-    const loadFormData = async () => {
-        setFormLoading(true)
-        try {
-            const perms = await MaintenanceService.checkPermissions().catch(() => ({
-                canCreate: false,
-                canReview: false
-            }))
-            setPermissions(perms)
-            const user = await UserService.getCurrentUser()
-            const [due, reviews, reviewed, submissions, forms] = await Promise.all([
-                MaintenanceService.fetchMyDueItems().catch(() => []),
-                perms.canReview ? MaintenanceService.fetchPendingReviews().catch(() => []) : [],
-                perms.canReview ? MaintenanceService.fetchReviewedSubmissions().catch(() => []) : [],
-                MaintenanceService.fetchMySubmissions(user?.id).catch(() => []),
-                MaintenanceService.fetchForms({ regionCode }).catch(() => [])
-            ])
-            setDueItems(due)
-            setPendingReviews(reviews)
-            setReviewedSubmissions(reviewed)
-            setMySubmissions(submissions)
-            setMyForms(forms)
-        } catch {
-            setDueItems([])
-            setPendingReviews([])
-            setReviewedSubmissions([])
-            setMySubmissions([])
-            setMyForms([])
-        } finally {
-            setFormLoading(false)
-        }
-    }
+    useEffect(() => {
+        loadLogData()
+        loadFormData()
+    }, [loadLogData, loadFormData])
 
     // ── Derived state ───────────────────────────────────────────
 

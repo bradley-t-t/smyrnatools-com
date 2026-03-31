@@ -485,6 +485,8 @@ function RolesView() {
     const handleAddPermission = useCallback(
         async (roleId, permission) => {
             if (!hasITAccess) return
+            const cellKey = `${roleId}:${permission}`
+            setSavingPerms((prev) => new Set(prev).add(cellKey))
             try {
                 const role = roles.find((r) => r.id === roleId)
                 if (!role) return
@@ -494,6 +496,12 @@ function RolesView() {
                 await updateRolePermissions(roleId, newPerms.join('\n'))
             } catch (err) {
                 setError(`Failed to add: ${err.message}`)
+            } finally {
+                setSavingPerms((prev) => {
+                    const next = new Set(prev)
+                    next.delete(cellKey)
+                    return next
+                })
             }
         },
         [hasITAccess, roles, updateRolePermissions, setError]

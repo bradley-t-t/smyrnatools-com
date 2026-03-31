@@ -14,10 +14,10 @@ function MediaViewer({ items, initialIndex = 0, onClose }) {
     const lastTouchDist = useRef(null)
     const swipeStartX = useRef(null)
 
-    const item = items[index]
+    const item = items?.[index]
     const isVideo = item?.type?.startsWith('video/')
     const hasPrev = index > 0
-    const hasNext = index < items.length - 1
+    const hasNext = items ? index < items.length - 1 : false
 
     const resetView = useCallback(() => {
         setZoom(1)
@@ -136,6 +136,8 @@ function MediaViewer({ items, initialIndex = 0, onClose }) {
         if (isVideo) return
         zoom > 1 ? resetView() : setZoom(2.5)
     }
+
+    if (!items || items.length === 0) return null
 
     return (
         <div
@@ -264,7 +266,7 @@ function MediaViewer({ items, initialIndex = 0, onClose }) {
                         const isActive = i === index
                         return (
                             <button
-                                key={i}
+                                key={att.url || i}
                                 onClick={() => goTo(i)}
                                 className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
                                     isActive

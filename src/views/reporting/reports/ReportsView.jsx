@@ -213,11 +213,6 @@ function ReportsView() {
                 : 'All Plants'
     const isMyReportsLoading = isLoadingUser || isLoadingMy || isLoadingPermissions
     const isReviewLoading = isLoadingUser || isLoadingPermissions || loadingReporterPlants || isLoadingReview
-    useEffect(() => {
-        if (tab === 'review') loadReviewReports()
-        if (tab === 'lost_loads') loadLostLoadReports()
-        if (tab === 'quality') loadQCReports()
-    }, [tab, loadReviewReports, loadLostLoadReports]) // eslint-disable-line react-hooks/exhaustive-deps
     const loadQCReports = useCallback(async () => {
         if (!user || qcLoaded) return
         setIsLoadingQC(true)
@@ -240,14 +235,21 @@ function ReportsView() {
                     }))
                 )
             }
-        } catch {}
+        } catch (err) {
+            console.error('Failed to load QC reports:', err)
+        }
         setIsLoadingQC(false)
         setQcLoaded(true)
         // Fetch current user weight in background — doesn't block loading
         UserService.getUserWeight(user.id)
             .then(setCurrentUserWeight)
             .catch(() => {})
-    }, [user])
+    }, [user, qcLoaded])
+    useEffect(() => {
+        if (tab === 'review') loadReviewReports()
+        if (tab === 'lost_loads') loadLostLoadReports()
+        if (tab === 'quality') loadQCReports()
+    }, [tab, loadReviewReports, loadLostLoadReports, loadQCReports])
     const fetchWeightForUser = useCallback(
         async (userId) => {
             if (userWeights[userId] !== undefined) return userWeights[userId]

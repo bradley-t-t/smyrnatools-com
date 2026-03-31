@@ -139,7 +139,7 @@ export function useReportsData() {
             const ids = Array.from(new Set(data.map((r) => r.user_id).filter(Boolean)))
             await fetchProfilesFor(ids)
         },
-        [user, regionType, hasAssigned, hasReviewPermission, fetchProfilesFor]
+        [user, regionType, hasAssigned, hasReviewPermission, hasOneOffReviewPermission, fetchProfilesFor]
     )
     useEffect(() => {
         async function init() {
@@ -390,7 +390,9 @@ export function useReportsData() {
                 const ids = Array.from(new Set(data.map((r) => r.user_id).filter(Boolean)))
                 await fetchProfilesFor(ids)
             }
-        } catch {}
+        } catch (err) {
+            console.error('Failed to load lost load reports:', err)
+        }
         setIsLoadingLostLoads(false)
         setLostLoadsLoaded(true)
     }, [user, isLoadingPermissions, lostLoadsLoaded, fetchProfilesFor])

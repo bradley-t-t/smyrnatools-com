@@ -29,7 +29,9 @@ function QCStrengthDetailModal({ report, getUserName, onClose, onReviewed }) {
         try {
             await Database.from('reports').update({ been_reviewed: true }).eq('id', report.id)
             onReviewed?.(report.id)
-        } catch {}
+        } catch (err) {
+            console.error('Failed to mark QC report as reviewed:', err)
+        }
         setMarking(false)
     }
 

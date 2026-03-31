@@ -83,6 +83,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
             let uploadedFiles = []
             if (files.length > 0) {
                 setUploadProgress(`Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`)
+                if (!user?.id) throw new Error('Session expired. Please log in again.')
                 uploadedFiles = await Promise.all(files.map((f) => uploadFile(f, user.id)))
             }
 
