@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import TopSection from '../../../app/components/sections/TopSection'
 import { usePreferences } from '../../../app/context/PreferencesContext'
+import { Database } from '../../../services/DatabaseService'
 import { MaintenanceLogService } from '../../../services/MaintenanceLogService'
 import { MaintenanceService } from '../../../services/MaintenanceService'
 import { PlantService } from '../../../services/PlantService'
@@ -42,9 +43,8 @@ const ICON_BG_BY_STATUS = {
 
 const TAB_DEFS = [
     { key: 'log', icon: 'fa-chart-line', label: 'Maintenance Log' },
-    { key: 'due', icon: 'fa-clipboard-list', label: 'My Tasks' },
-    { key: 'review', icon: 'fa-clipboard-check', label: 'Review', permission: 'canReview' },
-    { key: 'history', icon: 'fa-history', label: 'History' },
+    { key: 'due', icon: 'fa-clipboard-list', label: 'Recurring Forms' },
+    { key: 'review', icon: 'fa-clipboard-check', label: 'Review Forms', permission: 'canReview' },
     { key: 'manage', icon: 'fa-cog', label: 'Manage Forms' }
 ]
 
@@ -63,28 +63,23 @@ function StatusBadge({ status }) {
 
 function FormTabSkeleton({ count = 5 }) {
     return (
-        <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
-            <div className="flex flex-col gap-4">
-                {Array.from({ length: count }, (_, i) => (
-                    <div
-                        key={i}
-                        className="flex items-start gap-4 rounded-xl border border-[var(--border-light)] p-5"
-                        style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
-                    >
-                        <div className="w-12 h-12 rounded-xl bg-slate-200 animate-pulse shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <div className="h-4 w-48 rounded bg-slate-200 animate-pulse mb-2" />
-                            <div className="h-3 w-64 rounded bg-slate-200 animate-pulse mb-3" />
-                            <div className="flex gap-4">
-                                <div className="h-3 w-28 rounded bg-slate-200 animate-pulse" />
-                                <div className="h-3 w-20 rounded bg-slate-200 animate-pulse" />
-                                <div className="h-3 w-16 rounded bg-slate-200 animate-pulse" />
-                            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {Array.from({ length: count }, (_, i) => (
+                <div
+                    key={i}
+                    className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0"
+                >
+                    <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <div className="h-4 w-44 rounded bg-slate-200 animate-pulse mb-1.5" />
+                        <div className="flex items-center gap-2">
+                            <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+                            <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
                         </div>
-                        <div className="h-6 w-20 rounded-md bg-slate-200 animate-pulse shrink-0" />
                     </div>
-                ))}
-            </div>
+                    <div className="h-6 w-16 rounded bg-slate-200 animate-pulse shrink-0" />
+                </div>
+            ))}
         </div>
     )
 }
@@ -93,7 +88,7 @@ function ItemIcon({ status }) {
     const icon = ICON_BY_STATUS[status] || ICON_BY_STATUS.pending
     const bg = ICON_BG_BY_STATUS[status] || 'bg-blue-100 text-blue-500'
     return (
-        <div className={`flex items-center justify-center w-12 h-12 rounded-xl text-xl shrink-0 ${bg}`}>
+        <div className={`flex items-center justify-center w-7 h-7 rounded-lg text-[10px] shrink-0 ${bg}`}>
             <i className={`fas ${icon}`} />
         </div>
     )
@@ -123,13 +118,9 @@ function getRowDelay(index) {
 }
 
 function FormTable({ columns, rows, emptyIcon, emptyTitle, emptyMessage, emptyChildren, onRowClick }) {
-    const cellBase = 'text-[var(--text-primary)] font-medium text-left align-middle whitespace-nowrap text-sm py-4 px-5'
-    const cellSecondary = 'text-[var(--text-secondary)] text-left align-middle whitespace-nowrap text-[13px] py-4 px-5'
-    const headerCell = 'text-[var(--text-secondary)] font-semibold text-left text-xs uppercase tracking-wide py-3 px-5'
-
     if (!rows || rows.length === 0) {
         return (
-            <div className="bg-[var(--bg-primary)] rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <EmptyState icon={emptyIcon} title={emptyTitle} message={emptyMessage}>
                     {emptyChildren}
                 </EmptyState>
@@ -137,50 +128,49 @@ function FormTable({ columns, rows, emptyIcon, emptyTitle, emptyMessage, emptyCh
         )
     }
 
+    // First column = title (with icon), last column with 'status' key = badge, rest = metadata
+    const titleCol = columns.find((c) => c.highlight) || columns[0]
+    const statusCol = columns.find((c) => c.key === 'status' || c.key === 'actions')
+    const metaCols = columns.filter((c) => c !== titleCol && c !== statusCol)
+
     return (
-        <div className="overflow-x-auto">
-            <div className="bg-[var(--bg-primary)] border border-[var(--border-light)] w-full overflow-hidden rounded-t-xl">
-                <table className="border-collapse w-full">
-                    <thead>
-                        <tr
-                            className="border-b border-[var(--border-light)]"
-                            style={{ backgroundColor: 'var(--bg-secondary)' }}
-                        >
-                            {columns.map((col) => (
-                                <th
-                                    key={col.key}
-                                    className={headerCell}
-                                    style={col.width ? { width: col.width } : undefined}
-                                >
-                                    {col.label}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((row, index) => {
-                            const alternatingBg = index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)'
-                            return (
-                                <tr
-                                    key={row.id}
-                                    className="animate-slide-in-row border-b border-[var(--border-light)] cursor-pointer hover:[&>td]:bg-[var(--bg-hover)]"
-                                    style={{
-                                        animationDelay: `${getRowDelay(index)}ms`,
-                                        backgroundColor: alternatingBg
-                                    }}
-                                    onClick={() => onRowClick?.(row)}
-                                >
-                                    {columns.map((col) => (
-                                        <td key={col.key} className={col.highlight ? cellBase : cellSecondary}>
-                                            {col.render ? col.render(row) : row[col.key]}
-                                        </td>
-                                    ))}
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
-            </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {rows.map((row) => (
+                <div
+                    key={row.id}
+                    className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
+                    onClick={() => onRowClick?.(row)}
+                >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <ItemIcon status={row.status} />
+                        <div className="min-w-0">
+                            <span className="text-sm font-medium text-slate-800 block truncate">
+                                {titleCol.render ? titleCol.render(row) : row[titleCol.key]}
+                            </span>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                {metaCols.map((col, i) => {
+                                    const val = col.render ? col.render(row) : row[col.key]
+                                    if (!val || val === '—') return null
+                                    return (
+                                        <React.Fragment key={col.key}>
+                                            {i > 0 && (
+                                                <span className="text-slate-300 text-[8px] hidden sm:inline">●</span>
+                                            )}
+                                            <span className="text-xs text-slate-500">{val}</span>
+                                        </React.Fragment>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                    {statusCol && (
+                        <div className="shrink-0 ml-3">
+                            {statusCol.render ? statusCol.render(row) : row[statusCol.key]}
+                        </div>
+                    )}
+                    <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                </div>
+            ))}
         </div>
     )
 }
@@ -493,6 +483,20 @@ export default function MaintenanceView() {
         )
     }
 
+    const handleDeleteSubmission = async (e, submissionId) => {
+        e.stopPropagation()
+        if (!window.confirm('Delete this submission?')) return
+        try {
+            await Database.from('maintenance_submission_responses').delete().eq('submission_id', submissionId)
+            await Database.from('maintenance_submissions').delete().eq('id', submissionId)
+            setPendingReviews((prev) => prev.filter((r) => r.id !== submissionId))
+            setReviewedSubmissions((prev) => prev.filter((r) => r.id !== submissionId))
+            setMySubmissions((prev) => prev.filter((r) => r.id !== submissionId))
+        } catch (err) {
+            console.error('Failed to delete submission:', err)
+        }
+    }
+
     const reviewColumns = [
         { highlight: true, key: 'title', label: 'Form', render: (row) => row.maintenance_forms?.title || '—' },
         {
@@ -523,13 +527,37 @@ export default function MaintenanceView() {
             label: 'Status',
             render: (row) => <StatusBadge status={row.status} />,
             width: '120px'
+        },
+        {
+            key: 'actions',
+            label: '',
+            render: (row) => (
+                <button
+                    type="button"
+                    onClick={(e) => handleDeleteSubmission(e, row.id)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors border-none bg-transparent cursor-pointer"
+                    title="Delete"
+                >
+                    <i className="fas fa-trash-alt text-xs" />
+                </button>
+            ),
+            width: '50px'
         }
     ]
 
     const renderReviewTab = () => {
         if (formLoading) return <FormTabSkeleton />
 
-        const allReviews = [...pendingReviews, ...reviewedSubmissions].sort((a, b) => {
+        const allItems = [...pendingReviews, ...reviewedSubmissions, ...mySubmissions]
+        // Deduplicate by id
+        const seen = new Set()
+        const deduped = allItems.filter((item) => {
+            if (seen.has(item.id)) return false
+            seen.add(item.id)
+            return true
+        })
+        // Pending first, then by date
+        deduped.sort((a, b) => {
             if (a.status === 'submitted' && b.status !== 'submitted') return -1
             if (a.status !== 'submitted' && b.status === 'submitted') return 1
             return new Date(b.submitted_at || b.reviewed_at) - new Date(a.submitted_at || a.reviewed_at)
@@ -538,10 +566,10 @@ export default function MaintenanceView() {
         return (
             <FormTable
                 columns={reviewColumns}
-                rows={allReviews}
+                rows={deduped}
                 emptyIcon="fa-clipboard-check"
-                emptyTitle="No submissions to review"
-                emptyMessage="Submissions requiring review will appear here."
+                emptyTitle="No submissions"
+                emptyMessage="Submissions and your history will appear here."
                 onRowClick={(row) =>
                     row.status === 'submitted'
                         ? handleItemClick({ ...row, form: row.maintenance_forms, isReview: true })
@@ -676,7 +704,10 @@ export default function MaintenanceView() {
                                 : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
                         }`}
                         style={isActive ? { backgroundColor: accentColor } : undefined}
-                        onClick={() => setActiveTab(tab.key)}
+                        onClick={() => {
+                            setActiveTab(tab.key)
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                        }}
                         type="button"
                     >
                         <i className={`fas ${tab.icon} text-xs`} />
@@ -720,7 +751,7 @@ export default function MaintenanceView() {
         ) : null
 
     return (
-        <div className="min-h-full w-full" style={{ background: 'var(--bg-secondary)' }}>
+        <div className="min-h-screen w-full" style={{ background: 'var(--bg-secondary)' }}>
             <TopSection
                 isLoading={logLoading}
                 title="Maintenance"
@@ -782,7 +813,6 @@ export default function MaintenanceView() {
                 {activeTab === 'review' && permissions.canReview && (
                     <div className="p-4 md:p-8">{renderReviewTab()}</div>
                 )}
-                {activeTab === 'history' && <div className="p-4 md:p-8">{renderHistoryTab()}</div>}
                 {activeTab === 'manage' && <div className="p-4 md:p-8">{renderManageTab()}</div>}
             </div>
         </div>
