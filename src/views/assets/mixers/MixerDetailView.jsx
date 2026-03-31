@@ -923,6 +923,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                         <option value="waiting_for_shop">Waiting For Shop</option>
                                         <option value="down_in_yard">Down In Yard</option>
                                         <option value="third_party">Third Party Work</option>
+                                        <option value="ready_for_pickup">Ready For Pickup</option>
                                     </select>
                                 </div>
                                 <div
@@ -933,6 +934,8 @@ function MixerDetailView({ mixerId, onClose }) {
                                         'The shop has to come fix it where it is - it cannot move.'}
                                     {shopStatus === 'waiting_for_shop' && 'We need to move it to the shop for repairs.'}
                                     {shopStatus === 'third_party' && 'Being painted or at a third party shop.'}
+                                    {shopStatus === 'ready_for_pickup' &&
+                                        'Repairs complete — ready to be picked up from the shop.'}
                                     {(shopStatus === 'in_shop' || !shopStatus) &&
                                         'Currently at the shop being worked on.'}
                                 </div>

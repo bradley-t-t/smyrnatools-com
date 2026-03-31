@@ -56,12 +56,13 @@ const mixerConfig = {
                 if (item.status === 'Active') return 1
                 if (item.status === 'Spare') return 2
                 if (item.status === 'In Shop') {
-                    if (item.shopStatus === 'in_shop' || !item.shopStatus) return 3
-                    if (item.shopStatus === 'waiting_for_shop') return 4
-                    if (item.shopStatus === 'down_in_yard') return 5
-                    if (item.shopStatus === 'third_party') return 6
+                    if (item.shopStatus === 'ready_for_pickup') return 3
+                    if (item.shopStatus === 'in_shop' || !item.shopStatus) return 4
+                    if (item.shopStatus === 'waiting_for_shop') return 5
+                    if (item.shopStatus === 'down_in_yard') return 6
+                    if (item.shopStatus === 'third_party') return 7
                 }
-                if (item.status === 'Retired') return 7
+                if (item.status === 'Retired') return 8
                 return 8
             }
             const aOrder = getStatusOrder(a)
@@ -193,6 +194,8 @@ const mixerConfig = {
                             return 'Waiting For Shop'
                         case 'third_party':
                             return 'Third Party Work'
+                        case 'ready_for_pickup':
+                            return 'Ready For Pickup'
                         case 'in_shop':
                         default:
                             return 'In Shop'
@@ -321,6 +324,7 @@ const mixerConfig = {
         'Not Verified': (item) => !item.isVerified?.() && item.status !== 'Retired',
         'Open Issues': (item) => Number(item.openIssuesCount || 0) > 0,
         'Past Due Service': (item) => AssetStatsUtility.isServiceOverdue(item.lastServiceDate),
+        'Ready For Pickup': (item) => item.status === 'In Shop' && item.shopStatus === 'ready_for_pickup',
         'Third Party Work': (item) => item.status === 'In Shop' && item.shopStatus === 'third_party',
         Verified: (item) => item.isVerified?.(),
         'Waiting For Shop': (item) => item.status === 'In Shop' && item.shopStatus === 'waiting_for_shop'
@@ -331,6 +335,7 @@ const mixerConfig = {
         Active: 'bg-[#dcfce7] text-[#166534]',
         'Down In Yard': 'bg-[#fee2e2] text-[#dc2626]',
         'In Shop': 'bg-[#dbeafe] text-[#1e40af]',
+        'Ready For Pickup': 'bg-[#dcfce7] text-[#166534]',
         Spare: 'bg-[#f3e8ff] text-[#7c3aed]',
         'Third Party Work': 'bg-[#fef9c3] text-[#a16207]',
         'Waiting For Shop': 'bg-[#ffedd5] text-[#c2410c]'
@@ -353,6 +358,7 @@ const mixerConfig = {
         'Waiting For Shop',
         'Down In Yard',
         'Third Party Work',
+        'Ready For Pickup',
         'Retired',
         'Past Due Service',
         'Verified',

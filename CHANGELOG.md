@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.1] - 2026-03-31
+
+- Added "Ready For Pickup" as a new mixer shop sub-status across the config, card, and detail view with its own color, filter, sort priority, description text, and badge styling
+- Updated mixer sort order so "Ready For Pickup" ranks highest among In Shop sub-statuses, pushing other shop statuses and Retired down accordingly
+
 ## [38.0] - 2026-03-31
 
 - Added Ticket No. and Truck No. fields to the Third Party Lab report form, detail modal, and report type definition

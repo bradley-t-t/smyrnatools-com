@@ -15,6 +15,7 @@ const STATUS_COLORS = {
 /** Shop sub-status overrides for In Shop mixers. */
 const SHOP_SUB_STATUS_COLORS = {
     down_in_yard: 'var(--error)',
+    ready_for_pickup: 'var(--success)',
     third_party: '#7c3aed',
     waiting_for_shop: 'var(--warning)'
 }
@@ -61,6 +62,8 @@ function MixerCard({
                 return 'Waiting For Shop'
             case 'third_party':
                 return 'Third Party Work'
+            case 'ready_for_pickup':
+                return 'Ready For Pickup'
             case 'in_shop':
             default:
                 return 'In Shop'
