@@ -624,6 +624,12 @@ function ReportsView() {
                             </div>
                         ) : (
                             <div>
+                                <div className="flex items-center gap-3 mb-2 px-1">
+                                    <span className="text-sm font-bold text-slate-700">Quality Reports</span>
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-slate-600 bg-slate-100">
+                                        {qcReports.length} submitted
+                                    </span>
+                                </div>
                                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                                     {qcReports.map((report) => {
                                         const submittedLabel = report.submittedAt

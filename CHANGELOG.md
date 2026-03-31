@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.6] - 2026-03-31
+
+- Added a "Quality Reports" section header with submitted count badge above the QC reports list in ReportsView
+- Updated changelog with v37.5 release notes covering the MaintenanceView redesign
+
 ## [37.5] - 2026-03-31
 
 - Redesigned MaintenanceView FormTable from a traditional HTML table to a compact list-based layout with inline metadata, status badges, and mobile-friendly chevron indicators

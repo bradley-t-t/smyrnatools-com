@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.5] - 2026-03-31
+
+- Redesigned MaintenanceView FormTable from a traditional HTML table to a compact list-based layout with inline metadata, status badges, and mobile-friendly chevron indicators
+- Replaced the card-style FormTabSkeleton with a streamlined list skeleton matching the new FormTable layout
+- Renamed maintenance tabs: "My Tasks" to "Recurring Forms", "Review" to "Review Forms"
+- Removed the standalone "History" tab and merged user submissions into the Review Forms tab with deduplication
+- Added delete functionality for maintenance submissions with confirmation dialog and cascading deletion of responses
+- Consolidated the Review tab to show pending reviews, reviewed submissions, and personal submissions in a single deduplicated list sorted by status and date
+- Shrunk status icons from 48px to 28px with smaller icon font size for a more compact row density
+- Added scroll-to-top behavior when switching between maintenance tabs
+- Changed outer container from min-h-full to min-h-screen for full viewport coverage
+
 ## [37.4] - 2026-03-31
 
 - Added a fullscreen MediaViewer component with zoom/pan, pinch-to-zoom, swipe navigation, keyboard shortcuts, and thumbnail strip for browsing image/video attachments
