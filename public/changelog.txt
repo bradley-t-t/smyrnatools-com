@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [37.9] - 2026-03-31
+
+- Added null-safety to MediaViewer: optional chaining on items array access, early return when items is null or empty, and stable thumbnail keys using attachment URL
+- Added error logging to QCStrengthDetailModal and ThirdPartyLabDetailModal when marking a report as reviewed fails, replacing silent empty catch blocks
+- Added a user session guard in ThirdPartyLabReportModal before file upload begins, throwing a descriptive error if the user ID is missing
+- Fixed missing `hasOneOffReviewPermission` in the useReportsData fetch callback dependency array
+- Added error logging for failed lost load report fetches in useReportsData, replacing a silent empty catch block
+
 ## [37.7] - 2026-03-31
 
 - Added custom chevron dropdown icons and consistent styling to all form inputs and selects in OperatorDetailView (Smyrna ID, name, phone, status, pending start date, position, trainer status, assigned trainer)

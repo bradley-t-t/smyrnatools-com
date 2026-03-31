@@ -108,13 +108,6 @@ function QCStrengthReportModal({ onClose, onSubmitted, user }) {
 
     const handleSubmit = async () => {
         setError('')
-        const missingRequired = REPORT_DEF.fields
-            .filter((f) => f.required && !formData[f.name]?.toString().trim())
-            .map((f) => f.label)
-        if (missingRequired.length > 0) {
-            setError(`Required: ${missingRequired.slice(0, 3).join(', ')}${missingRequired.length > 3 ? '...' : ''}`)
-            return
-        }
         setSubmitting(true)
         try {
             const { monday, saturday } = getCurrentWeekBounds()

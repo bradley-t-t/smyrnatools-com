@@ -221,42 +221,46 @@ function StepperHeader({
     onSubmit
 }) {
     return (
-        <div className="sticky top-0 z-50 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-8 sm:py-4">
-            <button
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 text-lg hover:bg-slate-200 transition-colors"
-                onClick={onBack}
-                type="button"
-            >
-                <i className="fas fa-times" />
-            </button>
-            <div className="ml-4 flex flex-1 flex-col gap-1">
-                <span className="text-base font-bold text-slate-800 sm:text-lg">{formTitle}</span>
-                <span className="text-xs text-slate-500 sm:text-sm">Due {dueDate}</span>
-            </div>
-            <div className="mr-4 flex min-w-[120px] flex-col gap-2 sm:min-w-[150px]">
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                    <div
-                        className="h-full bg-accent transition-[width] duration-300"
-                        style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
-                    />
-                </div>
-                <span className="text-center text-xs font-semibold text-slate-500">
-                    {currentStep + 1} of {totalSteps}
-                </span>
-            </div>
-            <div className="flex shrink-0 gap-2">
+        <div className="sticky top-0 z-50 border-b border-gray-200 bg-white px-3 py-2.5 shadow-sm sm:px-8 sm:py-4">
+            {/* Top row: close, title, progress */}
+            <div className="flex items-center gap-3">
                 <button
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-accent text-white hover:bg-accent-hover"
+                    className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 text-lg hover:bg-slate-200 transition-colors shrink-0"
+                    onClick={onBack}
+                    type="button"
+                >
+                    <i className="fas fa-times" />
+                </button>
+                <div className="flex flex-1 flex-col gap-0.5 min-w-0">
+                    <span className="text-sm font-bold text-slate-800 sm:text-lg truncate">{formTitle}</span>
+                    <span className="text-[10px] text-slate-500 sm:text-sm">Due {dueDate}</span>
+                </div>
+                <div className="flex flex-col gap-1 shrink-0 w-20 sm:w-[150px]">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                            className="h-full bg-accent transition-[width] duration-300"
+                            style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                        />
+                    </div>
+                    <span className="text-center text-[10px] sm:text-xs font-semibold text-slate-500">
+                        {currentStep + 1} of {totalSteps}
+                    </span>
+                </div>
+            </div>
+            {/* Bottom row: prev/next buttons — full width on mobile */}
+            <div className="flex gap-2 mt-2">
+                <button
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-30 disabled:cursor-not-allowed bg-slate-100 text-slate-600 hover:bg-slate-200"
                     onClick={onPrevious}
                     disabled={isFirstStep}
                     type="button"
                 >
-                    <i className="fas fa-arrow-left" />
+                    <i className="fas fa-arrow-left text-xs" />
                     <span>Prev</span>
                 </button>
                 {isLastStep ? (
                     <button
-                        className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 text-white hover:bg-emerald-600"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-500 text-white hover:bg-emerald-600"
                         onClick={onSubmit}
                         disabled={submitting}
                         type="button"
@@ -266,18 +270,18 @@ function StepperHeader({
                         ) : (
                             <>
                                 <span>{isEditing ? 'Update' : 'Submit'}</span>
-                                <i className="fas fa-check" />
+                                <i className="fas fa-check text-xs" />
                             </>
                         )}
                     </button>
                 ) : (
                     <button
-                        className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:bg-accent-hover transition-colors"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:bg-accent-hover transition-colors"
                         onClick={onNext}
                         type="button"
                     >
                         <span>Next</span>
-                        <i className="fas fa-arrow-right" />
+                        <i className="fas fa-arrow-right text-xs" />
                     </button>
                 )}
             </div>

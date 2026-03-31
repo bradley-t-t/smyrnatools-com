@@ -47,6 +47,8 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
     const [labCompanyName, setLabCompanyName] = useState('')
     const [customer, setCustomer] = useState('')
     const [orderNo, setOrderNo] = useState('')
+    const [ticketNo, setTicketNo] = useState('')
+    const [truckNo, setTruckNo] = useState('')
     const [reportDate, setReportDate] = useState('')
     const [labIssue, setLabIssue] = useState('')
     const [files, setFiles] = useState([])
@@ -71,12 +73,6 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
 
     const handleSubmit = async () => {
         setError('')
-        if (!labCompanyName.trim()) return setError('Lab Company Name is required')
-        if (!customer.trim()) return setError('Customer is required')
-        if (!orderNo.trim()) return setError('Order No. is required')
-        if (!reportDate) return setError('Date is required')
-        if (!labIssue.trim()) return setError('Please describe what the lab did wrong')
-
         setSubmitting(true)
         try {
             // Upload files
@@ -98,6 +94,8 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                     lab_company_name: labCompanyName.trim(),
                     customer: customer.trim(),
                     order_no: orderNo.trim(),
+                    ticket_no: ticketNo.trim(),
+                    truck_no: truckNo.trim(),
                     report_date: reportDate,
                     lab_issue: labIssue.trim(),
                     attachments: uploadedFiles
@@ -157,7 +155,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                         {/* Lab Company Name */}
                         <div>
                             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                                Lab Company Name <span className="text-red-400">*</span>
+                                Lab Company Name{' '}
                             </label>
                             <input
                                 type="text"
@@ -170,7 +168,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                         {/* Customer */}
                         <div>
                             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                                Customer <span className="text-red-400">*</span>
+                                Customer{' '}
                             </label>
                             <input
                                 type="text"
@@ -183,7 +181,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                         {/* Order No */}
                         <div>
                             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                                Order No. <span className="text-red-400">*</span>
+                                Order No.{' '}
                             </label>
                             <input
                                 type="text"
@@ -193,10 +191,36 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                                 placeholder="Order number"
                             />
                         </div>
+                        {/* Ticket No */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                                Ticket No.
+                            </label>
+                            <input
+                                type="text"
+                                value={ticketNo}
+                                onChange={(e) => setTicketNo(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors"
+                                placeholder="Ticket number"
+                            />
+                        </div>
+                        {/* Truck No */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                                Truck No.
+                            </label>
+                            <input
+                                type="text"
+                                value={truckNo}
+                                onChange={(e) => setTruckNo(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-400 transition-colors"
+                                placeholder="Truck number"
+                            />
+                        </div>
                         {/* Date */}
                         <div>
                             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                                Date <span className="text-red-400">*</span>
+                                Date{' '}
                             </label>
                             <input
                                 type="date"
@@ -208,7 +232,7 @@ function ThirdPartyLabReportModal({ onClose, onSubmitted, user }) {
                         {/* Lab Issue */}
                         <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
-                                What did the lab do wrong? <span className="text-red-400">*</span>
+                                What did the lab do wrong?{' '}
                             </label>
                             <textarea
                                 value={labIssue}

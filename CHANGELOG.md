@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.0] - 2026-03-31
+
+- Added Ticket No. and Truck No. fields to the Third Party Lab report form, detail modal, and report type definition
+- Removed all required field validation from QC Strength and Third Party Lab report modals, making every field optional
+- Removed required asterisk indicators from Third Party Lab report form labels
+- Redesigned the maintenance form stepper header for better mobile responsiveness with full-width nav buttons, compact layout, and truncated titles
+- Added user-facing error messages for failed AI suggestions and description improvements in the list add view
+- Wrapped plant manager AI validation in a try/catch so validation failures no longer block report submission
+
 ## [37.9] - 2026-03-31
 
 - Added null-safety to MediaViewer: optional chaining on items array access, early return when items is null or empty, and stable thumbnail keys using attachment URL

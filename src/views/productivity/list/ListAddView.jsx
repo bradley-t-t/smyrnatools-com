@@ -36,6 +36,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const [errors, setErrors] = useState({})
     const [plants, setPlants] = useState([])
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
+    const [aiError, setAiError] = useState(null)
     const [aiSuggestions, setAiSuggestions] = useState([])
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
@@ -95,6 +96,9 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
             setShowSuggestions(suggestions.length > 0)
         } catch {
             setAiSuggestions([])
+            setShowSuggestions(false)
+            setAiError('Suggestions unavailable')
+            setTimeout(() => setAiError(null), 3000)
         } finally {
             setIsLoadingSuggestions(false)
         }
@@ -116,6 +120,8 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                 }
             }
         } catch {
+            setAiError('Failed to improve description')
+            setTimeout(() => setAiError(null), 3000)
         } finally {
             setIsImprovingDescription(false)
         }
@@ -251,6 +257,12 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                         required
                                         autoFocus
                                     />
+                                    {aiError && (
+                                        <div className="flex items-center gap-2 mt-1 text-red-600 text-xs bg-red-50 rounded-lg px-3 py-2">
+                                            <i className="fas fa-exclamation-triangle text-[10px]" />
+                                            <span>{aiError}</span>
+                                        </div>
+                                    )}
                                     {showSuggestions && aiSuggestions.length > 0 && (
                                         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
                                             <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">

@@ -38,6 +38,8 @@ function ThirdPartyLabDetailModal({ report, getUserName, onClose, onReviewed }) 
         { label: 'Lab Company Name', value: data.lab_company_name },
         { label: 'Customer', value: data.customer },
         { label: 'Order No.', value: data.order_no },
+        { label: 'Ticket No.', value: data.ticket_no },
+        { label: 'Truck No.', value: data.truck_no },
         {
             label: 'Date',
             value: data.report_date

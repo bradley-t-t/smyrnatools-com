@@ -152,30 +152,30 @@ const oneOffReportTypes = [
         reviewPermission: 'reports.review.qc_strength',
         fields: [
             // Identification
-            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
-            { label: 'Mix ID', name: 'mix_id', required: true, type: 'text' },
-            { label: 'PSI', name: 'psi', required: true, type: 'number' },
-            { label: 'Ticket No.', name: 'ticket_no', required: true, type: 'text' },
+            { label: 'Order No.', name: 'order_no', required: false, type: 'text' },
+            { label: 'Mix ID', name: 'mix_id', required: false, type: 'text' },
+            { label: 'PSI', name: 'psi', required: false, type: 'number' },
+            { label: 'Ticket No.', name: 'ticket_no', required: false, type: 'text' },
             // Job info
-            { label: 'Project', name: 'project', required: true, type: 'text' },
-            { label: 'Contractor', name: 'contractor', required: true, type: 'text' },
-            { label: 'Sample Location', name: 'sample_location', required: true, type: 'text' },
-            { label: 'Location of Pour', name: 'location_of_pour', required: true, type: 'text' },
+            { label: 'Project', name: 'project', required: false, type: 'text' },
+            { label: 'Contractor', name: 'contractor', required: false, type: 'text' },
+            { label: 'Sample Location', name: 'sample_location', required: false, type: 'text' },
+            { label: 'Location of Pour', name: 'location_of_pour', required: false, type: 'text' },
             // Delivery
-            { label: 'Truck No.', name: 'truck_no', required: true, type: 'text' },
-            { label: 'Date Molded', name: 'date_molded', required: true, type: 'date' },
-            { label: 'Time Batched', name: 'time_batched', required: true, type: 'time' },
-            { label: 'Time Sampled', name: 'time_sampled', required: true, type: 'time' },
+            { label: 'Truck No.', name: 'truck_no', required: false, type: 'text' },
+            { label: 'Date Molded', name: 'date_molded', required: false, type: 'date' },
+            { label: 'Time Batched', name: 'time_batched', required: false, type: 'time' },
+            { label: 'Time Sampled', name: 'time_sampled', required: false, type: 'time' },
             // Test results
-            { label: 'Slump / Spread (inches)', name: 'slump_spread', required: true, type: 'text' },
-            { label: 'Air Content (%)', name: 'air_content', required: true, type: 'text' },
-            { label: 'Unit Weight', name: 'unit_weight', required: true, type: 'text' },
-            { label: 'Concrete Temp (\u00B0F)', name: 'concrete_temp', required: true, type: 'text' },
-            { label: 'Atmospheric Temp (\u00B0F)', name: 'atmospheric_temp', required: true, type: 'text' },
+            { label: 'Slump / Spread (inches)', name: 'slump_spread', required: false, type: 'text' },
+            { label: 'Air Content (%)', name: 'air_content', required: false, type: 'text' },
+            { label: 'Unit Weight', name: 'unit_weight', required: false, type: 'text' },
+            { label: 'Concrete Temp (\u00B0F)', name: 'concrete_temp', required: false, type: 'text' },
+            { label: 'Atmospheric Temp (\u00B0F)', name: 'atmospheric_temp', required: false, type: 'text' },
             // Cylinder info
-            { label: 'No. of Cylinders', name: 'num_cylinders', required: true, type: 'number' },
-            { label: 'Set Identifying Number', name: 'set_id_number', required: true, type: 'text' },
-            { label: 'Total Sets', name: 'total_sets', required: true, type: 'number' },
+            { label: 'No. of Cylinders', name: 'num_cylinders', required: false, type: 'number' },
+            { label: 'Set Identifying Number', name: 'set_id_number', required: false, type: 'text' },
+            { label: 'Total Sets', name: 'total_sets', required: false, type: 'number' },
             // Water
             { label: 'Water Added on Job', name: 'water_added_on_job', required: false, type: 'text' },
             { label: 'Water Requested By', name: 'water_requested_by', required: false, type: 'text' },
@@ -183,18 +183,18 @@ const oneOffReportTypes = [
             {
                 label: 'Technician',
                 name: 'technician',
-                required: true,
+                required: false,
                 type: 'role_select',
                 roleName: 'Quality Control Technician'
             },
             {
                 label: 'Initial Curing Conditions',
                 name: 'initial_curing_conditions',
-                required: true,
+                required: false,
                 type: 'select',
                 options: ['Moisture Caps', 'Moisture Caps & Cooler', 'Cooler', 'Curing Tank']
             },
-            { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: true, type: 'text' }
+            { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: false, type: 'text' }
         ]
     },
     {
@@ -206,11 +206,13 @@ const oneOffReportTypes = [
         permission: 'reports.qc_strength',
         reviewPermission: 'reports.review.qc_strength',
         fields: [
-            { label: 'Lab Company Name', name: 'lab_company_name', required: true, type: 'text' },
-            { label: 'Customer', name: 'customer', required: true, type: 'text' },
-            { label: 'Order No.', name: 'order_no', required: true, type: 'text' },
-            { label: 'Date', name: 'report_date', required: true, type: 'date' },
-            { label: 'What did the lab do wrong?', name: 'lab_issue', required: true, type: 'textarea' },
+            { label: 'Lab Company Name', name: 'lab_company_name', required: false, type: 'text' },
+            { label: 'Customer', name: 'customer', required: false, type: 'text' },
+            { label: 'Order No.', name: 'order_no', required: false, type: 'text' },
+            { label: 'Ticket No.', name: 'ticket_no', required: false, type: 'text' },
+            { label: 'Truck No.', name: 'truck_no', required: false, type: 'text' },
+            { label: 'Date', name: 'report_date', required: false, type: 'date' },
+            { label: 'What did the lab do wrong?', name: 'lab_issue', required: false, type: 'textarea' },
             { label: 'Attachments', name: 'attachments', required: false, type: 'file_upload' }
         ]
     }

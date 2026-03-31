@@ -201,10 +201,14 @@ function ReportsSubmitView({
         if (report.name === 'plant_manager') {
             setAiValidating(true)
             setAiValidationProgress({ current: 0, total: 1 })
-            const { AIService } = await import('../../../services/AIService')
-            const validation = await AIService.validatePlantManagerMetrics(form)
-            setAiValidating(false)
-            if (!validation.error && validation.needsReview) return
+            try {
+                const { AIService } = await import('../../../services/AIService')
+                const validation = await AIService.validatePlantManagerMetrics(form)
+                setAiValidating(false)
+                if (!validation.error && validation.needsReview) return
+            } catch {
+                setAiValidating(false)
+            }
             setShowConfirmationModal(true)
             return
         }
