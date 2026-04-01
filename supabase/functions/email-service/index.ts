@@ -432,7 +432,7 @@ Deno.serve(async (req) => {
                     debugMode
                 });
 
-                return jsonResponse({...result, debug: debugMode, regionName: region.region_name, intendedRecipients}, headers);
+                return jsonResponse({...result, debug: debugMode, regionName: region.region_name, intendedRecipients: toRecipients.length}, headers);
 
             } catch (err) {
                 console.error("notify-report-submitted failed:", err);
