@@ -71,7 +71,9 @@ const DATA_FONT = buildFont(11, COLORS.slate700)
 /* ── String / date normalization ─────────────────────────────────────── */
 
 export function normUpper(code) {
-    return String(code || '').trim().toUpperCase()
+    return String(code || '')
+        .trim()
+        .toUpperCase()
 }
 
 export function normNumeric(code) {
@@ -520,7 +522,9 @@ export function addDataRow(worksheet, row, values, startCol = 2, isAlt = false) 
             cell.alignment = alignMiddle(value.align || 'left')
             cell.font = value.color
                 ? buildFont(11, value.color, { bold: value.bold })
-                : value.richText ? undefined : DATA_FONT
+                : value.richText
+                  ? undefined
+                  : DATA_FONT
         } else {
             cell.value = value
             cell.font = DATA_FONT
@@ -601,7 +605,16 @@ export function addReportHeader(worksheet, workbook, { logoBase64, title, subtit
  * Render a single metric row inside an overview section.
  * Extracted from addOverviewSection to keep the group loop readable.
  */
-function renderOverviewMetric(worksheet, row, col, metric, isAlt, resolvedGetChangeText, resolvedGetChangeValue, resolvedAddChangePct) {
+function renderOverviewMetric(
+    worksheet,
+    row,
+    col,
+    metric,
+    isAlt,
+    resolvedGetChangeText,
+    resolvedGetChangeValue,
+    resolvedAddChangePct
+) {
     const bgColor = isAlt ? COLORS.snow : null
 
     const labelCell = worksheet.getCell(row, col)
@@ -610,11 +623,12 @@ function renderOverviewMetric(worksheet, row, col, metric, isAlt, resolvedGetCha
     labelCell.alignment = alignMiddle('left')
     if (bgColor) labelCell.fill = solidFill(bgColor)
 
-    const changeInfo = metric.prev !== undefined
-        ? metric.useValue
-            ? resolvedGetChangeValue(metric.value, metric.prev, metric.invertChange || false)
-            : resolvedGetChangeText(metric.value, metric.prev, metric.invertChange || false)
-        : { color: null, text: '' }
+    const changeInfo =
+        metric.prev !== undefined
+            ? metric.useValue
+                ? resolvedGetChangeValue(metric.value, metric.prev, metric.invertChange || false)
+                : resolvedGetChangeText(metric.value, metric.prev, metric.invertChange || false)
+            : { color: null, text: '' }
     const changeCell = worksheet.getCell(row, col + 1)
     resolvedAddChangePct(changeCell, changeInfo, isAlt)
     if (bgColor && !changeInfo?.text) changeCell.fill = solidFill(bgColor)
@@ -677,7 +691,16 @@ export function addOverviewSection(
         row++
 
         group.metrics.forEach((metric, idx) => {
-            renderOverviewMetric(worksheet, row, col, metric, idx % 2 === 1, resolvedGetChangeText, resolvedGetChangeValue, resolvedAddChangePct)
+            renderOverviewMetric(
+                worksheet,
+                row,
+                col,
+                metric,
+                idx % 2 === 1,
+                resolvedGetChangeText,
+                resolvedGetChangeValue,
+                resolvedAddChangePct
+            )
             row++
         })
         row++
