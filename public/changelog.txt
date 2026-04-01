@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.3] - 2026-04-01
+
+- Refactored LeaderboardsUtility by extracting reusable helpers — countActiveAssetsForPlant, extractAssignedOperatorIds, countMatchingOperators, computeAverageCleanliness, deduplicateReportsByWeek, buildWeeklyTimeline, and computeHoursAdjustmentMetrics — significantly reducing duplication and improving readability
+- Extracted all magic numbers and string literals in LeaderboardsUtility into named constants (RETIRED_STATUS, ACTIVE_STATUS, TARGET_YPH, YARDS_PER_LOAD, WORK_DAYS_PER_WEEK, etc.)
+- Added CATEGORY_CONFIG lookup table to replace the switch statement in getCategoryData, making category definitions declarative and centralized
+- Cleaned up formatting in ExportUtility: reformatted multi-argument function calls (renderOverviewMetric), ternary expressions (changeInfo, cell font assignment), and normUpper to follow consistent multi-line style
+
 ## [38.2] - 2026-04-01
 
 - Added "Ready For Pickup" as a new mixer shop sub-status across the config, card, and detail view with its own color, filter, sort priority, description text, and badge styling

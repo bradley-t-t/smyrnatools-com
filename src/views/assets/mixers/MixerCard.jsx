@@ -35,7 +35,7 @@ function MixerCard({
     onShowIssueModal
 }) {
     const isServiceOverdue = AssetStatsUtility.isServiceOverdue(mixer.lastServiceDate)
-    const isChipOverdue = AssetStatsUtility.isChipOverdue(mixer.lastChipDate)
+    const isChipOverdue = AssetStatsUtility.isServiceOverdue(mixer.lastChipDate, 90)
     const isVerified =
         typeof mixer.isVerified === 'function'
             ? mixer.isVerified(mixer.latestHistoryDate)
