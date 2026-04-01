@@ -107,7 +107,7 @@ class AuthServiceImpl {
             return { userId: null, valid: false }
         }
         if (!sessionId) {
-            return { userId, valid: true }
+            return { userId: null, valid: false }
         }
         try {
             const { json } = await APIUtility.post(
@@ -127,7 +127,7 @@ class AuthServiceImpl {
             }
             return { userId, valid: true }
         } catch {
-            return { userId, valid: true }
+            return { userId: null, valid: false }
         }
     }
     /** Clears all local auth state from sessionStorage. */
