@@ -1,6 +1,9 @@
 {
-  "version": "38.5",
+  "version": "38.5.1",
   "projectName": "smyrnatools.com",
   "branch": "core",
-  "provider": "claude-code"
+  "provider": "claude-code",
+  "cleanLogs": true,
+  "cleanCss": false,
+  "hooks": {}
 }

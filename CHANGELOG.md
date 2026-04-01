@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.1] - 2026-04-01
+
+- Fixed line length in OperatorService.createOperator by splitting the UUID auto-generation assignment onto its own line for readability
+- Updated README to document the Managers module, noting manager profiles with detail views and card displays
+- Expanded reporting documentation to cover the new Safety/Environmental Representative weekly report and three one-off report types: Lost Load, Quality Control Strength, and Third Party Lab Reports
+- Added four new AI prompt categories to README: GM Report Analysis, GM Report Export Summary, Task Improvement, and District Summary
+- Added Productivity Tools section to README covering Documents, Lists & Tasks, and Plan & Timeline modules
+- Added Calculators section to README documenting five concrete industry tools: Proportions, Set Time, Slump Adjustment, Water Cement Ratio, and Yardage Per Hour
+- Added Messaging section to README describing the in-app conversation system with MessagesContext and MessagesProvider for unread count tracking
+- Updated README architecture notes to include Messages context alongside Auth, Preferences, and Tutorials
+- Revised theme documentation to reflect two primary themes (dark and light) with a mode switch, replacing the previous multi-theme list
+- Updated README project metrics to reflect current counts: 23 views, 22 services, 38 hooks, 8 weekly + 3 one-off report formats
+
 ## [38.5] - 2026-04-01
 
 - smyrnatools.com Release v38.5

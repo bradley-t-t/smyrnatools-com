@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5] - 2026-04-01
+
+- smyrnatools.com Release v38.5
+
 ## [38.4] - 2026-04-01
 
 - Refactored AssetStatsUtility by extracting module-level constants — RETIRED_STATUSES, STATUS_PRIORITY, and VALID_STATUSES — eliminating inline duplicates across compareByStatusThenNumber, getStatusCounts, and sortWithRetiredLast

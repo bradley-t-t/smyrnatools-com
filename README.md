@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=core" alt="CI Status" />
-  <img src="https://img.shields.io/badge/v25.1-release-1e3a5f" alt="Version" />
+  <img src="https://img.shields.io/badge/v38.4-release-1e3a5f" alt="Version" />
   <img src="https://img.shields.io/badge/React-19.1-61DAFB?logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind" />
@@ -89,11 +89,13 @@ The operator module covers the full employment lifecycle:
 
 Operators are cross-referenced throughout — a mixer shows its assigned operator, an operator shows their assigned truck, and the dashboard breaks down operator status by plant.
 
+The Managers module provides manager profiles with detail views and card displays, giving visibility into management assignments across the organization.
+
 ---
 
 ## Reporting
 
-Weekly reporting is mandatory and feeds into plant efficiency scores. Seven report types:
+Weekly reporting is mandatory and feeds into plant efficiency scores. Eight weekly report types:
 
 | Report | Submitted By | Contains |
 |--------|-------------|----------|
@@ -104,6 +106,9 @@ Weekly reporting is mandatory and feeds into plant efficiency scores. Seven repo
 | **Aggregate Production** | Aggregate locations | Material quantities (sand, concrete, limestone, etc.) |
 | **Ready Mix Instructor** | Training managers | Trainee counts, hiring pipeline, training progress |
 | **District Manager** | District managers | Daily recaps (Monday through Saturday) |
+| **Safety / Environmental Representative** | Safety/environmental representatives | Environmental compliance and safety incident tracking |
+
+Three one-off report types supplement the weekly cadence: **Lost Load Reports** for documenting spilled or lost concrete loads, **Quality Control Strength Reports** for concrete cylinder strength testing data, and **Third Party Lab Reports** for flagging issues with external lab results including file upload support.
 
 Reports have submission windows, role-based assignment, manager override capability, and compliance tracking. Missing or incomplete reports deduct points on the leaderboard. AI validates metrics for mathematical consistency and flags anomalies before submission.
 
@@ -136,8 +141,46 @@ The AI layer uses xAI's Grok API routed through edge functions (no direct client
 - **Efficiency Comment Validation**: When operators are flagged for anomalous metrics, their explanations are checked against the specific issues flagged
 - **Task Suggestions**: Auto-completes partial maintenance task descriptions with contextual suggestions
 - **Follow-up Q&A**: Multi-turn conversations with targeted context selection — asking about a specific truck pulls that truck's data, operator history, and recent changes without sending the full database
+- **GM Report Analysis**: Executive summary generation for General Manager weekly reviews
+- **GM Report Export Summary**: AI-generated narrative for GM report exports
+- **Task Improvement**: Rewrites maintenance task descriptions to be clearer and more actionable
+- **District Summary**: District-level analysis comparing districts and drilling into per-plant performance
 
 Prompts use a JSON-based registry with dynamic role context injection built from the database, so new roles automatically get appropriate AI behavior.
+
+---
+
+## Productivity Tools
+
+### Documents
+
+A document management module for creating, organizing, and accessing internal documents.
+
+### Lists & Tasks
+
+Task tracking with list creation, detail views, and task addition. Users create lists, drill into individual list details, and add tasks to track operational to-dos.
+
+### Plan & Timeline
+
+A planning module with timeline visualization, templates, and settings. Supports structured planning workflows with configurable templates and visual timeline displays.
+
+---
+
+## Calculators
+
+Five concrete industry-specific calculation tools:
+
+- **Proportions Calculator** — calculates mix component proportions
+- **Set Time Calculator** — estimates concrete set times based on input parameters
+- **Slump Adjustment Calculator** — determines adjustments needed to reach target slump values
+- **Water Cement Ratio Calculator** — computes water-to-cement ratios for mix design
+- **Yardage Per Hour Calculator** — calculates production rate in cubic yards per hour
+
+---
+
+## Messaging
+
+An in-app messaging system built around conversation-based messaging between users. Supports unread count tracking with real-time state managed through a MessagesContext and MessagesProvider. The messaging system is integrated into the app shell, accessible from the main navigation.
 
 ---
 
@@ -165,7 +208,7 @@ The Roles & Permissions view displays all permissions as a spreadsheet-style gri
 ## Architecture
 
 ### Frontend
-React 19, React Router 7, Tailwind CSS 3.4, FontAwesome 7. Functional components with a custom hook library. Code splitting via React.lazy with a retry mechanism for chunk failures. State management through context (Auth, Preferences, Tutorials) and ref-based caching in data hooks.
+React 19, React Router 7, Tailwind CSS 3.4, FontAwesome 7. Functional components with a custom hook library. Code splitting via React.lazy with a retry mechanism for chunk failures. State management through context (Auth, Preferences, Tutorials, Messages) and ref-based caching in data hooks.
 
 ### Backend
 Supabase provides PostgreSQL with real-time subscriptions. All database access goes through a sanitized service layer with table and column allowlists — no raw SQL from the client. Edge functions handle auth, AI, and database operations.
@@ -209,7 +252,7 @@ Two font families from Google Fonts:
 - **Rajdhani** for headings
 - **Exo 2** for body text
 
-The accent color is user-customizable and persisted to the database. Theme classes apply before first paint via an inline script to prevent FOUC. Multiple themes supported (dark, old-dark, red-dark, blue-light, red-light).
+The accent color is user-customizable and persisted to the database. Theme classes apply before first paint via an inline script to prevent FOUC. Two primary themes supported — dark and light — toggled via a theme mode switch.
 
 ---
 
@@ -223,13 +266,13 @@ Installable as a Progressive Web App with a service worker, app manifest, and mo
 
 | Metric | Value |
 |--------|-------|
-| **Current Version** | 25.1 |
-| **Views** | 16+ distinct page modules |
-| **Services** | 23 service classes |
-| **Custom Hooks** | 50+ specialized hooks |
+| **Current Version** | 38.4 |
+| **Views** | 23 distinct page modules |
+| **Services** | 22 service classes |
+| **Custom Hooks** | 38 specialized hooks |
 | **Domain Models** | 15+ data model classes |
 | **AI Prompt Types** | 11 registered prompt categories |
-| **Report Types** | 7 weekly report formats |
+| **Report Types** | 8 weekly + 3 one-off report formats |
 | **Fleet Asset Types** | 5 (Mixers, Tractors, Trailers, Equipment, Pickups) |
 
 ---
