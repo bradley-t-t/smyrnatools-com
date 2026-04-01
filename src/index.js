@@ -8,6 +8,8 @@ import App from './app/App.js'
 import { AuthProvider } from './app/context/AuthContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
 import { TutorialProvider } from './app/context/TutorialContext'
+import ErrorReporterUtility, { ErrorBoundary } from './utils/ErrorReporterUtility'
+ErrorReporterUtility.init({ project: 'smyrnatools.com' })
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
         content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
@@ -20,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <AuthProvider>
                 <PreferencesProvider>
                     <TutorialProvider>
-                        <App />
+                        <ErrorBoundary>
+                            <App />
+                        </ErrorBoundary>
                     </TutorialProvider>
                 </PreferencesProvider>
             </AuthProvider>
