@@ -6,6 +6,7 @@ const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_FLUSH_INTERVAL_MS = 30_000
 const MAX_QUEUE_SIZE = 100
 const DEDUP_WINDOW_MS = 60_000
+const HTTP_ERROR_THRESHOLD = 400
 
 const BROWSER_PATTERNS = [
     [/Edg\/(\d+)/, 'Edge'],
@@ -139,6 +140,73 @@ async function flush() {
     }
 }
 
+/** Extracts the endpoint name from a URL path (e.g. '/functions/v1/verify-password' → 'verify-password'). */
+function extractEndpointFromUrl(url) {
+    try {
+        const pathname = new URL(url, window.location.origin).pathname
+        return pathname.split('/').filter(Boolean).pop() ?? pathname
+    } catch {
+        return url
+    }
+}
+
+function isReportingEndpoint(url) {
+    return typeof url === 'string' && url.includes('error-reporting-service')
+}
+
+/** Wraps window.fetch to capture HTTP error responses (4xx/5xx). */
+function interceptFetch() {
+    const originalFetch = window.fetch
+    window.fetch = async function patchedFetch(...args) {
+        const [input] = args
+        const requestUrl = typeof input === 'string' ? input : (input?.url ?? '')
+
+        if (isReportingEndpoint(requestUrl)) return originalFetch.apply(this, args)
+
+        const response = await originalFetch.apply(this, args)
+        if (response.status >= HTTP_ERROR_THRESHOLD) {
+            const endpointName = extractEndpointFromUrl(requestUrl)
+            const payload = buildErrorPayload(
+                `HTTP ${response.status} ${response.statusText} — ${endpointName}`,
+                requestUrl,
+                null,
+                null,
+                null
+            )
+            enqueueError(payload)
+        }
+        return response
+    }
+}
+
+/** Wraps XMLHttpRequest to capture HTTP error responses (4xx/5xx). */
+function interceptXmlHttpRequest() {
+    const OriginalXhrOpen = XMLHttpRequest.prototype.open
+    XMLHttpRequest.prototype.open = function patchedOpen(method, url, ...rest) {
+        this._errorReporterUrl = typeof url === 'string' ? url : String(url)
+        return OriginalXhrOpen.call(this, method, url, ...rest)
+    }
+
+    const OriginalXhrSend = XMLHttpRequest.prototype.send
+    XMLHttpRequest.prototype.send = function patchedSend(...args) {
+        this.addEventListener('loadend', function onLoadEnd() {
+            if (isReportingEndpoint(this._errorReporterUrl)) return
+            if (this.status >= HTTP_ERROR_THRESHOLD) {
+                const endpointName = extractEndpointFromUrl(this._errorReporterUrl)
+                const payload = buildErrorPayload(
+                    `HTTP ${this.status} ${this.statusText} — ${endpointName}`,
+                    this._errorReporterUrl,
+                    null,
+                    null,
+                    null
+                )
+                enqueueError(payload)
+            }
+        })
+        return OriginalXhrSend.apply(this, args)
+    }
+}
+
 function handleWindowError(message, source, lineno, colno, error) {
     // Prevent recursive reporting if the error involves our own endpoint
     if (typeof message === 'string' && message.includes('error-reporting-service')) return
@@ -204,6 +272,8 @@ const ErrorReporterUtility = {
         })
         window.addEventListener('unhandledrejection', handleUnhandledRejection)
         document.addEventListener('visibilitychange', handleVisibilityChange)
+        interceptFetch()
+        interceptXmlHttpRequest()
 
         startFlushTimer()
     },

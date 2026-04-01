@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.2] - 2026-04-01
+
+- smyrnatools.com Release v38.5.2
+
 ## [38.5.1] - 2026-04-01
 
 - Fixed line length in OperatorService.createOperator by splitting the UUID auto-generation assignment onto its own line for readability
