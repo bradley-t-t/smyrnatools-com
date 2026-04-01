@@ -134,7 +134,7 @@ const mixerConfig = {
         },
         {
             getValue: (item) => (item.lastChipDate ? new Date(item.lastChipDate).toLocaleDateString() : 'Unknown'),
-            isOverdue: (item) => AssetStatsUtility.isChipOverdue(item.lastChipDate),
+            isOverdue: (item) => AssetStatsUtility.isServiceOverdue(item.lastChipDate, 90),
             label: 'Last Chip'
         },
         {

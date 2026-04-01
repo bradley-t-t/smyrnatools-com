@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.4] - 2026-04-01
+
+- Refactored AssetStatsUtility by extracting module-level constants — RETIRED_STATUSES, STATUS_PRIORITY, and VALID_STATUSES — eliminating inline duplicates across compareByStatusThenNumber, getStatusCounts, and sortWithRetiredLast
+- Removed the dedicated isChipOverdue method and consolidated chip overdue logic into isServiceOverdue with a 90-day threshold; updated mixerConfig, MixerCard, and MixerDetailView to call isServiceOverdue(date, 90) directly
+- Removed getCleanlinessAverage and getConditionAverage from AssetStatsUtility
+- Removed getTrailerStatusCountsByStatus from AssetStatsUtility
+- Simplified sortWithRetiredLast to use filter instead of a forEach push loop, and tightened the empty-check to use optional chaining
+- Replaced the imperative loop in countUnassignedOperators with a declarative filter chain, and renamed internal variables for clarity (normalized -> normalizedSearch, ops -> filteredOperators, active -> activeItems, nameNoSpace -> nameCollapsed)
+
 ## [38.3] - 2026-04-01
 
 - Refactored LeaderboardsUtility by extracting reusable helpers — countActiveAssetsForPlant, extractAssignedOperatorIds, countMatchingOperators, computeAverageCleanliness, deduplicateReportsByWeek, buildWeeklyTimeline, and computeHoursAdjustmentMetrics — significantly reducing duplication and improving readability

@@ -1189,7 +1189,7 @@ function MixerDetailView({ mixerId, onClose }) {
                                 className="form-control"
                                 readOnly={!canEditMixer}
                             />
-                            {lastChipDate && AssetStatsUtility.isChipOverdue(lastChipDate) && (
+                            {lastChipDate && AssetStatsUtility.isServiceOverdue(lastChipDate, 90) && (
                                 <div className="warning-text">Chip overdue</div>
                             )}
                         </div>

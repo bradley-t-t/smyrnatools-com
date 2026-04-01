@@ -1,25 +1,31 @@
 /**
  * Shared asset statistics logic used across Mixer, Tractor, Equipment, and Trailer utilities.
- * Consolidates duplicated service-overdue checks, cleanliness averages,
- * plant/status distribution counts, service-needed tallies,
- * fleet sorting, and operator-assignment helpers.
+ * Consolidates service-overdue checks, plant/status distribution counts,
+ * service-needed tallies, fleet sorting, and operator-assignment helpers.
  */
 
 const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
+const RETIRED_STATUSES = ['Retired', 'Terminated']
+
+const STATUS_PRIORITY = { Active: 0, Stationary: 1, Spare: 2, 'In Shop': 3, Retired: 4, Sold: 5 }
+
+const VALID_STATUSES = ['Active', 'Spare', 'In Shop', 'Retired']
+
 const AssetStatsUtility = {
     /**
      * Compares two items by status priority, then by numeric portion of a number field.
-     * Status order: Active → Stationary → Spare → In Shop → Retired → Sold.
+     * Status order: Active -> Stationary -> Spare -> In Shop -> Retired -> Sold.
      */
     compareByStatusThenNumber(a, b, statusField = 'status', numberField = 'truckNumber') {
-        const order = { Active: 0, 'In Shop': 3, Retired: 4, Sold: 5, Spare: 2, Stationary: 1 }
-        const sa = order[a?.[statusField]] ?? 99
-        const sb = order[b?.[statusField]] ?? 99
-        if (sa !== sb) return sa - sb
-        const aNum = parseInt(String(a?.[numberField] ?? '').replace(/\D/g, '') || '0')
-        const bNum = parseInt(String(b?.[numberField] ?? '').replace(/\D/g, '') || '0')
-        if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum
+        const statusA = STATUS_PRIORITY[a?.[statusField]] ?? 99
+        const statusB = STATUS_PRIORITY[b?.[statusField]] ?? 99
+        if (statusA !== statusB) return statusA - statusB
+
+        const extractedNumberA = parseInt(String(a?.[numberField] ?? '').replace(/\D/g, '') || '0')
+        const extractedNumberB = parseInt(String(b?.[numberField] ?? '').replace(/\D/g, '') || '0')
+        if (!isNaN(extractedNumberA) && !isNaN(extractedNumberB)) return extractedNumberA - extractedNumberB
+
         return String(a?.[numberField] ?? '').localeCompare(String(b?.[numberField] ?? ''))
     },
 
@@ -40,34 +46,35 @@ const AssetStatsUtility = {
             assignedPlantField = 'assignedPlant'
         }
     ) {
-        const normalized = String(searchText || '')
+        const normalizedSearch = String(searchText || '')
             .trim()
             .toLowerCase()
             .replace(/\s+/g, '')
-        const ops = (operators || []).filter((op) => {
+
+        const filteredOperators = (operators || []).filter((op) => {
             if (op?.status !== 'Active') return false
             if (position && op?.position !== position) return false
             if (selectedPlant && op?.plantCode !== selectedPlant) return false
             if (regionPlantCodes && !regionPlantCodes.has(op?.plantCode)) return false
-            if (!normalized) return true
-            const nameNoSpace = String(op?.name || '')
+            if (!normalizedSearch) return true
+
+            const nameCollapsed = String(op?.name || '')
                 .toLowerCase()
                 .replace(/\s+/g, '')
-            const smyrna = String(op?.smyrnaId || '').toLowerCase()
-            return nameNoSpace.includes(normalized) || smyrna.includes(normalized)
+            const smyrnaId = String(op?.smyrnaId || '').toLowerCase()
+            return nameCollapsed.includes(normalizedSearch) || smyrnaId.includes(normalizedSearch)
         })
-        const active = (items || []).filter(
+
+        const activeItems = (items || []).filter(
             (it) =>
                 it?.status === 'Active' &&
                 (!selectedPlant || selectedPlant === 'All' || it?.[assignedPlantField] === selectedPlant) &&
                 (!regionPlantCodes || regionPlantCodes.has(it?.[assignedPlantField]))
         )
-        let count = 0
-        for (const op of ops) {
-            const isAssigned = active.some((it) => it?.[assignedOperatorField] === op?.[operatorIdField])
-            if (!isAssigned) count++
-        }
-        return count
+
+        return filteredOperators.filter(
+            (op) => !activeItems.some((it) => it?.[assignedOperatorField] === op?.[operatorIdField])
+        ).length
     },
 
     /**
@@ -82,26 +89,6 @@ const AssetStatsUtility = {
             if (regionPlantCodes && regionPlantCodes.size > 0 && !regionPlantCodes.has(op?.plantCode)) return false
             return true
         }).length
-    },
-
-    /**
-     * Computes the average of a numeric rating field across items.
-     * Returns 'N/A' when no valid ratings exist.
-     */
-    getCleanlinessAverage(items, ratingField = 'cleanlinessRating') {
-        if (!Array.isArray(items) || !items.length) return 'N/A'
-        const ratings = items.filter((item) => item[ratingField] != null).map((item) => Number(item[ratingField]))
-        return ratings.length ? (ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1) : 'N/A'
-    },
-
-    /**
-     * Equipment-specific: average condition rating across the fleet.
-     * Returns 'N/A' when no valid ratings exist.
-     */
-    getConditionAverage(equipments) {
-        if (!Array.isArray(equipments) || !equipments.length) return 'N/A'
-        const ratings = equipments.filter((e) => e.conditionRating != null).map((e) => Number(e.conditionRating))
-        return ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : 'N/A'
     },
 
     /**
@@ -133,10 +120,9 @@ const AssetStatsUtility = {
     getStatusCounts(items, statusField = 'status') {
         if (!Array.isArray(items)) return {}
         const counts = { Active: 0, 'In Shop': 0, Retired: 0, Spare: 0, Total: items.length }
-        const validStatuses = ['Active', 'Spare', 'In Shop', 'Retired']
         items.forEach((item) => {
             const status = item[statusField] || 'Unknown'
-            if (validStatuses.includes(status)) counts[status]++
+            if (VALID_STATUSES.includes(status)) counts[status]++
         })
         return counts
     },
@@ -151,37 +137,15 @@ const AssetStatsUtility = {
         return counts
     },
 
-    /** Trailer-specific: counts by operational status */
-    getTrailerStatusCountsByStatus(trailers) {
-        if (!Array.isArray(trailers)) return {}
-        const statuses = ['Active', 'Spare', 'In Shop', 'Retired']
-        const counts = {}
-        statuses.forEach((status) => {
-            counts[status] = trailers.filter((t) => t.status === status).length
-        })
-        return counts
-    },
-
-    /** Mixer-specific: chips are overdue after 90 days */
-    isChipOverdue(chipDate) {
-        if (!chipDate) return false
-        try {
-            const diffDays = Math.ceil((new Date() - new Date(chipDate)) / MILLIS_PER_DAY)
-            return diffDays > 90
-        } catch {
-            return false
-        }
-    },
-
     /**
-     * Returns true if a service date exceeds the given threshold.
-     * Mixer/Tractor/Equipment default to 180 days; Trailer uses 90.
+     * Returns true if a date exceeds the given day threshold from today.
+     * Mixer/Tractor/Equipment default to 180 days; Trailer uses 90; Chip checks use 90.
      */
     isServiceOverdue(serviceDate, thresholdDays = 180) {
         if (!serviceDate) return false
         try {
-            const diffDays = Math.ceil((new Date() - new Date(serviceDate)) / MILLIS_PER_DAY)
-            return diffDays > thresholdDays
+            const daysSinceService = Math.ceil((new Date() - new Date(serviceDate)) / MILLIS_PER_DAY)
+            return daysSinceService > thresholdDays
         } catch {
             return false
         }
@@ -190,6 +154,7 @@ const AssetStatsUtility = {
     /** Trailer-specific: weekly verification with history-aware staleness */
     isTrailerVerified(updatedLast, updatedAt, updatedBy, latestHistoryDate = null) {
         if (!updatedLast || !updatedBy) return false
+
         const lastVerification = new Date(updatedLast)
         const lastUpdate = new Date(updatedAt)
         const lastHistory = latestHistoryDate ? new Date(latestHistoryDate) : null
@@ -197,6 +162,7 @@ const AssetStatsUtility = {
         const lastSunday = new Date(now)
         lastSunday.setDate(now.getDate() - now.getDay())
         lastSunday.setHours(0, 0, 0, 0)
+
         if (lastHistory && lastHistory > lastVerification) return false
         return lastUpdate <= lastVerification && lastVerification >= lastSunday
     },
@@ -206,21 +172,15 @@ const AssetStatsUtility = {
      * applying an optional sort function to each partition independently.
      */
     sortWithRetiredLast(items, sortFn, statusField = 'status') {
-        if (!items || items.length === 0) return items
-        const retiredStatuses = ['Retired', 'Terminated']
-        const retiredItems = []
-        const activeItems = []
-        items.forEach((item) => {
-            const status = item?.[statusField]
-            if (retiredStatuses.includes(status)) {
-                retiredItems.push(item)
-            } else {
-                activeItems.push(item)
-            }
-        })
-        const sortedActive = sortFn ? activeItems.sort(sortFn) : activeItems
-        const sortedRetired = sortFn ? retiredItems.sort(sortFn) : retiredItems
-        return [...sortedActive, ...sortedRetired]
+        if (!items?.length) return items
+
+        const activeItems = items.filter((item) => !RETIRED_STATUSES.includes(item?.[statusField]))
+        const retiredItems = items.filter((item) => RETIRED_STATUSES.includes(item?.[statusField]))
+
+        return [
+            ...(sortFn ? activeItems.sort(sortFn) : activeItems),
+            ...(sortFn ? retiredItems.sort(sortFn) : retiredItems)
+        ]
     }
 }
 
