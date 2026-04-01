@@ -6,7 +6,7 @@ import ValidationUtility from '../../../utils/ValidationUtility'
  */
 export class Operator {
     constructor(data = {}) {
-        this.employeeId = data.employee_id ?? data.employeeId ?? ValidationUtility.generateUUID()
+        this.employeeId = data.employee_id ?? data.employeeId ?? crypto.randomUUID()
         this.smyrnaId = data.smyrna_id ?? data.smyrnaId ?? null
         this.name = data.name?.trim() ?? ''
         this.plantCode = data.plant_code ?? data.plantCode ?? null
@@ -27,7 +27,7 @@ export class Operator {
             assigned_trainer: data.assigned_trainer ?? data.assignedTrainer ?? null,
             automatic_restriction: data.automatic_restriction ?? data.automaticRestriction ?? false,
             created_at: data.created_at ?? data.createdAt ?? new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
-            employee_id: data.employee_id ?? data.employeeId ?? ValidationUtility.generateUUID(),
+            employee_id: data.employee_id ?? data.employeeId ?? crypto.randomUUID(),
             is_trainer: data.is_trainer ?? data.isTrainer ?? false,
             name: data.name ?? '',
             pending_start_date: data.pending_start_date ?? data.pendingStartDate ?? null,

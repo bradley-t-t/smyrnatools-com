@@ -109,7 +109,7 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                         : null,
                 automatic_restriction: automaticRestriction,
                 created_at: now,
-                employee_id: ValidationUtility.generateUUID(),
+                employee_id: await ValidationUtility.generateUUID(),
                 is_trainer: isTrainer,
                 name: name.trim(),
                 pending_start_date: normalizedPending,
