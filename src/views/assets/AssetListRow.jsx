@@ -128,6 +128,9 @@ export default function AssetListRow({
         // --- Operator lookup with action buttons ---
         if (col.type === 'operator') {
             const operator = operators.find((op) => op.employeeId === item[col.lookupField || 'assignedOperator'])
+            const assignedTrainees = operator?.isTrainer
+                ? operators.filter((op) => op.assignedTrainer === operator.employeeId)
+                : []
             return (
                 <td key={col.key} style={style}>
                     {operator?.name ? (
@@ -136,6 +139,20 @@ export default function AssetListRow({
                                 <span className="font-medium">{operator.name}</span>
                                 {copyButton(operator.name, 'Copy operator name')}
                             </div>
+                            {assignedTrainees.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-1">
+                                    {assignedTrainees.map((trainee) => (
+                                        <span
+                                            key={trainee.employeeId}
+                                            className="inline-flex items-center gap-1 rounded-md bg-amber-50 text-amber-800 text-[10px] font-semibold px-1.5 py-0.5"
+                                            title={`Trainee: ${trainee.name}`}
+                                        >
+                                            <i className="fas fa-user-graduate text-[8px]" />
+                                            {trainee.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex items-center gap-1">
                                 <button
                                     type="button"
