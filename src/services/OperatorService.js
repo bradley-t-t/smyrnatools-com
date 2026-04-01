@@ -62,7 +62,7 @@ class OperatorServiceImpl {
     /** Creates a new operator, auto-generating an employee ID if not valid. */
     async createOperator(operator) {
         const op = operator instanceof Operator ? operator : new Operator(operator)
-        if (!ValidationUtility.isValidUUID(op.employeeId)) op.employeeId = ValidationUtility.generateUUID()
+        if (!(await ValidationUtility.isValidUUID(op.employeeId))) op.employeeId = await ValidationUtility.generateUUID()
         const json = await apiPostOrThrow(
             `${SERVICE_PREFIX}/create`,
             { operator: op.toApiFormat() },
