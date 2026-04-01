@@ -16,11 +16,11 @@ const RATING_VALUES = [5, 4, 3, 2, 1]
  * @param {string} props.emptySubtitle - Empty state subtitle.
  */
 export default function RatingChart({ data, title, emptyTitle, emptySubtitle }) {
-    if (data.length === 0) {
+    if (!data?.length) {
         return <HistoryEmptyState title={emptyTitle} subtitle={emptySubtitle} />
     }
     const averageRating = (data.reduce((sum, d) => sum + d.rating, 0) / data.length).toFixed(1)
-    const currentRating = data[data.length - 1].rating
+    const currentRating = data[data.length - 1]?.rating ?? null
     return (
         <div className="flex flex-col gap-2.5">
             <h3 className="m-0 mb-3 text-sm font-bold text-slate-800">{title}</h3>

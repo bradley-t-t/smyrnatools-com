@@ -114,6 +114,7 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         setLoading(true)
         restoreSession().finally(() => setLoading(false))
+        return () => clearTimeout(profileTimerRef.current)
     }, [restoreSession])
     const loadUserProfile = useCallback(async (userId) => {
         if (!userId) return
