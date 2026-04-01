@@ -422,12 +422,7 @@ Deno.serve(async (req) => {
                     }
                 }
 
-                // Log intended recipients before debug whitelist filtering
-                const intendedRecipients = {
-                    to: toRecipients.map(r => ({email: r.email, name: r.name})),
-                    cc: ccRecipients.map(r => ({email: r.email, name: r.name}))
-                };
-                console.log("[notify-report-submitted] Intended recipients:", JSON.stringify(intendedRecipients));
+                console.log('[email-service] Sending report-submitted notifications', { recipientCount: toRecipients.length });
 
                 const result = await sendEmail({
                     subject, html, text,
@@ -611,7 +606,7 @@ Deno.serve(async (req) => {
                     logoUrl: envOrDefault("LOGO_URL", DEFAULT_LOGO_URL)
                 });
 
-                console.log("[notify-comment-added] Recipients:", JSON.stringify(uniqueRecipients.map(r => r.email)));
+                console.log('[email-service] Sending comment-added notifications', { recipientCount: uniqueRecipients.length });
 
                 const result = await sendEmail({
                     subject, html, text,

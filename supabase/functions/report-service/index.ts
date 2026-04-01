@@ -89,8 +89,11 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "user-past-due-reports": {
                 const body = await parseBody(req);
+                const auth = await requireAuthenticated(null, req, headers, body);
+                if (auth instanceof Response) return auth;
                 const userId = typeof body?.userId === "string" ? body.userId : null;
                 if (!userId) return errorResponse("userId is required", headers, 400);
+                if (auth !== userId) return errorResponse("Forbidden", headers, 403);
                 const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
