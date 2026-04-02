@@ -41,7 +41,23 @@
       "Bash(kill 40087:*)",
       "mcp__Claude_Preview__preview_start",
       "Read(//opt/homebrew/Cellar/node/25.5.0/bin/**)",
-      "Bash(/opt/homebrew/bin/node -v)"
+      "Bash(/opt/homebrew/bin/node -v)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions deploy error-reporting-service --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase db push --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase db push --linked)",
+      "Bash(CI=false PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx react-app-rewired build)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions list --project-ref gujgtjqqurildqurpffh)",
+      "Read(//Users/trentontaylor/WebstormProjects/taylorurl-com/**)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase db query \"SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies WHERE tablename = ''client_errors'' ORDER BY policyname;\" --linked)",
+      "Bash(for dir:*)",
+      "Bash(do)",
+      "Bash(full=\"/Users/trentontaylor/WebstormProjects/$dir\")",
+      "Bash(echo \"=== $dir ===\")",
+      "Read(//Users/trentontaylor/WebstormProjects/smyrnatools.com/$full/**)",
+      "Bash(PATH=/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH which nit)",
+      "Bash(echo 'nit not in PATH' PATH=/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH nit --help)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" nit --help)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" nit release)"
     ]
   }
 }

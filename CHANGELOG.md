@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.5] - 2026-04-02
+
+- smyrnatools.com Release v38.5.5
+
 ## [38.5.4] - 2026-04-02
 
 - Reordered dashboard sections so People and Maintenance/Quality appear before Fleet Analytics, pushing the charts card to the bottom of the layout

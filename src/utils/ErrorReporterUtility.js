@@ -55,7 +55,7 @@ function generateClientDedupKey(project, message, file, line) {
     return `${project}|${message}|${file ?? ''}|${line ?? ''}`
 }
 
-/** @type {{ project: string, endpoint: string, batchSize: number, flushIntervalMs: number, enabled: boolean } | null} */
+/** @type {{ project: string, apiKey: string | undefined, endpoint: string, batchSize: number, flushIntervalMs: number, enabled: boolean } | null} */
 let configuration = null
 
 /** @type {Array<Record<string, unknown>>} */
@@ -121,18 +121,18 @@ async function flush() {
     const body = JSON.stringify({ errors: batch })
 
     try {
-        const sendViaBeacon = navigator.sendBeacon?.(
-            configuration.endpoint,
-            new Blob([body], { type: 'application/json' })
-        )
-        if (!sendViaBeacon) {
-            await fetch(configuration.endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body,
-                keepalive: true
-            })
-        }
+        await fetch(configuration.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(configuration.apiKey && {
+                    apikey: configuration.apiKey,
+                    Authorization: `Bearer ${configuration.apiKey}`
+                })
+            },
+            body,
+            keepalive: true
+        })
     } catch {
         // Silently drop — prevent recursive reporting of network failures
     } finally {
@@ -256,6 +256,7 @@ const ErrorReporterUtility = {
      */
     init({
         project,
+        apiKey,
         endpoint = REPORTING_ENDPOINT,
         batchSize = DEFAULT_BATCH_SIZE,
         flushIntervalMs = DEFAULT_FLUSH_INTERVAL_MS,
@@ -263,7 +264,7 @@ const ErrorReporterUtility = {
     }) {
         if (configuration) return
 
-        configuration = { project, endpoint, batchSize, flushIntervalMs, enabled }
+        configuration = { project, apiKey, endpoint, batchSize, flushIntervalMs, enabled }
 
         if (!enabled) return
 

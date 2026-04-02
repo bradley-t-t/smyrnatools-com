@@ -9,7 +9,7 @@ import { AuthProvider } from './app/context/AuthContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
 import { TutorialProvider } from './app/context/TutorialContext'
 import ErrorReporterUtility, { ErrorBoundary } from './utils/ErrorReporterUtility'
-ErrorReporterUtility.init({ project: 'smyrnatools.com' })
+ErrorReporterUtility.init({ project: 'smyrnatools.com', apiKey: process.env.REACT_APP_SUPABASE_ANON_KEY })
 document.head.appendChild(
     Object.assign(document.createElement('meta'), {
         content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
