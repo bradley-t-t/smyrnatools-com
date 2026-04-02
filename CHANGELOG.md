@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.4] - 2026-04-02
+
+- Reordered dashboard sections so People and Maintenance/Quality appear before Fleet Analytics, pushing the charts card to the bottom of the layout
+- Updated CLAUDE.md auth directive to reflect that the project uses Supabase's default auth system with `auth.users`, RLS policies, and `public.profiles` synced via trigger
+
 ## [38.5.3] - 2026-04-01
 
 - In the asset list, trainer operators now display their assigned trainees as amber badge chips beneath the operator name, each showing a graduation cap icon and the trainee's name

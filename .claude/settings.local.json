@@ -38,7 +38,10 @@
       "Bash(chmod +x:*)",
       "Bash(kill 39466:*)",
       "Bash(kill 41209:*)",
-      "Bash(kill 40087:*)"
+      "Bash(kill 40087:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Read(//opt/homebrew/Cellar/node/25.5.0/bin/**)",
+      "Bash(/opt/homebrew/bin/node -v)"
     ]
   }
 }

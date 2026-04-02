@@ -413,21 +413,6 @@ export default function DashboardView() {
                                         />
                                     </div>
                                     <div className={revealClass('right')} style={revealStyle(200)}>
-                                        <DashboardCard>
-                                            <SectionTitle>Fleet Analytics</SectionTitle>
-                                            <DashboardCharts
-                                                dashboardPlant={dashboardPlant}
-                                                dashboardRegionCode={dashboardRegionCode}
-                                                regionPlants={regionPlants}
-                                                allPlants={allPlants}
-                                                statusHistoryData={statusHistoryData}
-                                                isAggregate={isAggregate}
-                                                stats={stats}
-                                                isMobile={isMobile}
-                                            />
-                                        </DashboardCard>
-                                    </div>
-                                    <div className={revealClass('left')} style={revealStyle(280)}>
                                         <PeopleSection
                                             displayStats={displayStats}
                                             isAggregate={isAggregate}
@@ -444,7 +429,7 @@ export default function DashboardView() {
                                             accentColor={accentColor}
                                         />
                                     </div>
-                                    <div className={revealClass('right')} style={revealStyle(360)}>
+                                    <div className={revealClass('left')} style={revealStyle(280)}>
                                         <MaintenanceQualitySection
                                             displayStats={displayStats}
                                             isAggregate={isAggregate}
@@ -452,6 +437,21 @@ export default function DashboardView() {
                                             handleQuickDateFilter={handleQuickDateFilter}
                                             isMobile={isMobile}
                                         />
+                                    </div>
+                                    <div className={revealClass('right')} style={revealStyle(360)}>
+                                        <DashboardCard>
+                                            <SectionTitle>Fleet Analytics</SectionTitle>
+                                            <DashboardCharts
+                                                dashboardPlant={dashboardPlant}
+                                                dashboardRegionCode={dashboardRegionCode}
+                                                regionPlants={regionPlants}
+                                                allPlants={allPlants}
+                                                statusHistoryData={statusHistoryData}
+                                                isAggregate={isAggregate}
+                                                stats={stats}
+                                                isMobile={isMobile}
+                                            />
+                                        </DashboardCard>
                                     </div>
                                 </div>
                             </>
