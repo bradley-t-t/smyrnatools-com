@@ -12,6 +12,17 @@ const getTutorialUserId = () => {
     return sessionStorage.getItem('smyrna_session') || null
 }
 
+/** Safely parses a JSON string, returning fallback on failure. */
+function safeParseTutorialList(raw) {
+    if (!raw) return []
+    try {
+        const parsed = JSON.parse(raw)
+        return Array.isArray(parsed) ? parsed : []
+    } catch {
+        return []
+    }
+}
+
 /**
  * User preferences persistence service for saving and retrieving
  * per-user filter states (mixer filters, last-viewed filters) via the edge function.
@@ -51,8 +62,7 @@ class UserPreferencesService {
      * Always returns true (fails gracefully if the DB write fails).
      */
     static async dismissTutorial(tutorialId) {
-        const localDismissed = localStorage.getItem(TUTORIAL_STORAGE_KEY)
-        const dismissed = localDismissed ? JSON.parse(localDismissed) : []
+        const dismissed = safeParseTutorialList(localStorage.getItem(TUTORIAL_STORAGE_KEY))
         if (!dismissed.includes(tutorialId)) {
             dismissed.push(tutorialId)
             localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify(dismissed))
@@ -72,8 +82,7 @@ class UserPreferencesService {
      * Falls back to localStorage-only if the DB query fails.
      */
     static async getDismissedTutorials() {
-        const local = localStorage.getItem(TUTORIAL_STORAGE_KEY)
-        const localDismissed = local ? JSON.parse(local) : []
+        const localDismissed = safeParseTutorialList(localStorage.getItem(TUTORIAL_STORAGE_KEY))
         try {
             const userId = getTutorialUserId()
             if (!userId) return localDismissed
@@ -101,8 +110,7 @@ class UserPreferencesService {
 
     /** Resets a single tutorial's dismissal status for the current user. */
     static async resetTutorial(tutorialId) {
-        const localDismissed = localStorage.getItem(TUTORIAL_STORAGE_KEY)
-        const localList = localDismissed ? JSON.parse(localDismissed) : []
+        const localList = safeParseTutorialList(localStorage.getItem(TUTORIAL_STORAGE_KEY))
         const filtered = localList.filter((id) => id !== tutorialId)
         localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify(filtered))
         try {
