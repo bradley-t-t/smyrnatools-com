@@ -26,6 +26,7 @@ function ListDetailView({ itemId, onClose }) {
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
     const [formData, setFormData] = useState({ comments: '', deadline: '', description: '', plantCode: '' })
     const [status, setStatus] = useState('pending')
+    const [priority, setPriority] = useState('none')
     const [responsibleRole, setResponsibleRole] = useState('')
     const [plants, setPlants] = useState([])
     const [message, setMessage] = useState('')
@@ -38,6 +39,7 @@ function ListDetailView({ itemId, onClose }) {
         { label: 'Blocked', value: 'blocked' },
         { label: 'Completed', value: 'completed' }
     ]
+    const priorityOptions = ListService.getPriorityOptions()
     const responsibleRoleOptions = [
         { label: 'Unassigned', value: '' },
         { label: 'Maintenance', value: 'maintenance' },
@@ -72,12 +74,14 @@ function ListDetailView({ itemId, onClose }) {
                 setCompleter(ListService.creatorProfiles[found?.completed_by])
                 const loadedStatus = found?.status || (found?.completed ? 'completed' : 'pending')
                 setStatus(loadedStatus)
+                setPriority(found?.priority || 'none')
                 setResponsibleRole(found?.responsible_role || '')
                 setOriginalValues({
                     comments: found?.comments || '',
                     deadline: ListService.formatDateForInput(found?.deadline) || '',
                     description: found?.description || '',
                     plantCode: found?.plant_code || '',
+                    priority: found?.priority || 'none',
                     responsibleRole: found?.responsible_role || '',
                     status: loadedStatus
                 })
@@ -186,9 +190,10 @@ function ListDetailView({ itemId, onClose }) {
             formData.deadline !== originalValues.deadline ||
             formData.comments !== originalValues.comments ||
             status !== originalValues.status ||
+            priority !== originalValues.priority ||
             responsibleRole !== originalValues.responsibleRole
         setHasUnsavedChanges(hasChanges)
-    }, [formData, status, responsibleRole, originalValues])
+    }, [formData, status, priority, responsibleRole, originalValues])
     function handleChange(e) {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
     }
@@ -208,6 +213,7 @@ function ListDetailView({ itemId, onClose }) {
                 deadline: deadlineDate.toISOString(),
                 description: formData.description,
                 plant_code: formData.plantCode || null,
+                priority: priority || 'none',
                 responsible_role: responsibleRole || null,
                 status: status
             })
@@ -424,6 +430,22 @@ function ListDetailView({ itemId, onClose }) {
                                 className="form-control"
                             >
                                 {statusOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="priority">Priority</label>
+                            <select
+                                id="priority"
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                disabled={!canEdit || !canEditList}
+                                className="form-control"
+                            >
+                                {priorityOptions.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
                                         {opt.label}
                                     </option>

@@ -5,6 +5,7 @@ import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_sh
 
 const LIST_ITEMS_TABLE = "list_items";
 const PLANNED_ITEMS_TABLE = "list_planned_items";
+const ACTIVITY_TABLE = "list_items_activity";
 const PROFILES_TABLE = "users_profiles";
 
 async function parseBody(req: Request): Promise<any> {
@@ -67,6 +68,36 @@ async function requireElevated(supabase: any, callerId: string, headers: any): P
     return errorResponse("Forbidden: insufficient privileges for bulk operations", headers, 403);
 }
 
+const TRACKED_FIELDS = ["status", "priority", "responsible_role", "plant_code", "deadline", "description", "comments"];
+
+async function logActivity(admin: any, entry: {list_item_id: string, user_id: string, action: string, field_name?: string|null, old_value?: string|null, new_value?: string|null, item_description?: string|null}): Promise<void> {
+    try {
+        await admin.from(ACTIVITY_TABLE).insert({
+            list_item_id: entry.list_item_id,
+            user_id: entry.user_id,
+            action: entry.action,
+            field_name: entry.field_name ?? null,
+            old_value: entry.old_value ?? null,
+            new_value: entry.new_value ?? null,
+            item_description: entry.item_description ?? null
+        });
+    } catch {}
+}
+
+async function logFieldChanges(admin: any, userId: string, itemId: string, oldItem: any, newItem: any, description: string): Promise<void> {
+    for (const field of TRACKED_FIELDS) {
+        const oldVal = String(oldItem[field] ?? "");
+        const newVal = String(newItem[field] ?? "");
+        if (oldVal !== newVal) {
+            await logActivity(admin, {
+                list_item_id: itemId, user_id: userId, action: "updated",
+                field_name: field, old_value: oldVal || null, new_value: newVal || null,
+                item_description: description
+            });
+        }
+    }
+}
+
 Deno.serve(async (req) => {
     const origin = req.headers.get("origin");
     if (req.method === "OPTIONS") return handleOptions(origin);
@@ -83,14 +114,16 @@ Deno.serve(async (req) => {
         switch (endpoint) {
             case "fetch-items": {
                 const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
-                const {data, error} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
-                if (error) return errorResponse("Operation failed", headers, 400);
+                const admin = getAdminClient();
+                const {data, error} = await admin.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
+                if (error) return errorResponse("Operation failed: " + (error.message || error.code), headers, 400);
                 return jsonResponse({data: data ?? []}, headers);
             }
             case "fetch-items-with-profiles": {
                 const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
-                const {data: items, error: itemsError} = await supabase.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
-                if (itemsError) return errorResponse("Operation failed", headers, 400);
+                const admin = getAdminClient();
+                const {data: items, error: itemsError} = await admin.from(LIST_ITEMS_TABLE).select("*").order("created_at", {ascending: false});
+                if (itemsError) return errorResponse("Operation failed: " + (itemsError.message || itemsError.code), headers, 400);
                 const idsSet = new Set<string>();
                 (items ?? []).forEach((i: any) => {
                     if (i?.user_id) idsSet.add(i.user_id);
@@ -98,7 +131,7 @@ Deno.serve(async (req) => {
                 });
                 let profiles: any[] = [];
                 if (idsSet.size) {
-                    const {data: profs, error: profsError} = await supabase.from(PROFILES_TABLE).select("id, first_name, last_name").in("id", Array.from(idsSet));
+                    const {data: profs, error: profsError} = await admin.from(PROFILES_TABLE).select("id, first_name, last_name").in("id", Array.from(idsSet));
                     if (profsError) return errorResponse("Operation failed", headers, 400);
                     profiles = profs ?? [];
                 }
@@ -122,21 +155,26 @@ Deno.serve(async (req) => {
             case "create": {
                 const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {description, plantCode, deadline, comments, status, responsible_role} = body;
+                const {description, plantCode, deadline, comments, status, responsible_role, priority} = body;
                 if (typeof description !== "string" || !description.trim()) return errorResponse("Description is required", headers, 400);
                 const id = crypto.randomUUID();
                 const now = nowISO();
-                const {error} = await supabase.from(LIST_ITEMS_TABLE).insert({
+                const validPriorities = ["none", "low", "medium", "high", "urgent"];
+                const safePriority = typeof priority === "string" && validPriorities.includes(priority) ? priority : "none";
+                const admin = getAdminClient();
+                const {error} = await admin.from(LIST_ITEMS_TABLE).insert({
                     id, user_id: auth,
                     plant_code: typeof plantCode === "string" ? plantCode.trim() : "",
                     description: description.trim(),
                     deadline: typeof deadline === "string" ? deadline : (deadline instanceof Date ? deadline.toISOString() : deadline ?? null),
                     comments: typeof comments === "string" ? comments.trim() : "",
                     created_at: now, completed: false, completed_at: null, completed_by: null,
+                    priority: safePriority,
                     status: typeof status === "string" ? status : "pending",
                     responsible_role: typeof responsible_role === "string" && responsible_role ? responsible_role : null
                 });
                 if (error) return errorResponse("Operation failed", headers, 400);
+                logActivity(admin, {list_item_id: id, user_id: auth, action: "created", item_description: description.trim()});
                 return jsonResponse({success: true, id}, headers);
             }
             case "update": {
@@ -145,16 +183,23 @@ Deno.serve(async (req) => {
                 const item = body?.item ?? body;
                 if (!item?.id || typeof item.id !== "string") return errorResponse("Item ID is required", headers, 400);
                 if (typeof item.description !== "string" || !item.description.trim()) return errorResponse("Description is required", headers, 400);
-                const {error} = await supabase.from(LIST_ITEMS_TABLE).update({
+                const validPriorities = ["none", "low", "medium", "high", "urgent"];
+                const safePriority = typeof item.priority === "string" && validPriorities.includes(item.priority) ? item.priority : "none";
+                const admin = getAdminClient();
+                const {data: oldItem} = await admin.from(LIST_ITEMS_TABLE).select("*").eq("id", item.id).maybeSingle();
+                const updatePayload = {
                     plant_code: typeof item.plant_code === "string" ? item.plant_code.trim() : "",
                     description: item.description.trim(),
                     deadline: item.deadline ?? null,
                     comments: typeof item.comments === "string" ? item.comments.trim() : "",
                     completed: !!item.completed, completed_at: item.completed_at ?? null,
+                    priority: safePriority,
                     status: typeof item.status === "string" ? item.status : "pending",
                     responsible_role: typeof item.responsible_role === "string" && item.responsible_role ? item.responsible_role : null
-                }).eq("id", item.id);
+                };
+                const {error} = await admin.from(LIST_ITEMS_TABLE).update(updatePayload).eq("id", item.id);
                 if (error) return errorResponse("Operation failed", headers, 400);
+                if (oldItem) logFieldChanges(admin, auth, item.id, oldItem, updatePayload, item.description.trim());
                 return jsonResponse({success: true}, headers);
             }
             case "toggle-completion": {
@@ -163,17 +208,23 @@ Deno.serve(async (req) => {
                 const {id, completed} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
                 const now = nowISO();
+                const admin = getAdminClient();
+                const {data: existingItem} = await admin.from(LIST_ITEMS_TABLE).select("completed, description").eq("id", id).maybeSingle();
                 let newStatus: boolean | null = typeof completed === "boolean" ? completed : null;
-                if (newStatus === null) {
-                    const {data, error} = await supabase.from(LIST_ITEMS_TABLE).select("completed").eq("id", id).maybeSingle();
-                    if (error) return errorResponse("Operation failed", headers, 400);
-                    newStatus = data ? !data.completed : true;
-                }
-                const {error} = await supabase.from(LIST_ITEMS_TABLE).update({
+                if (newStatus === null) newStatus = existingItem ? !existingItem.completed : true;
+                const {error} = await admin.from(LIST_ITEMS_TABLE).update({
                     completed: newStatus, completed_at: newStatus ? now : null,
                     completed_by: newStatus ? auth : null, status: newStatus ? "completed" : "pending"
                 }).eq("id", id);
                 if (error) return errorResponse("Operation failed", headers, 400);
+                logActivity(admin, {
+                    list_item_id: id, user_id: auth,
+                    action: newStatus ? "completed" : "uncompleted",
+                    field_name: "status",
+                    old_value: newStatus ? "pending" : "completed",
+                    new_value: newStatus ? "completed" : "pending",
+                    item_description: existingItem?.description ?? null
+                });
                 return jsonResponse({success: true}, headers);
             }
             case "delete": {
@@ -181,11 +232,13 @@ Deno.serve(async (req) => {
                 const body = await parseBody(req);
                 const {id} = body;
                 if (typeof id !== "string" || !id) return errorResponse("Item ID is required", headers, 400);
-                const {data: item} = await supabase.from(LIST_ITEMS_TABLE).select("user_id").eq("id", id).maybeSingle();
+                const admin = getAdminClient();
+                const {data: item} = await admin.from(LIST_ITEMS_TABLE).select("user_id, description").eq("id", id).maybeSingle();
                 if (!item) return errorResponse("Item not found", headers, 404);
                 const ownerErr = await requireOwnerOrHigherRole(supabase, auth, item.user_id, headers);
                 if (ownerErr) return ownerErr;
-                const {error} = await supabase.from(LIST_ITEMS_TABLE).delete().eq("id", id);
+                logActivity(admin, {list_item_id: id, user_id: auth, action: "deleted", item_description: item.description ?? null});
+                const {error} = await admin.from(LIST_ITEMS_TABLE).delete().eq("id", id);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
             }
@@ -238,6 +291,26 @@ Deno.serve(async (req) => {
                 const {error} = await query;
                 if (error) return errorResponse("Operation failed", headers, 400);
                 return jsonResponse({success: true}, headers);
+            }
+            case "fetch-activity": {
+                const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
+                const body = await parseBody(req);
+                const limit = typeof body?.limit === "number" && body.limit > 0 ? Math.min(body.limit, 200) : 100;
+                const offset = typeof body?.offset === "number" && body.offset >= 0 ? body.offset : 0;
+                const admin = getAdminClient();
+                const {data, error} = await admin.from(ACTIVITY_TABLE)
+                    .select("*")
+                    .order("created_at", {ascending: false})
+                    .range(offset, offset + limit - 1);
+                if (error) return errorResponse("Operation failed", headers, 400);
+                const userIds = new Set<string>();
+                (data ?? []).forEach((a: any) => { if (a?.user_id) userIds.add(a.user_id); });
+                let profiles: any[] = [];
+                if (userIds.size) {
+                    const {data: profs} = await admin.from(PROFILES_TABLE).select("id, first_name, last_name").in("id", Array.from(userIds));
+                    profiles = profs ?? [];
+                }
+                return jsonResponse({data: data ?? [], profiles}, headers);
             }
             default:
                 return errorResponse("Invalid endpoint", headers, 404, {path: url.pathname});

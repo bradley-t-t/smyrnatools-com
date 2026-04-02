@@ -30,9 +30,11 @@ const ROLE_MAP = {
 const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unassigned']
 /** Available grouping modes for the task list with icons for the toggle bar. */
 const VIEW_MODES = [
+    { icon: 'fa-flag', id: 'priority', label: 'Priority' },
     { icon: 'fa-layer-group', id: 'status', label: 'Status' },
     { icon: 'fa-calendar-alt', id: 'date', label: 'Date' },
-    { icon: 'fa-user', id: 'role', label: 'Role' }
+    { icon: 'fa-user', id: 'role', label: 'Role' },
+    { icon: 'fa-history', id: 'activity', label: 'Activity' }
 ]
 const STATUS_COLORS = {
     blocked: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' },
@@ -46,8 +48,16 @@ const STATUS_COLORS = {
 const BULK_ACTION_COLORS = {
     cancel: { bg: 'var(--bg-secondary)', hover: 'var(--border-light)', text: 'var(--text-secondary)' },
     complete: { bg: 'rgba(22,163,74,0.1)', hover: 'rgba(22,163,74,0.2)', text: '#16a34a' },
-    delete: { bg: 'rgba(239,68,68,0.1)', hover: 'rgba(239,68,68,0.2)', text: '#ef4444' }
+    delete: { bg: 'rgba(239,68,68,0.1)', hover: 'rgba(239,68,68,0.2)', text: '#ef4444' },
+    neutral: { bg: 'rgba(59,130,246,0.1)', hover: 'rgba(59,130,246,0.2)', text: '#3b82f6' }
 }
+const BULK_STATUS_OPTIONS = [
+    { label: 'Pending', value: 'pending' },
+    { label: 'In Progress', value: 'in_progress' },
+    { label: 'Ordered Materials', value: 'ordered_materials' },
+    { label: 'Waiting', value: 'waiting' },
+    { label: 'Blocked', value: 'blocked' }
+]
 const mapStatusValue = (value) => {
     const lower = value?.toLowerCase()
     return Object.entries(STATUS_MAP).find(([_k, v]) => v.toLowerCase() === lower)?.[0] || ''
@@ -82,7 +92,7 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const [regionPlantCodes, setRegionPlantCodes] = useState(null)
     const [regionPlants, setRegionPlants] = useState([])
     const [selectedIds, setSelectedIds] = useState(new Set())
-    const [viewMode, setViewMode] = useState('status')
+    const [viewMode, setViewMode] = useState('priority')
     const [roleFilter, setRoleFilter] = useState('')
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
     const [roleDropdownOpen, setRoleDropdownOpen] = useState(false)
@@ -215,7 +225,34 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
-    const groupedItems = viewMode === 'date' ? groupedByDate : viewMode === 'status' ? groupedByStatus : groupedByRole
+    /** Groups open (non-completed) tasks by priority level. */
+    const groupedByPriority = useMemo(() => {
+        const groups = {
+            urgent: { color: 'danger', icon: 'fa-fire', items: [], label: 'Urgent', priority: 1 },
+            high: { color: 'warning', icon: 'fa-arrow-up', items: [], label: 'High', priority: 2 },
+            medium: { color: 'accent', icon: 'fa-minus', items: [], label: 'Medium', priority: 3 },
+            low: { color: 'info', icon: 'fa-arrow-down', items: [], label: 'Low', priority: 4 },
+            none: { color: 'secondary', icon: 'fa-minus', items: [], label: 'No Priority', priority: 5 }
+        }
+        roleFilteredItems
+            .filter((item) => !item.completed && item.status !== 'completed')
+            .forEach((item) => {
+                const p = item.priority || 'none'
+                ;(groups[p] ?? groups.none).items.push(item)
+            })
+        Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
+        return groups
+    }, [roleFilteredItems])
+    /** Chronological feed of all actions (created, completed) derived from item data. */
+    const activityFeed = useMemo(() => ListService.buildActivityFeed(roleFilteredItems), [roleFilteredItems])
+    const groupedItems =
+        viewMode === 'date'
+            ? groupedByDate
+            : viewMode === 'status'
+              ? groupedByStatus
+              : viewMode === 'priority'
+                ? groupedByPriority
+                : groupedByRole
     const summaryStats = useMemo(
         () => ({
             overdue: groupedByDate.overdue?.items?.length || 0,
@@ -294,6 +331,8 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         const handleClickOutside = (e) => {
             if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) setStatusDropdownOpen(false)
             if (roleDropdownRef.current && !roleDropdownRef.current.contains(e.target)) setRoleDropdownOpen(false)
+            if (bulkStatusRef.current && !bulkStatusRef.current.contains(e.target)) setBulkStatusOpen(false)
+            if (bulkPriorityRef.current && !bulkPriorityRef.current.contains(e.target)) setBulkPriorityOpen(false)
         }
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -326,6 +365,10 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         setSelectedIds(new Set())
     }
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [bulkStatusOpen, setBulkStatusOpen] = useState(false)
+    const [bulkPriorityOpen, setBulkPriorityOpen] = useState(false)
+    const bulkStatusRef = useRef(null)
+    const bulkPriorityRef = useRef(null)
     const bulkDelete = () => {
         if (!selectedIds.size) return
         setShowDeleteConfirm(true)
@@ -335,6 +378,32 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         for (const id of selectedIds) {
             try {
                 await ListService.deleteListItem(id)
+            } catch {}
+        }
+        setSelectedIds(new Set())
+    }
+    /** Updates status on all selected items, then clears selection. */
+    const bulkUpdateStatus = async (newStatus) => {
+        setBulkStatusOpen(false)
+        const itemsById = new Map(ListService.listItems.map((i) => [i.id, i]))
+        for (const id of selectedIds) {
+            const item = itemsById.get(id)
+            if (!item || item.status === newStatus) continue
+            try {
+                await ListService.updateListItem({ ...item, status: newStatus })
+            } catch {}
+        }
+        setSelectedIds(new Set())
+    }
+    /** Updates priority on all selected items, then clears selection. */
+    const bulkUpdatePriority = async (newPriority) => {
+        setBulkPriorityOpen(false)
+        const itemsById = new Map(ListService.listItems.map((i) => [i.id, i]))
+        for (const id of selectedIds) {
+            const item = itemsById.get(id)
+            if (!item || item.priority === newPriority) continue
+            try {
+                await ListService.updateListItem({ ...item, priority: newPriority })
             } catch {}
         }
         setSelectedIds(new Set())
@@ -664,6 +733,167 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <span>Add Item</span>
                             </button>
                         </div>
+                    ) : viewMode === 'activity' ? (
+                        <div className={`flex flex-col w-full ${isMobile ? 'pb-6' : 'pb-8'}`}>
+                            <div className="bg-white border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.08)] overflow-hidden rounded-xl">
+                                <div
+                                    className={`bg-slate-50 border-b border-gray-200 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}
+                                >
+                                    <div
+                                        className={`flex items-center text-slate-800 font-bold ${isMobile ? 'text-sm gap-2' : 'text-base gap-3'}`}
+                                    >
+                                        <i className="fas fa-history" style={{ color: accentColor }} />
+                                        <span>Recent Activity</span>
+                                        <span
+                                            className={`inline-flex items-center justify-center rounded-xl text-white font-bold px-2 ${
+                                                isMobile
+                                                    ? 'text-[0.6875rem] h-5 min-w-[20px]'
+                                                    : 'text-xs h-6 min-w-[24px]'
+                                            }`}
+                                            style={{ background: accentColor }}
+                                        >
+                                            {activityFeed.length}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col">
+                                    {activityFeed.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                                            <div className="text-slate-300 text-3xl mb-3">
+                                                <i className="fas fa-stream" />
+                                            </div>
+                                            <p className="text-slate-500 text-sm m-0">No activity recorded yet</p>
+                                        </div>
+                                    ) : (
+                                        activityFeed.map((event, index) => {
+                                            const isCompleted = event.type === 'completed'
+                                            const actorName = ListService.getCreatorName(event.userId)
+                                            const priorityConfig = ListService.getPriorityConfig(
+                                                event.item.priority || 'none'
+                                            )
+                                            const itemStatus = event.item.completed
+                                                ? 'completed'
+                                                : event.item.status || 'pending'
+                                            const statusColors = STATUS_COLORS[itemStatus] || STATUS_COLORS.pending
+                                            return (
+                                                <div
+                                                    key={`${event.type}-${event.item.id}-${index}`}
+                                                    onClick={() => onSelectItem(event.item.id)}
+                                                    className={`flex border-b border-slate-100 cursor-pointer transition-all duration-200 ${
+                                                        isMobile ? 'gap-3 px-4 py-3' : 'gap-4 px-6 py-4'
+                                                    }`}
+                                                    style={{ background: 'var(--bg-primary)' }}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.background = 'var(--bg-secondary)')
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.background = 'var(--bg-primary)')
+                                                    }
+                                                >
+                                                    <div className="flex items-start pt-0.5">
+                                                        <div
+                                                            className={`flex items-center justify-center rounded-full shrink-0 ${
+                                                                isMobile ? 'h-7 w-7' : 'h-8 w-8'
+                                                            }`}
+                                                            style={{
+                                                                background: isCompleted
+                                                                    ? 'rgba(22,163,74,0.1)'
+                                                                    : `${accentColor}15`,
+                                                                color: isCompleted ? '#16a34a' : accentColor
+                                                            }}
+                                                        >
+                                                            <i
+                                                                className={`fas ${isCompleted ? 'fa-check' : 'fa-plus'} ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className={`flex flex-1 flex-col min-w-0 ${isMobile ? 'gap-1' : 'gap-1.5'}`}
+                                                    >
+                                                        <div
+                                                            className={`flex items-start justify-between ${isMobile ? 'flex-col gap-1.5' : 'flex-row gap-4'}`}
+                                                        >
+                                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                                <p
+                                                                    className={`m-0 ${isMobile ? 'text-xs' : 'text-[0.8125rem]'}`}
+                                                                >
+                                                                    <span className="text-slate-800 font-semibold">
+                                                                        {actorName}
+                                                                    </span>
+                                                                    <span className="text-slate-500">
+                                                                        {isCompleted ? ' completed ' : ' created '}
+                                                                    </span>
+                                                                    <span className="text-slate-700 font-medium">
+                                                                        {ListService.truncateText(
+                                                                            event.description,
+                                                                            60
+                                                                        )}
+                                                                    </span>
+                                                                </p>
+                                                                <div
+                                                                    className={`flex items-center gap-2 ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
+                                                                >
+                                                                    <span className="text-slate-400 font-medium">
+                                                                        {ListService.formatRelativeTime(
+                                                                            event.timestamp
+                                                                        )}
+                                                                    </span>
+                                                                    {event.item.plant_code && (
+                                                                        <>
+                                                                            <span className="text-slate-300">·</span>
+                                                                            <span className="text-slate-400 flex items-center gap-1">
+                                                                                <i className="fas fa-building text-[8px]" />
+                                                                                {ListService.getPlantName(
+                                                                                    event.item.plant_code
+                                                                                )}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                className={`flex items-center shrink-0 ${isMobile ? 'gap-1.5' : 'gap-2'}`}
+                                                            >
+                                                                <span
+                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${priorityConfig.bg} ${priorityConfig.border} border ${priorityConfig.color} ${
+                                                                        isMobile
+                                                                            ? 'text-[0.5625rem] gap-1 px-1.5 py-0.5'
+                                                                            : 'text-[0.625rem] gap-1 px-2 py-1'
+                                                                    }`}
+                                                                >
+                                                                    <i className={`fas ${priorityConfig.icon}`} />
+                                                                    {priorityConfig.label}
+                                                                </span>
+                                                                <span
+                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${
+                                                                        isMobile
+                                                                            ? 'text-[0.5625rem] gap-1 px-1.5 py-0.5'
+                                                                            : 'text-[0.625rem] gap-1 px-2 py-1'
+                                                                    }`}
+                                                                    style={{
+                                                                        background: statusColors.bg,
+                                                                        border: `1px solid ${statusColors.border}`,
+                                                                        color: statusColors.text
+                                                                    }}
+                                                                >
+                                                                    <i
+                                                                        className={`fas ${ListService.getStatusIcon(itemStatus)}`}
+                                                                    />
+                                                                    {ListService.getStatusLabel(itemStatus)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-center text-slate-300 text-sm pt-0.5">
+                                                        <i className="fas fa-chevron-right" />
+                                                    </div>
+                                                </div>
+                                            )
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <div className={`flex flex-col gap-5 w-full ${isMobile ? 'pb-6' : 'pb-8'}`}>
                             {Object.entries(groupedItems).map(([key, group]) => {
@@ -794,19 +1024,40 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                                         </p>
                                                                     )}
                                                                 </div>
-                                                                <span
-                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${
-                                                                        isMobile
-                                                                            ? 'text-[0.625rem] gap-1.5 px-2 py-1'
-                                                                            : 'text-xs gap-1.5 px-3 py-1.5'
-                                                                    }`}
-                                                                    style={getItemStatusStyle(itemStatus, isMobile)}
+                                                                <div
+                                                                    className={`flex items-center shrink-0 ${isMobile ? 'gap-1.5' : 'gap-2'}`}
                                                                 >
-                                                                    <i
-                                                                        className={`fas ${ListService.getStatusIcon(itemStatus)}`}
-                                                                    />
-                                                                    {ListService.getStatusLabel(itemStatus)}
-                                                                </span>
+                                                                    {(() => {
+                                                                        const pc = ListService.getPriorityConfig(
+                                                                            item.priority || 'none'
+                                                                        )
+                                                                        return (
+                                                                            <span
+                                                                                className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${pc.bg} ${pc.border} border ${pc.color} ${
+                                                                                    isMobile
+                                                                                        ? 'text-[0.625rem] gap-1 px-1.5 py-1'
+                                                                                        : 'text-xs gap-1.5 px-2.5 py-1.5'
+                                                                                }`}
+                                                                            >
+                                                                                <i className={`fas ${pc.icon}`} />
+                                                                                {pc.label}
+                                                                            </span>
+                                                                        )
+                                                                    })()}
+                                                                    <span
+                                                                        className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${
+                                                                            isMobile
+                                                                                ? 'text-[0.625rem] gap-1.5 px-2 py-1'
+                                                                                : 'text-xs gap-1.5 px-3 py-1.5'
+                                                                        }`}
+                                                                        style={getItemStatusStyle(itemStatus, isMobile)}
+                                                                    >
+                                                                        <i
+                                                                            className={`fas ${ListService.getStatusIcon(itemStatus)}`}
+                                                                        />
+                                                                        {ListService.getStatusLabel(itemStatus)}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                             <div
                                                                 className={`flex items-center flex-wrap ${
@@ -907,6 +1158,113 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                             <i className="fas fa-check" />
                             <span>Complete</span>
                         </button>
+                        <div className="relative" ref={bulkStatusRef}>
+                            <button
+                                onClick={() => {
+                                    setBulkStatusOpen((p) => !p)
+                                    setBulkPriorityOpen(false)
+                                }}
+                                className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"
+                                style={getBulkButtonStyle('neutral')}
+                                onMouseEnter={(e) =>
+                                    (e.currentTarget.style.background = BULK_ACTION_COLORS.neutral.hover)
+                                }
+                                onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.neutral.bg)}
+                            >
+                                <i className="fas fa-layer-group" />
+                                <span>Status</span>
+                                <i
+                                    className={`fas fa-chevron-down text-[8px] opacity-60 transition-transform duration-150 ${bulkStatusOpen ? 'rotate-180' : ''}`}
+                                />
+                            </button>
+                            {bulkStatusOpen && (
+                                <div
+                                    className="absolute bottom-full left-0 mb-2 z-50 rounded-xl shadow-lg overflow-hidden min-w-[180px] animate-[filterFadeIn_0.15s_ease-out]"
+                                    style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-light)' }}
+                                >
+                                    <div className="p-1.5">
+                                        {BULK_STATUS_OPTIONS.map((opt) => {
+                                            const color = STATUS_COLORS[opt.value] || STATUS_COLORS.pending
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => bulkUpdateStatus(opt.value)}
+                                                    className="flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-xs font-medium cursor-pointer transition-all duration-100 border-none"
+                                                    style={{ background: 'transparent', color: 'var(--text-primary)' }}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.background = 'var(--bg-secondary)')
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.background = 'transparent')
+                                                    }
+                                                >
+                                                    <span
+                                                        className="flex items-center justify-center h-5 w-5 rounded-md text-[9px]"
+                                                        style={{ background: color.bg, color: color.text }}
+                                                    >
+                                                        <i className={`fas ${ListService.getStatusIcon(opt.value)}`} />
+                                                    </span>
+                                                    {opt.label}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="relative" ref={bulkPriorityRef}>
+                            <button
+                                onClick={() => {
+                                    setBulkPriorityOpen((p) => !p)
+                                    setBulkStatusOpen(false)
+                                }}
+                                className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"
+                                style={getBulkButtonStyle('neutral')}
+                                onMouseEnter={(e) =>
+                                    (e.currentTarget.style.background = BULK_ACTION_COLORS.neutral.hover)
+                                }
+                                onMouseLeave={(e) => (e.currentTarget.style.background = BULK_ACTION_COLORS.neutral.bg)}
+                            >
+                                <i className="fas fa-flag" />
+                                <span>Priority</span>
+                                <i
+                                    className={`fas fa-chevron-down text-[8px] opacity-60 transition-transform duration-150 ${bulkPriorityOpen ? 'rotate-180' : ''}`}
+                                />
+                            </button>
+                            {bulkPriorityOpen && (
+                                <div
+                                    className="absolute bottom-full left-0 mb-2 z-50 rounded-xl shadow-lg overflow-hidden min-w-[170px] animate-[filterFadeIn_0.15s_ease-out]"
+                                    style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-light)' }}
+                                >
+                                    <div className="p-1.5">
+                                        {ListService.getPriorityOptions().map((opt) => {
+                                            const pc = ListService.getPriorityConfig(opt.value)
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => bulkUpdatePriority(opt.value)}
+                                                    className="flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-xs font-medium cursor-pointer transition-all duration-100 border-none"
+                                                    style={{ background: 'transparent', color: 'var(--text-primary)' }}
+                                                    onMouseEnter={(e) =>
+                                                        (e.currentTarget.style.background = 'var(--bg-secondary)')
+                                                    }
+                                                    onMouseLeave={(e) =>
+                                                        (e.currentTarget.style.background = 'transparent')
+                                                    }
+                                                >
+                                                    <span
+                                                        className={`flex items-center justify-center h-5 w-5 rounded-md text-[9px] ${pc.bg} ${pc.color}`}
+                                                    >
+                                                        <i className={`fas ${pc.icon}`} />
+                                                    </span>
+                                                    {opt.label}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <button
                             onClick={bulkDelete}
                             className="flex items-center border-none rounded-lg cursor-pointer text-sm font-semibold gap-2 outline-none px-4 py-2 transition-all duration-200"

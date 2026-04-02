@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.7] - 2026-04-02
+
+- Add priority system to list items with urgent/high/medium/low/none levels, including color-coded display config, dropdown selectors, and bulk priority updates
+- Add activity feed view mode showing chronological created/completed events with relative timestamps
+- Add priority grouping view mode to organize tasks by priority level
+- Add bulk status and bulk priority update actions for selected list items
+- Add global select styling with custom chevron icon, dark mode support, and disabled state
+- Remove inline style overrides from select elements in ListAddView and OperatorAddView in favor of global select styles
+- Wire priority field through create, update, and detail flows across ListService, ListAddView, ListDetailView, and the list-service edge function
+- Default list view grouping changed from status to priority
+
 ## [38.5.6] - 2026-04-02
 
 - smyrnatools.com Release v38.5.6

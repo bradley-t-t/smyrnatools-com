@@ -10,6 +10,41 @@ const PRIORITY_CACHE_TTL_MS = 30 * 60_000
 const MAX_PLANNED_ITEMS_PER_DAY = 3
 const PRIORITY_CACHE_PREFIX = 'ai:priority:'
 
+/** Priority levels with display config — ordered from highest to lowest severity. */
+const PRIORITY_CONFIG = {
+    urgent: { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', icon: 'fa-fire', label: 'Urgent' },
+    high: {
+        color: 'text-orange-600',
+        bg: 'bg-orange-50',
+        border: 'border-orange-200',
+        icon: 'fa-arrow-up',
+        label: 'High'
+    },
+    medium: {
+        color: 'text-yellow-600',
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-200',
+        icon: 'fa-minus',
+        label: 'Medium'
+    },
+    low: { color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', icon: 'fa-arrow-down', label: 'Low' },
+    none: {
+        color: 'text-slate-400',
+        bg: 'bg-slate-50',
+        border: 'border-slate-200',
+        icon: 'fa-minus',
+        label: 'No Priority'
+    }
+}
+const PRIORITY_OPTIONS = [
+    { label: 'No Priority', value: 'none' },
+    { label: 'Low', value: 'low' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'High', value: 'high' },
+    { label: 'Urgent', value: 'urgent' }
+]
+const DEFAULT_PRIORITY = PRIORITY_CONFIG.none
+
 /**
  * Consolidated status configuration — single source of truth for label, icon, and Tailwind color per status.
  */
@@ -104,7 +139,15 @@ class ListServiceImpl {
         return this.creatorProfiles
     }
     /** Creates a new list item with grammar-cleaned description and comments. */
-    async createListItem(plantCode, description, deadline, comments, status = 'pending', responsibleRole = null) {
+    async createListItem(
+        plantCode,
+        description,
+        deadline,
+        comments,
+        status = 'pending',
+        responsibleRole = null,
+        priority = 'none'
+    ) {
         const user = await UserService.getCurrentUser()
         if (!user) throw new Error('No authenticated user')
         const desc = GrammarUtility.cleanDescription(description || '')
@@ -117,6 +160,7 @@ class ListServiceImpl {
             deadline: deadlineString,
             description: desc,
             plantCode,
+            priority: priority || 'none',
             responsible_role: responsibleRole || null,
             status: status || 'pending',
             userId
@@ -140,6 +184,7 @@ class ListServiceImpl {
             description: desc,
             id: item.id,
             plant_code: item.plant_code?.trim() ?? '',
+            priority: item.priority || 'none',
             responsible_role: item.responsible_role || null,
             status: item.status || 'pending'
         }
@@ -266,6 +311,14 @@ class ListServiceImpl {
         }
         return labels[role] || 'Unassigned'
     }
+    /** Returns priority display metadata (label, icon, Tailwind classes) for a given priority value. */
+    getPriorityConfig(priority) {
+        return PRIORITY_CONFIG[priority] ?? DEFAULT_PRIORITY
+    }
+    /** Returns the ordered list of priority options for dropdowns. */
+    getPriorityOptions() {
+        return PRIORITY_OPTIONS
+    }
     /** Maps a responsible role key to its FontAwesome icon class. */
     getResponsibleRoleIcon(role) {
         const icons = {
@@ -293,6 +346,58 @@ class ListServiceImpl {
             return name || userId.slice(0, 8)
         }
         return userId.slice(0, 8)
+    }
+    /**
+     * Builds a chronological activity feed from list items.
+     * Derives events from creation timestamps, completion records, and current status.
+     * @param {Array} items - List items to build activity from.
+     * @returns {Array<{type: string, timestamp: string, item: object, userId: string, description: string}>}
+     */
+    buildActivityFeed(items) {
+        const events = []
+        for (const item of items) {
+            if (item.created_at) {
+                events.push({
+                    type: 'created',
+                    timestamp: item.created_at,
+                    item,
+                    userId: item.user_id,
+                    description: item.description
+                })
+            }
+            if (item.completed && item.completed_at) {
+                events.push({
+                    type: 'completed',
+                    timestamp: item.completed_at,
+                    item,
+                    userId: item.completed_by,
+                    description: item.description
+                })
+            }
+        }
+        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        return events
+    }
+    /**
+     * Formats a timestamp into a human-readable relative string (e.g. "2 hours ago", "Yesterday").
+     * Falls back to absolute date for anything older than 7 days.
+     * @param {string} timestamp - ISO timestamp string.
+     * @returns {string} Relative or absolute time label.
+     */
+    formatRelativeTime(timestamp) {
+        if (!timestamp) return ''
+        const now = new Date()
+        const then = new Date(timestamp)
+        const diffMs = now - then
+        const diffMinutes = Math.floor(diffMs / 60_000)
+        const diffHours = Math.floor(diffMs / 3_600_000)
+        const diffDays = Math.floor(diffMs / 86_400_000)
+        if (diffMinutes < 1) return 'Just now'
+        if (diffMinutes < 60) return `${diffMinutes}m ago`
+        if (diffHours < 24) return `${diffHours}h ago`
+        if (diffDays === 1) return 'Yesterday'
+        if (diffDays < 7) return `${diffDays}d ago`
+        return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }
     /** Computes per-plant distribution of total, completed, pending, and overdue items. */
     getPlantDistribution(listItems) {

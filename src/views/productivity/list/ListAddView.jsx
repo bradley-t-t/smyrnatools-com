@@ -40,7 +40,9 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
     const [aiSuggestions, setAiSuggestions] = useState([])
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
     const [showSuggestions, setShowSuggestions] = useState(false)
+    const [priority, setPriority] = useState('none')
     const [isImprovingDescription, setIsImprovingDescription] = useState(false)
+    const priorityOptions = ListService.getPriorityOptions()
     const statusOptions = [
         { label: 'Pending', value: 'pending' },
         { label: 'In Progress', value: 'in_progress' },
@@ -170,12 +172,21 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                     comments: comments.trim(),
                     deadline: new Date(deadline).toISOString(),
                     description: description.trim(),
-                    plant_code: plantCode
+                    plant_code: plantCode,
+                    priority
                 }
                 await ListService.updateListItem({ ...item, ...updateData })
             } else if (selectedPlantCodes.length > 0) {
                 const promises = selectedPlantCodes.map((code) =>
-                    ListService.createListItem(code, description, new Date(deadline), comments, status, responsibleRole)
+                    ListService.createListItem(
+                        code,
+                        description,
+                        new Date(deadline),
+                        comments,
+                        status,
+                        responsibleRole,
+                        priority
+                    )
                 )
                 await Promise.all(promises)
             } else {
@@ -185,7 +196,8 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                     new Date(deadline),
                     comments,
                     status,
-                    responsibleRole
+                    responsibleRole,
+                    priority
                 )
             }
             onItemAdded?.()
@@ -356,17 +368,31 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 )}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-w-0">
+                            <div className="flex flex-col gap-2 min-w-0">
+                                <label htmlFor="priority" className="text-sm font-medium text-slate-700">
+                                    Priority
+                                </label>
+                                <select
+                                    id="priority"
+                                    className="w-full rounded-xl"
+                                    value={priority}
+                                    onChange={(e) => setPriority(e.target.value)}
+                                >
+                                    {priorityOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                             <div className="flex flex-col gap-2 min-w-0">
                                 <label htmlFor="status" className="text-sm font-medium text-slate-700">
                                     Status
                                 </label>
                                 <select
                                     id="status"
-                                    className="w-full appearance-none cursor-pointer rounded-xl border border-border-light bg-bg-secondary py-3 pl-4 pr-10 text-sm text-text-primary bg-[length:18px] bg-[position:right_12px_center] bg-no-repeat"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`
-                                    }}
+                                    className="w-full rounded-xl"
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
@@ -383,10 +409,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="responsibleRole"
-                                    className="w-full appearance-none cursor-pointer rounded-xl border border-border-light bg-bg-secondary py-3 pl-4 pr-10 text-sm text-text-primary bg-[length:18px] bg-[position:right_12px_center] bg-no-repeat"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`
-                                    }}
+                                    className="w-full rounded-xl"
                                     value={responsibleRole}
                                     onChange={(e) => setResponsibleRole(e.target.value)}
                                 >

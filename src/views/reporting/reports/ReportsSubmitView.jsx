@@ -616,7 +616,10 @@ function ReportsSubmitView({
         if (field.type === 'textarea') return <textarea {...props} className={`${baseClass} min-h-[100px] resize-y`} />
         if (field.type === 'select')
             return (
-                <select {...props}>
+                <select
+                    {...props}
+                    className={`${baseClass} appearance-none cursor-pointer pr-10 disabled:bg-gray-100 disabled:text-gray-500`}
+                >
                     <option value="">Select...</option>
                     {field.options?.map((opt) => (
                         <option key={opt} value={opt}>

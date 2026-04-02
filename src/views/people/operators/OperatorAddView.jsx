@@ -289,7 +289,6 @@ function OperatorAddView({ plants, operators = [], onClose, onOperatorAdded, all
                                         value={assignedTrainer}
                                         onChange={(e) => setAssignedTrainer(e.target.value)}
                                         disabled={isTrainer}
-                                        style={{ opacity: isTrainer ? 0.5 : 1 }}
                                     >
                                         <option value="0">None</option>
                                         {operators
