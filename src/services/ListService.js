@@ -3,7 +3,12 @@ import CacheUtility from '../utils/CacheUtility'
 import DateUtility from '../utils/DateUtility'
 import FormatUtility from '../utils/FormatUtility'
 import GrammarUtility from '../utils/GrammarUtility'
+import { AIService } from './AIService'
 import { UserService } from './UserService'
+
+const PRIORITY_CACHE_TTL_MS = 30 * 60_000
+const MAX_PLANNED_ITEMS_PER_DAY = 3
+const PRIORITY_CACHE_PREFIX = 'ai:priority:'
 
 /**
  * Consolidated status configuration — single source of truth for label, icon, and Tailwind color per status.
@@ -119,6 +124,7 @@ class ListServiceImpl {
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to create list item')
         CacheUtility.delete('list:items-with-profiles')
         await this.fetchListItems({ force: true })
+        this.invalidateAllPriorityScores()
         return true
     }
     /** Updates an existing list item with grammar-cleaned text fields. */
@@ -140,6 +146,7 @@ class ListServiceImpl {
         const { res, json } = await APIUtility.post('/list-service/update', { item: update })
         if (!res.ok || json?.success !== true) throw new Error(json?.error || 'Failed to update list item')
         CacheUtility.delete('list:items-with-profiles')
+        CacheUtility.delete(`${PRIORITY_CACHE_PREFIX}${item.id}`)
         await this.fetchListItems({ force: true })
         return true
     }
@@ -335,6 +342,217 @@ class ListServiceImpl {
         const { res, json } = await APIUtility.post('/list-service/clear-planned-items', { endDate, startDate })
         if (!res.ok) throw new Error(json?.error || 'Failed to clear planned items')
         return json
+    }
+    /** Invalidates all cached priority scores so the next auto-plan re-scores everything. */
+    invalidateAllPriorityScores() {
+        const keysToDelete = Object.keys(CacheUtility.caches).filter((key) => key.startsWith(PRIORITY_CACHE_PREFIX))
+        for (const key of keysToDelete) CacheUtility.delete(key)
+    }
+    /**
+     * Retrieves cached priority scores for items that have them, identifies items needing scoring.
+     * @returns {{ cached: Map<string, number>, uncached: Array }} Partitioned results.
+     */
+    partitionItemsByScoreCache(openItems) {
+        const cached = new Map()
+        const uncached = []
+        for (const item of openItems) {
+            const score = CacheUtility.get(`${PRIORITY_CACHE_PREFIX}${item.id}`)
+            if (score !== null) {
+                cached.set(item.id, score)
+            } else {
+                uncached.push(item)
+            }
+        }
+        return { cached, uncached }
+    }
+    /**
+     * AI-powered auto-plan: scores open items by operational priority, then distributes
+     * the highest-priority items across the week while respecting deadlines and existing plans.
+     * Returns assignments grouped by day for progressive rendering.
+     * @param {Array<{dateStr: string}>} weekDates - Mon-Sat date objects from the planner.
+     * @param {Array<{list_item_id: string, planned_date: string}>} existingPlannedItems - Already-planned records.
+     * @returns {Promise<Map<string, Array<string>>>} Map of dateStr → array of itemIds.
+     */
+    async autoPlanWeek(weekDates, existingPlannedItems) {
+        const openItems = this.listItems.filter((item) => !item.completed && item.status !== 'completed')
+        if (openItems.length === 0) return new Map()
+        const alreadyPlannedIds = new Set(existingPlannedItems.map((pi) => pi.list_item_id))
+        const plannable = openItems.filter((item) => !alreadyPlannedIds.has(item.id))
+        if (plannable.length === 0) return new Map()
+        const allScores = await this.getScoresForItems(plannable)
+        if (!allScores || allScores.size === 0) return new Map()
+        const ranked = [...plannable]
+            .map((item) => ({ item, score: allScores.get(item.id) ?? 5 }))
+            .sort((a, b) => b.score - a.score)
+        const flatAssignments = this.distributeItemsAcrossWeek(ranked, weekDates, existingPlannedItems)
+        const byDay = new Map()
+        for (const { itemId, plannedDate } of flatAssignments) {
+            if (!byDay.has(plannedDate)) byDay.set(plannedDate, [])
+            byDay.get(plannedDate).push(itemId)
+        }
+        return byDay
+    }
+    /**
+     * Computes a deterministic priority score (1-10) from an item's structured fields.
+     * Used as the immediate/fallback scoring — no API call needed.
+     */
+    computeDeterministicScore(item) {
+        let score = 5
+        if (item.status === 'blocked') score = 9
+        else if (item.status === 'overdue' || this.isOverdue(item)) score = 9
+        else if (item.status === 'in_progress') score = 7
+        else if (item.status === 'ordered_materials') score = 6
+        else if (item.status === 'waiting') score = 4
+        else if (item.status === 'pending') score = 5
+        if (item.deadline) {
+            const daysUntilDeadline = (new Date(item.deadline) - new Date()) / (1000 * 60 * 60 * 24)
+            if (daysUntilDeadline < 0) score = Math.max(score, 9)
+            else if (daysUntilDeadline <= 2) score = Math.min(10, score + 2)
+            else if (daysUntilDeadline <= 5) score = Math.min(10, score + 1)
+        }
+        if (item.responsible_role === 'maintenance') score = Math.min(10, score + 1)
+        return score
+    }
+    /**
+     * Fetches priority scores for items. Uses cached AI scores when available,
+     * falls back to deterministic scoring, and calls AI for uncached items
+     * to get scores + update deadline/status.
+     * @returns {Promise<Map<string, number>>} Map of itemId → priority score.
+     */
+    async getScoresForItems(items) {
+        const scores = new Map()
+        const uncached = []
+        for (const item of items) {
+            const cached = CacheUtility.get(`${PRIORITY_CACHE_PREFIX}${item.id}`)
+            if (cached !== null) {
+                scores.set(item.id, cached)
+            } else {
+                uncached.push(item)
+                scores.set(item.id, this.computeDeterministicScore(item))
+            }
+        }
+        if (uncached.length > 0) {
+            try {
+                const aiResults = await AIService.prioritizeListItems(uncached)
+                if (aiResults) {
+                    for (const [itemId, data] of aiResults) {
+                        scores.set(itemId, data.score)
+                        CacheUtility.set(`${PRIORITY_CACHE_PREFIX}${itemId}`, data.score, PRIORITY_CACHE_TTL_MS)
+                    }
+                    await this.applyAIUpdates(uncached, aiResults)
+                }
+            } catch {
+                // Deterministic scores already set as fallback
+            }
+        }
+        return scores
+    }
+    /**
+     * Applies AI-recommended deadline and status updates to list items.
+     * Only updates if the AI suggestion differs from the current value.
+     */
+    async applyAIUpdates(items, aiResults) {
+        for (const item of items) {
+            const aiData = aiResults.get(item.id)
+            if (!aiData) continue
+            const updates = {}
+            let needsUpdate = false
+            if (aiData.status && aiData.status !== item.status && !item.completed) {
+                updates.status = aiData.status
+                needsUpdate = true
+            }
+            if (aiData.deadline) {
+                const aiDeadline = new Date(`${aiData.deadline}T17:00:00.000Z`)
+                const currentDeadline = item.deadline ? new Date(item.deadline) : null
+                if (!currentDeadline || aiDeadline < currentDeadline) {
+                    updates.deadline = aiDeadline.toISOString()
+                    needsUpdate = true
+                }
+            }
+            if (needsUpdate) {
+                try {
+                    await this.updateListItem({ ...item, ...updates })
+                } catch {}
+            }
+        }
+    }
+    /**
+     * Distributes ranked items across the week's days, respecting deadlines and per-day caps.
+     * Items with deadlines within the week are placed on or before their deadline day.
+     */
+    distributeItemsAcrossWeek(rankedItems, weekDates, existingPlannedItems) {
+        const today = new Date().toISOString().split('T')[0]
+        const maxPlanDate = new Date()
+        maxPlanDate.setDate(maxPlanDate.getDate() + 7)
+        const oneWeekAhead = maxPlanDate.toISOString().split('T')[0]
+        const futureDays = weekDates.filter((d) => d.dateStr >= today && d.dateStr <= oneWeekAhead)
+        if (futureDays.length === 0) return []
+        const daySlots = new Map()
+        for (const day of futureDays) {
+            const existingCount = existingPlannedItems.filter((pi) => pi.planned_date === day.dateStr).length
+            daySlots.set(day.dateStr, MAX_PLANNED_ITEMS_PER_DAY - existingCount)
+        }
+        const totalAvailableSlots = [...daySlots.values()].reduce((sum, slots) => sum + Math.max(0, slots), 0)
+        const itemsToPlace = rankedItems.slice(0, totalAvailableSlots)
+        const assignments = []
+        const deadlineItems = []
+        const flexibleItems = []
+        const dateStrings = futureDays.map((d) => d.dateStr)
+        const weekStart = dateStrings[0]
+        const weekEnd = dateStrings[dateStrings.length - 1]
+        for (const entry of itemsToPlace) {
+            const deadlineDate = entry.item.deadline ? entry.item.deadline.split('T')[0] : null
+            if (deadlineDate && deadlineDate >= weekStart && deadlineDate <= weekEnd) {
+                deadlineItems.push({ ...entry, deadlineDate })
+            } else {
+                flexibleItems.push(entry)
+            }
+        }
+        for (const entry of deadlineItems) {
+            const targetDateIndex = dateStrings.findIndex((d) => d >= entry.deadlineDate)
+            const targetDate = targetDateIndex >= 0 ? dateStrings[targetDateIndex] : null
+            let placed = false
+            if (targetDate && daySlots.get(targetDate) > 0) {
+                assignments.push({ itemId: entry.item.id, plannedDate: targetDate })
+                daySlots.set(targetDate, daySlots.get(targetDate) - 1)
+                placed = true
+            }
+            if (!placed) {
+                for (let i = (targetDateIndex >= 0 ? targetDateIndex : dateStrings.length) - 1; i >= 0; i--) {
+                    if (daySlots.get(dateStrings[i]) > 0) {
+                        assignments.push({ itemId: entry.item.id, plannedDate: dateStrings[i] })
+                        daySlots.set(dateStrings[i], daySlots.get(dateStrings[i]) - 1)
+                        placed = true
+                        break
+                    }
+                }
+            }
+            if (!placed) {
+                for (const dateStr of dateStrings) {
+                    if (daySlots.get(dateStr) > 0) {
+                        assignments.push({ itemId: entry.item.id, plannedDate: dateStr })
+                        daySlots.set(dateStr, daySlots.get(dateStr) - 1)
+                        break
+                    }
+                }
+            }
+        }
+        let dayIndex = 0
+        for (const entry of flexibleItems) {
+            let placed = false
+            for (let attempt = 0; attempt < dateStrings.length; attempt++) {
+                const dateStr = dateStrings[(dayIndex + attempt) % dateStrings.length]
+                if (daySlots.get(dateStr) > 0) {
+                    assignments.push({ itemId: entry.item.id, plannedDate: dateStr })
+                    daySlots.set(dateStr, daySlots.get(dateStr) - 1)
+                    dayIndex = (dayIndex + attempt + 1) % dateStrings.length
+                    placed = true
+                    break
+                }
+            }
+            if (!placed) break
+        }
+        return assignments
     }
 }
 export const ListService = new ListServiceImpl()

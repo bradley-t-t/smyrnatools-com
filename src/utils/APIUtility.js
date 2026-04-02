@@ -40,7 +40,8 @@ const APIUtility = {
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
             const isLastAttempt = attempt === maxRetries
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+            const timeoutMs = options.timeout ?? REQUEST_TIMEOUT_MS
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
             try {
                 const res = await fetch(url, {
                     body: JSON.stringify({ ...data, ...getSessionCredentials() }),

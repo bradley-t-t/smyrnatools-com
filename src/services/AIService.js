@@ -38,15 +38,17 @@ class AIServiceImpl {
      */
     async fetchFromAPI(systemPrompt, messages, options = {}) {
         try {
-            const { model = DEFAULT_MODEL, temperature = 0.3 } = options
-            const { res, json } = await APIUtility.post('/ai-service/generate', {
-                messages,
-                model,
-                systemPrompt,
-                temperature
-            })
+            const { model = DEFAULT_MODEL, temperature = 0.3, timeout } = options
+            const { res, json } = await APIUtility.post(
+                '/ai-service/generate',
+                { messages, model, systemPrompt, temperature },
+                { ...(timeout && { maxRetries: 1, timeout }) }
+            )
             if (res.status === 429) return { error: 'rate_limited' }
-            if (!res.ok) return { error: 'api_error', status: res.status }
+            if (!res.ok) {
+                console.error('AI API response error:', res.status, json)
+                return { error: 'api_error', status: res.status }
+            }
             return { content: json?.content ?? null }
         } catch (error) {
             console.error('AI API Error:', error)
@@ -239,6 +241,67 @@ class AIServiceImpl {
             return { comments: parsed.comments || '', description: parsed.description || description }
         } catch {
             return { comments: '', description: result.content }
+        }
+    }
+    /**
+     * Scores list items by operational priority using AI analysis.
+     * Processes items in batches of 15 to keep each API call fast.
+     * @param {Array<{id: string, status: string, deadline: string, responsible_role: string, description: string, comments: string}>} items
+     * @returns {Map<string, number>|null} Map of itemId → priority score (1-10), or null on failure.
+     */
+    /**
+     * Scores list items by operational priority using AI analysis.
+     * Returns Map of itemId → { score, status, deadline }.
+     */
+    async prioritizeListItems(items) {
+        if (!items?.length) return null
+        const BATCH_SIZE = 10
+        const allResults = new Map()
+        for (let i = 0; i < items.length; i += BATCH_SIZE) {
+            const batch = items.slice(i, i + BATCH_SIZE)
+            const batchResults = await this.scorePriorityBatch(batch)
+            if (batchResults) {
+                for (const [itemId, data] of batchResults) allResults.set(itemId, data)
+            }
+        }
+        return allResults.size > 0 ? allResults : null
+    }
+    /**
+     * Scores a single batch of items against the priority prompt.
+     * Returns a Map of itemId → { score, status, deadline } for each item.
+     */
+    async scorePriorityBatch(batch) {
+        const todayStr = new Date().toISOString().split('T')[0]
+        const compactPayload =
+            `Today: ${todayStr}\n\n` +
+            batch
+                .map(
+                    (item) =>
+                        `${item.id} | ${item.status || 'pending'} | ${item.deadline ? new Date(item.deadline).toISOString().split('T')[0] : 'none'} | ${item.responsible_role || 'unassigned'} | ${item.description || ''} | ${item.comments || ''}`
+                )
+                .join('\n')
+        const result = await this.callAPI(PROMPTS.prioritizeListItems, compactPayload, {
+            model: FAST_MODEL,
+            temperature: 0.2
+        })
+        if (!result?.content) return null
+        try {
+            const cleaned = result.content.replace(/```json\s*|```\s*/g, '').trim()
+            const parsed = JSON.parse(cleaned)
+            if (!Array.isArray(parsed)) return null
+            const VALID_STATUSES = new Set(['pending', 'in_progress', 'ordered_materials', 'blocked', 'waiting'])
+            const resultMap = new Map()
+            for (const entry of parsed) {
+                if (!entry?.id || typeof entry.score !== 'number') continue
+                resultMap.set(entry.id, {
+                    deadline: entry.deadline || null,
+                    score: Math.max(1, Math.min(10, Math.round(entry.score))),
+                    status: VALID_STATUSES.has(entry.status) ? entry.status : null
+                })
+            }
+            return resultMap.size > 0 ? resultMap : null
+        } catch {
+            return null
         }
     }
     async suggestListItems(partialDescription = '') {

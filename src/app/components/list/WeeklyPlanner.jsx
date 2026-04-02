@@ -648,6 +648,9 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const [weekOffset, setWeekOffset] = useState(0)
     const [plannedItems, setPlannedItems] = useState([])
     const [loading, setLoading] = useState(true)
+    const [aiPlanning, setAiPlanning] = useState(false)
+    const [aiPlanResult, setAiPlanResult] = useState(null)
+    const autoPlanRanForWeek = useRef(null)
     const isMobile = useIsMobile()
     const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset])
     const weekLabel = useMemo(() => {
@@ -732,6 +735,55 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
     const handleItemCreated = useCallback(() => {
         onItemsChanged?.()
     }, [onItemsChanged])
+    const hasOpenItems = useMemo(() => items.some((item) => !item.completed && item.status !== 'completed'), [items])
+    const handleAiPlan = useCallback(async () => {
+        setAiPlanning(true)
+        setAiPlanResult(null)
+        let totalAdded = 0
+        try {
+            const freshPlanned = await ListService.fetchPlannedItems(startDate, endDate)
+            const assignmentsByDay = await ListService.autoPlanWeek(weekDates, freshPlanned)
+            if (assignmentsByDay.size === 0) {
+                setAiPlanResult({ count: 0, error: false })
+                return
+            }
+            const today = new Date().toISOString().split('T')[0]
+            const futureDays = weekDates.filter((d) => d.dateStr >= today)
+            const dayCounts = new Map()
+            for (const pi of freshPlanned) {
+                dayCounts.set(pi.planned_date, (dayCounts.get(pi.planned_date) || 0) + 1)
+            }
+            for (const day of futureDays) {
+                const dayItemIds = assignmentsByDay.get(day.dateStr)
+                if (!dayItemIds?.length) continue
+                const currentCount = dayCounts.get(day.dateStr) || 0
+                const slotsLeft = 3 - currentCount
+                if (slotsLeft <= 0) continue
+                const toAdd = dayItemIds.slice(0, slotsLeft)
+                for (const itemId of toAdd) {
+                    try {
+                        await ListService.addPlannedItem(itemId, day.dateStr)
+                        totalAdded++
+                        dayCounts.set(day.dateStr, (dayCounts.get(day.dateStr) || 0) + 1)
+                    } catch {}
+                }
+                await loadPlannedItems()
+            }
+            setAiPlanResult({ count: totalAdded, error: false })
+        } catch {
+            setAiPlanResult({ count: totalAdded, error: totalAdded === 0 })
+        } finally {
+            setAiPlanning(false)
+            setTimeout(() => setAiPlanResult(null), 4000)
+        }
+    }, [weekDates, startDate, endDate, loadPlannedItems])
+    useEffect(() => {
+        if (loading || aiPlanning || !hasOpenItems) return
+        const weekKey = `${startDate}_${endDate}`
+        if (autoPlanRanForWeek.current === weekKey) return
+        autoPlanRanForWeek.current = weekKey
+        handleAiPlan()
+    }, [loading, aiPlanning, hasOpenItems, startDate, endDate, handleAiPlan])
     const totalPlanned = plannedItems.length
     return (
         <div className={`flex flex-col ${isMobile ? 'gap-3 p-2.5' : 'gap-5 p-5'}`}>
@@ -825,6 +877,44 @@ export default function WeeklyPlanner({ items, onSelectItem, accentColor = '#1e3
                             {totalPlanned} {isMobile ? '' : 'planned'}
                         </span>
                     </div>
+                    <button
+                        onClick={handleAiPlan}
+                        disabled={loading || aiPlanning || !hasOpenItems}
+                        className={`flex items-center rounded-lg font-semibold gap-[5px] transition-all duration-150 ${loading || aiPlanning || !hasOpenItems ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${isMobile ? 'text-[11px] px-2.5 py-1.5' : 'text-xs px-3 py-2'}`}
+                        style={{
+                            background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)`,
+                            border: 'none',
+                            color: '#fff'
+                        }}
+                    >
+                        <i
+                            className={`fas ${aiPlanning ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} text-[10px]`}
+                        />
+                        {!isMobile && (aiPlanning ? 'Planning...' : 'AI Plan')}
+                    </button>
+                    {aiPlanResult && (
+                        <div
+                            className={`flex items-center rounded-lg gap-1.5 ${isMobile ? 'text-[10px] px-2 py-1' : 'text-xs px-2.5 py-1.5'}`}
+                            style={{
+                                background: aiPlanResult.error
+                                    ? 'rgba(220,38,38,0.1)'
+                                    : aiPlanResult.count > 0
+                                      ? 'rgba(22,163,74,0.1)'
+                                      : 'rgba(202,138,4,0.1)',
+                                border: `1px solid ${aiPlanResult.error ? 'rgba(220,38,38,0.3)' : aiPlanResult.count > 0 ? 'rgba(22,163,74,0.3)' : 'rgba(202,138,4,0.3)'}`,
+                                color: aiPlanResult.error ? '#dc2626' : aiPlanResult.count > 0 ? '#16a34a' : '#ca8a04'
+                            }}
+                        >
+                            <i
+                                className={`fas ${aiPlanResult.error ? 'fa-exclamation-circle' : aiPlanResult.count > 0 ? 'fa-check-circle' : 'fa-info-circle'} text-[10px]`}
+                            />
+                            {aiPlanResult.error
+                                ? 'Failed'
+                                : aiPlanResult.count > 0
+                                  ? `Added ${aiPlanResult.count} item${aiPlanResult.count !== 1 ? 's' : ''}`
+                                  : 'All items planned'}
+                        </div>
+                    )}
                     {totalPlanned > 0 && (
                         <button
                             onClick={handleClearAll}

@@ -57,7 +57,13 @@
       "Bash(PATH=/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH which nit)",
       "Bash(echo 'nit not in PATH' PATH=/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH nit --help)",
       "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" nit --help)",
-      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" nit release)"
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" nit release)",
+      "Bash(do echo:*)",
+      "Bash(1 git:*)",
+      "Bash(cd /Users/trentontaylor/WebstormProjects/baytowngocarts-com git commit --amend --no-edit)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx vite build)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets list --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set GITHUB_TOKEN=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 --project-ref gujgtjqqurildqurpffh)"
     ]
   }
 }

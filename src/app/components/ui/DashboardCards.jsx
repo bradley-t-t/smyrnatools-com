@@ -114,13 +114,14 @@ function TypeBreakdownGrid({ typeData, typeOrder, icons, columns, labelMap = {} 
                         <div key={type} className="bg-slate-50 rounded-lg p-2 text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
                                 <i className={`fas ${icons[type]} text-slate-500`} style={{ fontSize: '10px' }} />
-                                <span className="text-slate-500 text-xs font-semibold">
-                                    {labelMap[type] || type}
-                                </span>
+                                <span className="text-slate-500 text-xs font-semibold">{labelMap[type] || type}</span>
                             </div>
                             <div className="flex justify-center gap-1">
                                 {['active', 'spare', 'shop'].map((status) => (
-                                    <span key={status} className={`${STATUS_COLORS[status]} rounded px-1.5 py-0.5 text-xs font-semibold`}>
+                                    <span
+                                        key={status}
+                                        className={`${STATUS_COLORS[status]} rounded px-1.5 py-0.5 text-xs font-semibold`}
+                                    >
                                         {data[status]}
                                     </span>
                                 ))}

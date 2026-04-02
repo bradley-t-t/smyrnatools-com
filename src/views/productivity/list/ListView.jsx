@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import ConfirmDialog from '../../../app/components/common/ConfirmDialog'
-import WeeklyPlanner from '../../../app/components/list/WeeklyPlanner'
 import TopSection from '../../../app/components/sections/TopSection'
 import { TaskListSkeleton } from '../../../app/components/ui/AssetListSkeleton'
 import { usePreferences } from '../../../app/context/PreferencesContext'
@@ -33,8 +32,7 @@ const ROLE_OPTIONS = ['Maintenance', 'Plant Manager', 'District Manager', 'Unass
 const VIEW_MODES = [
     { icon: 'fa-layer-group', id: 'status', label: 'Status' },
     { icon: 'fa-calendar-alt', id: 'date', label: 'Date' },
-    { icon: 'fa-user', id: 'role', label: 'Role' },
-    { icon: 'fa-calendar-week', id: 'planner', label: 'Planner' }
+    { icon: 'fa-user', id: 'role', label: 'Role' }
 ]
 const STATUS_COLORS = {
     blocked: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' },
@@ -74,7 +72,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
     const accentColor = preferences.accentColor || '#1e3a5f'
     const headerRef = useRef(null)
     const searchInputRef = useRef(null)
-    const plannerGroupsRef = useRef(null)
     const [plants, setPlants] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [searchText, setSearchText] = useState('')
@@ -226,31 +223,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         }),
         [roleFilteredItems, groupedByDate]
     )
-    /** Clips planner items that scroll behind the sticky header so they don't peek through. */
-    const handleScroll = useCallback(() => {
-        if (!headerRef.current || !plannerGroupsRef.current) return
-        const clipTop = headerRef.current.getBoundingClientRect().bottom
-        plannerGroupsRef.current.querySelectorAll('.planner-group, .planner-item').forEach((item) => {
-            const { top, height } = item.getBoundingClientRect()
-            if (top < clipTop) {
-                const overlap = clipTop - top
-                item.style.opacity = overlap >= height ? '0' : '1'
-                item.style.pointerEvents = overlap >= height ? 'none' : 'auto'
-                item.style.clipPath = overlap < height ? `inset(${overlap}px 0 0 0)` : 'none'
-            } else {
-                item.style.clipPath = 'none'
-                item.style.opacity = '1'
-                item.style.pointerEvents = 'auto'
-            }
-        })
-    }, [])
-    useEffect(() => {
-        const contentArea = document.querySelector('.content-area')
-        if (!contentArea) return
-        contentArea.addEventListener('scroll', handleScroll)
-        handleScroll()
-        return () => contentArea.removeEventListener('scroll', handleScroll)
-    }, [handleScroll])
     useEffect(() => {
         const loadData = async () => {
             setIsLoading(true)
@@ -692,16 +664,6 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                 <span>Add Item</span>
                             </button>
                         </div>
-                    ) : viewMode === 'planner' ? (
-                        <WeeklyPlanner
-                            items={roleFilteredItems}
-                            onSelectItem={onSelectItem}
-                            accentColor={accentColor}
-                            onItemsChanged={async () => {
-                                await ListService.fetchListItems()
-                                setPlants(ListService.plants)
-                            }}
-                        />
                     ) : (
                         <div className={`flex flex-col gap-5 w-full ${isMobile ? 'pb-6' : 'pb-8'}`}>
                             {Object.entries(groupedItems).map(([key, group]) => {

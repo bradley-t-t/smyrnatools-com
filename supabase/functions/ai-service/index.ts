@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
                 if (response.status === 429) return errorResponse("Rate limited", headers, 429);
                 if (!response.ok) {
                     const errorText = await response.text().catch(() => "Unknown error");
-                    return errorResponse("AI request failed", headers, response.status);
+                    return errorResponse("AI request failed", headers, response.status, {detail: errorText});
                 }
 
                 const data = await response.json();
