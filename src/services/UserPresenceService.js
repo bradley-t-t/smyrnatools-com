@@ -188,7 +188,7 @@ class UserPresenceService {
     }
 
     startActivityRefresh() {
-        if (this.activityRefreshInterval) clearInterval(this.activityRefreshInterval)
+        this._clearInterval('activityRefreshInterval')
         this.activityRefreshInterval = setInterval(() => {
             this.notifyListeners()
         }, CLEANUP_INTERVAL_MS)
@@ -202,18 +202,6 @@ class UserPresenceService {
             return true
         } catch (err) {
             console.error('Failed to set user online:', err)
-            return false
-        }
-    }
-
-    async setUserBackOnline(userId) {
-        if (!userId) return false
-        try {
-            await APIUtility.post(`${PRESENCE_FUNCTION}/set-online`, { userId })
-            mergeActiveDevice(userId, detectDeviceType())
-            return true
-        } catch (err) {
-            console.error('Failed to set user back online:', err)
             return false
         }
     }
@@ -241,12 +229,12 @@ class UserPresenceService {
     }
 
     startHeartbeat() {
-        if (this.heartbeatInterval) clearInterval(this.heartbeatInterval)
+        this._clearInterval('heartbeatInterval')
         this.heartbeatInterval = setInterval(() => this.updateHeartbeat(), HEARTBEAT_INTERVAL_MS)
     }
 
     startCleanup() {
-        if (this.cleanupInterval) clearInterval(this.cleanupInterval)
+        this._clearInterval('cleanupInterval')
         this.cleanupInterval = setInterval(async () => {
             try {
                 await APIUtility.post(`${PRESENCE_FUNCTION}/cleanup`, {})
@@ -274,14 +262,11 @@ class UserPresenceService {
     handleOnlineStatusChange(isOnline) {
         if (!this.currentUserId) return
         if (isOnline) {
-            this.setUserBackOnline(this.currentUserId)
+            this.setUserOnline(this.currentUserId)
             this.startHeartbeat()
         } else {
             this.setUserOffline(this.currentUserId)
-            if (this.heartbeatInterval) {
-                clearInterval(this.heartbeatInterval)
-                this.heartbeatInterval = null
-            }
+            this._clearInterval('heartbeatInterval')
         }
     }
 
@@ -317,19 +302,17 @@ class UserPresenceService {
         })
     }
 
+    _clearInterval(name) {
+        if (this[name]) {
+            clearInterval(this[name])
+            this[name] = null
+        }
+    }
+
     cleanup() {
-        if (this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval)
-            this.heartbeatInterval = null
-        }
-        if (this.cleanupInterval) {
-            clearInterval(this.cleanupInterval)
-            this.cleanupInterval = null
-        }
-        if (this.activityRefreshInterval) {
-            clearInterval(this.activityRefreshInterval)
-            this.activityRefreshInterval = null
-        }
+        this._clearInterval('heartbeatInterval')
+        this._clearInterval('cleanupInterval')
+        this._clearInterval('activityRefreshInterval')
         document.removeEventListener('click', this.onUserActivity)
         document.removeEventListener('keydown', this.onUserActivity)
         document.removeEventListener('mousemove', this.onUserActivity)
