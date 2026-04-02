@@ -375,7 +375,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="priority"
-                                    className="w-full rounded-xl"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={priority}
                                     onChange={(e) => setPriority(e.target.value)}
                                 >
@@ -392,7 +392,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="status"
-                                    className="w-full rounded-xl"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
@@ -409,7 +409,7 @@ function ListAddView({ onClose, onItemAdded, item = null }) {
                                 </label>
                                 <select
                                     id="responsibleRole"
-                                    className="w-full rounded-xl"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-800 bg-slate-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={responsibleRole}
                                     onChange={(e) => setResponsibleRole(e.target.value)}
                                 >

@@ -766,20 +766,39 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                     >
                                         <i className="fas fa-history" style={{ color: accentColor }} />
                                         <span>Recent Activity</span>
-                                        <span
-                                            className={`inline-flex items-center justify-center rounded-xl text-white font-bold px-2 ${
-                                                isMobile
-                                                    ? 'text-[0.6875rem] h-5 min-w-[20px]'
-                                                    : 'text-xs h-6 min-w-[24px]'
-                                            }`}
-                                            style={{ background: accentColor }}
-                                        >
-                                            {activityFeed.length}
-                                        </span>
+                                        {!activityLoading && (
+                                            <span
+                                                className={`inline-flex items-center justify-center rounded-xl text-white font-bold px-2 ${
+                                                    isMobile
+                                                        ? 'text-[0.6875rem] h-5 min-w-[20px]'
+                                                        : 'text-xs h-6 min-w-[24px]'
+                                                }`}
+                                                style={{ background: accentColor }}
+                                            >
+                                                {activityFeed.length}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex flex-col">
-                                    {activityFeed.length === 0 ? (
+                                    {activityLoading ? (
+                                        <div className="flex flex-col">
+                                            {[...Array(6)].map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className={`flex border-b border-slate-100 ${isMobile ? 'gap-3 px-4 py-3' : 'gap-4 px-6 py-4'}`}
+                                                >
+                                                    <div
+                                                        className={`rounded-full bg-slate-200 animate-pulse shrink-0 ${isMobile ? 'h-7 w-7' : 'h-8 w-8'}`}
+                                                    />
+                                                    <div className="flex flex-1 flex-col gap-2">
+                                                        <div className="h-4 w-3/4 rounded bg-slate-200 animate-pulse" />
+                                                        <div className="h-3 w-1/3 rounded bg-slate-100 animate-pulse" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : activityFeed.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-12 text-center">
                                             <div className="text-slate-300 text-3xl mb-3">
                                                 <i className="fas fa-stream" />
@@ -787,20 +806,25 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                             <p className="text-slate-500 text-sm m-0">No activity recorded yet</p>
                                         </div>
                                     ) : (
-                                        activityFeed.map((event, index) => {
-                                            const isCompleted = event.type === 'completed'
-                                            const actorName = ListService.getCreatorName(event.userId)
-                                            const priorityConfig = ListService.getPriorityConfig(
-                                                event.item.priority || 'none'
+                                        activityFeed.map((entry, index) => {
+                                            const display = ListService.getActivityDisplay(
+                                                entry.action,
+                                                entry.field_name
                                             )
-                                            const itemStatus = event.item.completed
-                                                ? 'completed'
-                                                : event.item.status || 'pending'
-                                            const statusColors = STATUS_COLORS[itemStatus] || STATUS_COLORS.pending
+                                            const actorName = ListService.getProfileName(
+                                                entry.user_id,
+                                                activityProfiles
+                                            )
+                                            const iconColor =
+                                                display.color === 'accentColor' ? accentColor : display.color
+                                            const hasValueChange =
+                                                entry.action === 'updated' && (entry.old_value || entry.new_value)
                                             return (
                                                 <div
-                                                    key={`${event.type}-${event.item.id}-${index}`}
-                                                    onClick={() => onSelectItem(event.item.id)}
+                                                    key={entry.id || `${entry.action}-${index}`}
+                                                    onClick={() =>
+                                                        entry.list_item_id && onSelectItem(entry.list_item_id)
+                                                    }
                                                     className={`flex border-b border-slate-100 cursor-pointer transition-all duration-200 ${
                                                         isMobile ? 'gap-3 px-4 py-3' : 'gap-4 px-6 py-4'
                                                     }`}
@@ -814,96 +838,50 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
                                                 >
                                                     <div className="flex items-start pt-0.5">
                                                         <div
-                                                            className={`flex items-center justify-center rounded-full shrink-0 ${
-                                                                isMobile ? 'h-7 w-7' : 'h-8 w-8'
-                                                            }`}
-                                                            style={{
-                                                                background: isCompleted
-                                                                    ? 'rgba(22,163,74,0.1)'
-                                                                    : `${accentColor}15`,
-                                                                color: isCompleted ? '#16a34a' : accentColor
-                                                            }}
+                                                            className={`flex items-center justify-center rounded-full shrink-0 ${isMobile ? 'h-7 w-7' : 'h-8 w-8'}`}
+                                                            style={{ background: `${iconColor}15`, color: iconColor }}
                                                         >
                                                             <i
-                                                                className={`fas ${isCompleted ? 'fa-check' : 'fa-plus'} ${isMobile ? 'text-[10px]' : 'text-xs'}`}
+                                                                className={`fas ${display.icon} ${isMobile ? 'text-[10px]' : 'text-xs'}`}
                                                             />
                                                         </div>
                                                     </div>
                                                     <div
                                                         className={`flex flex-1 flex-col min-w-0 ${isMobile ? 'gap-1' : 'gap-1.5'}`}
                                                     >
-                                                        <div
-                                                            className={`flex items-start justify-between ${isMobile ? 'flex-col gap-1.5' : 'flex-row gap-4'}`}
+                                                        <p
+                                                            className={`m-0 ${isMobile ? 'text-xs' : 'text-[0.8125rem]'}`}
                                                         >
-                                                            <div className="flex flex-col gap-0.5 min-w-0">
-                                                                <p
-                                                                    className={`m-0 ${isMobile ? 'text-xs' : 'text-[0.8125rem]'}`}
-                                                                >
-                                                                    <span className="text-slate-800 font-semibold">
-                                                                        {actorName}
-                                                                    </span>
-                                                                    <span className="text-slate-500">
-                                                                        {isCompleted ? ' completed ' : ' created '}
-                                                                    </span>
-                                                                    <span className="text-slate-700 font-medium">
-                                                                        {ListService.truncateText(
-                                                                            event.description,
-                                                                            60
-                                                                        )}
-                                                                    </span>
-                                                                </p>
-                                                                <div
-                                                                    className={`flex items-center gap-2 ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
-                                                                >
-                                                                    <span className="text-slate-400 font-medium">
-                                                                        {ListService.formatRelativeTime(
-                                                                            event.timestamp
-                                                                        )}
-                                                                    </span>
-                                                                    {event.item.plant_code && (
-                                                                        <>
-                                                                            <span className="text-slate-300">·</span>
-                                                                            <span className="text-slate-400 flex items-center gap-1">
-                                                                                <i className="fas fa-building text-[8px]" />
-                                                                                {ListService.getPlantName(
-                                                                                    event.item.plant_code
-                                                                                )}
-                                                                            </span>
-                                                                        </>
-                                                                    )}
-                                                                </div>
-                                                            </div>
+                                                            <span className="text-slate-800 font-semibold">
+                                                                {actorName}
+                                                            </span>
+                                                            <span className="text-slate-500">{` ${display.verb} `}</span>
+                                                            <span className="text-slate-700 font-medium">
+                                                                {ListService.truncateText(
+                                                                    entry.item_description || 'an item',
+                                                                    60
+                                                                )}
+                                                            </span>
+                                                        </p>
+                                                        {hasValueChange && (
                                                             <div
-                                                                className={`flex items-center shrink-0 ${isMobile ? 'gap-1.5' : 'gap-2'}`}
+                                                                className={`flex items-center gap-1.5 ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
                                                             >
-                                                                <span
-                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${priorityConfig.bg} ${priorityConfig.border} border ${priorityConfig.color} ${
-                                                                        isMobile
-                                                                            ? 'text-[0.5625rem] gap-1 px-1.5 py-0.5'
-                                                                            : 'text-[0.625rem] gap-1 px-2 py-1'
-                                                                    }`}
-                                                                >
-                                                                    <i className={`fas ${priorityConfig.icon}`} />
-                                                                    {priorityConfig.label}
+                                                                <span className="text-slate-400 bg-slate-100 rounded px-1.5 py-0.5 line-through">
+                                                                    {entry.old_value || 'none'}
                                                                 </span>
-                                                                <span
-                                                                    className={`flex items-center shrink-0 rounded-md font-bold tracking-[0.5px] uppercase whitespace-nowrap ${
-                                                                        isMobile
-                                                                            ? 'text-[0.5625rem] gap-1 px-1.5 py-0.5'
-                                                                            : 'text-[0.625rem] gap-1 px-2 py-1'
-                                                                    }`}
-                                                                    style={{
-                                                                        background: statusColors.bg,
-                                                                        border: `1px solid ${statusColors.border}`,
-                                                                        color: statusColors.text
-                                                                    }}
-                                                                >
-                                                                    <i
-                                                                        className={`fas ${ListService.getStatusIcon(itemStatus)}`}
-                                                                    />
-                                                                    {ListService.getStatusLabel(itemStatus)}
+                                                                <i className="fas fa-arrow-right text-slate-300 text-[8px]" />
+                                                                <span className="text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 font-medium">
+                                                                    {entry.new_value || 'none'}
                                                                 </span>
                                                             </div>
+                                                        )}
+                                                        <div
+                                                            className={`flex items-center gap-2 ${isMobile ? 'text-[0.625rem]' : 'text-xs'}`}
+                                                        >
+                                                            <span className="text-slate-400 font-medium">
+                                                                {ListService.formatRelativeTime(entry.created_at)}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center justify-center text-slate-300 text-sm pt-0.5">
