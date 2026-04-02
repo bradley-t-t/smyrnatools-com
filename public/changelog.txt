@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.6] - 2026-04-02
+
+- smyrnatools.com Release v38.5.6
+
 ## [38.5.5] - 2026-04-02
 
 - smyrnatools.com Release v38.5.5
