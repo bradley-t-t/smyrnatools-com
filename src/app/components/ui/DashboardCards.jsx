@@ -96,40 +96,34 @@ export function DashboardCard({ children, className = '' }) {
 export function SectionTitle({ children }) {
     return <h3 className="text-base md:text-lg font-semibold text-slate-900 mb-4 md:mb-5">{children}</h3>
 }
-/** Grid of active/spare/shop counts per freight type (Cement, Aggregate, Dump Truck). */
-export function FreightTypeBreakdown({ freightData, isMobile }) {
-    const types = ['Cement', 'Aggregate', 'Dump Truck'].filter(
-        (type) => freightData[type] && freightData[type].total > 0
-    )
+const STATUS_COLORS = {
+    active: 'bg-green-100 text-green-600',
+    spare: 'bg-purple-100 text-purple-600',
+    shop: 'bg-orange-100 text-orange-600'
+}
+/** Shared grid of active/spare/shop counts per asset type. */
+function TypeBreakdownGrid({ typeData, typeOrder, icons, columns, labelMap = {} }) {
+    const types = typeOrder.filter((type) => typeData[type] && typeData[type].total > 0)
     if (types.length === 0) return null
-    const icons = {
-        Aggregate: 'fa-mountain',
-        Cement: 'fa-industry',
-        'Dump Truck': 'fa-truck-loading'
-    }
     return (
         <div className="border-t border-gray-200 mt-3 pt-3">
-            <div className={`grid gap-1.5 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            <div className={`grid gap-1.5 ${columns}`}>
                 {types.map((type) => {
-                    const data = freightData[type]
+                    const data = typeData[type]
                     return (
                         <div key={type} className="bg-slate-50 rounded-lg p-2 text-center">
                             <div className="flex items-center justify-center gap-1 mb-1">
                                 <i className={`fas ${icons[type]} text-slate-500`} style={{ fontSize: '10px' }} />
                                 <span className="text-slate-500 text-xs font-semibold">
-                                    {type === 'Dump Truck' ? 'Dump' : type}
+                                    {labelMap[type] || type}
                                 </span>
                             </div>
                             <div className="flex justify-center gap-1">
-                                <span className="bg-green-100 text-green-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.active}
-                                </span>
-                                <span className="bg-purple-100 text-purple-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.spare}
-                                </span>
-                                <span className="bg-orange-100 text-orange-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.shop}
-                                </span>
+                                {['active', 'spare', 'shop'].map((status) => (
+                                    <span key={status} className={`${STATUS_COLORS[status]} rounded px-1.5 py-0.5 text-xs font-semibold`}>
+                                        {data[status]}
+                                    </span>
+                                ))}
                             </div>
                         </div>
                     )
@@ -138,40 +132,28 @@ export function FreightTypeBreakdown({ freightData, isMobile }) {
         </div>
     )
 }
+const FREIGHT_ICONS = { Aggregate: 'fa-mountain', Cement: 'fa-industry', 'Dump Truck': 'fa-truck-loading' }
+const TRAILER_ICONS = { Cement: 'fa-industry', 'End Dump': 'fa-truck-loading' }
+/** Grid of active/spare/shop counts per freight type (Cement, Aggregate, Dump Truck). */
+export function FreightTypeBreakdown({ freightData, isMobile }) {
+    return (
+        <TypeBreakdownGrid
+            typeData={freightData}
+            typeOrder={['Cement', 'Aggregate', 'Dump Truck']}
+            icons={FREIGHT_ICONS}
+            columns={isMobile ? 'grid-cols-2' : 'grid-cols-3'}
+            labelMap={{ 'Dump Truck': 'Dump' }}
+        />
+    )
+}
 /** Grid of active/spare/shop counts per trailer type (Cement, End Dump). */
 export function TrailerTypeBreakdown({ trailerTypeData, isMobile }) {
-    const types = ['Cement', 'End Dump'].filter((type) => trailerTypeData[type] && trailerTypeData[type].total > 0)
-    if (types.length === 0) return null
-    const icons = {
-        Cement: 'fa-industry',
-        'End Dump': 'fa-truck-loading'
-    }
     return (
-        <div className="border-t border-gray-200 mt-3 pt-3">
-            <div className={`grid gap-1.5 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                {types.map((type) => {
-                    const data = trailerTypeData[type]
-                    return (
-                        <div key={type} className="bg-slate-50 rounded-lg p-2 text-center">
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                                <i className={`fas ${icons[type]} text-slate-500`} style={{ fontSize: '10px' }} />
-                                <span className="text-slate-500 text-xs font-semibold">{type}</span>
-                            </div>
-                            <div className="flex justify-center gap-1">
-                                <span className="bg-green-100 text-green-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.active}
-                                </span>
-                                <span className="bg-purple-100 text-purple-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.spare}
-                                </span>
-                                <span className="bg-orange-100 text-orange-600 rounded px-1.5 py-0.5 text-xs font-semibold">
-                                    {data.shop}
-                                </span>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
+        <TypeBreakdownGrid
+            typeData={trailerTypeData}
+            typeOrder={['Cement', 'End Dump']}
+            icons={TRAILER_ICONS}
+            columns={isMobile ? 'grid-cols-1' : 'grid-cols-2'}
+        />
     )
 }
