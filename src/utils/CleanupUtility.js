@@ -73,42 +73,10 @@ class CleanupUtility {
             }
         }
         const invalidItems = items.filter((item) => {
-            const isMarkedVerified = VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy)
-            if (!isMarkedVerified) {
+            if (!VerifiedUtility.isVerified(item.updatedLast, item.updatedAt, item.updatedBy)) {
                 return false
             }
-            const hasValidVIN = assetType === 'equipment' ? true : item.vin && ValidationUtility.isVIN(item.vin)
-            const hasMake = !!getFieldValue(item, 'make')
-            const hasModel = !!getFieldValue(item, 'model')
-            const hasYear = !!getFieldValue(item, 'year')
-            const isRetired = item.status === 'Retired'
-            if (isRetired) {
-                return true
-            }
-            if (!hasValidVIN) {
-                return true
-            }
-            if (!hasMake) {
-                return true
-            }
-            if (!hasModel) {
-                return true
-            }
-            if (!hasYear) {
-                return true
-            }
-            if ((assetType === 'mixer' || assetType === 'tractor') && item.status === 'Active') {
-                if (hasNoOperator(item)) {
-                    return true
-                }
-                if (operators && operators.length > 0) {
-                    const operatorExists = operators.some((op) => op.employeeId === item.assignedOperator)
-                    if (!operatorExists) {
-                        return true
-                    }
-                }
-            }
-            return false
+            return CleanupUtility._getVerificationIssues(item, assetType, operators).length > 0
         })
         if (invalidItems.length === 0) {
             return { fixed: 0, invalidItems: [], total: 0 }
