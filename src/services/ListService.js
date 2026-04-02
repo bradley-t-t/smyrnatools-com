@@ -348,35 +348,76 @@ class ListServiceImpl {
         return userId.slice(0, 8)
     }
     /**
-     * Builds a chronological activity feed from list items.
-     * Derives events from creation timestamps, completion records, and current status.
-     * @param {Array} items - List items to build activity from.
-     * @returns {Array<{type: string, timestamp: string, item: object, userId: string, description: string}>}
+     * Fetches the activity feed from the list_items_activity table.
+     * Returns activity entries with resolved user profiles.
+     * @param {{ limit?: number, offset?: number }} opts - Pagination options.
+     * @returns {Promise<{entries: Array, profiles: Object}>}
      */
-    buildActivityFeed(items) {
-        const events = []
-        for (const item of items) {
-            if (item.created_at) {
-                events.push({
-                    type: 'created',
-                    timestamp: item.created_at,
-                    item,
-                    userId: item.user_id,
-                    description: item.description
-                })
-            }
-            if (item.completed && item.completed_at) {
-                events.push({
-                    type: 'completed',
-                    timestamp: item.completed_at,
-                    item,
-                    userId: item.completed_by,
-                    description: item.description
-                })
-            }
+    async fetchActivityFeed(opts = {}) {
+        const { limit = 100, offset = 0 } = opts
+        const cacheKey = `list:activity:${limit}:${offset}`
+        const cached = CacheUtility.get(cacheKey)
+        if (cached) return cached
+        const { res, json } = await APIUtility.post('/list-service/fetch-activity', { limit, offset })
+        if (!res.ok) throw new Error(json?.error || 'Failed to fetch activity')
+        const profilesArr = json?.profiles ?? []
+        const profiles = {}
+        for (const p of profilesArr) {
+            if (p?.id) profiles[p.id] = p
         }
-        events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        return events
+        const result = { entries: json?.data ?? [], profiles }
+        CacheUtility.set(cacheKey, result, 30_000)
+        return result
+    }
+    /**
+     * Resolves a user ID to a display name from a provided profiles map, falling back to creatorProfiles.
+     * @param {string} userId - The user ID to resolve.
+     * @param {Object} [profilesMap] - Optional profiles map to check first.
+     * @returns {string} Display name or truncated ID.
+     */
+    getProfileName(userId, profilesMap) {
+        if (!userId) return 'Unknown'
+        const profile = profilesMap?.[userId] || this.creatorProfiles[userId]
+        if (profile) {
+            const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+            return name || userId.slice(0, 8)
+        }
+        return userId.slice(0, 8)
+    }
+    /**
+     * Maps an activity action + field to a human-readable verb and icon.
+     * @param {string} action - The action type (created, updated, completed, uncompleted, deleted).
+     * @param {string} [fieldName] - The field that changed (for "updated" actions).
+     * @returns {{ verb: string, icon: string, color: string }}
+     */
+    getActivityDisplay(action, fieldName) {
+        const FIELD_LABELS = {
+            status: 'status',
+            priority: 'priority',
+            responsible_role: 'assigned role',
+            plant_code: 'plant',
+            deadline: 'deadline',
+            description: 'description',
+            comments: 'comments'
+        }
+        switch (action) {
+            case 'created':
+                return { verb: 'created', icon: 'fa-plus', color: 'accentColor' }
+            case 'completed':
+                return { verb: 'completed', icon: 'fa-check', color: '#16a34a' }
+            case 'uncompleted':
+                return { verb: 'reopened', icon: 'fa-undo', color: '#f59e0b' }
+            case 'deleted':
+                return { verb: 'deleted', icon: 'fa-trash', color: '#ef4444' }
+            case 'updated':
+                return {
+                    verb: `changed ${FIELD_LABELS[fieldName] || fieldName || 'a field'} on`,
+                    icon: 'fa-pen',
+                    color: '#3b82f6'
+                }
+            default:
+                return { verb: action, icon: 'fa-circle', color: '#94a3b8' }
+        }
     }
     /**
      * Formats a timestamp into a human-readable relative string (e.g. "2 hours ago", "Yesterday").

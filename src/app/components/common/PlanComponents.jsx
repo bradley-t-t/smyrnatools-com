@@ -34,9 +34,7 @@ export const TimeInput = ({ value, onChange, placeholder = 'HH:MM', className = 
     />
 )
 
-const SkeletonBar = ({ className }) => (
-    <div className={`rounded animate-pulse bg-border-light ${className}`} />
-)
+const SkeletonBar = ({ className }) => <div className={`rounded animate-pulse bg-border-light ${className}`} />
 
 export function PlanSkeleton() {
     return (
@@ -54,10 +52,7 @@ export function PlanSkeleton() {
             </div>
             <div className="flex-1 overflow-hidden px-4 py-3">
                 {[1, 2, 3].map((i) => (
-                    <div
-                        key={i}
-                        className="rounded-lg border mb-2 px-3 py-3 border-border-light bg-bg-primary"
-                    >
+                    <div key={i} className="rounded-lg border mb-2 px-3 py-3 border-border-light bg-bg-primary">
                         <div className="flex items-center gap-3 mb-2">
                             <SkeletonBar className="w-6 h-6 rounded-md" />
                             <SkeletonBar className="h-3 w-16" />

@@ -243,8 +243,30 @@ function ListView({ title = 'Tasks List', onSelectItem, onStatusFilterChange }) 
         Object.values(groups).forEach((g) => g.items.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)))
         return groups
     }, [roleFilteredItems])
-    /** Chronological feed of all actions (created, completed) derived from item data. */
-    const activityFeed = useMemo(() => ListService.buildActivityFeed(roleFilteredItems), [roleFilteredItems])
+    const [activityFeed, setActivityFeed] = useState([])
+    const [activityProfiles, setActivityProfiles] = useState({})
+    const [activityLoading, setActivityLoading] = useState(false)
+    useEffect(() => {
+        if (viewMode !== 'activity') return
+        let cancelled = false
+        const loadActivity = async () => {
+            setActivityLoading(true)
+            try {
+                const { entries, profiles } = await ListService.fetchActivityFeed({ limit: 100 })
+                if (cancelled) return
+                setActivityFeed(entries)
+                setActivityProfiles(profiles)
+            } catch {
+                if (!cancelled) setActivityFeed([])
+            } finally {
+                if (!cancelled) setActivityLoading(false)
+            }
+        }
+        loadActivity()
+        return () => {
+            cancelled = true
+        }
+    }, [viewMode])
     const groupedItems =
         viewMode === 'date'
             ? groupedByDate
