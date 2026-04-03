@@ -127,21 +127,18 @@ class EmailServiceImpl {
      * @param {boolean} [options.debug] - Override debug mode for this send.
      */
     async notifyReportSubmitted({ userId, reportTitle, weekLabel, reportFields, attachmentUrl, debug }) {
-        try {
-            const { res, json } = await APIUtility.post('/email-service/notify-report-submitted', {
-                userId,
-                reportTitle,
-                weekLabel: weekLabel || '',
-                ...(reportFields?.length ? { reportFields } : {}),
-                ...(attachmentUrl ? { attachmentUrl } : {}),
-                debug: debug ?? DEBUG_MODE
-            })
-            if (!res.ok) console.error('Report notification email failed:', json?.error)
-            return json
-        } catch (err) {
-            console.error('Report notification email error:', err)
-            return { success: false, sent: false, reason: err.message }
+        const { res, json } = await APIUtility.post('/email-service/notify-report-submitted', {
+            userId,
+            reportTitle,
+            weekLabel: weekLabel || '',
+            ...(reportFields?.length ? { reportFields } : {}),
+            ...(attachmentUrl ? { attachmentUrl } : {}),
+            debug: debug ?? DEBUG_MODE
+        })
+        if (!res.ok || !json?.success) {
+            throw new Error(json?.reason || json?.error || 'Email notification failed to send')
         }
+        return json
     }
 }
 

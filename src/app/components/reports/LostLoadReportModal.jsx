@@ -54,6 +54,7 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
     const [attachment, setAttachment] = useState(null)
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState('')
+    const [emailError, setEmailError] = useState('')
     const [mixers, setMixers] = useState([])
     const [operators, setOperators] = useState([])
     const [truckPickerOpen, setTruckPickerOpen] = useState(false)
@@ -167,33 +168,37 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                 .single()
             if (dbError) throw dbError
 
-            // Notify GMs in submitter's region (fire-and-forget)
-            EmailService.notifyReportSubmitted({
-                userId: user.id,
-                reportTitle: 'Lost Load Report',
-                weekLabel: '',
-                attachmentUrl,
-                reportFields: [
-                    {
-                        label: 'Date of Lost Load',
-                        value: new Date(lostLoadDate + 'T12:00:00').toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        })
-                    },
-                    { label: 'Plant', value: plant },
-                    { label: 'Truck Number', value: truckNumber.trim() },
-                    { label: 'Yardage', value: String(Number(yardage)) },
-                    ...(customerName.trim() ? [{ label: 'Customer', value: customerName.trim() }] : []),
-                    ...(ticketNumber.trim() ? [{ label: 'Ticket Number', value: ticketNumber.trim() }] : []),
-                    { label: 'Reason', value: fullReason },
-                    ...(attachmentUrl ? [{ label: 'Writeup', value: 'PDF attached' }] : [])
-                ]
-            }).catch((err) => console.error('[LostLoadReport] Email error:', err))
-
             onSubmitted?.(data)
-            onClose()
+
+            // Notify GMs — await so failures are visible, but don't block the success flow
+            try {
+                await EmailService.notifyReportSubmitted({
+                    userId: user.id,
+                    reportTitle: 'Lost Load Report',
+                    weekLabel: '',
+                    attachmentUrl,
+                    reportFields: [
+                        {
+                            label: 'Date of Lost Load',
+                            value: new Date(lostLoadDate + 'T12:00:00').toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            })
+                        },
+                        { label: 'Plant', value: plant },
+                        { label: 'Truck Number', value: truckNumber.trim() },
+                        { label: 'Yardage', value: String(Number(yardage)) },
+                        ...(customerName.trim() ? [{ label: 'Customer', value: customerName.trim() }] : []),
+                        ...(ticketNumber.trim() ? [{ label: 'Ticket Number', value: ticketNumber.trim() }] : []),
+                        { label: 'Reason', value: fullReason },
+                        ...(attachmentUrl ? [{ label: 'Writeup', value: 'PDF attached' }] : [])
+                    ]
+                })
+                onClose()
+            } catch (emailErr) {
+                setEmailError(emailErr.message || 'Email notification failed to send.')
+            }
         } catch (err) {
             setError(err.message || 'Error submitting report.')
         } finally {
@@ -230,6 +235,15 @@ function LostLoadReportModal({ onClose, onSubmitted, plants, user }) {
                         <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                             <i className="fas fa-exclamation-circle shrink-0" />
                             {error}
+                        </div>
+                    )}
+                    {emailError && (
+                        <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                            <i className="fas fa-exclamation-triangle shrink-0 mt-0.5" />
+                            <div>
+                                <div className="font-semibold mb-0.5">Report submitted — email notification failed</div>
+                                <div>{emailError}</div>
+                            </div>
                         </div>
                     )}
                     <div className="flex flex-col gap-1.5">

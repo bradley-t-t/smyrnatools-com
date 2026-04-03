@@ -138,12 +138,7 @@ async function sendEmail({
         name: envOrDefault("MAILERSEND_FROM_NAME", DEFAULT_FROM_NAME)
     };
 
-    const whitelist = getDebugWhitelist(debugMode);
-    if (whitelist) {
-        toList = filterRecipients(toList, whitelist);
-        ccList = filterRecipients(ccList, whitelist);
-        bccList = filterRecipients(bccList, whitelist);
-    }
+    // Debug redirect is handled upstream (notify-report-submitted) — no filtering here.
 
     // Deduplicate within and across all recipient lists (MailerSend rejects any duplicates)
     const dedup = (list: Array<{email: string; name?: string}>, seen: Set<string>) =>
@@ -452,13 +447,14 @@ Deno.serve(async (req) => {
                     err: gmUsersErr?.message ?? null
                 });
 
-                // 8. Find District Managers whose assigned plants include the submitter's plant
+                // 8. Find District Managers assigned to the submitter's plant.
+                // district_manager_plants is the sole source of truth — no role cross-check needed.
                 const {data: dmAssignments, error: dmAssignErr} = await supabase
                     .from("district_manager_plants")
                     .select("user_id")
                     .eq("plant_code", submitterProfile.plant_code);
 
-                const dmUserIds = (dmAssignments || []).map(a => a.user_id);
+                const dmUserIds = (dmAssignments || []).map((a: {user_id: string}) => a.user_id);
                 console.log("[notify-report-submitted] Step 8 - DM assignments for plant", {
                     plant: submitterProfile.plant_code,
                     dmUserIds,
@@ -468,67 +464,27 @@ Deno.serve(async (req) => {
                 let dmRecipients: Array<{email: string; name?: string}> = [];
 
                 if (dmUserIds.length > 0) {
-                    const {data: dmRole, error: dmRoleErr} = await supabase
-                        .from("users_roles")
-                        .select("id")
-                        .eq("name", DM_ROLE_NAME)
-                        .maybeSingle();
+                    const [{data: dmProfiles, error: dmProfErr}, {data: dmUsers, error: dmUsersErr}] = await Promise.all([
+                        supabase.from("users_profiles").select("id, first_name, last_name").in("id", dmUserIds),
+                        supabase.from("users").select("id, email").in("id", dmUserIds)
+                    ]);
 
-                    console.log("[notify-report-submitted] Step 8b - DM role lookup", {
-                        dmRoleId: dmRole?.id ?? null,
-                        err: dmRoleErr?.message ?? null
+                    const dmEmailMap = new Map((dmUsers || []).map((u: {id: string; email: string}) => [u.id, u.email]));
+                    dmRecipients = (dmProfiles || [])
+                        .filter((dm: {id: string}) => dmEmailMap.has(dm.id))
+                        .map((dm: {id: string; first_name?: string; last_name?: string}) => ({
+                            email: dmEmailMap.get(dm.id)!,
+                            name: [dm.first_name, dm.last_name].filter(Boolean).join(" ") || undefined
+                        }));
+
+                    console.log("[notify-report-submitted] Step 8b - DM recipients resolved", {
+                        dmEmails: dmRecipients.map(r => r.email),
+                        dmProfErr: dmProfErr?.message ?? null,
+                        dmUsersErr: dmUsersErr?.message ?? null
                     });
-
-                    if (dmRole) {
-                        const {data: dmPerms, error: dmPermsErr} = await supabase
-                            .from("users_permissions")
-                            .select("user_id")
-                            .eq("role_id", dmRole.id)
-                            .in("user_id", dmUserIds);
-
-                        const verifiedDmIds = (dmPerms || []).map(p => p.user_id);
-                        console.log("[notify-report-submitted] Step 8c - verified DM user IDs", {
-                            verifiedDmIds,
-                            err: dmPermsErr?.message ?? null
-                        });
-
-                        if (verifiedDmIds.length > 0) {
-                            const [{data: dmProfiles, error: dmProfErr}, {data: dmUsers, error: dmUsersErr}] = await Promise.all([
-                                supabase.from("users_profiles").select("id, first_name, last_name").in("id", verifiedDmIds),
-                                supabase.from("users").select("id, email").in("id", verifiedDmIds)
-                            ]);
-
-                            const dmEmailMap = new Map((dmUsers || []).map((u: {id: string; email: string}) => [u.id, u.email]));
-                            dmRecipients = (dmProfiles || [])
-                                .filter((dm: {id: string}) => dmEmailMap.has(dm.id))
-                                .map((dm: {id: string; first_name?: string; last_name?: string}) => ({
-                                    email: dmEmailMap.get(dm.id)!,
-                                    name: [dm.first_name, dm.last_name].filter(Boolean).join(" ") || undefined
-                                }));
-
-                            console.log("[notify-report-submitted] Step 8d - DM recipients resolved", {
-                                dmEmails: dmRecipients.map(r => r.email),
-                                dmProfErr: dmProfErr?.message ?? null,
-                                dmUsersErr: dmUsersErr?.message ?? null
-                            });
-                        }
-                    }
                 } else {
                     console.log("[notify-report-submitted] Step 8 - no DMs assigned to this plant, skipping");
                 }
-
-                // 9. Build email from template
-                const {subject, html, text} = buildReportSubmittedEmail({
-                    submitterName,
-                    reportTitle,
-                    weekLabel: weekLabel || "",
-                    plantCode: submitterProfile.plant_code,
-                    regionName: region.region_name || region.region_code,
-                    reportFields: Array.isArray(reportFields) ? reportFields : [],
-                    frontendUrl: envOrDefault("FRONTEND_URL", DEFAULT_FRONTEND_URL),
-                    theme: buildThemeConfig(),
-                    logoUrl: envOrDefault("LOGO_URL", DEFAULT_LOGO_URL)
-                });
 
                 // 10. CC the district manager(s) and the submitter
                 const ccRecipients = [
@@ -542,33 +498,73 @@ Deno.serve(async (req) => {
                     debugMode
                 });
 
-                // 11. Fetch and base64-encode the PDF attachment if provided
+                // 11. In debug mode, redirect to the test address and capture real recipients for email annotation
+                let finalToList = toRecipients;
+                let finalCcList = ccRecipients;
+                let debugInfo: {realTo: string; realCc: string} | undefined;
+
+                if (debugMode) {
+                    const debugEmail = Deno.env.get("EMAIL_DEBUG_WHITELIST")?.split(",")[0]?.trim();
+                    if (!debugEmail) {
+                        return jsonResponse({success: false, sent: false, reason: "EMAIL_DEBUG_WHITELIST not set"}, headers);
+                    }
+                    debugInfo = {
+                        realTo: toRecipients.map(r => r.email).join(", "),
+                        realCc: ccRecipients.map(r => r.email).join(", ")
+                    };
+                    finalToList = [{email: debugEmail}];
+                    finalCcList = [];
+                }
+
+                // 9. Build email from template (after debug redirect so debugInfo is available)
+                const {subject, html, text} = buildReportSubmittedEmail({
+                    submitterName,
+                    reportTitle,
+                    weekLabel: weekLabel || "",
+                    plantCode: submitterProfile.plant_code,
+                    regionName: region.region_name || region.region_code,
+                    reportFields: Array.isArray(reportFields) ? reportFields : [],
+                    frontendUrl: envOrDefault("FRONTEND_URL", DEFAULT_FRONTEND_URL),
+                    theme: buildThemeConfig(),
+                    logoUrl: envOrDefault("LOGO_URL", DEFAULT_LOGO_URL),
+                    debugInfo
+                });
+
+                // 12. Fetch and base64-encode the PDF attachment if provided
                 const emailAttachments: Array<{content: string; filename: string; disposition: string}> = [];
                 if (attachmentUrl && typeof attachmentUrl === "string") {
-                    console.log("[notify-report-submitted] Step 11 - fetching PDF attachment", {attachmentUrl});
+                    console.log("[notify-report-submitted] Step 12 - fetching PDF attachment", {attachmentUrl});
                     const base64Content = await fetchFileAsBase64(attachmentUrl);
                     if (base64Content) {
                         emailAttachments.push({content: base64Content, filename: "lost-load-writeup.pdf", disposition: "attachment"});
-                        console.log("[notify-report-submitted] Step 11 - PDF attachment encoded successfully");
+                        console.log("[notify-report-submitted] Step 12 - PDF attachment encoded successfully");
                     } else {
-                        console.warn("[notify-report-submitted] Step 11 - PDF fetch returned null, sending without attachment");
+                        console.warn("[notify-report-submitted] Step 12 - PDF fetch returned null, sending without attachment");
                     }
                 }
 
-                console.log("[notify-report-submitted] Step 12 - calling sendEmail");
+                console.log("[notify-report-submitted] Step 13 - calling sendEmail", {debugMode, finalTo: finalToList.map(r => r.email)});
                 const result = await sendEmail({
                     subject, html, text,
-                    toList: toRecipients,
-                    ccList: ccRecipients,
-                    attachments: emailAttachments,
-                    debugMode
+                    toList: finalToList,
+                    ccList: finalCcList,
+                    attachments: emailAttachments
                 });
 
                 console.log("[notify-report-submitted] DONE", result);
                 if (!result.success) {
                     await reportEmailError(`sendEmail returned failure: ${result.reason ?? "unknown"}`, {userId, toCount: toRecipients.length, debugMode});
                 }
-                return jsonResponse({...result, debug: debugMode, regionName: region.region_name, intendedRecipients: toRecipients.length}, headers);
+                return jsonResponse({
+                    ...result,
+                    debug: debugMode,
+                    regionName: region.region_name,
+                    intendedRecipients: toRecipients.length,
+                    ...(debugMode && {
+                        intendedTo: toRecipients.map(r => r.email),
+                        intendedCc: ccRecipients.map(r => r.email)
+                    })
+                }, headers);
 
             } catch (err) {
                 console.error("[notify-report-submitted] UNHANDLED ERROR:", err);

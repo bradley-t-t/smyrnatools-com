@@ -66,9 +66,17 @@
       "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set GITHUB_TOKEN=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 --project-ref gujgtjqqurildqurpffh)",
       "Bash(find /Users/trentontaylor/WebstormProjects/smyrnatools.com/supabase -type f \\\\\\(-name *.yaml -o -name *.yml -o -name *.json -o -name *.sql \\\\\\))",
       "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions deploy email-service --project-ref gujgtjqqurildqurpffh)",
-      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx nit release)"
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx nit release)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set EMAIL_DEBUG_WHITELIST=tbtaylor@smyrnareadymix.com --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set MAILERSEND_API_TOKEN=mlsn.053e5a1e02e9fdda179727f5b88ebe5f7cd16736289ece4d49a5f6e163af746c MAILERSEND_FROM_EMAIL=no-reply@smyrnatools.com MAILERSEND_FROM_NAME=SmyrnaTools FRONTEND_URL=https://smyrnatools.com --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions deploy email-service --project-ref hzudmeptzciقkwlroos)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase projects list)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions deploy email-service --project-ref hzudmeptzciqukwlroos)"
     ]
   },
+  "disabledMcpjsonServers": [
+    "Claude_Preview"
+  ],
   "hooks": {
     "Stop": [
       {

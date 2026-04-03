@@ -13,7 +13,7 @@
  * @param {Object} [options.theme] - Theme color overrides.
  * @param {string} [options.logoUrl] - Logo image URL.
  */
-export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabel, plantCode, regionName, reportFields, frontendUrl, theme, logoUrl }) {
+export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabel, plantCode, regionName, reportFields, frontendUrl, theme, logoUrl, debugInfo }) {
     const t = {
         white: theme?.white || '#ffffff',
         bgDark: theme?.bgDark || '#1a202c',
@@ -110,6 +110,22 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
             </div>
           </td>
         </tr>
+        ${debugInfo ? `
+        <tr>
+          <td style="padding:0 32px 24px;">
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:#fefce8;border:2px solid #ca8a04;border-radius:8px;">
+              <tr>
+                <td style="padding:16px 20px;">
+                  <div style="font-size:12px;font-weight:700;color:#854d0e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">&#9888; Debug Enabled</div>
+                  <div style="font-size:13px;color:#78350f;line-height:1.6;">
+                    <strong>Would have sent to:</strong> ${debugInfo.realTo}<br/>
+                    <strong>Would have CC'd:</strong> ${debugInfo.realCc || 'none'}
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>` : ''}
         <tr>
           <td style="background-color:${t.bgLight};padding:24px 32px;text-align:center;">
             <p style="color:${t.textMuted};font-size:13px;line-height:1.6;margin:0;">
