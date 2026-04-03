@@ -116,14 +116,8 @@ class AuthServiceImpl {
                 { skipAuthCheck: true }
             )
             if (!json?.valid) {
-                const lastActive = json?.lastActive ? new Date(json.lastActive) : null
-                const expiryThreshold = new Date()
-                expiryThreshold.setDate(expiryThreshold.getDate() - SESSION_EXPIRY_DAYS)
-                if (lastActive && lastActive < expiryThreshold) {
-                    this._clearSession()
-                    return { userId: null, valid: false }
-                }
-                return { userId, valid: true }
+                this._clearSession()
+                return { userId: null, valid: false }
             }
             return { userId, valid: true }
         } catch {
