@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [38.5.8] - 2026-04-03
+
+- smyrnatools.com Release v38.5.8
+
 ## [38.5.7] - 2026-04-02
 
 - Replace client-side activity feed builder with server-side fetch from list_items_activity table, adding caching, pagination support, and user profile resolution

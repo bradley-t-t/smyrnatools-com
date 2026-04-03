@@ -3,11 +3,11 @@
   "configurations": [
     {
       "name": "React App",
-      "runtimeExecutable": "/opt/homebrew/bin/npm",
+      "runtimeExecutable": "/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin/npm",
       "runtimeArgs": ["start"],
       "port": 3000,
       "env": {
-        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+        "PATH": "/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
       }
     }
   ]
