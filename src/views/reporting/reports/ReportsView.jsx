@@ -657,8 +657,8 @@ function ReportsView() {
                                                 : null
                                         const title = isLabReport
                                             ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
-                                            : meaningfulStr(d.project) ||
-                                              meaningfulStr(d.order_no) ||
+                                            : meaningfulStr(d.contractor) ||
+                                              meaningfulStr(d.project) ||
                                               'QC Strength Report'
                                         const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
                                         const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
