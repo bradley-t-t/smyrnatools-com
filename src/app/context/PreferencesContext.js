@@ -107,6 +107,7 @@ export const PreferencesProvider = ({ children }) => {
                 const now = new Date().toISOString()
                 const upsertData = {
                     accept_comment_emails: updatedPreferences.acceptCommentEmails,
+                    accept_report_submitted_emails: updatedPreferences.acceptReportSubmittedEmails,
                     accent_color: updatedPreferences.accentColor,
                     created_at: now,
                     default_view_mode: updatedPreferences.defaultViewMode,
