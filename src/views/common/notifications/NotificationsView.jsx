@@ -52,7 +52,7 @@ const ITEM_TYPE_VIEW_MAP = {
 
 /** Resolves the embedded view key and search term from an attachment. */
 function resolveAttachmentView(type, meta) {
-    if (type === 'issue') {
+    if (type === 'issue' || type === 'asset') {
         const viewKey = ITEM_TYPE_VIEW_MAP[meta?.itemType]
         return viewKey ? { search: meta?.itemNumber || '', viewKey } : null
     }
