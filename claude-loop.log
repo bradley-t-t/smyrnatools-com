@@ -1,1868 +1,0 @@
-[2026-03-12 11:02:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?2026h
-[38;5;211m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m[1mWARNING:[1CClaude[1CCode[1Crunning[1Cin[1CBypass[1CPermissions[1Cmode[22m[39m
-
-[2CIn[1CBypass[1CPermissions[1Cmode,[1CClaude[1CCode[1Cwill[1Cnot[1Cask[1Cfor[1Cyour[1Capproval
-[2Cbefore[1Crunning[1Cpotentially[1Cdangerous[1Ccommands.
-[2CThis[1Cmode[1Cshould[1Conly[1Cbe[1Cused[1Cin[1Ca[1Csandboxed[1Ccontainer/VM[1Cthat[1Chas
-[2Crestricted[1Cinternet[1Caccess[1Cand[1Ccan[1Ceasily[1Cbe[1Crestored[1Cif[1Cdamaged.
-
-[2CBy[1Cproceeding,[1Cyou[1Caccept[1Call[1Cresponsibility[1Cfor[1Cactions[1Ctaken[1Cwhile[1Crunning
-[3Cin[1CBypass[1CPermissions[1Cmode.
-
-[2Chttps://code.claude.com/docs/en/security
-
-[2C[38;5;153m❯[1C[38;5;246m1.[1C[38;5;153mNo,[1Cexit[39m
-[4C[38;5;246m2.[1C[39mYes,[1CI[1Caccept
-
-[2C[38;5;246m[3mEnter[1Cto[1Cconfirm[1C·[1CEsc[1Cto[1Ccancel[23m[39m
-[?2026l[?2026h[2C[4A [4CNo, exit[2C[1B[38;5;153m❯[4CYes, I accept[39m
-
-
-[?2026l[?1004l[?2004l[?2026h[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[1A[11A[38;5;174m ▐[48;5;16m▛███▜[49m▌[39m   [1mClaude Code[22m [38;5;246mv2.1.71[39m                                                  [1B[38;5;174m▝▜[48;5;16m█████[49m▛▘[39m  [38;5;246mOpus 4.6 · Claude Max[39m                         [1B[38;5;174m  ▘▘ ▝▝  [2C[38;5;246m~/WebstormProjects/smyrnatools.com[2C[1B[39m  [1C      [1C           [1C     [1C      [1C    [1C    [1C   [1C   [1C   [1C    [1C        [2C[1B[38;5;74m↑[39m Install the [38;5;74mWebStorm[39m p[1Cugin from the JetBrains[1CMarketplace:[2C[1B  [1mhttps://docs.claude.com/s/claude-code-jetbrains[22m        [1C    [1C   [2C[1B          [1C        [1C      [1C   [1C   [1C      [1C  [1C        [1C  [1C        [1B[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[1B[39m❯ [7m [27m [1C           [1C   [1C      [1C   [1C              [1C   [1C       [1C     [1C     [1C       [1B[38;5;244m────────────────────────────────────────────────────────────────────────────────[2C[1B[38;5;211m⏵⏵ bypass permissions on[38;5;246m (shift+tab to cycle)[1B[39m                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [1B                                                                                [5A[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycl…[39m [38;5;220mUpdate available! Run: [1mb[1Cew u…[22m[39m 
-[?2026l[?2026h[47C[1A    [38;5;74m⧉ In claude-remote-loop.sh[39m
-[47C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cu…[22m[39m
-[?2026l[?2026h[51C[2A         [38;5;74m⧉ 1 line selected[39m
-
-[?2026l[?2026h[59C[2A[38;5;74m⧉ 2 lines[39m
-
-[?2026l[?2026h[61C[2A[38;5;74m3[39m
-
-[?2026l[?2026h[61C[2A[38;5;74m2[39m
-
-[?2026l[?2026h[59C[2A [38;5;74m⧉ 1 line[39m
-
-[?2026l[?2026h[51C[2A[38;5;74m⧉ In claude-remote-loop.sh[39m
-
-[?2026l[2026-03-12 11:17:05] 15 minutes elapsed — restarting...
-[2026-03-12 11:17:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7mT[27m[2mry[1C"edit[1Cturl.json[1Cto..."[22m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 11:32:05] 15 minutes elapsed — restarting...
-[2026-03-12 11:32:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7mT[27m[2mry[1C"how[1Cdo[1CI[1Clog[1Can[1Cerror?"[22m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 11:47:05] 15 minutes elapsed — restarting...
-[2026-03-12 11:47:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7mT[27m[2mry[1C"create[1Ca[1Cutil[1Clogging.py[1Cthat..."[22m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 12:02:05] 15 minutes elapsed — restarting...
-[2026-03-12 12:02:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[47C[3B[22m[38;5;246m · hold Space to speak[39m
-[?2026l[?2026h[45C[1A[38;5;246m…[39m [38;5;220mUpdate available! Run: [1mbrew u…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 12:17:05] 15 minutes elapsed — restarting...
-[2026-03-12 12:17:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 12:32:05] 15 minutes elapsed — restarting...
-[2026-03-12 12:32:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 12:47:05] 15 minutes elapsed — restarting...
-[2026-03-12 12:47:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 13:02:05] 15 minutes elapsed — restarting...
-[2026-03-12 13:02:05] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycle)[39m                               
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[2026-03-12 14:48:39] 15 minutes elapsed — restarting...
-[2026-03-12 14:48:39] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 15:03:39] 15 minutes elapsed — restarting...
-[2026-03-12 15:03:39] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycle)[39m                               
-[?2026l[2026-03-12 16:13:00] 15 minutes elapsed — restarting...
-[2026-03-12 16:13:00] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycle)[39m                               
-[?2026l[2026-03-12 17:43:52] 15 minutes elapsed — restarting...
-[2026-03-12 17:43:52] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 17:58:52] 15 minutes elapsed — restarting...
-[2026-03-12 17:58:52] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A        [38;5;74m⧉ In forgot-passwords-email.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[48C[2A             [38;5;74m⧉ In CHANGELOG[1Cmd[39m
-
-[?2026l[?2026h[60C[2A[38;5;74m⧉ In setupProxy[1Cjs[39m
-
-[?2026l[2026-03-12 18:15:41] 15 minutes elapsed — restarting...
-[2026-03-12 18:15:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 18:30:41] 15 minutes elapsed — restarting...
-[2026-03-12 18:30:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                    [38;5;74m⧉ In AssetCard.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[70C[2A[38;5;74mView[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In pickupTruckConfig.js[39m
-
-[?2026l[?2026h[58C[2A[38;5;74mP[10CsView.jsx[39m
-
-[?2026l[?2026h[47C[2A[38;5;74m⧉ In PickupTrucksDetail[39m
-
-[?2026l[?2026h[47C[2A      [38;5;74m⧉ In pickupTruckConfig.js[39m
-
-[?2026l[?2026h[53C[2A       [38;5;74m⧉ In AssetView.jsx[39m
-
-[?2026l[2026-03-12 18:45:41] 15 minutes elapsed — restarting...
-[2026-03-12 18:45:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                   [38;5;74m⧉ In MixersView.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In MixerDetail[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In pickupTruckConfig.js[39m
-
-[?2026l[?2026h[53C[2A       [38;5;74m⧉ In AssetView.jsx[39m
-
-[?2026l[?2026h[70C[2A[38;5;74mCard[39m
-
-[?2026l[?2026h[70C[2A[38;5;74mView[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In pickupTruckConfig.js[39m
-
-[?2026l[?2026h[53C[2A      [38;5;74m⧉ In mixer[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In tracto[39m
-
-[?2026l[?2026h[57C[2A  [38;5;74m⧉ In mixe[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In tra[1Cl[39m
-
-[?2026l[?2026h[65C[2A[38;5;74mcto[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In pickupTruck[39m
-
-[?2026l[?2026h[53C[2A      [38;5;74m⧉ In mixer[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In equipment[39m
-
-[?2026l[?2026h[55C[2A  [38;5;74m⧉ In trailer[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In equipment[39m
-
-[?2026l[?2026h[55C[2A      [38;5;74m⧉ 1 li[1Ce selected[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In equipme[1CtConfig.js[39m
-
-[?2026l[?2026h[55C[2A  [38;5;74m⧉ In tractor[39m
-
-[?2026l[?2026h[57C[2A  [38;5;74m⧉ In Mixe[1CsView.jsx[39m
-
-[?2026l[2026-03-12 19:00:41] 15 minutes elapsed — restarting...
-[2026-03-12 19:00:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 19:15:41] 15 minutes elapsed — restarting...
-[2026-03-12 19:15:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                   [38;5;74m⧉ In Navigation.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[59C[2A       [38;5;74m⧉ In auth.js[39m
-
-[?2026l[2026-03-12 19:30:41] 15 minutes elapsed — restarting...
-[2026-03-12 19:30:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                    [38;5;74m⧉ In AssetCard.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In AssetGrid[39m
-
-[?2026l[?2026h[56C[2A    [38;5;74m⧉ In AssetView[39m
-
-[?2026l[?2026h[70C[2A[38;5;74mCard[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In AssetGrid[39m
-
-[?2026l[?2026h[56C[2A    [38;5;74m⧉ In Asset[39m
-
-[?2026l[?2026h[70C[2A[38;5;74mView[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In AssetGridCard[39m
-
-[?2026l[2026-03-12 19:45:41] 15 minutes elapsed — restarting...
-[2026-03-12 19:45:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                  [38;5;74m⧉ In TractorCard.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In TractorsView[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In TractorAdd[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In[1CTractorDetail[39m
-
-[?2026l[?2026h[64C[2A[38;5;74mIssueModal[39m
-
-[?2026l[?2026h[51C[2A[38;5;74m⧉ In TractorHi[1CtoryView[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In TractorCommentModal[39m
-
-[?2026l[?2026h[50C[2A          [38;5;74m⧉ In MixerCard[39m
-
-[?2026l[?2026h[59C[2A[38;5;74m⧉ In MixersView[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In MixerAdd[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In[1CMixerD[1Ctail[39m
-
-[?2026l[?2026h[64C[2A[38;5;74mIssueModal[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In MixerHi[1CtoryView[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In MixerCommentModal[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In OperatorSel[1Cc[39m
-
-[?2026l[?2026h[50C[2A   [38;5;74m⧉[1CIn PickupTru[1CksCard[39m
-
-[?2026l[?2026h[70C[2A[38;5;74mView[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In[1CPickupTrucksAdd[39m
-
-[?2026l[?2026h[48C[2A[38;5;74m⧉ In PickupTruckIs[1CueModal[39m
-
-[?2026l[?2026h[47C[2A[38;5;74m⧉ In PickupTruckHi[1CtoryView[39m
-
-[?2026l[?2026h[63C[2A[38;5;74msDe[1Cail[39m
-
-[?2026l[?2026h[46C[2A[38;5;74m⧉ In PickupTruckCommentModal[39m
-
-[?2026l[?2026h[46C[2A            [38;5;74m⧉ In TrailerCard[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In TrailersView[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In TrailerAdd[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In[1CTrailerD[1Ctail[39m
-
-[?2026l[?2026h[64C[2A[38;5;74mIssueModal[39m
-
-[?2026l[?2026h[51C[2A[38;5;74m⧉ In TractorSelect[39m
-
-[?2026l[?2026h[59C[2A[38;5;74mile[1CHistoryView[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In TrailerCommentModal[39m
-
-[?2026l[?2026h[50C[2A      [38;5;74m⧉ In EquipmentCard[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In EquipmentsView[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In EquipmentAdd[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In[1CEquipmentDe[1Cail[39m
-
-[?2026l[?2026h[64C[2A[38;5;74mIssueModal[39m
-
-[?2026l[?2026h[49C[2A[38;5;74m⧉ In EquipmentHi[1CtoryView[39m
-
-[?2026l[?2026h[48C[2A[38;5;74m⧉ In EquipmentCommentModal[39m
-
-[?2026l[?2026h[48C[2A    [38;5;74m⧉ In E[1CbeddedView[39m
-
-[?2026l[2026-03-12 20:00:41] 15 minutes elapsed — restarting...
-[2026-03-12 20:00:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                     [38;5;74m⧉ In PlanView.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In Maintenance[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In MaintenanceForm[39m
-
-[?2026l[?2026h[44C[2A[38;5;74m⧉ In Mainten[1CnceCreat[39m
-
-[?2026l[?2026h[44C[2A                 [38;5;74m⧉ In List[39m
-
-[?2026l[?2026h[58C[2A[38;5;74m⧉ In[1CListAdd[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In[1CListDe[1Cail[39m
-
-[?2026l[?2026h[55C[2A [38;5;74m⧉ In Documents[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In[1CSetTimeCalculator.js[39m
-
-[?2026l[?2026h[49C[2A[38;5;74m⧉ In Propor[1Cions[39m
-
-[?2026l[?2026h[54C[2A[38;5;74mWaterCeme[1Ct[39m
-
-[?2026l[?2026h[46C[2A[38;5;74m⧉ In[1CYard[1Cg[1CPerHour[39m
-
-[?2026l[?2026h[45C[2A[38;5;74m⧉ In SlumpAdjustment[39m
-
-[?2026l[?2026h[45C[2A          [38;5;74m⧉ In Calcul[1CtorView.jsx[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In Leaderbo[1Crds[39m
-
-[?2026l[?2026h[53C[2A            [38;5;74m⧉ In index.js[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In useReportData[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In ReportCom[2Cnents.jsx[39m
-
-[?2026l[?2026h[58C[2A[38;5;74museReportVariance.js[39m
-
-[?2026l[?2026h[47C[2A[38;5;74m⧉ In WeeklyEfficiencyReport.jsx[39m
-
-[?2026l[?2026h[45C[2A[38;5;74m⧉ In WeeklyPlantManager[39m
-
-[?2026l[?2026h[44C[2A[38;5;74m⧉ In We[1CklySafety[39m
-
-[?2026l[?2026h[43C[2A[38;5;74m⧉ In We[1CklyGeneral[39m
-
-[?2026l[?2026h[42C[2A[38;5;74m⧉ In We[1CklyDistrict[39m
-
-[?2026l[?2026h[40C[2A[38;5;74m⧉ In WeeklyReadyMixInstructorReport.j…[39m
-
-[?2026l[?2026h[51C[2A[38;5;74mAggregateProd[3CionReport.[39m
-
-[?2026l[?2026h[40C[2A                  [38;5;74m⧉ In ReportsView.jsx[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In ReportsReview[39m
-
-[?2026l[?2026h[64C[2A[38;5;74mSubmit[39m
-
-[?2026l[?2026h[52C[2A       [38;5;74m⧉ In Plants[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In[1CPlantsAdd[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In[1CPlantsDetail[39m
-
-[?2026l[?2026h[53C[2A     [38;5;74m⧉ I[1C Regions[39m
-
-[?2026l[?2026h[58C[2A  [38;5;74m⧉ In Role[39m
-
-[?2026l[?2026h[65C[2A[38;5;74mL[1Cgin[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In Changelog[39m
-
-[?2026l[?2026h[49C[2A[38;5;74m⧉ In PasswordRecovery[39m
-
-[?2026l[?2026h[49C[2A       [38;5;74m⧉ In Dashboa[1Cd[39m
-
-[?2026l[?2026h[61C[2A[38;5;74mMyAcc[1Cunt[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In Notificatio[1Cs[39m
-
-[?2026l[?2026h[52C[2A     [38;5;74m⧉ In OperatorCard[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In OperatorsView[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In OperatorAdd[39m
-
-[?2026l[?2026h[51C[2A[38;5;74m⧉ In[1COperatorDetail[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In OperatorHis[1Cory[39m
-
-[?2026l[?2026h[49C[2A[38;5;74m⧉ In OperatorCommentModal[39m
-
-[?2026l[?2026h[49C[2A         [38;5;74m⧉ In ManagerCard[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In ManagersView[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In ManagerDetail[39m
-
-[?2026l[2026-03-12 20:15:41] 15 minutes elapsed — restarting...
-[2026-03-12 20:15:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A         [38;5;74m⧉ In ProportionsCalculator.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[49C[2A       [38;5;74m⧉ In D[1CcumentsView.jsx[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In equip[4CConfig.js[39m
-
-[?2026l[?2026h[55C[2A     [38;5;74m⧉ In AssetView.jsx[39m
-
-[?2026l[?2026h[59C[2A[38;5;74m⧉ In mixerConfig.js[39m
-
-[?2026l[?2026h[57C[2A[38;5;74m⧉ In tra[1Cl[39m
-
-[?2026l[?2026h[57C[2A   [38;5;74m⧉[1CIn MixerCard.jsx[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In OperatorSelectModal[39m
-
-[?2026l[?2026h[50C[2A         [38;5;74m⧉ In MixersView[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In PickupTruck[39m
-
-[?2026l[?2026h[53C[2A    [38;5;74m⧉ In Tractor[39m
-
-[?2026l[?2026h[65C[2A[38;5;74mile[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In Dashboa[1Cd[39m
-
-[?2026l[?2026h[56C[2A    [38;5;74m⧉ In L[1Cgin[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In MyAcc[1Cunt[39m
-
-[?2026l[2026-03-12 20:30:41] 15 minutes elapsed — restarting...
-[2026-03-12 20:30:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[45C[1A[38;5;246m…[39m [38;5;220mUpdate available! Run: [1mbrew u…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 20:45:41] 15 minutes elapsed — restarting...
-[2026-03-12 20:45:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A             [38;5;74m⧉ In AssetStatsUtility.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[53C[2A     [38;5;74m⧉ In Async[39m
-
-[?2026l[?2026h[58C[2A [38;5;74m⧉ In Auth[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In BaseAsset[39m
-
-[?2026l[?2026h[54C[2A  [38;5;74m⧉ In Cleanup[39m
-
-[?2026l[?2026h[61C[2A[38;5;74mTrailer[39m
-
-[?2026l[?2026h[45C[2A[38;5;74m⧉ In HistoryViewHelpers[39m
-
-[?2026l[2026-03-12 21:00:41] 15 minutes elapsed — restarting...
-[2026-03-12 21:00:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                [38;5;74m⧉ In TrailerUtility.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[61C[2A[38;5;74mCleanup[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In BaseAsset[39m
-
-[?2026l[?2026h[54C[2A     [38;5;74m⧉ In Date[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In[1CHistory[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In[1CValida[1Cion[39m
-
-[?2026l[?2026h[53C[2A  [38;5;74m⧉ In Verif[1Ced[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In Ass[1CtStats[39m
-
-[?2026l[?2026h[58C[2A[38;5;74mValida[1Cion[39m
-
-[?2026l[?2026h[53C[2A       [38;5;74m⧉ In API[39m
-
-[?2026l[?2026h[53C[2A[38;5;74m⧉ In AssetStats[39m
-
-[?2026l[?2026h[53C[2A [38;5;74m⧉ In BaseAsset[39m
-
-[?2026l[?2026h[54C[2A    [38;5;74m⧉ In Cache[39m
-
-[?2026l[?2026h[51C[2A[38;5;74m⧉ In Leaderbo[1Crds[39m
-
-[?2026l[?2026h[51C[2A     [38;5;74m⧉ In History[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In Verified[39m
-
-[?2026l[?2026h[55C[2A    [38;5;74m⧉ In PlantsView.jsx[39m
-
-[?2026l[?2026h[59C[2A [38;5;74m⧉ In Role[39m
-
-[?2026l[?2026h[58C[2A[38;5;74m⧉ In Region[39m
-
-[?2026l[2026-03-12 21:15:41] 15 minutes elapsed — restarting...
-[2026-03-12 21:15:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A      [38;5;74m⧉ In OverdueListNotifications.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[40C[2A[38;5;74m⧉ In MixerVerificat[1Con[39m
-
-[?2026l[?2026h[45C[2A[38;5;74mTractorVer[1CficationNot[1Cfications…[39m
-
-[?2026l[?2026h[45C[2A[38;5;74mEquipmentVer[1CficationNot[1Cficatio[39m
-
-[?2026l[?2026h[40C[2A                         [38;5;74m⧉ In M[1Cxer.js[39m
-
-[?2026l[?2026h[60C[2A[38;5;74m⧉ In MixerImage[39m
-
-[?2026l[?2026h[58C[2A[38;5;74m⧉ In MixerCom[1Cent[39m
-
-[?2026l[?2026h[68C[2A[38;5;74mHistory[39m
-
-[?2026l[?2026h[58C[2A       [38;5;74m⧉ In Plant[39m
-
-[?2026l[?2026h[64C[2A[38;5;74m⧉ In Region[39m
-
-[?2026l[?2026h[63C[2A[38;5;74m⧉ In Tract[1Cr[39m
-
-[?2026l[?2026h[56C[2A[38;5;74m⧉ In TractorComment[39m
-
-[?2026l[?2026h[68C[2A[38;5;74mHistory[39m
-
-[?2026l[?2026h[56C[2A       [38;5;74m⧉ In Trailer[39m
-
-[?2026l[?2026h[61C[2A[38;5;74m⧉ In Equipment[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In EquipmentCom[39m
-
-[?2026l[?2026h[68C[2A[38;5;74mHistory[39m
-
-[?2026l[?2026h[54C[2A        [38;5;74m⧉ In Operator[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In OperatorHistory[39m
-
-[?2026l[?2026h[55C[2A    [38;5;74m⧉ In PickupTruck[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In PickupTru[2CComment[39m
-
-[?2026l[?2026h[52C[2A             [38;5;74m⧉ In Mixer[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In PickupTruckComment[39m
-
-[?2026l[?2026h[46C[2A[38;5;74m⧉ In OverdueListNotificatio[1Cs[39m
-
-[?2026l[?2026h[40C[2A[38;5;74m⧉ In EquipmentVerif[1CcationNotif[1Ccatio…[39m
-
-[?2026l[?2026h[40C[2A                   [38;5;74m⧉ In Rep[1CrtTypes.js[39m
-
-[?2026l[?2026h[50C[2A[38;5;74m⧉ In NotificationsService[39m
-
-[?2026l[?2026h[50C[2A    [38;5;74m⧉ In BaseAsset[39m
-
-[?2026l[2026-03-12 21:30:41] 15 minutes elapsed — restarting...
-[2026-03-12 21:30:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                [38;5;74m⧉ In TractorService.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In BaseAsset[39m
-
-[?2026l[2026-03-12 21:45:41] 15 minutes elapsed — restarting...
-[2026-03-12 21:45:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[45C[1A[38;5;246m…[39m [38;5;220mUpdate available! Run: [1mbrew u…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 22:00:41] 15 minutes elapsed — restarting...
-[2026-03-12 22:00:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-12 23:15:56] 15 minutes elapsed — restarting...
-[2026-03-12 23:15:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 02:31:41] 15 minutes elapsed — restarting...
-[2026-03-13 02:31:41] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycle)[39m                               
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[2026-03-13 04:29:23] 15 minutes elapsed — restarting...
-[2026-03-13 04:29:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 04:44:23] 15 minutes elapsed — restarting...
-[2026-03-13 04:44:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 04:59:23] 15 minutes elapsed — restarting...
-[2026-03-13 04:59:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 05:14:23] 15 minutes elapsed — restarting...
-[2026-03-13 05:14:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 06:26:29] 15 minutes elapsed — restarting...
-[2026-03-13 06:26:29] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m to cycle)[39m                               
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[2026-03-13 07:40:23] 15 minutes elapsed — restarting...
-[2026-03-13 07:40:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                   [38;5;74m⧉ In UserService.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[2026-03-13 07:55:23] 15 minutes elapsed — restarting...
-[2026-03-13 07:55:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 08:10:23] 15 minutes elapsed — restarting...
-[2026-03-13 08:10:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 08:25:23] 15 minutes elapsed — restarting...
-[2026-03-13 08:25:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 08:40:23] 15 minutes elapsed — restarting...
-[2026-03-13 08:40:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 08:55:23] 15 minutes elapsed — restarting...
-[2026-03-13 08:55:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 09:10:23] 15 minutes elapsed — restarting...
-[2026-03-13 09:10:23] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 09:27:54] 15 minutes elapsed — restarting...
-[2026-03-13 09:27:54] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 09:42:54] 15 minutes elapsed — restarting...
-[2026-03-13 09:42:54] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 09:57:54] 15 minutes elapsed — restarting...
-[2026-03-13 09:57:54] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 10:12:55] 15 minutes elapsed — restarting...
-[2026-03-13 10:12:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 10:27:55] 15 minutes elapsed — restarting...
-[2026-03-13 10:27:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[47C[3B[22m[38;5;246m · hold Space to speak[39m
-[?2026l[?2026h[45C[1A[38;5;246m…[39m [38;5;220mUpdate available! Run: [1mbrew u…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 10:42:55] 15 minutes elapsed — restarting...
-[2026-03-13 10:42:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 10:57:55] 15 minutes elapsed — restarting...
-[2026-03-13 10:57:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A          [38;5;74m⧉ In NotificationsService.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[50C[2A     [38;5;74m⧉ In Docume[1Ct[39m
-
-[?2026l[?2026h[54C[2A[38;5;74m⧉ In Equip[39m
-
-[?2026l[2026-03-13 11:12:55] 15 minutes elapsed — restarting...
-[2026-03-13 11:12:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 11:27:55] 15 minutes elapsed — restarting...
-[2026-03-13 11:27:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[47C[1A[38;5;246m · hold Space to speak[39m
-[?2026l[?2026h[45C[1A[38;5;246m…[39m [38;5;220mUpdate available! Run: [1mbrew u…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[2026-03-13 11:42:55] 15 minutes elapsed — restarting...
-[2026-03-13 11:42:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[60C[1A[38;5;74m⧉ In AssetCard.jsx[39m
-[?2026l[?2026h[70C[1A[38;5;74mView[39m
-[?2026l[2026-03-13 11:57:55] 15 minutes elapsed — restarting...
-[2026-03-13 11:57:55] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                 [38;5;74m⧉ In AssetListRow.jsx[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[57C[2A [38;5;74m⧉ In A[1CsetModals[39m
-
-[?2026l[?2026h[58C[2A  [38;5;74m⧉ In AssetView[39m
-
-[?2026l[2026-03-13 12:12:56] 15 minutes elapsed — restarting...
-[2026-03-13 12:12:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                         [38;5;74m⧉ In SKILL.md[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[2026-03-13 12:27:56] 15 minutes elapsed — restarting...
-[2026-03-13 12:27:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[?1004l[?2004l[?2026h
-[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.71[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m──────────────────────────────────────────────────────────────────────────[1C▪▪[38;5;239m▪[1C[38;5;244m─[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[4A [38;5;153m▪▪[38;5;239m▪[39m [38;5;153mMedium[39m [2m/model[22m
-
-
-
-[?2026l[?2026h[37C[1A[38;5;246m…[39m  [38;5;220mUpdate available! Run: [1mbrew upgrade c…[22m[39m
-[?2026l[?2026h[60C[4A[38;5;244m──────────────[39m [38;5;244m▪▪[38;5;239m▪[39m
-
-
-
-[?2026l[?2026h[40C[1A                     [38;5;74m⧉ In AIService.js[39m
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[59C[2A[38;5;74m⧉ In List[39m
-
-[?2026l[?2026h[52C[2A[38;5;74m⧉ In Maintenance[39m
-
-[?2026l[?2026h[52C[2A       [38;5;74m⧉ In User[39m
-
-[?2026l[?2026h[55C[2A[38;5;74m⧉ In Operato[39m
-
-[?2026l[2026-03-13 12:42:56] 15 minutes elapsed — restarting...
-[2026-03-13 12:42:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[>0q[c[?1004l[?2004l[?2026h[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.74[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[1A[38;5;246m◐ medium · /effort[39m
-[?2026l[>0q[c[?2026h[37C[1A[38;5;246m…[39m         
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[2K[G[1A[40C[1A[38;5;220mUpdate available! Run: [1mbrew upgrade c…[1B[22m[39m                                                                                [?2026l[2026-03-13 12:57:56] 15 minutes elapsed — restarting...
-[2026-03-13 12:57:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[>0q[c[?1004l[?2004l[?2026h[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.74[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[>0q[c[?2026h[60C[1A[38;5;246m◐ medium · /effort[39m
-[?2026l[?2026h[37C[1A[38;5;246m…[39m         
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[2K[G[1A[40C[1A[38;5;220mUpdate available! Run: [1mbrew upgrade c…[1B[22m[39m                                                                                [?2026l[2026-03-13 13:12:56] 15 minutes elapsed — restarting...
-[2026-03-13 13:12:56] Starting claude remote session...
-spawn claude --dangerously-skip-permissions
-[?2004h[?1004h[?25l[>0q[c[?1004l[?2004l[?2026h[38;5;174m ▐[48;5;16m▛███▜[49m▌[3C[39m[1mClaude[1CCode[1C[22m[38;5;246mv2.1.74[39m
-[38;5;174m▝▜[48;5;16m█████[49m▛▘[2C[38;5;246mOpus[1C4.6[1C·[1CClaude[1CMax[39m
-[38;5;174m [1C▘▘[1C▝▝[4C[38;5;246m~/WebstormProjects/smyrnatools.com[39m
-
-[2C[38;5;74m↑[1C[39mInstall[1Cthe[1C[38;5;74mWebStorm[1C[39mplugin[1Cfrom[1Cthe[1CJetBrains[1CMarketplace:
-[4C[1mhttps://docs.claude.com/s/claude-code-jetbrains[22m
-
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-❯ [7m [27m
-[38;5;244m────────────────────────────────────────────────────────────────────────────────[39m
-[2C[38;5;211m⏵⏵[1Cbypass[1Cpermissions[1Con[38;5;246m (shift+tab[1Cto[1Ccycle)[39m
-[?2026l[?2004h[?1004h]0;✳ Claude Code[?2026h[60C[1A[38;5;246m◐ medium · /effort[39m
-[?2026l[>0q[c[?2026h[37C[1A[38;5;246m…[39m         
-[40C[38;5;220mUpdate[1Cavailable![1CRun:[1C[1mbrew[1Cupgrade[1Cc…[22m[39m
-[?2026l[?2026h[2K[G[1A[40C[1A[38;5;220mUpdate available! Run: [1mbrew upgrade c…[1B[22m[39m                                                                                [?2026l
