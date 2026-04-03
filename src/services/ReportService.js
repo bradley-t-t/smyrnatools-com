@@ -609,8 +609,8 @@ class ReportServiceImpl {
     }
     async deleteReport(reportId) {
         if (!reportId) throw new Error('Report ID is required')
-        const { json } = await postReport('delete-report', { reportId })
-        if (!json) throw new Error('Failed to delete report')
+        const { res, json } = await postReport('delete-report', { reportId })
+        if (!res?.ok || json !== true) throw new Error(json?.error || 'Failed to delete report')
     }
     async markReviewed(reportId, userId) {
         if (!reportId || !userId) return false
