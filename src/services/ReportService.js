@@ -577,9 +577,9 @@ class ReportServiceImpl {
         try {
             const weekStart = weekIso.split('T')[0]
             const [year, month, day] = weekStart.split('-').map(Number)
-            const startDate = new Date(year, month - 1, day - 1)
+            const startDate = new Date(year, month - 1, day)
             const weekStartStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`
-            const weekEndDate = new Date(year, month - 1, day + 7)
+            const weekEndDate = new Date(year, month - 1, day + 6)
             const weekEndStr = `${weekEndDate.getFullYear()}-${String(weekEndDate.getMonth() + 1).padStart(2, '0')}-${String(weekEndDate.getDate()).padStart(2, '0')}`
             const { data, error } = await Database.from('reports')
                 .select('*')
