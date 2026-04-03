@@ -14,6 +14,10 @@ const Database = createClient(databaseUrl, databaseKey, {
 export default Database
 /** Prefer named import: `import { Database } from './DatabaseService'` */
 export { Database }
+/** Base URL for constructing edge function endpoints. */
+export { databaseUrl }
+/** Anonymous API key for authenticating edge function requests. */
+export { databaseKey }
 /** Allowlisted tables for sanitized database operations to prevent injection. */
 const ALLOWED_TABLES = new Set([
     'users',
