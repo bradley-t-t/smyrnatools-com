@@ -62,6 +62,7 @@ const slimOperator = (operator) => ({
 const normalizeDate = (dateStr, endOfDay = false) => {
     if (!dateStr) return null
     const parts = dateStr.split('-')
+    if (parts.length !== 3) return null
     if (endOfDay) {
         return new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999))
     }
