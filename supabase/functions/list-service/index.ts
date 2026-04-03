@@ -297,11 +297,11 @@ Deno.serve(async (req) => {
                 const body = await parseBody(req);
                 const limit = typeof body?.limit === "number" && body.limit > 0 ? Math.min(body.limit, 200) : 100;
                 const offset = typeof body?.offset === "number" && body.offset >= 0 ? body.offset : 0;
+                const since = typeof body?.since === "string" ? body.since : null;
                 const admin = getAdminClient();
-                const {data, error} = await admin.from(ACTIVITY_TABLE)
-                    .select("*")
-                    .order("created_at", {ascending: false})
-                    .range(offset, offset + limit - 1);
+                let query = admin.from(ACTIVITY_TABLE).select("*").order("created_at", {ascending: false});
+                if (since) query = query.gte("created_at", since);
+                const {data, error} = await query.range(offset, offset + limit - 1);
                 if (error) return errorResponse("Operation failed", headers, 400);
                 const userIds = new Set<string>();
                 (data ?? []).forEach((a: any) => { if (a?.user_id) userIds.add(a.user_id); });

@@ -355,10 +355,11 @@ class ListServiceImpl {
      */
     async fetchActivityFeed(opts = {}) {
         const { limit = 100, offset = 0 } = opts
+        const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
         const cacheKey = `list:activity:${limit}:${offset}`
         const cached = CacheUtility.get(cacheKey)
         if (cached) return cached
-        const { res, json } = await APIUtility.post('/list-service/fetch-activity', { limit, offset })
+        const { res, json } = await APIUtility.post('/list-service/fetch-activity', { limit, offset, since })
         if (!res.ok) throw new Error(json?.error || 'Failed to fetch activity')
         const profilesArr = json?.profiles ?? []
         const profiles = {}

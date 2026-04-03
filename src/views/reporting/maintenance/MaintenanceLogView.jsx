@@ -682,6 +682,255 @@ function AddEquipmentModal({ isOpen, onClose, onSaved, categories, plants, accen
     )
 }
 
+// ── Edit Equipment Modal ─────────────────────────────────────────
+
+function EditEquipmentModal({ isOpen, onClose, onSaved, equipment, categories, plants, accentColor }) {
+    const [form, setForm] = useState(EMPTY_FORM)
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+    const [showPlantPicker, setShowPlantPicker] = useState(false)
+
+    useEffect(() => {
+        if (isOpen && equipment) {
+            setForm({
+                category_id: equipment.category_id || '',
+                install_date: equipment.install_date ? equipment.install_date.slice(0, 10) : '',
+                location_note: equipment.location_note || '',
+                manufacturer: equipment.manufacturer || '',
+                model: equipment.model || '',
+                name: equipment.name || '',
+                plant_code: equipment.plant_code || '',
+                serial_number: equipment.serial_number || '',
+                service_interval_days: equipment.service_interval_days ?? 90
+            })
+            setError('')
+        }
+    }, [isOpen, equipment])
+
+    if (!isOpen || !equipment) return null
+
+    const update = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
+
+    const plantLabel = form.plant_code
+        ? (() => {
+              const match = plants.find((p) => (p.plantCode || p.plant_code) === form.plant_code)
+              return match
+                  ? `${match.plantCode || match.plant_code} — ${match.plantName || match.plant_name}`
+                  : form.plant_code
+          })()
+        : 'Select Plant'
+
+    const handleSave = async () => {
+        if (!form.name.trim()) return setError('Equipment name is required')
+        if (!form.category_id) return setError('Category is required')
+        if (!form.plant_code) return setError('Plant is required')
+        setSaving(true)
+        setError('')
+        try {
+            await MaintenanceLogService.updateEquipment(equipment.id, {
+                category_id: form.category_id,
+                install_date: form.install_date || null,
+                location_note: form.location_note || null,
+                manufacturer: form.manufacturer || null,
+                model: form.model || null,
+                name: form.name.trim(),
+                plant_code: form.plant_code,
+                serial_number: form.serial_number || null,
+                service_interval_days: parseInt(form.service_interval_days) || 90
+            })
+            onSaved()
+        } catch (err) {
+            setError(err?.message || 'Failed to save changes')
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const inputCls =
+        'w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400'
+    const labelCls = 'block text-xs font-semibold text-slate-500 mb-1.5'
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 120 }} onClick={onClose}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div
+                className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto"
+                style={{ background: 'var(--bg-primary)' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div
+                    className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-slate-200 px-6 py-4"
+                    style={{ background: 'var(--bg-primary)' }}
+                >
+                    <h3 className="text-lg font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
+                        <i className="fas fa-pen mr-2" style={{ color: accentColor }} />
+                        Edit Item
+                    </h3>
+                    <button
+                        type="button"
+                        className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 text-slate-500 border-none cursor-pointer hover:bg-slate-200"
+                        onClick={onClose}
+                    >
+                        <i className="fas fa-times" />
+                    </button>
+                </div>
+
+                <div className="p-6 flex flex-col gap-4">
+                    {error && (
+                        <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
+                            <i className="fas fa-exclamation-circle mr-2" />
+                            {error}
+                        </div>
+                    )}
+
+                    <div>
+                        <label className={labelCls}>Equipment Name *</label>
+                        <input
+                            className={inputCls}
+                            placeholder="e.g. Compressor #1"
+                            value={form.name}
+                            onChange={(e) => update('name', e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Category *</label>
+                        <select
+                            className={SELECT_CLS}
+                            style={SELECT_STYLE}
+                            value={form.category_id}
+                            onChange={(e) => update('category_id', e.target.value)}
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className={labelCls}>Plant *</label>
+                        <button
+                            type="button"
+                            className={`${inputCls} text-left cursor-pointer`}
+                            onClick={() => setShowPlantPicker(true)}
+                        >
+                            {plantLabel}
+                        </button>
+                        <PlantDropdownModal
+                            isOpen={showPlantPicker}
+                            onClose={() => setShowPlantPicker(false)}
+                            plants={plants}
+                            onSelect={(code) => {
+                                update('plant_code', code)
+                                setShowPlantPicker(false)
+                            }}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Manufacturer</label>
+                            <input
+                                className={inputCls}
+                                placeholder="e.g. Ingersoll Rand"
+                                value={form.manufacturer}
+                                onChange={(e) => update('manufacturer', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Model</label>
+                            <input
+                                className={inputCls}
+                                placeholder="e.g. SSR-2000"
+                                value={form.model}
+                                onChange={(e) => update('model', e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Serial Number</label>
+                            <input
+                                className={inputCls}
+                                placeholder="e.g. SN-12345"
+                                value={form.serial_number}
+                                onChange={(e) => update('serial_number', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Service Interval (days)</label>
+                            <input
+                                className={inputCls}
+                                type="number"
+                                min="1"
+                                value={form.service_interval_days}
+                                onChange={(e) => update('service_interval_days', e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className={labelCls}>Install Date</label>
+                            <input
+                                className={inputCls}
+                                type="date"
+                                value={form.install_date}
+                                onChange={(e) => update('install_date', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls}>Location Note</label>
+                            <input
+                                className={inputCls}
+                                placeholder="e.g. Back of batch plant"
+                                value={form.location_note}
+                                onChange={(e) => update('location_note', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4 rounded-b-2xl"
+                    style={{ background: 'var(--bg-primary)' }}
+                >
+                    <button
+                        type="button"
+                        className="rounded-xl px-5 py-2.5 text-sm font-semibold border border-slate-200 bg-white text-slate-700 cursor-pointer hover:bg-slate-50"
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="rounded-xl px-5 py-2.5 text-sm font-semibold border-none text-white cursor-pointer disabled:opacity-50"
+                        style={{ background: accentColor }}
+                        disabled={saving}
+                        onClick={handleSave}
+                    >
+                        {saving ? (
+                            <>
+                                <i className="fas fa-spinner fa-spin mr-2" />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <i className="fas fa-check mr-2" />
+                                Save Changes
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 // ── Log Service Modal ────────────────────────────────────────────
 
 const EMPTY_SERVICE = {
@@ -870,7 +1119,7 @@ function LogServiceModal({ isOpen, onClose, onSaved, equipment, serviceTypes, ac
 
 // ── Equipment Detail Panel ──────────────────────────────────────
 
-function EquipmentDetailPanel({ equipment, onClose, onLogService, onDelete, isDark, accentColor }) {
+function EquipmentDetailPanel({ equipment, onClose, onLogService, onEdit, onDelete, isDark, accentColor }) {
     const [history, setHistory] = useState([])
     const [loadingHistory, setLoadingHistory] = useState(true)
     const [deleting, setDeleting] = useState(false)
@@ -953,6 +1202,16 @@ function EquipmentDetailPanel({ equipment, onClose, onLogService, onDelete, isDa
                             }}
                         >
                             <i className="fas fa-wrench" /> Log Service
+                        </button>
+                        <button
+                            type="button"
+                            className="flex items-center gap-1.5 rounded-xl text-xs font-semibold px-3 py-2 bg-slate-100 text-slate-700 border-none cursor-pointer hover:bg-slate-200"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onEdit(equipment)
+                            }}
+                        >
+                            <i className="fas fa-pen" /> Edit
                         </button>
                         <div className="ml-auto">
                             {confirmDelete ? (
@@ -1122,6 +1381,7 @@ export default function MaintenanceLogView({
     const [calendarDate, setCalendarDate] = useState(new Date())
     const [serviceTarget, setServiceTarget] = useState(null)
     const [detailTarget, setDetailTarget] = useState(null)
+    const [editTarget, setEditTarget] = useState(null)
 
     // ── Filtering (uses props) ──────────────────────────────────
     const filtered = useMemo(() => {
@@ -1417,11 +1677,28 @@ export default function MaintenanceLogView({
                     setDetailTarget(null)
                     setServiceTarget(eq)
                 }}
+                onEdit={(eq) => {
+                    setDetailTarget(null)
+                    setEditTarget(eq)
+                }}
                 onDelete={() => {
                     setDetailTarget(null)
                     onReload()
                 }}
                 isDark={isDark}
+                accentColor={accentColor}
+            />
+
+            <EditEquipmentModal
+                isOpen={!!editTarget}
+                onClose={() => setEditTarget(null)}
+                onSaved={() => {
+                    setEditTarget(null)
+                    onReload()
+                }}
+                equipment={editTarget}
+                categories={categories}
+                plants={plants}
                 accentColor={accentColor}
             />
         </div>

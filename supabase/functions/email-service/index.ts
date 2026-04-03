@@ -63,6 +63,43 @@ function createAdminClient() {
     );
 }
 
+/**
+ * Fire-and-forget error report to the centralized error-reporting-service.
+ * Used to log failures in notify-report-submitted that would otherwise go unnoticed.
+ */
+async function reportEmailError(reason: string, context: Record<string, unknown> = {}): Promise<void> {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !anonKey) return;
+
+    const endpoint = `${supabaseUrl}/functions/v1/error-reporting-service/report-batch`;
+    const contextSummary = Object.entries(context)
+        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+        .join(", ");
+
+    try {
+        await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": anonKey,
+                "Authorization": `Bearer ${anonKey}`
+            },
+            body: JSON.stringify({
+                errors: [{
+                    project: "smyrnatools.com",
+                    error_message: `[email-service] notify-report-submitted failed: ${reason}`,
+                    source_file: "supabase/functions/email-service/index.ts",
+                    component_stack: contextSummary || null,
+                    url: "https://smyrnatools.com/internal/email-service"
+                }]
+            })
+        });
+    } catch {
+        // Best-effort — never let reporting itself cause a failure
+    }
+}
+
 /** Fetches a file from a URL and returns it as a base64-encoded string. */
 async function fetchFileAsBase64(url: string): Promise<string | null> {
     try {
@@ -250,17 +287,28 @@ Deno.serve(async (req) => {
             const {userId, reportTitle, weekLabel, reportFields, attachmentUrl, debug} = body;
             if (!userId || !reportTitle) return errorResponse("userId and reportTitle are required", headers, 400);
 
+            console.log("[notify-report-submitted] START", {userId, reportTitle, hasAttachment: !!attachmentUrl});
+
             const supabase = createAdminClient();
             const debugMode = debug === true;
 
             try {
                 // 1. Get submitter's profile and email
-                const [{data: submitterProfile}, {data: submitterUser}] = await Promise.all([
+                const [{data: submitterProfile, error: profileErr}, {data: submitterUser, error: userErr}] = await Promise.all([
                     supabase.from("users_profiles").select("first_name, last_name, plant_code").eq("id", userId).maybeSingle(),
                     supabase.from("users").select("email").eq("id", userId).maybeSingle()
                 ]);
 
+                console.log("[notify-report-submitted] Step 1 - submitter lookup", {
+                    plantCode: submitterProfile?.plant_code ?? null,
+                    email: submitterUser?.email ?? null,
+                    profileErr: profileErr?.message ?? null,
+                    userErr: userErr?.message ?? null
+                });
+
                 if (!submitterProfile?.plant_code || !submitterUser?.email) {
+                    console.error("[notify-report-submitted] STOP: submitter profile or plant missing");
+                    await reportEmailError("Submitter profile or plant not found", {userId, reportTitle, profileErr: profileErr?.message, userErr: userErr?.message});
                     return jsonResponse({success: false, sent: false, reason: "Submitter profile or plant not found"}, headers);
                 }
 
@@ -268,73 +316,124 @@ Deno.serve(async (req) => {
                 const submitterEmail = submitterUser.email;
 
                 // 2. Resolve submitter's plant → region
-                const {data: regionLink} = await supabase
+                const {data: regionLink, error: regionLinkErr} = await supabase
                     .from("regions_plants")
                     .select("region_id")
                     .eq("plant_code", submitterProfile.plant_code)
                     .limit(1)
                     .maybeSingle();
 
+                console.log("[notify-report-submitted] Step 2 - region link lookup", {
+                    plantCode: submitterProfile.plant_code,
+                    regionId: regionLink?.region_id ?? null,
+                    err: regionLinkErr?.message ?? null
+                });
+
                 if (!regionLink?.region_id) {
+                    console.error("[notify-report-submitted] STOP: plant not linked to any region");
+                    await reportEmailError("No region found for submitter's plant", {userId, plantCode: submitterProfile.plant_code, regionLinkErr: regionLinkErr?.message});
                     return jsonResponse({success: false, sent: false, reason: "No region found for submitter's plant"}, headers);
                 }
 
-                const {data: region} = await supabase
+                const {data: region, error: regionErr} = await supabase
                     .from("regions")
                     .select("region_code, region_name")
                     .eq("id", regionLink.region_id)
                     .maybeSingle();
 
+                console.log("[notify-report-submitted] Step 2b - region record lookup", {
+                    regionName: region?.region_name ?? null,
+                    err: regionErr?.message ?? null
+                });
+
                 if (!region) {
+                    console.error("[notify-report-submitted] STOP: region record not found");
+                    await reportEmailError("Region record not found", {userId, regionId: regionLink.region_id, regionErr: regionErr?.message});
                     return jsonResponse({success: false, sent: false, reason: "Region not found"}, headers);
                 }
 
                 // 3. Get all plant codes in this region
-                const {data: regionPlants} = await supabase
+                const {data: regionPlants, error: regionPlantsErr} = await supabase
                     .from("regions_plants")
                     .select("plant_code")
                     .eq("region_id", regionLink.region_id);
 
                 const regionPlantCodes = new Set((regionPlants || []).map(rp => rp.plant_code));
+                console.log("[notify-report-submitted] Step 3 - region plant codes", {
+                    count: regionPlantCodes.size,
+                    codes: [...regionPlantCodes],
+                    err: regionPlantsErr?.message ?? null
+                });
 
                 // 4. Find the General Manager role
-                const {data: gmRole} = await supabase
+                const {data: gmRole, error: gmRoleErr} = await supabase
                     .from("users_roles")
                     .select("id")
                     .eq("name", GM_ROLE_NAME)
                     .maybeSingle();
 
+                console.log("[notify-report-submitted] Step 4 - GM role lookup", {
+                    gmRoleId: gmRole?.id ?? null,
+                    err: gmRoleErr?.message ?? null
+                });
+
                 if (!gmRole) {
+                    console.error("[notify-report-submitted] STOP: General Manager role not found in users_roles");
+                    await reportEmailError("General Manager role not found in users_roles", {userId, gmRoleErr: gmRoleErr?.message});
                     return jsonResponse({success: false, sent: false, reason: "General Manager role not found"}, headers);
                 }
 
                 // 5. Get all users with the GM role
-                const {data: gmPermissions} = await supabase
+                const {data: gmPermissions, error: gmPermsErr} = await supabase
                     .from("users_permissions")
                     .select("user_id")
                     .eq("role_id", gmRole.id);
 
                 const gmUserIds = (gmPermissions || []).map(p => p.user_id);
+                console.log("[notify-report-submitted] Step 5 - users with GM role", {
+                    count: gmUserIds.length,
+                    userIds: gmUserIds,
+                    err: gmPermsErr?.message ?? null
+                });
+
                 if (gmUserIds.length === 0) {
+                    console.error("[notify-report-submitted] STOP: no users have GM role");
+                    await reportEmailError("No users assigned to General Manager role", {userId, gmRoleId: gmRole.id});
                     return jsonResponse({success: false, sent: false, reason: "No General Managers found"}, headers);
                 }
 
                 // 6. Filter GMs to those whose plant is in the submitter's region
-                const {data: gmProfiles} = await supabase
+                const {data: gmProfiles, error: gmProfilesErr} = await supabase
                     .from("users_profiles")
                     .select("id, first_name, last_name, plant_code")
                     .in("id", gmUserIds);
+
+                console.log("[notify-report-submitted] Step 6 - GM profiles", {
+                    total: (gmProfiles || []).length,
+                    profiles: (gmProfiles || []).map(gm => ({id: gm.id, plant_code: gm.plant_code, inRegion: gm.plant_code ? regionPlantCodes.has(gm.plant_code) : false})),
+                    err: gmProfilesErr?.message ?? null
+                });
 
                 const regionGmIds = (gmProfiles || [])
                     .filter(gm => gm.plant_code && regionPlantCodes.has(gm.plant_code))
                     .map(gm => gm.id);
 
+                console.log("[notify-report-submitted] Step 6b - GMs in submitter's region", {count: regionGmIds.length, ids: regionGmIds});
+
                 if (regionGmIds.length === 0) {
+                    console.error("[notify-report-submitted] STOP: no GMs have a plant_code that matches the submitter's region");
+                    await reportEmailError("No General Managers have a plant_code in submitter's region", {
+                        userId,
+                        submitterPlant: submitterProfile.plant_code,
+                        regionId: regionLink.region_id,
+                        regionPlantCodes: [...regionPlantCodes],
+                        gmProfiles: (gmProfiles || []).map(gm => ({id: gm.id, plant_code: gm.plant_code}))
+                    });
                     return jsonResponse({success: false, sent: false, reason: "No General Managers in submitter's region"}, headers);
                 }
 
                 // 7. Get GM emails
-                const {data: gmUsers} = await supabase
+                const {data: gmUsers, error: gmUsersErr} = await supabase
                     .from("users")
                     .select("id, email")
                     .in("id", regionGmIds);
@@ -347,34 +446,54 @@ Deno.serve(async (req) => {
                         name: [gm.first_name, gm.last_name].filter(Boolean).join(" ") || undefined
                     }));
 
+                console.log("[notify-report-submitted] Step 7 - GM emails resolved", {
+                    toCount: toRecipients.length,
+                    toEmails: toRecipients.map(r => r.email),
+                    err: gmUsersErr?.message ?? null
+                });
+
                 // 8. Find District Managers whose assigned plants include the submitter's plant
-                const {data: dmAssignments} = await supabase
+                const {data: dmAssignments, error: dmAssignErr} = await supabase
                     .from("district_manager_plants")
                     .select("user_id")
                     .eq("plant_code", submitterProfile.plant_code);
 
                 const dmUserIds = (dmAssignments || []).map(a => a.user_id);
+                console.log("[notify-report-submitted] Step 8 - DM assignments for plant", {
+                    plant: submitterProfile.plant_code,
+                    dmUserIds,
+                    err: dmAssignErr?.message ?? null
+                });
+
                 let dmRecipients: Array<{email: string; name?: string}> = [];
 
                 if (dmUserIds.length > 0) {
-                    // Verify they actually have the District Manager role
-                    const {data: dmRole} = await supabase
+                    const {data: dmRole, error: dmRoleErr} = await supabase
                         .from("users_roles")
                         .select("id")
                         .eq("name", DM_ROLE_NAME)
                         .maybeSingle();
 
+                    console.log("[notify-report-submitted] Step 8b - DM role lookup", {
+                        dmRoleId: dmRole?.id ?? null,
+                        err: dmRoleErr?.message ?? null
+                    });
+
                     if (dmRole) {
-                        const {data: dmPerms} = await supabase
+                        const {data: dmPerms, error: dmPermsErr} = await supabase
                             .from("users_permissions")
                             .select("user_id")
                             .eq("role_id", dmRole.id)
                             .in("user_id", dmUserIds);
 
                         const verifiedDmIds = (dmPerms || []).map(p => p.user_id);
+                        console.log("[notify-report-submitted] Step 8c - verified DM user IDs", {
+                            verifiedDmIds,
+                            err: dmPermsErr?.message ?? null
+                        });
 
                         if (verifiedDmIds.length > 0) {
-                            const [{data: dmProfiles}, {data: dmUsers}] = await Promise.all([
+                            const [{data: dmProfiles, error: dmProfErr}, {data: dmUsers, error: dmUsersErr}] = await Promise.all([
                                 supabase.from("users_profiles").select("id, first_name, last_name").in("id", verifiedDmIds),
                                 supabase.from("users").select("id, email").in("id", verifiedDmIds)
                             ]);
@@ -386,8 +505,16 @@ Deno.serve(async (req) => {
                                     email: dmEmailMap.get(dm.id)!,
                                     name: [dm.first_name, dm.last_name].filter(Boolean).join(" ") || undefined
                                 }));
+
+                            console.log("[notify-report-submitted] Step 8d - DM recipients resolved", {
+                                dmEmails: dmRecipients.map(r => r.email),
+                                dmProfErr: dmProfErr?.message ?? null,
+                                dmUsersErr: dmUsersErr?.message ?? null
+                            });
                         }
                     }
+                } else {
+                    console.log("[notify-report-submitted] Step 8 - no DMs assigned to this plant, skipping");
                 }
 
                 // 9. Build email from template
@@ -403,27 +530,32 @@ Deno.serve(async (req) => {
                     logoUrl: envOrDefault("LOGO_URL", DEFAULT_LOGO_URL)
                 });
 
-                // 9. CC the district manager(s) and the submitter (dedup handled by sendEmail)
+                // 10. CC the district manager(s) and the submitter
                 const ccRecipients = [
                     ...dmRecipients,
                     {email: submitterEmail, name: submitterName}
                 ];
 
-                // 10. Fetch and base64-encode the PDF attachment if provided
+                console.log("[notify-report-submitted] Step 10 - final recipient lists", {
+                    to: toRecipients.map(r => r.email),
+                    cc: ccRecipients.map(r => r.email),
+                    debugMode
+                });
+
+                // 11. Fetch and base64-encode the PDF attachment if provided
                 const emailAttachments: Array<{content: string; filename: string; disposition: string}> = [];
                 if (attachmentUrl && typeof attachmentUrl === "string") {
+                    console.log("[notify-report-submitted] Step 11 - fetching PDF attachment", {attachmentUrl});
                     const base64Content = await fetchFileAsBase64(attachmentUrl);
                     if (base64Content) {
-                        emailAttachments.push({
-                            content: base64Content,
-                            filename: "lost-load-writeup.pdf",
-                            disposition: "attachment"
-                        });
+                        emailAttachments.push({content: base64Content, filename: "lost-load-writeup.pdf", disposition: "attachment"});
+                        console.log("[notify-report-submitted] Step 11 - PDF attachment encoded successfully");
+                    } else {
+                        console.warn("[notify-report-submitted] Step 11 - PDF fetch returned null, sending without attachment");
                     }
                 }
 
-                console.log('[email-service] Sending report-submitted notifications', { recipientCount: toRecipients.length });
-
+                console.log("[notify-report-submitted] Step 12 - calling sendEmail");
                 const result = await sendEmail({
                     subject, html, text,
                     toList: toRecipients,
@@ -432,10 +564,15 @@ Deno.serve(async (req) => {
                     debugMode
                 });
 
+                console.log("[notify-report-submitted] DONE", result);
+                if (!result.success) {
+                    await reportEmailError(`sendEmail returned failure: ${result.reason ?? "unknown"}`, {userId, toCount: toRecipients.length, debugMode});
+                }
                 return jsonResponse({...result, debug: debugMode, regionName: region.region_name, intendedRecipients: toRecipients.length}, headers);
 
             } catch (err) {
-                console.error("notify-report-submitted failed:", err);
+                console.error("[notify-report-submitted] UNHANDLED ERROR:", err);
+                await reportEmailError(`Unhandled exception: ${(err as Error)?.message ?? String(err)}`, {userId, reportTitle});
                 return errorResponse("Failed to send report notification", headers, 500);
             }
         }

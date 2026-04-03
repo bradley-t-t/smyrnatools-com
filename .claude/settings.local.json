@@ -63,7 +63,22 @@
       "Bash(cd /Users/trentontaylor/WebstormProjects/baytowngocarts-com git commit --amend --no-edit)",
       "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx vite build)",
       "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets list --project-ref gujgtjqqurildqurpffh)",
-      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set GITHUB_TOKEN=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 --project-ref gujgtjqqurildqurpffh)"
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase secrets set GITHUB_TOKEN=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 --project-ref gujgtjqqurildqurpffh)",
+      "Bash(find /Users/trentontaylor/WebstormProjects/smyrnatools.com/supabase -type f \\\\\\(-name *.yaml -o -name *.yml -o -name *.json -o -name *.sql \\\\\\))",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx supabase functions deploy email-service --project-ref gujgtjqqurildqurpffh)",
+      "Bash(PATH=\"/Users/trentontaylor/.nvm/versions/node/v22.21.1/bin:$PATH\" npx nit release)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "exit 0"
+          }
+        ]
+      }
     ]
   }
 }
