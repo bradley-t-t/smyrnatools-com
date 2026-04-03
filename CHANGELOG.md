@@ -1,5 +1,27 @@
 # Changelog
 
+
+All notable changes to this project will be documented in this file.
+
+## [38.5.9] - 2026-04-03
+
+- smyrnatools.com Release v38.5.9
+
+## [38.5.7] - 2026-04-02
+
+- Replace client-side activity feed builder with server-side fetch from list_items_activity table, adding caching, pagination support, and user profile resolution
+- Add getActivityDisplay method to map activity actions (created, completed, reopened, deleted, updated) to human-readable verbs with icons and colors
+- Add getProfileName helper for resolving user IDs to display names with fallback to creatorProfiles
+- Convert ListView activity feed from synchronous useMemo to async useEffect that lazy-loads only when activity view mode is active
+- Clean up PlanComponents formatting by collapsing single-expression arrow functions and inlining JSX props
+
+## [38.5.7] - 2026-04-02
+
+- Add priority system to list items with urgent/high/medium/low/none levels, including color-coded display config, dropdown selectors, and bulk priority updates
+- Add activity feed view mode showing chronological created/completed events with relative timestamps
+- Add priority grouping view mode to organize tasks by priority level
+
+
 All notable changes to this project will be documented in this file.
 
 ## [38.5.8] - 2026-04-03

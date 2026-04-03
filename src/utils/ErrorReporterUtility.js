@@ -1,6 +1,6 @@
 import { Component } from 'react'
 
-const REPORTING_ENDPOINT = 'https://gujgtjqqurildqurpffh.supabase.co/functions/v1/error-reporting-service/report-batch'
+const ERROR_REPORTING_PATH = '/functions/v1/error-reporting-service/report-batch'
 
 const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_FLUSH_INTERVAL_MS = 30_000
@@ -252,19 +252,21 @@ function stopFlushTimer() {
 const ErrorReporterUtility = {
     /**
      * Initialize the error reporter. Call once in the app entry point.
-     * @param {{ project: string, endpoint?: string, batchSize?: number, flushIntervalMs?: number, enabled?: boolean }} options
+     * @param {{ project: string, apiKey?: string, baseUrl: string, batchSize?: number, flushIntervalMs?: number, enabled?: boolean }} options
      */
     init({
         project,
         apiKey,
-        endpoint = REPORTING_ENDPOINT,
+        baseUrl,
+        endpoint,
         batchSize = DEFAULT_BATCH_SIZE,
         flushIntervalMs = DEFAULT_FLUSH_INTERVAL_MS,
         enabled = true
     }) {
         if (configuration) return
 
-        configuration = { project, apiKey, endpoint, batchSize, flushIntervalMs, enabled }
+        const resolvedEndpoint = endpoint ?? `${baseUrl}${ERROR_REPORTING_PATH}`
+        configuration = { project, apiKey, endpoint: resolvedEndpoint, batchSize, flushIntervalMs, enabled }
 
         if (!enabled) return
 
