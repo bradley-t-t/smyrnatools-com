@@ -1,6 +1,10 @@
 # Changelog
 
 
+## [38.5.14] - 2026-04-03
+
+- smyrnatools.com Release v38.5.14
+
 ## [38.5.13] - 2026-04-03
 
 - smyrnatools.com Release v38.5.13

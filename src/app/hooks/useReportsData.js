@@ -476,6 +476,7 @@ export function useReportsData() {
         user,
         userAdditionalPlants,
         userPlantCode,
+        fetchProfilesFor,
         userProfiles,
         weeksToShow
     }

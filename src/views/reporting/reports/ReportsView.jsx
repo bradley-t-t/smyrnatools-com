@@ -34,6 +34,7 @@ function ReportsView() {
     const {
         addLostLoadReport,
         deleteLostLoadReport,
+        fetchProfilesFor,
         getUserName,
         hasAnyReviewPermission,
         hasAssigned,
@@ -223,17 +224,18 @@ function ReportsView() {
                 .eq('completed', true)
                 .order('submitted_at', { ascending: false })
             if (!error && Array.isArray(data)) {
-                setQcReports(
-                    data.map((r) => ({
-                        id: r.id,
-                        name: r.report_name,
-                        userId: r.user_id,
-                        data: r.data,
-                        week: r.week,
-                        submittedAt: r.submitted_at,
-                        reviewed: r.been_reviewed
-                    }))
-                )
+                const mapped = data.map((r) => ({
+                    id: r.id,
+                    name: r.report_name,
+                    userId: r.user_id,
+                    data: r.data,
+                    week: r.week,
+                    submittedAt: r.submitted_at,
+                    reviewed: r.been_reviewed
+                }))
+                setQcReports(mapped)
+                const uniqueUserIds = [...new Set(mapped.map((r) => r.userId).filter(Boolean))]
+                if (uniqueUserIds.length > 0) fetchProfilesFor(uniqueUserIds)
             }
         } catch (err) {
             console.error('Failed to load QC reports:', err)
@@ -244,7 +246,7 @@ function ReportsView() {
         UserService.getUserWeight(user.id)
             .then(setCurrentUserWeight)
             .catch(() => {})
-    }, [user, qcLoaded])
+    }, [user, qcLoaded, fetchProfilesFor])
     useEffect(() => {
         if (tab === 'review') loadReviewReports()
         if (tab === 'lost_loads') loadLostLoadReports()
@@ -649,9 +651,15 @@ function ReportsView() {
                                             .toUpperCase()
                                         const d = report.data || {}
                                         const isLabReport = report.name === 'third_party_lab'
+                                        const meaningfulStr = (val) =>
+                                            val && typeof val === 'string' && val.trim() && val.trim() !== 'N/A'
+                                                ? val.trim()
+                                                : null
                                         const title = isLabReport
-                                            ? d.lab_company_name || 'Third Party Lab Report'
-                                            : d.project || 'QC Strength Report'
+                                            ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
+                                            : meaningfulStr(d.project) ||
+                                              meaningfulStr(d.order_no) ||
+                                              'QC Strength Report'
                                         const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
                                         const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
                                         return (
