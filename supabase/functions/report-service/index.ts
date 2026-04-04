@@ -196,7 +196,6 @@ Deno.serve(async (req) => {
                 const weekIso = typeof body?.weekIso === "string" ? body.weekIso : null;
                 if (!weekIso) return errorResponse("weekIso is required", headers, 400);
                 const monday = new Date(weekIso);
-                monday.setDate(monday.getDate() + 1);
                 monday.setHours(0, 0, 0, 0);
                 const saturday = new Date(monday);
                 saturday.setDate(monday.getDate() + 5);
@@ -268,10 +267,10 @@ Deno.serve(async (req) => {
                 const auth = await requireAuthenticated(supabase, req, headers);
                 if (auth instanceof Response) return auth;
                 const body = await parseBody(req);
-                const {reportId, userId} = body;
-                if (!reportId || !userId) return errorResponse("reportId and userId are required", headers, 400);
+                const {reportId} = body;
+                if (!reportId) return errorResponse("reportId is required", headers, 400);
                 const {error} = await supabase.from("reports_reviewed").upsert(
-                    {report_id: reportId, reviewed_at: new Date().toISOString(), reviewed_by_user_id: userId},
+                    {report_id: reportId, reviewed_at: new Date().toISOString(), reviewed_by_user_id: auth},
                     {onConflict: "report_id,reviewed_by_user_id"}
                 );
                 if (error) return errorResponse("Failed to mark reviewed", headers, 500);

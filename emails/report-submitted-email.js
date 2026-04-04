@@ -13,6 +13,12 @@
  * @param {Object} [options.theme] - Theme color overrides.
  * @param {string} [options.logoUrl] - Logo image URL.
  */
+/** Escapes HTML special characters to prevent injection in email templates. */
+function escapeHtml(str) {
+    if (typeof str !== 'string') return str
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabel, plantCode, regionName, reportFields, frontendUrl, theme, logoUrl, debugInfo }) {
     const t = {
         white: theme?.white || '#ffffff',
@@ -28,16 +34,16 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
     const logo = logoUrl || 'https://smyrnatools.com/static/media/SmyrnaLogo.d7f873f3da1747602db3.png'
     const appUrl = frontendUrl || 'https://smyrnatools.com'
     const year = new Date().getFullYear()
-    const name = submitterName || 'A team member'
-    const week = weekLabel ? ` for ${weekLabel}` : ''
-    const plant = plantCode ? ` (Plant ${plantCode})` : ''
-    const region = regionName || 'your region'
+    const name = escapeHtml(submitterName) || 'A team member'
+    const week = weekLabel ? ` for ${escapeHtml(weekLabel)}` : ''
+    const plant = plantCode ? ` (Plant ${escapeHtml(plantCode)})` : ''
+    const region = escapeHtml(regionName) || 'your region'
     const fields = Array.isArray(reportFields) ? reportFields.filter(f => f.label && f.value) : []
 
     const detailRows = fields.map(f => `
                     <tr>
-                      <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;vertical-align:top;">${f.label}</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${f.value}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;vertical-align:top;">${escapeHtml(f.label)}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${escapeHtml(f.value)}</td>
                     </tr>`).join('')
 
     const subject = `${reportTitle} Submitted — ${name}${plant}`

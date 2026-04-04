@@ -163,7 +163,9 @@ async function fetchReviewableSubmissions(statusFilter, orderField, orderAscendi
 }
 /** Extracts the storage path portion from a full image URL or path. */
 function extractStoragePath(imagePath) {
-    return imagePath.includes(`${STORAGE_BUCKET}/`) ? imagePath.split(`${STORAGE_BUCKET}/`)[1] : imagePath
+    const path = imagePath.includes(`${STORAGE_BUCKET}/`) ? imagePath.split(`${STORAGE_BUCKET}/`)[1] : imagePath
+    if (path.includes('..')) throw new Error('Invalid storage path')
+    return path
 }
 /**
  * Maintenance forms and submissions service.
