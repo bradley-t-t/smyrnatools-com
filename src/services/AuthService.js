@@ -144,10 +144,10 @@ class AuthServiceImpl {
             { skipAuthCheck: true }
         )
         if (!res.ok) throw new Error(json.error || 'Sign in failed')
-        this.currentUser = { email: json.email, userId: json.userId }
+        this.currentUser = { email: json.email, userId: json.id }
         this.isAuthenticated = true
         this.sessionValidated = true
-        await this._createDbSession(json.userId)
+        await this._createDbSession(json.id)
         this._notifyObservers()
         return this.currentUser
     }
@@ -192,11 +192,11 @@ class AuthServiceImpl {
             { skipAuthCheck: true }
         )
         if (!res.ok) throw new Error(json.error || 'Sign up failed')
-        this.currentUser = { email: json.email, userId: json.userId }
+        this.currentUser = { email: json.email, userId: json.id }
         this.isAuthenticated = true
         this.sessionValidated = true
-        await this._createDbSession(json.userId)
-        await this._createDefaultPreferencesRow(json.userId)
+        await this._createDbSession(json.id)
+        await this._createDefaultPreferencesRow(json.id)
         this._notifyObservers()
         return this.currentUser
     }
