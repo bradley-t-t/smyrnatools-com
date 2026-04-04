@@ -28,6 +28,7 @@ const FILE_TYPE_MAP = {
     xlsx: 'spreadsheet'
 }
 function getFileType(filename) {
+    if (!filename) return 'other'
     const ext = filename.split('.').pop().toLowerCase()
     return FILE_TYPE_MAP[ext] || 'other'
 }
