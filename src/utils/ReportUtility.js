@@ -189,6 +189,7 @@ const ReportUtility = {
     getWeekDatesFromIso(weekIso) {
         if (!weekIso) return { monday: null, saturday: null }
         const monday = new Date(weekIso)
+        if (isNaN(monday.getTime())) return { monday: null, saturday: null }
         monday.setDate(monday.getDate() + 1)
         monday.setHours(0, 0, 0, 0)
         const saturday = new Date(monday)
@@ -207,7 +208,7 @@ const ReportUtility = {
             weekday: 'short',
             year: 'numeric'
         })
-        return `${left}  – ${right}`
+        return `${left}  \u2013 ${right}`
     },
     getYphGradeAndLabel(yph) {
         let grade = 'poor'
