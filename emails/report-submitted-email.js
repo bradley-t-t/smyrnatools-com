@@ -13,10 +13,8 @@
  * @param {Object} [options.theme] - Theme color overrides.
  * @param {string} [options.logoUrl] - Logo image URL.
  */
-/** Escapes HTML special characters to prevent injection in email templates. */
-function escapeHtml(str) {
-    if (typeof str !== 'string') return str
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+function htmlEscape(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
 export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabel, plantCode, regionName, reportFields, frontendUrl, theme, logoUrl, debugInfo }) {
@@ -34,16 +32,23 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
     const logo = logoUrl || 'https://smyrnatools.com/static/media/SmyrnaLogo.d7f873f3da1747602db3.png'
     const appUrl = frontendUrl || 'https://smyrnatools.com'
     const year = new Date().getFullYear()
-    const name = escapeHtml(submitterName) || 'A team member'
-    const week = weekLabel ? ` for ${escapeHtml(weekLabel)}` : ''
-    const plant = plantCode ? ` (Plant ${escapeHtml(plantCode)})` : ''
-    const region = escapeHtml(regionName) || 'your region'
+    const name = submitterName || 'A team member'
+    const week = weekLabel ? ` for ${weekLabel}` : ''
+    const plant = plantCode ? ` (Plant ${plantCode})` : ''
+    const region = regionName || 'your region'
     const fields = Array.isArray(reportFields) ? reportFields.filter(f => f.label && f.value) : []
+
+    const eName = htmlEscape(name)
+    const eReportTitle = htmlEscape(reportTitle)
+    const eWeek = weekLabel ? ` for ${htmlEscape(weekLabel)}` : ''
+    const ePlant = plantCode ? ` (Plant ${htmlEscape(plantCode)})` : ''
+    const eRegion = htmlEscape(region)
+    const eWeekLabel = weekLabel ? htmlEscape(weekLabel) : ''
 
     const detailRows = fields.map(f => `
                     <tr>
-                      <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;vertical-align:top;">${escapeHtml(f.label)}</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${escapeHtml(f.value)}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;vertical-align:top;">${htmlEscape(f.label)}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${htmlEscape(f.value)}</td>
                     </tr>`).join('')
 
     const subject = `${reportTitle} Submitted — ${name}${plant}`
@@ -54,7 +59,7 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${reportTitle} Submitted</title>
+  <title>${eReportTitle} Submitted</title>
 </head>
 <body style="margin:0;padding:40px 20px;background-color:#f0f4f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
 <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0">
@@ -70,7 +75,7 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
           <td style="padding:40px 32px;background-color:${t.white};">
             <h1 style="font-size:24px;color:${t.text};margin:0 0 8px;font-weight:700;">Report Submitted</h1>
             <p style="font-size:16px;color:${t.text};line-height:1.6;margin:0 0 24px;">
-              ${name} has submitted their <strong>${reportTitle}</strong>${week} in the ${region} region.
+              ${eName} has submitted their <strong>${eReportTitle}</strong>${eWeek} in the ${eRegion} region.
             </p>
 
             <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color:${t.bgLight};border:1px solid ${t.border};border-radius:8px;margin:0 0 24px;">
@@ -79,19 +84,19 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
                   <table width="100%" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;">Report</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${reportTitle}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${eReportTitle}</td>
                     </tr>
                     <tr>
                       <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;">Submitted by</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${name}${plant}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${eName}${ePlant}</td>
                     </tr>
-                    ${weekLabel ? `<tr>
+                    ${eWeekLabel ? `<tr>
                       <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;">Week</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${weekLabel}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${eWeekLabel}</td>
                     </tr>` : ''}
                     <tr>
                       <td style="padding:6px 0;font-size:14px;color:${t.textMuted};width:130px;">Region</td>
-                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${region}</td>
+                      <td style="padding:6px 0;font-size:14px;color:${t.text};font-weight:600;">${eRegion}</td>
                     </tr>
                   </table>
                 </td>
@@ -124,8 +129,8 @@ export function buildReportSubmittedEmail({ submitterName, reportTitle, weekLabe
                 <td style="padding:16px 20px;">
                   <div style="font-size:12px;font-weight:700;color:#854d0e;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">&#9888; Debug Enabled</div>
                   <div style="font-size:13px;color:#78350f;line-height:1.6;">
-                    <strong>Would have sent to:</strong> ${debugInfo.realTo}<br/>
-                    <strong>Would have CC'd:</strong> ${debugInfo.realCc || 'none'}
+                    <strong>Would have sent to:</strong> ${htmlEscape(debugInfo.realTo)}<br/>
+                    <strong>Would have CC&#39;d:</strong> ${debugInfo.realCc ? htmlEscape(debugInfo.realCc) : 'none'}
                   </div>
                 </td>
               </tr>
