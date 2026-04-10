@@ -2,6 +2,8 @@
 import {createClient} from "npm:@supabase/supabase-js@2.45.4";
 // @ts-ignore
 import {getCorsHeaders, handleOptions, jsonResponse, errorResponse} from "../_shared/cors.ts";
+// @ts-ignore
+import {getUserWeight} from "../_shared/asset-helpers.ts";
 
 const YPH_THRESHOLDS = [{min: 6, grade: "excellent"}, {min: 4, grade: "good"}, {min: 3, grade: "average"}] as const;
 const LOST_THRESHOLDS = [{max: 0, grade: "excellent"}, {max: 5, grade: "good"}, {max: 10, grade: "average"}] as const;
@@ -252,12 +254,15 @@ Deno.serve(async (req) => {
                 if (auth instanceof Response) return auth;
                 const userId = auth;
                 const body = await parseBody(req);
-                const reportId = typeof body?.reportId === "string" ? body.reportId : null;
+                const reportId = body?.reportId != null ? String(body.reportId) : null;
                 if (!reportId) return errorResponse("reportId is required", headers, 400);
                 // Verify the authenticated user owns this report before deleting
                 const {data: existing, error: fetchErr} = await supabase.from("reports").select("user_id").eq("id", reportId).maybeSingle();
                 if (fetchErr || !existing) return errorResponse("Report not found", headers, 404);
-                if (existing.user_id !== userId) return errorResponse("Forbidden: you can only delete your own reports", headers, 403);
+                if (existing.user_id !== userId) {
+                    const callerWeight = await getUserWeight(null, userId);
+                    if (callerWeight <= 40) return errorResponse("Forbidden: you can only delete your own reports", headers, 403);
+                }
                 const {error} = await supabase.from("reports").delete().eq("id", reportId);
                 if (error) return errorResponse("Failed to delete report", headers, 500);
                 return jsonResponse(true, headers);

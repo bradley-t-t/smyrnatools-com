@@ -30,6 +30,7 @@ const ICONS = {
     List: 'fa-list',
     Logout: 'fa-sign-out-alt',
     Maintenance: 'fa-wrench',
+    NRMCA: 'fa-certificate',
     Managers: 'fa-user-tie',
     Mixers: 'fa-truck',
     MyAccount: 'fa-user',
@@ -66,7 +67,8 @@ const menuItems = [
     { id: 'Calculators', permission: 'calculator.view', text: 'Calculators' },
     { id: 'Leaderboards', permission: 'leaderboards.view', text: 'Leaderboards' },
     { id: 'Documents', permission: 'documents.view', text: 'Documents' },
-    { id: 'Maintenance', permission: 'maintenance.view', text: 'Maintenance' }
+    { id: 'Maintenance', permission: 'maintenance.view', text: 'Maintenance' },
+    { id: 'NRMCA', permission: 'nrmca.view', text: 'Calibrations & Certifications' }
 ]
 /** Navigation item IDs grouped under the "Assets" dropdown. */
 const ASSET_ITEMS = ['Mixers', 'Tractors', 'Trailers', 'Heavy Equipment', 'Pickup Trucks']
@@ -75,7 +77,7 @@ const PEOPLE_ITEMS = ['Operators', 'Managers']
 /** Navigation item IDs grouped under the "Productivity" dropdown. */
 const PRODUCTIVITY_ITEMS = ['List', 'Leaderboards', 'Documents']
 /** Navigation item IDs grouped under the "Reporting" dropdown. */
-const REPORTING_ITEMS = ['Reports', 'Maintenance']
+const REPORTING_ITEMS = ['Reports', 'Maintenance', 'NRMCA']
 /** Navigation item IDs grouped under the "Tools" dropdown. */
 const TOOLS_ITEMS = ['Plan', 'Calculators']
 /** Navigation item IDs grouped under the "Admin" category (two-level mode). */

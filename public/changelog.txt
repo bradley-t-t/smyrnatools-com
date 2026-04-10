@@ -1,6 +1,12 @@
 # Changelog
 
 
+## [38.5.20] - 2026-04-10
+
+- AI validation errors in the plant manager report submission flow are now reported via ErrorReporterUtility instead of being silently swallowed
+- When AI validation flags a potential data issue, the user now sees an actionable error message prompting them to double-check yardage and total hours before confirming
+- Unexpected exceptions during AI validation are also captured and reported with context rather than silently caught
+
 ## [38.5.19] - 2026-04-10
 
 - QC report date range filter now defaults to the current month instead of being empty on load

@@ -44,6 +44,7 @@ const LeaderboardsView = lazyWithRetry(() => import('../views/productivity/leade
 const ListDetailView = lazyWithRetry(() => import('../views/productivity/list/ListDetailView'))
 const ListView = lazyWithRetry(() => import('../views/productivity/list/ListView'))
 const MaintenanceView = lazyWithRetry(() => import('../views/reporting/maintenance/MaintenanceView'))
+const NRMCAView = lazyWithRetry(() => import('../views/reporting/nrmca/NRMCAView'))
 const ManagersView = lazyWithRetry(() => import('../views/people/managers/ManagersView'))
 const MixerDetailView = lazyWithRetry(() => import('../views/assets/mixers/MixerDetailView'))
 const MixersView = lazyWithRetry(() => import('../views/assets/mixers/MixersView'))
@@ -301,6 +302,8 @@ function AppContent() {
                 return <CalculatorView />
             case 'Maintenance':
                 return <MaintenanceView />
+            case 'NRMCA':
+                return <NRMCAView />
             case 'MyAccount': {
                 const effectiveUserId = userId || sessionStorage.getItem('userId')
                 return effectiveUserId ? <MyAccountView userId={effectiveUserId} /> : <LoginView />
