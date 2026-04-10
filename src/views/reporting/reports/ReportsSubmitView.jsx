@@ -7,6 +7,7 @@ import SubmitHeader from '../../../app/components/reports/SubmitHeader'
 import { usePreferences } from '../../../app/context/PreferencesContext'
 import { useSubmitData } from '../../../app/hooks/useSubmitData'
 import { useSubmitForm } from '../../../app/hooks/useSubmitForm'
+import ErrorReporterUtility from '../../../utils/ErrorReporterUtility'
 import { exportGeneralManagerReport } from '../../../utils/ExportUtility'
 import { ReportUtility } from '../../../utils/ReportUtility'
 import { AggregateProductionSubmitPlugin } from './types/WeeklyAggregateProductionReport'
@@ -205,9 +206,20 @@ function ReportsSubmitView({
                 const { AIService } = await import('../../../services/AIService')
                 const validation = await AIService.validatePlantManagerMetrics(form)
                 setAiValidating(false)
-                if (!validation.error && validation.needsReview) return
-            } catch {
+                if (validation.error) {
+                    ErrorReporterUtility.reportError(new Error('AI validation failed for plant manager report'), {
+                        context: `validatePlantManagerMetrics returned error — yardage: ${form.yardage}, total_hours: ${form.total_hours}`
+                    })
+                } else if (validation.needsReview) {
+                    showError(
+                        'AI analysis flagged a potential data entry issue — please double-check your yardage and total hours before confirming.'
+                    )
+                }
+            } catch (error) {
                 setAiValidating(false)
+                ErrorReporterUtility.reportError(error instanceof Error ? error : new Error(String(error)), {
+                    context: 'Unexpected error during AI validation of plant manager report'
+                })
             }
             setShowConfirmationModal(true)
             return
