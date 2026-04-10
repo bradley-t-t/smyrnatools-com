@@ -194,7 +194,9 @@ const oneOffReportTypes = [
                 type: 'select',
                 options: ['Moisture Caps', 'Moisture Caps & Cooler', 'Cooler', 'Curing Tank']
             },
-            { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: false, type: 'text' }
+            { label: 'Picked Up and Handled By', name: 'picked_up_handled_by', required: false, type: 'text' },
+            // Notes
+            { label: 'Notes', name: 'notes', required: false, type: 'textarea' }
         ]
     },
     {

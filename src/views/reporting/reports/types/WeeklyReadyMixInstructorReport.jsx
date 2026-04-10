@@ -370,6 +370,43 @@ function TrainingSection({ mixerTraining, tractorTraining, plants, readOnly, onR
         </div>
     )
 }
+function TerminatedTable({ operators, plants }) {
+    return (
+        <RMIDataTable
+            headers={['Operator Name', 'Plant', 'Position']}
+            data={operators}
+            emptyMessage="No terminated operators recorded"
+            emptyIcon="fa-user-check"
+            renderRow={(op) => (
+                <tr key={op.id} className="hover:[&>td]:bg-slate-50">
+                    <td className={TD}>
+                        <div className="flex items-center gap-2 font-medium">
+                            <i className="fas fa-user-slash text-sm text-slate-500"></i>
+                            {op.name}
+                        </div>
+                    </td>
+                    <td className={TD}>{getPlantNameFromList(op.plant, plants)}</td>
+                    <td className={TD}>{op.position || '—'}</td>
+                </tr>
+            )}
+        />
+    )
+}
+function TerminatedSection({ terminatedOperators, plants }) {
+    return (
+        <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="mb-5">
+                <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-800 m-0">
+                    <i className="fas fa-user-slash text-slate-600"></i>Terminated Operators
+                </h3>
+                <p className="text-sm text-slate-500 mt-2 mb-0">
+                    Operators moved to Terminated status during this report week
+                </p>
+            </div>
+            <TerminatedTable operators={terminatedOperators} plants={plants} />
+        </div>
+    )
+}
 function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-6 mb-6">
@@ -386,7 +423,7 @@ function HiringGoalsSection({ plants, hiringGoals, onChange, readOnly }) {
     )
 }
 /** Submit-mode plugin for the Ready Mix Instructor report — manages trainer/trainee rosters by category (Mixer/Tractor) with operator selection. */
-export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants }) {
+export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants, weekIso }) {
     const [liveOperators, setLiveOperators] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [showAddTrainerModal, setShowAddTrainerModal] = useState(false)
@@ -409,6 +446,25 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     const mixerTraining = React.useMemo(() => snapshotData.mixer_training || [], [snapshotData])
     const tractorTraining = React.useMemo(() => snapshotData.tractor_training || [], [snapshotData])
     const hiringGoals = form?.hiring_goals || {}
+    // Auto-compute operators whose status changed TO 'Terminated' during the report week.
+    // weekIso is the Monday of the report week (e.g. "2026-04-06"). We apply the same +1 day
+    // UTC→local offset used elsewhere in this codebase (see getWeekDatesFromIso).
+    // Returns normalized {id, name, plant, position} objects so TerminatedTable keys work correctly.
+    const terminatedThisWeek = React.useMemo(() => {
+        if (!liveOperators.length || !weekIso) return []
+        const weekStart = new Date(weekIso)
+        weekStart.setDate(weekStart.getDate() + 1)
+        weekStart.setHours(0, 0, 0, 0)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekEnd.getDate() + 7)
+        return liveOperators
+            .filter((op) => {
+                if (op.status !== 'Terminated' || !op.statusChangedAt) return false
+                const changedAt = new Date(op.statusChangedAt)
+                return changedAt >= weekStart && changedAt < weekEnd
+            })
+            .map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, position: op.position }))
+    }, [liveOperators, weekIso])
     const isMixerTrainersAccurate = React.useMemo(() => {
         if (!liveOperators.length || mixerTrainers.length === 0) return false
         const liveTrainers = liveOperators.filter(
@@ -666,6 +722,19 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     useEffect(() => {
         loadLiveData()
     }, [plants, loadLiveData])
+    // Persist the auto-computed terminated list into snapshot_data so the review view
+    // shows a point-in-time snapshot rather than recomputing from live data.
+    // Guard: skip the write when the snapshot already matches to avoid triggering auto-save unnecessarily.
+    useEffect(() => {
+        if (readOnly || !terminatedThisWeek.length) return
+        const existing = snapshotData.terminated_operators
+        const unchanged =
+            Array.isArray(existing) &&
+            existing.length === terminatedThisWeek.length &&
+            terminatedThisWeek.every((op, i) => existing[i]?.id === op.id)
+        if (!unchanged) updateSnapshotData('terminated_operators', terminatedThisWeek)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [terminatedThisWeek, readOnly])
     const createActionButtons = (pullFn, addFn, clearFn, isAccurate, dataLength) => (
         <>
             <button
@@ -793,6 +862,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
                     onChange={handleHiringGoalChange}
                     readOnly={readOnly}
                 />
+                <TerminatedSection terminatedOperators={terminatedThisWeek} plants={plants} readOnly={readOnly} />
                 {showAddTrainerModal &&
                     ReactDOM.createPortal(
                         <div
@@ -1042,7 +1112,7 @@ export function ReadyMixInstructorSubmitPlugin({ form, setForm, readOnly, plants
     )
 }
 /** Review-mode plugin for the Ready Mix Instructor report — read-only view of trainer/trainee assignments by category. */
-export function ReadyMixInstructorReviewPlugin({ form, plants }) {
+export function ReadyMixInstructorReviewPlugin({ form, plants, weekIso }) {
     const snapshotData = form?.snapshot_data || {}
     const mixerTrainers = snapshotData.mixer_trainers || []
     const tractorTrainers = snapshotData.tractor_trainers || []
@@ -1051,12 +1121,44 @@ export function ReadyMixInstructorReviewPlugin({ form, plants }) {
     const mixerTraining = snapshotData.mixer_training || []
     const tractorTraining = snapshotData.tractor_training || []
     const hiringGoals = form?.hiring_goals || {}
+    // Reports submitted before this feature was added won't have terminated_operators in the snapshot.
+    // Fall back to computing from live operator data for those older reports.
+    const snapshotHasTerminated = Array.isArray(snapshotData.terminated_operators)
+    const [liveTerminated, setLiveTerminated] = useState([])
+    useEffect(() => {
+        if (snapshotHasTerminated || !weekIso) return
+        async function computeFromLive() {
+            try {
+                const plantCodes = plants ? new Set(plants.map((p) => p.plant_code || p.code).filter(Boolean)) : null
+                const ops = await OperatorService.fetchOperators(plantCodes)
+                const weekStart = new Date(weekIso)
+                weekStart.setDate(weekStart.getDate() + 1)
+                weekStart.setHours(0, 0, 0, 0)
+                const weekEnd = new Date(weekStart)
+                weekEnd.setDate(weekEnd.getDate() + 7)
+                setLiveTerminated(
+                    (ops || [])
+                        .filter((op) => {
+                            if (op.status !== 'Terminated' || !op.statusChangedAt) return false
+                            const changedAt = new Date(op.statusChangedAt)
+                            return changedAt >= weekStart && changedAt < weekEnd
+                        })
+                        .map((op) => ({ id: op.employeeId, name: op.name, plant: op.plantCode, position: op.position }))
+                )
+            } catch {
+                // Non-critical — leave list empty if live fetch fails
+            }
+        }
+        computeFromLive()
+    }, [snapshotHasTerminated, weekIso, plants])
+    const terminatedOperators = snapshotHasTerminated ? snapshotData.terminated_operators : liveTerminated
     return (
         <div>
             <TrainersSection mixerTrainers={mixerTrainers} tractorTrainers={tractorTrainers} plants={plants} readOnly />
             <PendingSection mixerPending={mixerPending} tractorPending={tractorPending} plants={plants} readOnly />
             <TrainingSection mixerTraining={mixerTraining} tractorTraining={tractorTraining} plants={plants} readOnly />
             <HiringGoalsSection plants={plants} hiringGoals={hiringGoals} readOnly />
+            <TerminatedSection terminatedOperators={terminatedOperators} plants={plants} />
         </div>
     )
 }

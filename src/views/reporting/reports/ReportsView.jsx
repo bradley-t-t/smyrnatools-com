@@ -99,6 +99,11 @@ function ReportsView() {
     const [managerEditUser, setManagerEditUser] = useState(null)
     const [isPlantModalOpen, setIsPlantModalOpen] = useState(false)
     const [searchInput, setSearchInput] = useState('')
+    const [qcTypeFilter, setQcTypeFilter] = useState('all')
+    const [qcStatusFilter, setQcStatusFilter] = useState('all')
+    const [qcSort, setQcSort] = useState('newest')
+    const [qcDateFrom, setQcDateFrom] = useState('')
+    const [qcDateTo, setQcDateTo] = useState('')
     const searchLower = searchInput.trim().toLowerCase()
     const allMyItems = useMemo(() => {
         const items = Object.values(myReportsByWeek).flat()
@@ -330,6 +335,35 @@ function ReportsView() {
             })),
         [lostLoadReports]
     )
+    const visibleQcReports = useMemo(() => {
+        let result = qcReports
+        if (qcTypeFilter !== 'all') result = result.filter((r) => r.name === qcTypeFilter)
+        if (qcStatusFilter === 'pending') result = result.filter((r) => !r.reviewed)
+        else if (qcStatusFilter === 'reviewed') result = result.filter((r) => r.reviewed)
+        if (qcDateFrom) {
+            const from = new Date(qcDateFrom + 'T00:00:00')
+            result = result.filter((r) => r.submittedAt && new Date(r.submittedAt) >= from)
+        }
+        if (qcDateTo) {
+            const to = new Date(qcDateTo + 'T23:59:59')
+            result = result.filter((r) => r.submittedAt && new Date(r.submittedAt) <= to)
+        }
+        return [...result].sort((a, b) => {
+            if (qcSort === 'oldest') return new Date(a.submittedAt) - new Date(b.submittedAt)
+            if (qcSort === 'cast_asc') return (a.data?.date_molded || '') < (b.data?.date_molded || '') ? -1 : 1
+            if (qcSort === 'cast_desc') return (a.data?.date_molded || '') > (b.data?.date_molded || '') ? -1 : 1
+            return new Date(b.submittedAt) - new Date(a.submittedAt)
+        })
+    }, [qcReports, qcTypeFilter, qcStatusFilter, qcSort, qcDateFrom, qcDateTo])
+    const qcHasActiveFilters =
+        qcTypeFilter !== 'all' || qcStatusFilter !== 'all' || qcSort !== 'newest' || !!qcDateFrom || !!qcDateTo
+    const clearQcFilters = () => {
+        setQcTypeFilter('all')
+        setQcStatusFilter('all')
+        setQcSort('newest')
+        setQcDateFrom('')
+        setQcDateTo('')
+    }
     if (showForm) {
         const report = reportTypeMap[showForm.name]
             ? { ...reportTypeMap[showForm.name], weekIso: showForm.weekIso }
@@ -628,143 +662,263 @@ function ReportsView() {
                             </div>
                         ) : (
                             <div>
+                                {/* Filter / Sort Bar */}
+                                <div className="flex flex-wrap items-center gap-2 mb-3">
+                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 gap-0.5">
+                                        {[
+                                            { value: 'all', label: 'All Types' },
+                                            { value: 'qc_strength', label: 'QC Strength' },
+                                            { value: 'third_party_lab', label: 'Third Party Lab' }
+                                        ].map(({ value, label }) => (
+                                            <button
+                                                key={value}
+                                                onClick={() => setQcTypeFilter(value)}
+                                                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                                                    qcTypeFilter === value
+                                                        ? 'bg-slate-800 text-white'
+                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 gap-0.5">
+                                        {[
+                                            { value: 'all', label: 'All Status' },
+                                            { value: 'pending', label: 'Pending' },
+                                            { value: 'reviewed', label: 'Reviewed' }
+                                        ].map(({ value, label }) => (
+                                            <button
+                                                key={value}
+                                                onClick={() => setQcStatusFilter(value)}
+                                                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
+                                                    qcStatusFilter === value
+                                                        ? 'bg-slate-800 text-white'
+                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <select
+                                        value={qcSort}
+                                        onChange={(e) => setQcSort(e.target.value)}
+                                        className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                    >
+                                        <option value="newest">Newest First</option>
+                                        <option value="oldest">Oldest First</option>
+                                        <option value="cast_desc">Cast Date (Newest)</option>
+                                        <option value="cast_asc">Cast Date (Oldest)</option>
+                                    </select>
+                                    <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5">
+                                        <i className="fas fa-calendar-alt text-slate-400 text-[10px]" />
+                                        <input
+                                            type="date"
+                                            value={qcDateFrom}
+                                            onChange={(e) => setQcDateFrom(e.target.value)}
+                                            className="text-xs text-slate-600 bg-transparent focus:outline-none w-[7rem]"
+                                        />
+                                        <span className="text-slate-300 text-xs select-none">–</span>
+                                        <input
+                                            type="date"
+                                            value={qcDateTo}
+                                            onChange={(e) => setQcDateTo(e.target.value)}
+                                            className="text-xs text-slate-600 bg-transparent focus:outline-none w-[7rem]"
+                                        />
+                                    </div>
+                                    {qcHasActiveFilters && (
+                                        <button
+                                            onClick={clearQcFilters}
+                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                        >
+                                            <i className="fas fa-times text-[10px]" />
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-3 mb-2 px-1">
                                     <span className="text-sm font-bold text-slate-700">Quality Reports</span>
                                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-slate-600 bg-slate-100">
-                                        {qcReports.length} submitted
+                                        {qcHasActiveFilters
+                                            ? `${visibleQcReports.length} of ${qcReports.length}`
+                                            : `${qcReports.length} submitted`}
                                     </span>
                                 </div>
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                    {qcReports.map((report) => {
-                                        const submittedLabel = report.submittedAt
-                                            ? new Date(report.submittedAt).toLocaleDateString(undefined, {
-                                                  month: 'short',
-                                                  day: 'numeric'
-                                              })
-                                            : ''
-                                        const submitterName = getUserName(report.userId) || 'Unknown'
-                                        const initials = submitterName
-                                            .split(' ')
-                                            .map((w) => w[0])
-                                            .join('')
-                                            .slice(0, 2)
-                                            .toUpperCase()
-                                        const d = report.data || {}
-                                        const isLabReport = report.name === 'third_party_lab'
-                                        const meaningfulStr = (val) =>
-                                            val && typeof val === 'string' && val.trim() && val.trim() !== 'N/A'
-                                                ? val.trim()
-                                                : null
-                                        const title = isLabReport
-                                            ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
-                                            : meaningfulStr(d.contractor) ||
-                                              meaningfulStr(d.project) ||
-                                              'QC Strength Report'
-                                        const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
-                                        const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
-                                        return (
-                                            <div
-                                                key={report.id}
-                                                className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
-                                                onClick={() =>
-                                                    isLabReport
-                                                        ? setSelectedLabReport(report)
-                                                        : setSelectedQCReport(report)
-                                                }
-                                            >
-                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                    <div
-                                                        className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}
-                                                    >
-                                                        <i className={`fas ${iconClass} text-white text-[10px]`} />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <span className="text-sm font-medium text-slate-800 block truncate">
-                                                            {title}
-                                                        </span>
-                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <div
-                                                                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                                                                    style={{
-                                                                        background: `${preferences.accentColor || '#1e3a5f'}20`,
-                                                                        color: preferences.accentColor || '#1e3a5f'
-                                                                    }}
-                                                                >
-                                                                    <span className="text-[8px] font-bold">
-                                                                        {initials}
-                                                                    </span>
-                                                                </div>
-                                                                <span className="text-xs text-slate-500 truncate">
-                                                                    {submitterName}
-                                                                </span>
-                                                            </div>
-                                                            {submittedLabel && (
-                                                                <>
-                                                                    <span className="text-slate-300 text-[8px]">●</span>
-                                                                    <span className="text-xs text-slate-400">
-                                                                        {submittedLabel}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                            {isLabReport && d.customer && (
-                                                                <>
-                                                                    <span className="text-slate-300 text-[8px]">●</span>
-                                                                    <span className="text-xs text-slate-400">
-                                                                        {d.customer}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                            {!isLabReport && d.mix_id && (
-                                                                <>
-                                                                    <span className="text-slate-300 text-[8px]">●</span>
-                                                                    <span className="text-xs text-slate-400">
-                                                                        Mix {d.mix_id}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {report.reviewed ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
-                                                        <i className="fas fa-check text-[9px]" />
-                                                        Reviewed
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
-                                                        <i className="fas fa-flag text-[9px]" />
-                                                        Pending
-                                                    </span>
-                                                )}
-                                                <button
-                                                    className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
-                                                    style={{ background: preferences.accentColor || '#1e3a5f' }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
+                                {visibleQcReports.length === 0 && (
+                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                        <div className="flex flex-col items-center justify-center py-10 px-4 text-slate-400">
+                                            <i className="fas fa-filter text-3xl mb-2" />
+                                            <div className="text-sm">No reports match your filters</div>
+                                        </div>
+                                    </div>
+                                )}
+                                {visibleQcReports.length > 0 && (
+                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                        {visibleQcReports.map((report) => {
+                                            const submittedLabel = report.submittedAt
+                                                ? new Date(report.submittedAt).toLocaleDateString(undefined, {
+                                                      month: 'short',
+                                                      day: 'numeric'
+                                                  })
+                                                : ''
+                                            const submitterName = getUserName(report.userId) || 'Unknown'
+                                            const initials = submitterName
+                                                .split(' ')
+                                                .map((w) => w[0])
+                                                .join('')
+                                                .slice(0, 2)
+                                                .toUpperCase()
+                                            const d = report.data || {}
+                                            const isLabReport = report.name === 'third_party_lab'
+                                            const meaningfulStr = (val) =>
+                                                val && typeof val === 'string' && val.trim() && val.trim() !== 'N/A'
+                                                    ? val.trim()
+                                                    : null
+                                            const title = isLabReport
+                                                ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
+                                                : meaningfulStr(d.contractor) ||
+                                                  meaningfulStr(d.project) ||
+                                                  'QC Strength Report'
+                                            const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
+                                            const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
+                                            return (
+                                                <div
+                                                    key={report.id}
+                                                    className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
+                                                    onClick={() =>
                                                         isLabReport
                                                             ? setSelectedLabReport(report)
                                                             : setSelectedQCReport(report)
-                                                    }}
+                                                    }
                                                 >
-                                                    {report.reviewed ? 'View' : 'Review'}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        handleDeleteQCReport(report)
-                                                    }}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
-                                                    title="Delete"
-                                                >
-                                                    <i className="fas fa-trash-alt text-xs" />
-                                                </button>
-                                                <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
-                                            </div>
-                                        )
-                                    })}
-                                </div>
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div
+                                                            className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}
+                                                        >
+                                                            <i className={`fas ${iconClass} text-white text-[10px]`} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <span className="text-sm font-medium text-slate-800 block truncate">
+                                                                {title}
+                                                            </span>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <div
+                                                                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                                                        style={{
+                                                                            background: `${preferences.accentColor || '#1e3a5f'}20`,
+                                                                            color: preferences.accentColor || '#1e3a5f'
+                                                                        }}
+                                                                    >
+                                                                        <span className="text-[8px] font-bold">
+                                                                            {initials}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-xs text-slate-500 truncate">
+                                                                        {submitterName}
+                                                                    </span>
+                                                                </div>
+                                                                {submittedLabel && (
+                                                                    <>
+                                                                        <span className="text-slate-300 text-[8px]">
+                                                                            ●
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-400">
+                                                                            {submittedLabel}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                {isLabReport && d.customer && (
+                                                                    <>
+                                                                        <span className="text-slate-300 text-[8px]">
+                                                                            ●
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-400">
+                                                                            {d.customer}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                {!isLabReport && d.mix_id && (
+                                                                    <>
+                                                                        <span className="text-slate-300 text-[8px]">
+                                                                            ●
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-400">
+                                                                            Mix {d.mix_id}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                {!isLabReport && meaningfulStr(d.contractor) && (
+                                                                    <>
+                                                                        <span className="text-slate-300 text-[8px]">
+                                                                            ●
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-400 truncate">
+                                                                            {meaningfulStr(d.contractor)}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                                {!isLabReport && d.date_molded && (
+                                                                    <>
+                                                                        <span className="text-slate-300 text-[8px]">
+                                                                            ●
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-400">
+                                                                            Cast{' '}
+                                                                            {new Date(
+                                                                                d.date_molded + 'T00:00:00'
+                                                                            ).toLocaleDateString(undefined, {
+                                                                                month: 'short',
+                                                                                day: 'numeric'
+                                                                            })}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {report.reviewed ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
+                                                            <i className="fas fa-check text-[9px]" />
+                                                            Reviewed
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
+                                                            <i className="fas fa-flag text-[9px]" />
+                                                            Pending
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
+                                                        style={{ background: preferences.accentColor || '#1e3a5f' }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            isLabReport
+                                                                ? setSelectedLabReport(report)
+                                                                : setSelectedQCReport(report)
+                                                        }}
+                                                    >
+                                                        {report.reviewed ? 'View' : 'Review'}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleDeleteQCReport(report)
+                                                        }}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
+                                                        title="Delete"
+                                                    >
+                                                        <i className="fas fa-trash-alt text-xs" />
+                                                    </button>
+                                                    <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

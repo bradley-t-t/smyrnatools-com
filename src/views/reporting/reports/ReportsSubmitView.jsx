@@ -691,7 +691,12 @@ function ReportsSubmitView({
                         setDebugMsg={() => {}}
                         allReports={report.name === 'general_manager' ? allReports : undefined}
                         weekIso={
-                            ['general_manager', 'aggregate_production', 'plant_manager'].includes(report.name)
+                            [
+                                'general_manager',
+                                'aggregate_production',
+                                'plant_manager',
+                                'ready_mix_instructor'
+                            ].includes(report.name)
                                 ? report.weekIso
                                 : undefined
                         }
