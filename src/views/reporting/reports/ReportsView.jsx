@@ -30,6 +30,10 @@ import ReportsSubmitView from './ReportsSubmitView'
  * into ReportsSubmitView for filling/editing and ReportsReviewView for
  * reviewing submissions. Managers can also edit reports on behalf of other users.
  */
+const _now = new Date()
+const currentMonthStartIso = new Date(_now.getFullYear(), _now.getMonth(), 1).toISOString().slice(0, 10)
+const currentMonthEndIso = new Date(_now.getFullYear(), _now.getMonth() + 1, 0).toISOString().slice(0, 10)
+
 function ReportsView() {
     const {
         addLostLoadReport,
@@ -102,8 +106,8 @@ function ReportsView() {
     const [qcTypeFilter, setQcTypeFilter] = useState('all')
     const [qcStatusFilter, setQcStatusFilter] = useState('all')
     const [qcSort, setQcSort] = useState('newest')
-    const [qcDateFrom, setQcDateFrom] = useState('')
-    const [qcDateTo, setQcDateTo] = useState('')
+    const [qcDateFrom, setQcDateFrom] = useState(currentMonthStartIso)
+    const [qcDateTo, setQcDateTo] = useState(currentMonthEndIso)
     const searchLower = searchInput.trim().toLowerCase()
     const allMyItems = useMemo(() => {
         const items = Object.values(myReportsByWeek).flat()
@@ -356,13 +360,17 @@ function ReportsView() {
         })
     }, [qcReports, qcTypeFilter, qcStatusFilter, qcSort, qcDateFrom, qcDateTo])
     const qcHasActiveFilters =
-        qcTypeFilter !== 'all' || qcStatusFilter !== 'all' || qcSort !== 'newest' || !!qcDateFrom || !!qcDateTo
+        qcTypeFilter !== 'all' ||
+        qcStatusFilter !== 'all' ||
+        qcSort !== 'newest' ||
+        qcDateFrom !== currentMonthStartIso ||
+        qcDateTo !== currentMonthEndIso
     const clearQcFilters = () => {
         setQcTypeFilter('all')
         setQcStatusFilter('all')
         setQcSort('newest')
-        setQcDateFrom('')
-        setQcDateTo('')
+        setQcDateFrom(currentMonthStartIso)
+        setQcDateTo(currentMonthEndIso)
     }
     if (showForm) {
         const report = reportTypeMap[showForm.name]

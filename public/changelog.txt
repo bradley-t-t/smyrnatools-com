@@ -1,6 +1,15 @@
 # Changelog
 
 
+## [38.5.18] - 2026-04-10
+
+- Added filter and sort controls to the QC reports list, including type filter (All/QC Strength/Third Party Lab), status filter (All/Pending/Reviewed), sort order (newest, oldest, cast date), and a date range picker
+- QC report count badge now shows filtered vs. total when filters are active, and an empty state is displayed when no reports match the current filters
+- Added a "Clear" button that resets all QC filters when any are active
+- QC report list rows now show additional metadata inline: mix ID, contractor, and cast date for strength reports; customer for lab reports
+- Added `ready_mix_instructor` to the list of report types that receive a `weekIso` prop in the submit view
+- Added a Notes (textarea) field to the one-off report type for picked-up/handled-by entries in ReportTypes
+
 ## [38.5.17] - 2026-04-04
 
 - smyrnatools.com Release v38.5.17

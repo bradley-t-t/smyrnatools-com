@@ -1,6 +1,12 @@
 # Changelog
 
 
+## [38.5.19] - 2026-04-10
+
+- QC report date range filter now defaults to the current month instead of being empty on load
+- "Clear" button for QC filters now resets date range back to the current month rather than clearing it entirely
+- `qcHasActiveFilters` detection updated to treat the current month as the baseline, so the clear button only appears when filters deviate from defaults
+
 ## [38.5.18] - 2026-04-10
 
 - Added filter and sort controls to the QC reports list, including type filter (All/QC Strength/Third Party Lab), status filter (All/Pending/Reviewed), sort order (newest, oldest, cast date), and a date range picker
