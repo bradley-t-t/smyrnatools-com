@@ -8,6 +8,7 @@ import { DistrictManagerReviewPlugin } from './types/WeeklyDistrictManagerReport
 import { EfficiencyReviewPlugin } from './types/WeeklyEfficiencyReport'
 import { GeneralManagerReviewPlugin } from './types/WeeklyGeneralManagerReport'
 import { PlantManagerReviewPlugin } from './types/WeeklyPlantManagerReport'
+import { QualityControlManagerReviewPlugin } from './types/WeeklyQualityControlManagerReport'
 import { ReadyMixInstructorReviewPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerReviewPlugin } from './types/WeeklySafetyManagerReport'
 /** Maps report type keys to their review-mode plugin components. */
@@ -16,6 +17,7 @@ const PLUGINS = {
     general_manager: GeneralManagerReviewPlugin,
     plant_manager: PlantManagerReviewPlugin,
     plant_production: EfficiencyReviewPlugin,
+    quality_control_manager: QualityControlManagerReviewPlugin,
     ready_mix_instructor: ReadyMixInstructorReviewPlugin,
     safety_environmental_rep: SafetyManagerReviewPlugin,
     safety_manager: SafetyManagerReviewPlugin
@@ -25,6 +27,7 @@ const PLUGIN_ONLY_REPORTS = [
     'general_manager',
     'aggregate_production',
     'district_manager',
+    'quality_control_manager',
     'ready_mix_instructor'
 ]
 const getFieldIcon = (fieldName) => {

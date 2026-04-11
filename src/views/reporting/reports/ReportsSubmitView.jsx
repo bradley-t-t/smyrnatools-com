@@ -15,6 +15,7 @@ import { DistrictManagerSubmitPlugin } from './types/WeeklyDistrictManagerReport
 import { EfficiencySubmitPlugin } from './types/WeeklyEfficiencyReport'
 import { GeneralManagerSubmitPlugin } from './types/WeeklyGeneralManagerReport'
 import { PlantManagerSubmitPlugin } from './types/WeeklyPlantManagerReport'
+import { QualityControlManagerSubmitPlugin } from './types/WeeklyQualityControlManagerReport'
 import { ReadyMixInstructorSubmitPlugin } from './types/WeeklyReadyMixInstructorReport'
 import { SafetyManagerSubmitPlugin } from './types/WeeklySafetyManagerReport'
 /** Maps report type keys to their submit-mode plugin components. */
@@ -24,6 +25,7 @@ const PLUGINS = {
     general_manager: GeneralManagerSubmitPlugin,
     plant_manager: PlantManagerSubmitPlugin,
     plant_production: EfficiencySubmitPlugin,
+    quality_control_manager: QualityControlManagerSubmitPlugin,
     ready_mix_instructor: ReadyMixInstructorSubmitPlugin,
     safety_environmental_rep: SafetyManagerSubmitPlugin,
     safety_manager: SafetyManagerSubmitPlugin
@@ -32,6 +34,7 @@ const EXCLUDED_REPORT_TYPES = [
     'district_manager',
     'general_manager',
     'aggregate_production',
+    'quality_control_manager',
     'safety_manager',
     'safety_environmental_rep'
 ]

@@ -123,6 +123,21 @@ const reportTypes = [
         title: 'Ready Mix Instructor'
     }),
     createReportType({
+        assignment: ['reports.assigned.quality_control_manager'],
+        fields: [
+            { label: 'Monday Recap', name: 'monday', required: true, type: 'textarea' },
+            { label: 'Tuesday Recap', name: 'tuesday', required: true, type: 'textarea' },
+            { label: 'Wednesday Recap', name: 'wednesday', required: true, type: 'textarea' },
+            { label: 'Thursday Recap', name: 'thursday', required: true, type: 'textarea' },
+            { label: 'Friday Recap', name: 'friday', required: true, type: 'textarea' },
+            { label: 'Saturday Recap', name: 'saturday', required: true, type: 'textarea' }
+        ],
+        frequency: 'weekly',
+        name: 'quality_control_manager',
+        review: ['reports.review.quality_control_manager'],
+        title: 'Quality Control Manager Report'
+    }),
+    createReportType({
         assignment: ['reports.assigned.test'],
         fields: [{ label: 'test', name: 'test', required: true, type: 'text' }],
         frequency: 'weekly',
