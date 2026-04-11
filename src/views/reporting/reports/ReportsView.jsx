@@ -186,19 +186,29 @@ function ReportsView() {
         resetDependencies: [filterReportType, filterPlant, searchInput]
     })
     const visibleLostLoads = useMemo(() => {
-        if (!searchLower) return lostLoadReports
-        return lostLoadReports.filter(
-            (r) =>
-                r.data?.plant?.toLowerCase().includes(searchLower) ||
+        return lostLoadReports.filter((r) => {
+            const reportPlant = r.data?.plant || ''
+            const matchPlant =
+                !filterPlant ||
+                filterPlant === 'All' ||
+                (filterPlant === 'MY_PLANTS'
+                    ? myPlantCodesSet?.has(reportPlant)
+                    : filterPlant.startsWith('DISTRICT:')
+                      ? districtPlantSet?.has(reportPlant)
+                      : reportPlant === filterPlant)
+            const matchSearch =
+                !searchLower ||
+                reportPlant.toLowerCase().includes(searchLower) ||
                 r.data?.truck_number?.toLowerCase().includes(searchLower) ||
                 r.data?.reason?.toLowerCase().includes(searchLower) ||
                 getUserName(r.userId)?.toLowerCase().includes(searchLower)
-        )
-    }, [lostLoadReports, searchLower, getUserName])
+            return matchPlant && matchSearch
+        })
+    }, [lostLoadReports, filterPlant, myPlantCodesSet, districtPlantSet, searchLower, getUserName])
     const lostLoadsPagination = usePagination({
         initialPageSize: 25,
         items: visibleLostLoads,
-        resetDependencies: [searchInput]
+        resetDependencies: [filterPlant, searchInput]
     })
     const regionalPlants = useMemo(() => {
         const filtered = plants.filter(
@@ -445,6 +455,38 @@ function ReportsView() {
             </div>
         </div>
     )
+    const pendingReviewCount = visibleReviewReports.filter((r) => !reviewedByCurrentUser.has(r.id)).length
+    const pendingQcCount = qcReports.filter((r) => !r.reviewed).length
+
+    const sideNavTabs = [
+        { key: 'all', label: 'My Reports', icon: 'fa-file-alt', count: allMyItems.length || null },
+        ...(hasLostLoadsPermission
+            ? [{ key: 'lost_loads', label: 'Loss Reports', icon: 'fa-truck', count: lostLoadReports.length || null }]
+            : []),
+        ...(hasOneOffReviewPermission?.qc_strength
+            ? [
+                  {
+                      key: 'quality',
+                      label: 'Quality Reports',
+                      icon: 'fa-flask',
+                      count: pendingQcCount || null,
+                      countAlert: pendingQcCount > 0
+                  }
+              ]
+            : []),
+        ...(hasAnyReviewPermission
+            ? [
+                  {
+                      key: 'review',
+                      label: 'Review',
+                      icon: 'fa-clipboard-check',
+                      count: pendingReviewCount || null,
+                      countAlert: pendingReviewCount > 0
+                  }
+              ]
+            : [])
+    ]
+
     return (
         <div className="bg-slate-50 min-h-screen w-full pb-16">
             {loadError && (
@@ -454,9 +496,8 @@ function ReportsView() {
                 </div>
             )}
             <ReportsToolbar
-                isLoading={isCurrentTabLoading}
                 tab={tab}
-                onTabChange={setTab}
+                isLoading={isCurrentTabLoading}
                 filterReportType={filterReportType}
                 onFilterReportTypeChange={setFilterReportType}
                 plantDisplayText={plantDisplayText}
@@ -465,107 +506,124 @@ function ReportsView() {
                 onRefresh={triggerRefresh}
                 hasAssigned={hasAssigned}
                 hasReviewPermission={hasReviewPermission}
-                hasAnyReviewPermission={hasAnyReviewPermission}
-                hasLostLoadsPermission={hasLostLoadsPermission}
-                hasQCReviewPermission={hasOneOffReviewPermission?.qc_strength}
-                onLostLoadClick={() => setShowLostLoadModal(true)}
                 regionType={regionType}
                 statsContent={isCurrentTabLoading ? statsSkeleton : statsContent}
                 searchInput={searchInput}
                 onSearchInputChange={setSearchInput}
                 onClearSearch={() => setSearchInput('')}
+                qcTypeFilter={qcTypeFilter}
+                onQcTypeFilterChange={setQcTypeFilter}
+                qcStatusFilter={qcStatusFilter}
+                onQcStatusFilterChange={setQcStatusFilter}
+                qcSort={qcSort}
+                onQcSortChange={setQcSort}
+                qcDateFrom={qcDateFrom}
+                onQcDateFromChange={setQcDateFrom}
+                qcDateTo={qcDateTo}
+                onQcDateToChange={setQcDateTo}
+                qcHasActiveFilters={qcHasActiveFilters}
+                onClearQcFilters={clearQcFilters}
             />
             <div className="px-3 py-4 sm:px-4 md:px-6 lg:px-8">
-                {tab === 'all' && (
-                    <>
-                        {/* One-Off Reports section — above recurring */}
-                        {(hasQCStrengthPermission || hasLostLoadsPermission) && (
-                            <div className="mb-5">
-                                <div className="flex items-center gap-3 mb-2 px-1">
-                                    <span className="text-sm font-bold text-slate-700">One-Off Reports</span>
-                                </div>
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                    {/* QC Strength Report */}
-                                    {hasQCStrengthPermission && (
+                {/* Mobile tab strip */}
+                {sideNavTabs.length > 1 && (
+                    <div className="sm:hidden flex gap-1.5 mb-4 overflow-x-auto pb-0.5">
+                        {sideNavTabs.map(({ key, label, icon }) => {
+                            const isActive = tab === key
+                            return (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    onClick={() => setTab(key)}
+                                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                                        isActive
+                                            ? 'text-white shadow-sm'
+                                            : 'bg-white border border-gray-200 text-slate-500 hover:text-slate-700'
+                                    }`}
+                                    style={isActive ? { background: preferences.accentColor || '#1e3a5f' } : {}}
+                                >
+                                    <i className={`fas ${icon} text-[10px]`} />
+                                    {label}
+                                </button>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+            <div className="px-3 sm:px-4 md:px-6 lg:px-8 pb-4 flex gap-5 items-start">
+                {/* Desktop side nav */}
+                {sideNavTabs.length > 1 && (
+                    <aside className="hidden sm:block w-52 shrink-0 sticky top-24">
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                            {sideNavTabs.map(({ key, label, icon, count, countAlert }) => {
+                                const isActive = tab === key
+                                const accent = preferences.accentColor || '#1e3a5f'
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => setTab(key)}
+                                        className="w-full flex items-center gap-3 px-4 py-3.5 text-sm text-left border-b border-slate-100 last:border-b-0 transition-colors hover:bg-slate-50"
+                                        style={isActive ? { backgroundColor: `${accent}12` } : {}}
+                                    >
                                         <div
-                                            className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
-                                            onClick={() => setShowQCStrengthModal(true)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                                            style={
+                                                isActive
+                                                    ? { backgroundColor: accent, color: '#fff' }
+                                                    : { backgroundColor: '#f1f5f9', color: '#94a3b8' }
+                                            }
                                         >
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
-                                                    <i className="fas fa-flask text-white text-[10px]" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <span className="text-sm font-medium text-slate-800">
-                                                        Quality Control Strength Report
-                                                    </span>
-                                                    <span className="text-xs text-slate-400 block">
-                                                        Concrete cylinder strength testing and sample data
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <span
-                                                className="text-xs font-semibold shrink-0 hidden sm:block"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
-                                            >
-                                                Submit New →
-                                            </span>
-                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                            <i className={`fas ${icon} text-[11px]`} />
                                         </div>
-                                    )}
-                                    {/* Third Party Lab Report */}
-                                    {hasQCStrengthPermission && (
-                                        <div
-                                            className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
-                                            onClick={() => setShowLabReportModal(true)}
+                                        <span
+                                            className={`flex-1 font-medium truncate ${isActive ? 'font-semibold' : 'text-slate-600'}`}
+                                            style={isActive ? { color: accent } : {}}
                                         >
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <div className="w-7 h-7 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
-                                                    <i className="fas fa-vial text-white text-[10px]" />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <span className="text-sm font-medium text-slate-800">
-                                                        Third Party Lab Report
-                                                    </span>
-                                                    <span className="text-xs text-slate-400 block">
-                                                        Report issues with third party lab results
-                                                    </span>
-                                                </div>
-                                            </div>
+                                            {label}
+                                        </span>
+                                        {count != null && (
                                             <span
-                                                className="text-xs font-semibold shrink-0 hidden sm:block"
-                                                style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                className={`text-[11px] font-semibold shrink-0 ${countAlert ? 'text-amber-500' : 'text-slate-400'}`}
                                             >
-                                                Submit New →
+                                                {count}
                                             </span>
-                                            <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
-                                        </div>
-                                    )}
-                                    {/* Lost Load Report */}
-                                    {hasLostLoadsPermission && (
-                                        <>
+                                        )}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </aside>
+                )}
+                <div className="flex-1 min-w-0">
+                    {tab === 'all' && (
+                        <>
+                            {/* One-Off Reports section — above recurring */}
+                            {(hasQCStrengthPermission || hasLostLoadsPermission) && (
+                                <div className="mb-5">
+                                    <div className="flex items-center gap-3 mb-2 px-1">
+                                        <span className="text-sm font-bold text-slate-700">One-Off Reports</span>
+                                    </div>
+                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                        {/* QC Strength Report */}
+                                        {hasQCStrengthPermission && (
                                             <div
-                                                className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50"
-                                                onClick={() => setShowLostLoadModal(true)}
+                                                className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
+                                                onClick={() => setShowQCStrengthModal(true)}
                                             >
                                                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                    <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0">
-                                                        <i className="fas fa-truck text-white text-[10px]" />
+                                                    <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center shrink-0">
+                                                        <i className="fas fa-flask text-white text-[10px]" />
                                                     </div>
                                                     <div className="min-w-0">
                                                         <span className="text-sm font-medium text-slate-800">
-                                                            Lost Load Report
+                                                            Quality Control Strength Report
                                                         </span>
                                                         <span className="text-xs text-slate-400 block">
-                                                            Report lost or spilled loads with details
+                                                            Concrete cylinder strength testing and sample data
                                                         </span>
                                                     </div>
                                                 </div>
-                                                {lostLoadReports.length > 0 && (
-                                                    <span className="text-xs text-slate-400 shrink-0 mr-3">
-                                                        {lostLoadReports.length} submitted
-                                                    </span>
-                                                )}
                                                 <span
                                                     className="text-xs font-semibold shrink-0 hidden sm:block"
                                                     style={{ color: preferences.accentColor || '#1e3a5f' }}
@@ -574,363 +632,354 @@ function ReportsView() {
                                                 </span>
                                                 <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
                                             </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        {/* Recurring Reports */}
-                        {allMyItems.length === 0 && !isMyReportsLoading ? (
-                            <ReportsEmptyState
-                                tab={tab}
-                                hasAssigned={hasAssigned}
-                                hasOneOffAccess={hasLostLoadsPermission || hasQCStrengthPermission}
-                            />
-                        ) : (
-                            <MyReportsList
-                                isLoading={isMyReportsLoading}
-                                items={myPagination.paginatedItems}
-                                weeksToShow={weeksToShow}
-                                pageSize={myPagination.pageSize}
-                                currentPage={myPagination.currentPage}
-                                totalPages={myPagination.totalPages}
-                                onPageSizeChange={myPagination.changePageSize}
-                                onPageChange={myPagination.goToPage}
-                                onShowForm={handleShowForm}
-                            />
-                        )}
-                    </>
-                )}
-                {tab === 'review' &&
-                    (visibleReviewReports.length === 0 && !isReviewLoading ? (
-                        <ReportsEmptyState tab={tab} />
-                    ) : (
-                        <ReviewReportsList
-                            isLoading={isReviewLoading}
-                            items={reviewPagination.paginatedItems}
-                            reviewedByCurrentUser={reviewedByCurrentUser}
-                            pageSize={reviewPagination.pageSize}
-                            currentPage={reviewPagination.currentPage}
-                            totalPages={reviewPagination.totalPages}
-                            onPageSizeChange={reviewPagination.changePageSize}
-                            onPageChange={reviewPagination.goToPage}
-                            onReview={handleReview}
-                            getUserName={getUserName}
-                        />
-                    ))}
-                {tab === 'lost_loads' && (
-                    <LostLoadsList
-                        isLoading={isLoadingLostLoads}
-                        items={lostLoadsPagination.paginatedItems}
-                        pageSize={lostLoadsPagination.pageSize}
-                        currentPage={lostLoadsPagination.currentPage}
-                        totalPages={lostLoadsPagination.totalPages}
-                        onPageSizeChange={lostLoadsPagination.changePageSize}
-                        onPageChange={lostLoadsPagination.goToPage}
-                        getUserName={getUserName}
-                        canDelete={hasLostLoadsDeletePermission}
-                        onDelete={deleteLostLoadReport}
-                        onRowClick={setSelectedLostLoad}
-                    />
-                )}
-                {tab === 'quality' && (
-                    <div>
-                        {isLoadingQC ? (
-                            <div className="mb-5">
-                                <div className="flex items-center gap-3 mb-2 px-1">
-                                    <div className="h-4 w-48 rounded bg-slate-200 animate-pulse" />
-                                </div>
-                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0"
-                                        >
-                                            <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse shrink-0" />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="h-4 w-44 rounded bg-slate-200 animate-pulse mb-1.5" />
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-5 h-5 rounded-full bg-slate-200 animate-pulse" />
-                                                    <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
-                                                    <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
+                                        )}
+                                        {/* Third Party Lab Report */}
+                                        {hasQCStrengthPermission && (
+                                            <div
+                                                className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50 border-b border-slate-100"
+                                                onClick={() => setShowLabReportModal(true)}
+                                            >
+                                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                    <div className="w-7 h-7 rounded-lg bg-rose-600 flex items-center justify-center shrink-0">
+                                                        <i className="fas fa-vial text-white text-[10px]" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <span className="text-sm font-medium text-slate-800">
+                                                            Third Party Lab Report
+                                                        </span>
+                                                        <span className="text-xs text-slate-400 block">
+                                                            Report issues with third party lab results
+                                                        </span>
+                                                    </div>
                                                 </div>
+                                                <span
+                                                    className="text-xs font-semibold shrink-0 hidden sm:block"
+                                                    style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                >
+                                                    Submit New →
+                                                </span>
+                                                <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
                                             </div>
-                                            <div className="h-6 w-16 rounded bg-slate-200 animate-pulse shrink-0" />
-                                            <div className="h-7 w-14 rounded bg-slate-200 animate-pulse shrink-0 hidden sm:block" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : qcReports.length === 0 ? (
-                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
-                                    <i className="fas fa-flask text-4xl mb-3" />
-                                    <div className="text-sm">No quality reports submitted yet</div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div>
-                                {/* Filter / Sort Bar */}
-                                <div className="flex flex-wrap items-center gap-2 mb-3">
-                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 gap-0.5">
-                                        {[
-                                            { value: 'all', label: 'All Types' },
-                                            { value: 'qc_strength', label: 'QC Strength' },
-                                            { value: 'third_party_lab', label: 'Third Party Lab' }
-                                        ].map(({ value, label }) => (
-                                            <button
-                                                key={value}
-                                                onClick={() => setQcTypeFilter(value)}
-                                                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                                                    qcTypeFilter === value
-                                                        ? 'bg-slate-800 text-white'
-                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                {label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 gap-0.5">
-                                        {[
-                                            { value: 'all', label: 'All Status' },
-                                            { value: 'pending', label: 'Pending' },
-                                            { value: 'reviewed', label: 'Reviewed' }
-                                        ].map(({ value, label }) => (
-                                            <button
-                                                key={value}
-                                                onClick={() => setQcStatusFilter(value)}
-                                                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                                                    qcStatusFilter === value
-                                                        ? 'bg-slate-800 text-white'
-                                                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                                                }`}
-                                            >
-                                                {label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <select
-                                        value={qcSort}
-                                        onChange={(e) => setQcSort(e.target.value)}
-                                        className="bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                                    >
-                                        <option value="newest">Newest First</option>
-                                        <option value="oldest">Oldest First</option>
-                                        <option value="cast_desc">Cast Date (Newest)</option>
-                                        <option value="cast_asc">Cast Date (Oldest)</option>
-                                    </select>
-                                    <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5">
-                                        <i className="fas fa-calendar-alt text-slate-400 text-[10px]" />
-                                        <input
-                                            type="date"
-                                            value={qcDateFrom}
-                                            onChange={(e) => setQcDateFrom(e.target.value)}
-                                            className="text-xs text-slate-600 bg-transparent focus:outline-none w-[7rem]"
-                                        />
-                                        <span className="text-slate-300 text-xs select-none">–</span>
-                                        <input
-                                            type="date"
-                                            value={qcDateTo}
-                                            onChange={(e) => setQcDateTo(e.target.value)}
-                                            className="text-xs text-slate-600 bg-transparent focus:outline-none w-[7rem]"
-                                        />
-                                    </div>
-                                    {qcHasActiveFilters && (
-                                        <button
-                                            onClick={clearQcFilters}
-                                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                        >
-                                            <i className="fas fa-times text-[10px]" />
-                                            Clear
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-3 mb-2 px-1">
-                                    <span className="text-sm font-bold text-slate-700">Quality Reports</span>
-                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-slate-600 bg-slate-100">
-                                        {qcHasActiveFilters
-                                            ? `${visibleQcReports.length} of ${qcReports.length}`
-                                            : `${qcReports.length} submitted`}
-                                    </span>
-                                </div>
-                                {visibleQcReports.length === 0 && (
-                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                        <div className="flex flex-col items-center justify-center py-10 px-4 text-slate-400">
-                                            <i className="fas fa-filter text-3xl mb-2" />
-                                            <div className="text-sm">No reports match your filters</div>
-                                        </div>
-                                    </div>
-                                )}
-                                {visibleQcReports.length > 0 && (
-                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                        {visibleQcReports.map((report) => {
-                                            const submittedLabel = report.submittedAt
-                                                ? new Date(report.submittedAt).toLocaleDateString(undefined, {
-                                                      month: 'short',
-                                                      day: 'numeric'
-                                                  })
-                                                : ''
-                                            const submitterName = getUserName(report.userId) || 'Unknown'
-                                            const initials = submitterName
-                                                .split(' ')
-                                                .map((w) => w[0])
-                                                .join('')
-                                                .slice(0, 2)
-                                                .toUpperCase()
-                                            const d = report.data || {}
-                                            const isLabReport = report.name === 'third_party_lab'
-                                            const meaningfulStr = (val) =>
-                                                val && typeof val === 'string' && val.trim() && val.trim() !== 'N/A'
-                                                    ? val.trim()
-                                                    : null
-                                            const title = isLabReport
-                                                ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
-                                                : meaningfulStr(d.contractor) ||
-                                                  meaningfulStr(d.project) ||
-                                                  'QC Strength Report'
-                                            const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
-                                            const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
-                                            return (
+                                        )}
+                                        {/* Lost Load Report */}
+                                        {hasLostLoadsPermission && (
+                                            <>
                                                 <div
-                                                    key={report.id}
-                                                    className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
-                                                    onClick={() =>
-                                                        isLabReport
-                                                            ? setSelectedLabReport(report)
-                                                            : setSelectedQCReport(report)
-                                                    }
+                                                    className="flex items-center px-4 sm:px-5 py-3.5 cursor-pointer transition-colors hover:bg-slate-50"
+                                                    onClick={() => setShowLostLoadModal(true)}
                                                 >
                                                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                        <div
-                                                            className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}
-                                                        >
-                                                            <i className={`fas ${iconClass} text-white text-[10px]`} />
+                                                        <div className="w-7 h-7 rounded-lg bg-red-500 flex items-center justify-center shrink-0">
+                                                            <i className="fas fa-truck text-white text-[10px]" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <span className="text-sm font-medium text-slate-800 block truncate">
-                                                                {title}
+                                                            <span className="text-sm font-medium text-slate-800">
+                                                                Lost Load Report
                                                             </span>
-                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                <div className="flex items-center gap-1.5">
-                                                                    <div
-                                                                        className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                                                                        style={{
-                                                                            background: `${preferences.accentColor || '#1e3a5f'}20`,
-                                                                            color: preferences.accentColor || '#1e3a5f'
-                                                                        }}
-                                                                    >
-                                                                        <span className="text-[8px] font-bold">
-                                                                            {initials}
-                                                                        </span>
-                                                                    </div>
-                                                                    <span className="text-xs text-slate-500 truncate">
-                                                                        {submitterName}
-                                                                    </span>
-                                                                </div>
-                                                                {submittedLabel && (
-                                                                    <>
-                                                                        <span className="text-slate-300 text-[8px]">
-                                                                            ●
-                                                                        </span>
-                                                                        <span className="text-xs text-slate-400">
-                                                                            {submittedLabel}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                                {isLabReport && d.customer && (
-                                                                    <>
-                                                                        <span className="text-slate-300 text-[8px]">
-                                                                            ●
-                                                                        </span>
-                                                                        <span className="text-xs text-slate-400">
-                                                                            {d.customer}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                                {!isLabReport && d.mix_id && (
-                                                                    <>
-                                                                        <span className="text-slate-300 text-[8px]">
-                                                                            ●
-                                                                        </span>
-                                                                        <span className="text-xs text-slate-400">
-                                                                            Mix {d.mix_id}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                                {!isLabReport && meaningfulStr(d.contractor) && (
-                                                                    <>
-                                                                        <span className="text-slate-300 text-[8px]">
-                                                                            ●
-                                                                        </span>
-                                                                        <span className="text-xs text-slate-400 truncate">
-                                                                            {meaningfulStr(d.contractor)}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                                {!isLabReport && d.date_molded && (
-                                                                    <>
-                                                                        <span className="text-slate-300 text-[8px]">
-                                                                            ●
-                                                                        </span>
-                                                                        <span className="text-xs text-slate-400">
-                                                                            Cast{' '}
-                                                                            {new Date(
-                                                                                d.date_molded + 'T00:00:00'
-                                                                            ).toLocaleDateString(undefined, {
-                                                                                month: 'short',
-                                                                                day: 'numeric'
-                                                                            })}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                            </div>
+                                                            <span className="text-xs text-slate-400 block">
+                                                                Report lost or spilled loads with details
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    {report.reviewed ? (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
-                                                            <i className="fas fa-check text-[9px]" />
-                                                            Reviewed
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
-                                                            <i className="fas fa-flag text-[9px]" />
-                                                            Pending
+                                                    {lostLoadReports.length > 0 && (
+                                                        <span className="text-xs text-slate-400 shrink-0 mr-3">
+                                                            {lostLoadReports.length} submitted
                                                         </span>
                                                     )}
-                                                    <button
-                                                        className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
-                                                        style={{ background: preferences.accentColor || '#1e3a5f' }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
+                                                    <span
+                                                        className="text-xs font-semibold shrink-0 hidden sm:block"
+                                                        style={{ color: preferences.accentColor || '#1e3a5f' }}
+                                                    >
+                                                        Submit New →
+                                                    </span>
+                                                    <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Recurring Reports */}
+                            {allMyItems.length === 0 && !isMyReportsLoading ? (
+                                <ReportsEmptyState
+                                    tab={tab}
+                                    hasAssigned={hasAssigned}
+                                    hasOneOffAccess={hasLostLoadsPermission || hasQCStrengthPermission}
+                                />
+                            ) : (
+                                <MyReportsList
+                                    isLoading={isMyReportsLoading}
+                                    items={myPagination.paginatedItems}
+                                    weeksToShow={weeksToShow}
+                                    pageSize={myPagination.pageSize}
+                                    currentPage={myPagination.currentPage}
+                                    totalPages={myPagination.totalPages}
+                                    onPageSizeChange={myPagination.changePageSize}
+                                    onPageChange={myPagination.goToPage}
+                                    onShowForm={handleShowForm}
+                                />
+                            )}
+                        </>
+                    )}
+                    {tab === 'review' &&
+                        (visibleReviewReports.length === 0 && !isReviewLoading ? (
+                            <ReportsEmptyState tab={tab} />
+                        ) : (
+                            <ReviewReportsList
+                                isLoading={isReviewLoading}
+                                items={reviewPagination.paginatedItems}
+                                reviewedByCurrentUser={reviewedByCurrentUser}
+                                pageSize={reviewPagination.pageSize}
+                                currentPage={reviewPagination.currentPage}
+                                totalPages={reviewPagination.totalPages}
+                                onPageSizeChange={reviewPagination.changePageSize}
+                                onPageChange={reviewPagination.goToPage}
+                                onReview={handleReview}
+                                getUserName={getUserName}
+                            />
+                        ))}
+                    {tab === 'lost_loads' && (
+                        <LostLoadsList
+                            isLoading={isLoadingLostLoads}
+                            items={lostLoadsPagination.paginatedItems}
+                            pageSize={lostLoadsPagination.pageSize}
+                            currentPage={lostLoadsPagination.currentPage}
+                            totalPages={lostLoadsPagination.totalPages}
+                            onPageSizeChange={lostLoadsPagination.changePageSize}
+                            onPageChange={lostLoadsPagination.goToPage}
+                            getUserName={getUserName}
+                            canDelete={hasLostLoadsDeletePermission}
+                            onDelete={deleteLostLoadReport}
+                            onRowClick={setSelectedLostLoad}
+                        />
+                    )}
+                    {tab === 'quality' && (
+                        <div>
+                            {isLoadingQC ? (
+                                <div className="mb-5">
+                                    <div className="flex items-center gap-3 mb-2 px-1">
+                                        <div className="h-4 w-48 rounded bg-slate-200 animate-pulse" />
+                                    </div>
+                                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                        {[1, 2, 3, 4, 5].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0"
+                                            >
+                                                <div className="w-7 h-7 rounded-lg bg-slate-200 animate-pulse shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="h-4 w-44 rounded bg-slate-200 animate-pulse mb-1.5" />
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-5 h-5 rounded-full bg-slate-200 animate-pulse" />
+                                                        <div className="h-3 w-24 rounded bg-slate-100 animate-pulse" />
+                                                        <div className="h-3 w-16 rounded bg-slate-100 animate-pulse" />
+                                                    </div>
+                                                </div>
+                                                <div className="h-6 w-16 rounded bg-slate-200 animate-pulse shrink-0" />
+                                                <div className="h-7 w-14 rounded bg-slate-200 animate-pulse shrink-0 hidden sm:block" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : qcReports.length === 0 ? (
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                    <div className="flex flex-col items-center justify-center py-12 px-4 text-slate-400">
+                                        <i className="fas fa-flask text-4xl mb-3" />
+                                        <div className="text-sm">No quality reports submitted yet</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2 px-1">
+                                        <span className="text-sm font-bold text-slate-700">Quality Reports</span>
+                                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-slate-600 bg-slate-100">
+                                            {qcHasActiveFilters
+                                                ? `${visibleQcReports.length} of ${qcReports.length}`
+                                                : `${qcReports.length} submitted`}
+                                        </span>
+                                    </div>
+                                    {visibleQcReports.length === 0 && (
+                                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                            <div className="flex flex-col items-center justify-center py-10 px-4 text-slate-400">
+                                                <i className="fas fa-filter text-3xl mb-2" />
+                                                <div className="text-sm">No reports match your filters</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {visibleQcReports.length > 0 && (
+                                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                            {visibleQcReports.map((report) => {
+                                                const submittedLabel = report.submittedAt
+                                                    ? new Date(report.submittedAt).toLocaleDateString(undefined, {
+                                                          month: 'short',
+                                                          day: 'numeric'
+                                                      })
+                                                    : ''
+                                                const submitterName = getUserName(report.userId) || 'Unknown'
+                                                const initials = submitterName
+                                                    .split(' ')
+                                                    .map((w) => w[0])
+                                                    .join('')
+                                                    .slice(0, 2)
+                                                    .toUpperCase()
+                                                const d = report.data || {}
+                                                const isLabReport = report.name === 'third_party_lab'
+                                                const meaningfulStr = (val) =>
+                                                    val && typeof val === 'string' && val.trim() && val.trim() !== 'N/A'
+                                                        ? val.trim()
+                                                        : null
+                                                const title = isLabReport
+                                                    ? meaningfulStr(d.lab_company_name) || 'Third Party Lab Report'
+                                                    : meaningfulStr(d.contractor) ||
+                                                      meaningfulStr(d.project) ||
+                                                      'QC Strength Report'
+                                                const iconClass = isLabReport ? 'fa-vial' : 'fa-flask'
+                                                const iconBg = isLabReport ? 'bg-rose-600' : 'bg-violet-600'
+                                                return (
+                                                    <div
+                                                        key={report.id}
+                                                        className="flex items-center px-4 sm:px-5 py-3.5 border-b border-slate-100 last:border-b-0 cursor-pointer transition-colors hover:bg-slate-50"
+                                                        onClick={() =>
                                                             isLabReport
                                                                 ? setSelectedLabReport(report)
                                                                 : setSelectedQCReport(report)
-                                                        }}
+                                                        }
                                                     >
-                                                        {report.reviewed ? 'View' : 'Review'}
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            handleDeleteQCReport(report)
-                                                        }}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
-                                                        title="Delete"
-                                                    >
-                                                        <i className="fas fa-trash-alt text-xs" />
-                                                    </button>
-                                                    <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
+                                                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                            <div
+                                                                className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}
+                                                            >
+                                                                <i
+                                                                    className={`fas ${iconClass} text-white text-[10px]`}
+                                                                />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <span className="text-sm font-medium text-slate-800 block truncate">
+                                                                    {title}
+                                                                </span>
+                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <div
+                                                                            className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                                                            style={{
+                                                                                background: `${preferences.accentColor || '#1e3a5f'}20`,
+                                                                                color:
+                                                                                    preferences.accentColor || '#1e3a5f'
+                                                                            }}
+                                                                        >
+                                                                            <span className="text-[8px] font-bold">
+                                                                                {initials}
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="text-xs text-slate-500 truncate">
+                                                                            {submitterName}
+                                                                        </span>
+                                                                    </div>
+                                                                    {submittedLabel && (
+                                                                        <>
+                                                                            <span className="text-slate-300 text-[8px]">
+                                                                                ●
+                                                                            </span>
+                                                                            <span className="text-xs text-slate-400">
+                                                                                {submittedLabel}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    {isLabReport && d.customer && (
+                                                                        <>
+                                                                            <span className="text-slate-300 text-[8px]">
+                                                                                ●
+                                                                            </span>
+                                                                            <span className="text-xs text-slate-400">
+                                                                                {d.customer}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    {!isLabReport && d.mix_id && (
+                                                                        <>
+                                                                            <span className="text-slate-300 text-[8px]">
+                                                                                ●
+                                                                            </span>
+                                                                            <span className="text-xs text-slate-400">
+                                                                                Mix {d.mix_id}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    {!isLabReport && meaningfulStr(d.contractor) && (
+                                                                        <>
+                                                                            <span className="text-slate-300 text-[8px]">
+                                                                                ●
+                                                                            </span>
+                                                                            <span className="text-xs text-slate-400 truncate">
+                                                                                {meaningfulStr(d.contractor)}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    {!isLabReport && d.date_molded && (
+                                                                        <>
+                                                                            <span className="text-slate-300 text-[8px]">
+                                                                                ●
+                                                                            </span>
+                                                                            <span className="text-xs text-slate-400">
+                                                                                Cast{' '}
+                                                                                {new Date(
+                                                                                    d.date_molded + 'T00:00:00'
+                                                                                ).toLocaleDateString(undefined, {
+                                                                                    month: 'short',
+                                                                                    day: 'numeric'
+                                                                                })}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {report.reviewed ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-700 shrink-0">
+                                                                <i className="fas fa-check text-[9px]" />
+                                                                Reviewed
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-amber-100 text-amber-700 shrink-0">
+                                                                <i className="fas fa-flag text-[9px]" />
+                                                                Pending
+                                                            </span>
+                                                        )}
+                                                        <button
+                                                            className="ml-3 px-3 py-1.5 rounded-md text-white text-xs font-semibold shrink-0 hidden sm:block"
+                                                            style={{ background: preferences.accentColor || '#1e3a5f' }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                isLabReport
+                                                                    ? setSelectedLabReport(report)
+                                                                    : setSelectedQCReport(report)
+                                                            }}
+                                                        >
+                                                            {report.reviewed ? 'View' : 'Review'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteQCReport(report)
+                                                            }}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 ml-2 hidden sm:flex"
+                                                            title="Delete"
+                                                        >
+                                                            <i className="fas fa-trash-alt text-xs" />
+                                                        </button>
+                                                        <i className="fas fa-chevron-right text-slate-300 text-xs ml-3 sm:hidden" />
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>{' '}
+                {/* end flex-1 content */}
             </div>
             {isPlantModalOpen && (
                 <PlantDropdownModal

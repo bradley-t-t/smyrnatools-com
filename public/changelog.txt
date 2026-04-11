@@ -1,6 +1,15 @@
 # Changelog
 
 
+## [38.5.21] - 2026-04-10
+
+- Added NRMCA Calibrations & Certifications module — a new view under the Reporting menu for tracking scale calibrations and plant certification renewals
+- NRMCAService handles fetching plants, scales, calibration history, and renewal history, plus mutations (upsert/delete plants and scales, log calibrations and renewals) via a new nrmca-service edge function
+- The NRMCA view supports per-plant scale lists with calibration status badges (OK, Due Soon, Overdue), renewal status badges (Valid, Expiring Soon, Expired), and inline modals for logging calibrations and renewals
+- Plant and scale management forms allow adding/editing NRMCA plant entries (linked to existing plants via PlantDropdownModal) and defining scales with configurable calibration intervals
+- Navigation updated to include "Calibrations & Certifications" under the Reporting dropdown, gated by the nrmca.view permission
+- CLAUDE.md corrected to accurately reflect that this project uses a custom session-based auth system, not Supabase's default auth
+
 ## [38.5.20] - 2026-04-10
 
 - AI validation errors in the plant manager report submission flow are now reported via ErrorReporterUtility instead of being silently swallowed

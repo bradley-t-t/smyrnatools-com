@@ -1,6 +1,14 @@
 # Changelog
 
 
+## [38.5.22] - 2026-04-11
+
+- Replaced the tab bar in the Reports toolbar with a sticky side nav on desktop and a horizontal pill strip on mobile, with item counts and alert indicators for pending reviews and QC reports
+- Reports toolbar no longer accepts tab navigation props — tab switching is now handled entirely within ReportsView
+- Added a QC filter bar to the toolbar for the Quality Reports tab, with pill toggles for type (All / QC Strength / Third Party Lab) and status (All / Pending / Reviewed), a sort dropdown (newest, oldest, cast date), a date range picker, and a clear filters button
+- Lost load reports now respect the active plant filter in addition to the search query
+- Removed the standalone "One-Off Reports" submit cards from the all-tab view and consolidated report type filtering logic to use both assigned and review permissions together
+
 ## [38.5.21] - 2026-04-10
 
 - Added NRMCA Calibrations & Certifications module — a new view under the Reporting menu for tracking scale calibrations and plant certification renewals
