@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [38.5.23] - 2026-04-11
+
+- Added the Weekly Quality Control Manager report type with daily recap fields (Monday–Saturday), including submit and review plugin components
+- Registered the Quality Control Manager report in the report types registry with assignment, review permissions, and weekly frequency
+- Wired the QC Manager submit and review plugins into the PLUGINS maps in ReportsSubmitView and ReportsReviewView
+- Added quality_control_manager to the plugin-only and excluded report type lists so it routes correctly through the review and submit flows
+
 ## [38.5.22] - 2026-04-11
 
 - Replaced the tab bar in the Reports toolbar with a sticky side nav on desktop and a horizontal pill strip on mobile, with item counts and alert indicators for pending reviews and QC reports
