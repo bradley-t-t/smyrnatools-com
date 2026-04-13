@@ -162,14 +162,22 @@ interface AssetTables {
     main: string;
     history: string;
     idKey: string;
+    /** Explicit FK column name for comment/add-comment queries. Derived from idKey when omitted. */
+    fkCol?: string;
     comments?: string;
     maintenance?: string;
+}
+
+/** Derives the FK column name from the idKey body field (e.g. "mixerId" → "mixer_id"). */
+function deriveFkCol(tables: AssetTables): string {
+    if (tables.fkCol) return tables.fkCol;
+    return tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
 }
 
 export async function handleFetchComments(supabase: any, body: any, tables: AssetTables, headers: Record<string, string>): Promise<Response> {
     const entityId = typeof body?.[tables.idKey] === "string" ? body[tables.idKey] : null;
     if (!entityId) return errorResponse(`${tables.idKey} is required`, headers, 400);
-    const fkCol = tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
+    const fkCol = deriveFkCol(tables);
     const {data, error} = await supabase.from(tables.comments!).select("*").eq(fkCol, entityId).order("created_at", {ascending: false});
     if (error) return errorResponse("Operation failed", headers, 400);
     return jsonResponse({data: data ?? []}, headers);
@@ -183,7 +191,7 @@ export async function handleAddComment(supabase: any, body: any, req: Request, t
     if (!entityId) return errorResponse(`${tables.idKey} is required`, headers, 400);
     if (!text) return errorResponse("Comment text is required", headers, 400);
     if (!author) return errorResponse("Author is required", headers, 400);
-    const fkCol = tables.idKey.replace(/Id$/, "_id").replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "");
+    const fkCol = deriveFkCol(tables);
     const {data, error} = await supabase.from(tables.comments!).insert([{[fkCol]: entityId, text, author, created_at: nowIso()}]).select().maybeSingle();
     if (error) return errorResponse("Operation failed", headers, 400);
 

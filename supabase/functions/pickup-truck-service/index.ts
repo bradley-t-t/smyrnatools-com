@@ -119,10 +119,10 @@ Deno.serve(async (req) => {
             }
             case "fetch-comments": {
                 const auth = await requireAuthenticated(supabase, req, headers); if (auth instanceof Response) return auth;
-                return handleFetchComments(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", comments: COMMENTS_TABLE}, headers);
+                return handleFetchComments(supabase, await parseBody(req), {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", fkCol: HISTORY_ID_KEY, comments: COMMENTS_TABLE}, headers);
             }
             case "add-comment":
-                return handleAddComment(supabase, await parseBody(req), req, {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", comments: COMMENTS_TABLE}, headers);
+                return handleAddComment(supabase, await parseBody(req), req, {main: MAIN_TABLE, history: HISTORY_TABLE, idKey: "pickupId", fkCol: HISTORY_ID_KEY, comments: COMMENTS_TABLE}, headers);
             case "delete-comment":
                 return handleDeleteComment(supabase, await parseBody(req), req, COMMENTS_TABLE, headers);
             case "fetch-history": {
