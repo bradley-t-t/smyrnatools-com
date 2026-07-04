@@ -1,22 +1,28 @@
 <p align="center">
-  <img src="public/srm-logo.svg" alt="SRM Tools" width="200">
+  <img src="public/srm-logo.svg" width="200" alt="SRM Tools" />
 </p>
 
 <h1 align="center">SRM Tools</h1>
 
 <p align="center">
-  Internal operations platform for <a href="https://smyrnatools.com">smyrnatools.com</a> — fleet, people, and plant performance for a ready-mix concrete company, tracked across every region and plant.
+  <b>Internal operations platform for a ready-mix concrete company.</b>
+</p>
+<p align="center">
+  Fleet, people, and plant performance for <a href="https://smyrnatools.com">smyrnatools.com</a><br />
+  — tracked across every region and plant.
 </p>
 
 <p align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black&style=flat-square">
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=flat-square">
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square">
-  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white&style=flat-square">
-  <img alt="React Router" src="https://img.shields.io/badge/React_Router-7-CA4245?logo=reactrouter&logoColor=white&style=flat-square">
-  <img alt="Sentry" src="https://img.shields.io/badge/Sentry-monitored-362D59?logo=sentry&logoColor=white&style=flat-square">
-  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-deployed-000000?logo=vercel&logoColor=white&style=flat-square">
+  <img alt="React" src="https://img.shields.io/badge/React-19-003896?style=for-the-badge&logo=react&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-003896?style=for-the-badge&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-003896?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-003896?style=for-the-badge&logo=supabase&logoColor=white" />
+  <img alt="React Router" src="https://img.shields.io/badge/React_Router-7-003896?style=for-the-badge&logo=reactrouter&logoColor=white" />
+  <img alt="Sentry" src="https://img.shields.io/badge/Sentry-monitored-003896?style=for-the-badge&logo=sentry&logoColor=white" />
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-deployed-003896?style=for-the-badge&logo=vercel&logoColor=white" />
 </p>
+
+<br />
 
 - **Fleet & assets** — mixers, tractors, trailers, equipment, and pickup trucks, each with verification status, service tracking, and a full change-history timeline.
 - **People & personnel** — the operator lifecycle from onboarding through training, active duty, light duty, and separation, plus manager profiles and role-based access.
