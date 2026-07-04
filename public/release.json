@@ -1,0 +1,9 @@
+{
+  "version": "2026.26.21",
+  "projectName": "smyrnatools.com",
+  "branch": "production",
+  "provider": "claude-code",
+  "cleanLogs": true,
+  "cleanCss": true,
+  "hooks": {}
+}

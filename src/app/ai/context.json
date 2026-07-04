@@ -1,0 +1,5 @@
+{
+    "prompts": {
+        "historySummary": "Analyze this asset or operator's history and provide a brief assessment (2-3 sentences max). Having history records and changes is completely normal - assets get reassigned, operators switch trucks, and statuses change regularly in fleet operations. Only flag patterns as concerns if they are extremely excessive (e.g. 20+ assignment changes in under 3 months, or daily status cycling). A few changes per month is standard operations, not instability. Focus on overall trends and positive patterns. End with one practical recommendation."
+    }
+}

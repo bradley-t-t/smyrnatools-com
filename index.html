@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link href="/fav.png" rel="icon" />
+    <link href="/fav.png" rel="icon" sizes="16x16" type="image/png" />
+    <link href="/fav.png" rel="icon" sizes="32x32" type="image/png" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="#007aff" name="theme-color" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style" />
+    <meta content="Smyrna Tools" name="apple-mobile-web-app-title" />
+    <meta
+        content="Smyrna Tools - A suite of tools for Smyrna Ready Mix employees. Visit smyrnareadymix.com if you are a customer"
+        name="description" />
+    <link href="/app-logo.png" rel="apple-touch-icon" />
+    <link href="/manifest.json" rel="manifest" />
+    <link crossorigin href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link as="style"
+          href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap"
+          onload="this.onload=null;this.rel='stylesheet'"
+          rel="preload">
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet">
+    </noscript>
+    <link as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          onload="this.onload=null;this.rel='stylesheet'"
+          rel="preload">
+    <noscript>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    </noscript>
+    <title>Smyrna Tools</title>
+    <script>
+        (function() {
+            try {
+                var cached = localStorage.getItem('smyrna_theme_cache')
+                var themeMode = 'old-dark'
+                var accentColor = 'red'
+                if (cached) {
+                    var parsed = JSON.parse(cached)
+                    themeMode = parsed.themeMode || 'old-dark'
+                    accentColor = parsed.accentColor || 'red'
+                }
+                var themeClass = ''
+                if (themeMode === 'dark') themeClass = 'dark-mode'
+                else if (themeMode === 'old-dark') themeClass = 'old-dark-mode'
+                else if (themeMode === 'red-dark') themeClass = 'red-dark-mode'
+                else if (themeMode === 'blue-light') themeClass = 'blue-light-mode'
+                else if (themeMode === 'red-light') themeClass = 'red-light-mode'
+                if (themeClass) document.documentElement.classList.add(themeClass)
+                document.documentElement.classList.add('accent-' + accentColor)
+            } catch (e) {
+                document.documentElement.classList.add('old-dark-mode')
+                document.documentElement.classList.add('accent-red')
+            }
+        })()
+    </script>
+</head>
+<body>
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="root"></div>
+<script type="module" src="/src/index.jsx"></script>
+</body>
+</html>

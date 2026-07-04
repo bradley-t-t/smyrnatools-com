@@ -1,0 +1,38 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+.commitmsg
+.idea
+.run
+*.log
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+!/supabase/functions/
+/.github/instructions.md
+public/changelog.txt
+.claude/worktrees/
+.claude/skills/
+.agents/
+.bot/
+skills-lock.json
+badge-designs.html
+
+# local agent/editor config (never publish)
+/.claude/

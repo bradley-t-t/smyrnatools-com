@@ -1,0 +1,2426 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * This file contains only:
+ *   1. Tailwind layer directives (@tailwind base/components/utilities).
+ *   2. CSS custom properties (theme tokens) — these cannot be expressed as
+ *      Tailwind utilities; they are referenced via tailwind.config.js as
+ *      var(--…) tokens (see colors / fontFamily extensions).
+ *   3. A small set of @layer base resets that style native form elements
+ *      (e.g. <select> chevron) which Tailwind preflight does not normalize.
+ *   4. A dark-mode shim that overrides legacy raw-palette utilities
+ *      (bg-white, bg-gray-*, bg-slate-*, text-gray-*, etc.) for components
+ *      that still consume them. New components should use the semantic
+ *      tokens (bg-bg-primary, text-text-primary, …) so this shim can be
+ *      retired incrementally.
+ *   5. A handful of @layer components classes for cross-cutting badges and
+ *      cards that compose Tailwind utilities via @apply.
+ *
+ * No bespoke layout/animation CSS lives here — animations are defined in
+ * tailwind.config.js and consumed via animate-* utilities.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ── Theme tokens ─────────────────────────────────────────────────────────── */
+
+:root {
+    /* Tells browsers to render native form elements (checkboxes, radios,
+     * scrollbars, date pickers, dropdown chrome) using the light theme.
+     * Without this, native checkboxes in PlantDropdownModal etc. render
+     * with white fills + light borders and look misplaced inside a dark-
+     * themed dialog. The `html.dark` rule below flips this to `dark` so
+     * the same controls flip with the rest of the site. */
+    color-scheme: light;
+    --primary-color: #003896;
+    --primary-hover: #002d76;
+    --accent-color: #007aff;
+    --success-color: #34c759;
+    --warning-color: #ff9500;
+    --danger-color: #ff3b30;
+    --background-color: #eef2f7;
+    --card-background: #f8fafc;
+    --text-color: #334155;
+    --text-light: #888888;
+    --border-color: #e0e0e0;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-heading: 'Rajdhani', 'Inter', system-ui, sans-serif;
+    --font-body: 'Exo 2', 'Inter', system-ui, sans-serif;
+    --font-family: 'Exo 2', 'Inter', system-ui, sans-serif;
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-tertiary: #e7edf3;
+    --bg-hover: #dbe2eb;
+    --text-primary: #1e293b;
+    --text-secondary: #6c757d;
+    --text-tertiary: #94a3b8;
+    --accent: #1e3a5f;
+    --accent-light: color-mix(in srgb, var(--accent) 10%, white);
+    --accent-dark: color-mix(in srgb, var(--accent) 85%, black);
+    --accent-hover: color-mix(in srgb, var(--accent) 80%, black);
+    --accent-transparent: color-mix(in srgb, var(--accent) 10%, transparent);
+    --border-light: #dee2e6;
+    --border-medium: #ced4da;
+    --border-dark: #adb5bd;
+    --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --success: #198754;
+    --status-active: #16a34a;
+    --status-warning: #ca8a04;
+    --status-danger: #dc2626;
+    --status-shop: #2563eb;
+    --status-spare: #64748b;
+}
+
+html.dark {
+    /* See `:root.color-scheme` above — the dark variant flips native
+     * controls to render in the dark theme. */
+    color-scheme: dark;
+    --primary-color: #4d8bd6;
+    --primary-hover: #5a9ae6;
+    --accent-color: #3d9eff;
+    --success-color: #34c759;
+    --warning-color: #ff9f0a;
+    --danger-color: #ff453a;
+    --background-color: #1a1a1a;
+    --card-background: #242424;
+    --text-color: #f5f5f5;
+    --text-light: #787878;
+    --border-color: #363636;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #242424;
+    --bg-tertiary: #303030;
+    --bg-hover: #3c3c3c;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a8a8a8;
+    --accent-light: color-mix(in srgb, var(--accent) 16%, black);
+    --accent-dark: color-mix(in srgb, var(--accent) 70%, white);
+    --accent-hover: color-mix(in srgb, var(--accent) 70%, white);
+    --accent-transparent: color-mix(in srgb, var(--accent) 10%, transparent);
+    --border-light: #363636;
+    --border-medium: #424242;
+    --border-dark: #505050;
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #22c55e;
+}
+
+/* ── "Grayed Out" theme ──────────────────────────────────────────────────────
+ * A medium-gray surface variant. Sits clearly between Light (white) and
+ * Dark (black) — the user reads this as "gray theme", not "dark theme",
+ * so the palette leans noticeably lighter than the dark token block.
+ * Pairs with `html.dark` so Tailwind `dark:` variants still apply; the
+ * more-specific selector here overrides the dark token block with the
+ * gray palette. */
+html.dark.theme-grayed {
+    /* color-scheme: light keeps native form controls (date / time / color
+     * pickers, autofill chrome, scrollbars) rendering in their light style
+     * so they read against the gray surface instead of dropping to the
+     * browser's dark-mode near-black. */
+    color-scheme: light;
+    --background-color: #5b6270;
+    --card-background: #656c7a;
+    --text-color: #f5f5f5;
+    --text-light: #d5d8de;
+    --border-color: #6d7381;
+    --bg-primary: #5b6270;
+    --bg-secondary: #565d6b;
+    --bg-tertiary: #515663;
+    --bg-hover: #6a7180;
+    --text-primary: #f5f5f5;
+    --text-secondary: #d5d8de;
+    --text-tertiary: #a8acb6;
+    --border-light: #6d7381;
+    --border-medium: #7d8391;
+    --border-dark: #8b919e;
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+    transition:
+        background-color 0.4s ease,
+        color 0.4s ease,
+        border-color 0.4s ease,
+        box-shadow 0.4s ease !important;
+}
+
+/* ── @layer base — minimal native-element resets Tailwind preflight misses ── */
+
+@layer base {
+    html,
+    body,
+    #root {
+        @apply m-0 h-full w-full overflow-hidden;
+    }
+
+    body {
+        font-family: var(--font-body);
+        background-color: var(--background-color);
+        color: var(--text-color);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: var(--font-heading);
+        letter-spacing: 0.01em;
+    }
+
+    code {
+        font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+    }
+
+    button {
+        cursor: pointer;
+        font-family: var(--font-body);
+    }
+
+    input,
+    select,
+    textarea {
+        font-family: var(--font-body);
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+        box-shadow: 0 0 0 1000px var(--bg-secondary) inset !important;
+        -webkit-text-fill-color: var(--text-primary) !important;
+        caret-color: var(--text-primary) !important;
+        transition: background-color 9999s ease-in-out 0s;
+    }
+
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type='number'] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    /* Custom <select> chevron — preflight strips this entirely. */
+    select {
+        appearance: none;
+        padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+        border: 1px solid var(--border-light);
+        border-radius: 0.5rem;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        font-size: 0.875rem;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 1.125rem;
+    }
+
+    select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    html.dark select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    }
+
+    /* Prevent iOS auto-zoom on input focus (triggered when font-size < 16px).
+       Needed after removing maximum-scale=1 from viewport for WCAG 2.1 SC 1.4.4. */
+    @supports (-webkit-touch-callout: none) {
+        input[type='text'],
+        input[type='email'],
+        input[type='password'],
+        input[type='number'],
+        input[type='search'],
+        input[type='tel'],
+        input[type='url'],
+        input:not([type]),
+        select,
+        textarea {
+            font-size: max(16px, 1em);
+        }
+    }
+}
+
+/* ── @layer components — composed badges, cards, status pills ─────────────── */
+
+@layer components {
+    .metric-card {
+        @apply border border-border-light;
+        background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
+    }
+
+    html.dark .metric-card {
+        background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    }
+
+    .metric-card-highlight {
+        border-width: 2px;
+        border-style: solid;
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    /* Badge text is theme-aware (black in light, white in dark/grayed).
+     * The tinted background carries the semantic meaning so the text
+     * doesn't need to repeat the color, and pinning text to the
+     * theme-aware token guarantees contrast at every theme without
+     * per-shade tuning. */
+    .allocation-pill-high {
+        @apply bg-[#dcfce7];
+        color: var(--text-primary);
+    }
+
+    .allocation-pill-medium {
+        @apply bg-[#fef9c3];
+        color: var(--text-primary);
+    }
+
+    .allocation-pill-low {
+        @apply bg-[#fee2e2];
+        color: var(--text-primary);
+    }
+
+    .status-badge {
+        @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5 capitalize;
+        color: var(--text-primary);
+    }
+
+    .status-badge-danger {
+        @apply bg-[#fee2e2];
+        color: var(--text-primary);
+    }
+
+    .status-badge-warning {
+        @apply bg-[#fef9c3];
+        color: var(--text-primary);
+    }
+
+    .status-badge-success {
+        @apply bg-[#dcfce7];
+        color: var(--text-primary);
+    }
+
+    .status-badge-info {
+        @apply bg-[#dbeafe];
+        color: var(--text-primary);
+    }
+
+    .status-badge-neutral {
+        @apply bg-[#f1f5f9];
+        color: var(--text-primary);
+    }
+
+    /*
+     * ── Add-view form scaffolding ────────────────────────────────────────────
+     * Composed via @apply where it maps cleanly to utilities; raw declarations
+     * for properties that have no Tailwind equivalent (background-image SVG
+     * chevrons, etc). Consumed by every Add* form (MixerAddView, TractorAddView,
+     * RegionsAddView, …) via the .add-view-form wrapper applied by
+     * AddViewSection.
+     */
+    .add-view-form {
+        @apply flex flex-col gap-[5px] overflow-hidden min-w-0;
+    }
+
+    .add-view-form form {
+        @apply flex flex-col gap-[5px] min-w-0;
+    }
+
+    .add-view-form * {
+        @apply min-w-0;
+    }
+
+    .add-view-form .form-section {
+        @apply flex flex-col gap-4 rounded-xl p-4 mb-0;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+    }
+
+    .add-view-form .form-section + .form-section {
+        @apply mt-0;
+    }
+
+    .add-view-form .form-section-title {
+        @apply flex items-center gap-2.5 pb-2 text-[0.8125rem] font-semibold uppercase tracking-[0.5px];
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .add-view-form .form-section-title i {
+        @apply text-[0.875rem] opacity-80;
+        color: var(--accent);
+    }
+
+    .add-view-form .form-row {
+        @apply grid grid-cols-1 gap-4;
+    }
+
+    @media (min-width: 480px) {
+        .add-view-form .form-row {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+    }
+    .add-view-form .form-group {
+        @apply flex flex-col gap-2;
+    }
+
+    .add-view-form label {
+        @apply text-sm font-medium;
+        color: var(--text-primary);
+    }
+
+    .add-view-form input[type='text'],
+    .add-view-form input[type='tel'],
+    .add-view-form input[type='number'],
+    .add-view-form input[type='date'],
+    .add-view-form input[type='datetime-local'],
+    .add-view-form textarea {
+        @apply box-border w-full max-w-full rounded-xl px-4 py-3 text-sm outline-none transition-all duration-200;
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+    }
+
+    .add-view-form input:focus,
+    .add-view-form textarea:focus {
+        @apply border-blue-500;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .add-view-form select {
+        @apply w-full max-w-full cursor-pointer rounded-xl text-sm outline-none transition-all duration-200;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 18px;
+    }
+
+    .add-view-form select:focus {
+        @apply border-blue-500;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .add-view-form button[type='button']:not(.form-submit) {
+        @apply w-full cursor-pointer rounded-xl px-4 py-3 text-left text-sm transition-all duration-200;
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+    }
+
+    .add-view-form button[type='button']:not(.form-submit):hover {
+        background: var(--bg-secondary);
+    }
+
+    .add-view-form .form-actions {
+        @apply mt-1 flex justify-end pt-2;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .add-view-form button[type='submit'],
+    .add-view-form .form-submit {
+        @apply cursor-pointer rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200;
+        background: var(--accent);
+        border: none;
+    }
+
+    .add-view-form button[type='submit']:hover,
+    .add-view-form .form-submit:hover {
+        filter: brightness(0.85);
+    }
+
+    .add-view-form button[type='submit']:disabled,
+    .add-view-form .form-submit:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+
+    @media (max-width: 480px) {
+        .add-view-form {
+            gap: 4px !important;
+            padding: 0.75rem !important;
+        }
+
+        .add-view-form .form-section {
+            padding: 0.75rem !important;
+        }
+
+        .add-view-form input[type='datetime-local'],
+        .add-view-form input[type='date'] {
+            font-size: 0.8125rem !important;
+            padding: 0.625rem 0.5rem !important;
+        }
+    }
+    .add-view-form .form-hint {
+        @apply mt-1 text-xs;
+        color: var(--text-secondary);
+    }
+
+    .add-view-form .form-warning {
+        @apply mt-1 text-[0.8125rem] text-amber-600;
+    }
+
+    .add-view-form .form-checkbox {
+        @apply flex cursor-pointer items-center gap-3;
+    }
+
+    .add-view-form .form-checkbox input[type='checkbox'] {
+        @apply h-5 w-5 cursor-pointer rounded-md;
+    }
+
+    .add-view-form .selected-items {
+        @apply mt-2 flex flex-wrap gap-2;
+    }
+
+    .add-view-form .selected-item-chip {
+        @apply inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[0.8125rem];
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
+    .add-view-form .selected-item-chip button {
+        @apply flex h-5 w-5 items-center justify-center rounded-full text-[0.625rem] cursor-pointer p-0;
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border: none;
+    }
+
+    .add-view-form .selected-item-chip button:hover {
+        background: var(--border-medium);
+    }
+
+    /*
+     * ── DetailViewSection legacy shell ───────────────────────────────────────
+     * Plan-tab-style: flat 1px borders, 6px radius, no shadows, dense padding.
+     * Consumed by every *DetailView (MixerDetailView, TractorDetailView, …)
+     * and by DetailViewSection itself. Accent-coloured rules read
+     * --dv-accent set inline by DetailViewSection so the focus ring / button
+     * background adapts to the user's accent preference.
+     */
+    .detail-card {
+        @apply mb-3 min-w-0 overflow-hidden rounded-md p-[0.875rem_1rem];
+        background: var(--bg-primary);
+        border: 1px solid var(--border-light);
+    }
+
+    .card-header {
+        @apply mb-3 flex items-center justify-between pb-2.5;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .card-header h2 {
+        @apply m-0 text-sm font-semibold;
+        color: var(--text-primary);
+    }
+
+    .form-sections {
+        @apply flex flex-col gap-4;
+    }
+
+    .form-section h3 {
+        @apply m-0 mb-2.5 pb-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.06em];
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .form-group {
+        @apply mb-3 overflow-hidden;
+    }
+
+    .form-group:last-child {
+        @apply mb-0;
+    }
+
+    .form-group label {
+        @apply mb-1 block text-[0.6875rem] font-bold uppercase tracking-[0.06em];
+        color: var(--text-tertiary);
+    }
+
+    .form-control {
+        @apply box-border w-full max-w-full rounded text-[0.8125rem];
+        /* Written as raw CSS, not a Tailwind arbitrary value, because
+         * Prettier re-inserts a space after the comma inside
+         * `transition-[border-color,box-shadow]` and Tailwind's JIT
+         * parser then rejects the class. Raw CSS sidesteps both. */
+        transition:
+            border-color 150ms,
+            box-shadow 150ms;
+        padding: 0.4375rem 0.625rem;
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+    }
+
+    .form-control:focus {
+        @apply outline-none;
+        border-color: var(--dv-accent, #1e3a5f);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--dv-accent, #1e3a5f) 12%, transparent);
+    }
+
+    .form-control:disabled,
+    .form-control[readonly] {
+        @apply cursor-not-allowed;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border-color: var(--border-light);
+    }
+
+    select.form-control {
+        @apply cursor-pointer pr-[1.875rem];
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 0.875rem 0.875rem;
+    }
+
+    select.form-control:disabled {
+        @apply cursor-not-allowed;
+    }
+
+    textarea.form-control {
+        @apply min-h-[90px] resize-y leading-normal;
+    }
+
+    .operator-select-button {
+        @apply w-full cursor-pointer rounded text-left text-[0.8125rem] transition-all duration-150;
+        padding: 0.4375rem 0.625rem;
+        border: 1px solid var(--border-light);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+    }
+
+    .operator-select-button:hover:not(:disabled) {
+        border-color: var(--dv-accent, #1e3a5f);
+        background: var(--bg-secondary);
+    }
+
+    .operator-select-button:disabled {
+        @apply cursor-not-allowed;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+    }
+
+    .operator-select-container {
+        @apply flex gap-1.5;
+    }
+
+    .operator-select-container .operator-select-button {
+        @apply flex-1;
+    }
+
+    .unassign-operator-button {
+        @apply flex cursor-pointer items-center justify-center rounded text-[0.8125rem] text-[#dc2626] transition-all duration-150;
+        padding: 0.4375rem 0.625rem;
+        background: transparent;
+        border: 1px solid #fecaca;
+    }
+
+    .unassign-operator-button:hover {
+        background: #fee2e2;
+        border-color: #f87171;
+    }
+
+    html.dark .unassign-operator-button {
+        color: #f87171;
+        border-color: #5c1d21;
+    }
+
+    html.dark .unassign-operator-button:hover {
+        background: #4c1d21;
+        border-color: #7f1d1d;
+    }
+
+    .assign-operator-button {
+        @apply flex cursor-pointer items-center justify-center rounded text-[0.8125rem] text-[#16a34a] transition-all duration-150;
+        padding: 0.4375rem 0.625rem;
+        background: transparent;
+        border: 1px solid #bbf7d0;
+    }
+
+    .assign-operator-button:hover {
+        background: #dcfce7;
+        border-color: #86efac;
+    }
+
+    .primary-button {
+        @apply flex w-full cursor-pointer items-center justify-center gap-1.5 rounded text-xs font-semibold text-white transition-all duration-150;
+        padding: 0.4375rem 0.875rem;
+        background: var(--dv-accent, #1e3a5f);
+        border: 1px solid var(--dv-accent, #1e3a5f);
+    }
+
+    .primary-button:hover {
+        filter: brightness(0.92);
+    }
+
+    .primary-button:disabled {
+        @apply cursor-not-allowed;
+        background: var(--text-secondary);
+        border-color: var(--text-secondary);
+    }
+
+    .danger-button {
+        @apply flex w-full cursor-pointer items-center justify-center gap-1.5 rounded text-xs font-semibold text-white transition-all duration-150;
+        padding: 0.4375rem 0.875rem;
+        background: #dc2626;
+        border: 1px solid #dc2626;
+    }
+
+    .danger-button:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+    .danger-button:disabled {
+        @apply cursor-not-allowed;
+        background: var(--text-secondary);
+        border-color: var(--text-secondary);
+    }
+
+    .cancel-button {
+        @apply flex w-full cursor-pointer items-center justify-center rounded text-xs font-semibold transition-all duration-150;
+        padding: 0.4375rem 0.875rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-light);
+    }
+
+    .cancel-button:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .global-button-secondary {
+        @apply inline-flex cursor-pointer items-center gap-1.5 rounded text-xs font-semibold transition-all duration-150;
+        padding: 0.375rem 0.625rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-light);
+    }
+
+    .global-button-secondary:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .global-button-secondary:disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+
+    .global-button-secondary i {
+        @apply text-[0.6875rem];
+    }
+
+    .sidebar-readonly-notice {
+        @apply flex w-full items-center justify-center gap-1.5 rounded text-[0.6875rem] font-bold uppercase tracking-[0.04em];
+        padding: 0.4375rem 0.625rem;
+        background: #fef3c7;
+        border: 1px solid #fcd34d;
+        color: #92400e;
+    }
+
+    .sidebar-readonly-notice i {
+        @apply text-[0.6875rem] text-[#b45309];
+    }
+
+    .save-button {
+        @apply w-full justify-center;
+    }
+
+    .form-actions {
+        @apply flex flex-col gap-2;
+    }
+
+    .form-actions button {
+        @apply w-full;
+    }
+
+    .transfer-region-button {
+        @apply flex w-full cursor-pointer items-center justify-center gap-1.5 rounded text-xs font-semibold text-[#d97706] transition-all duration-150;
+        padding: 0.4375rem 0.875rem;
+        background: transparent;
+        border: 1px solid #fcd34d;
+    }
+
+    .transfer-region-button:hover {
+        background: #fef3c7;
+        border-color: #f59e0b;
+    }
+
+    .transfer-region-button:disabled {
+        @apply cursor-not-allowed;
+        color: var(--text-secondary);
+        border-color: var(--border-light);
+    }
+
+    .spare-status-note {
+        @apply mt-2 flex items-start gap-2 rounded text-xs leading-snug;
+        padding: 0.5rem 0.75rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+    }
+
+    .spare-status-note::before {
+        content: '\f071';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        color: #f59e0b;
+        font-size: 0.75rem;
+    }
+
+    .down-in-yard-container {
+        @apply mt-2.5;
+    }
+
+    .down-in-yard-toggle {
+        @apply mb-1.5;
+    }
+
+    .down-in-yard-note {
+        @apply rounded text-xs;
+        padding: 0.4375rem 0.625rem;
+        background: #e0f2fe;
+        border: 1px solid #7dd3fc;
+        color: #0369a1;
+    }
+
+    .toggle-label {
+        @apply inline-flex cursor-pointer items-center gap-2;
+    }
+
+    .toggle-label.disabled {
+        @apply cursor-not-allowed opacity-60;
+    }
+
+    .toggle-checkbox {
+        @apply hidden;
+    }
+
+    .toggle-switch {
+        @apply relative h-[18px] w-8 rounded-[9px] transition-[background] duration-150;
+        background: var(--border-medium);
+    }
+
+    .toggle-checkbox:checked + .toggle-switch {
+        background: var(--dv-accent, #1e3a5f);
+    }
+
+    .toggle-slider {
+        @apply absolute left-0.5 top-0.5 h-3.5 w-3.5 rounded-full bg-white transition-[left] duration-150;
+    }
+
+    .toggle-checkbox:checked + .toggle-switch .toggle-slider {
+        @apply left-4;
+    }
+
+    .toggle-text {
+        @apply text-[0.8125rem] font-medium;
+        color: var(--text-primary);
+    }
+
+    .error-message {
+        @apply rounded text-xs;
+        padding: 0.5rem 0.75rem;
+        background: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        color: #dc2626;
+    }
+
+    .error-text {
+        @apply text-xs text-[#dc2626];
+    }
+
+    .form-row {
+        @apply grid grid-cols-1 gap-3;
+    }
+
+    @media (min-width: 480px) {
+        .form-row {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+    }
+    .form-row-2 {
+        @apply grid grid-cols-2 gap-3;
+    }
+
+    .form-row-3 {
+        @apply grid grid-cols-3 gap-3;
+    }
+
+    @media (max-width: 640px) {
+        .form-row-2,
+        .form-row-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+    .cleanliness-rating {
+        @apply flex gap-1;
+    }
+
+    .cleanliness-star {
+        @apply cursor-pointer text-base transition-[color] duration-150;
+        color: var(--border-light);
+    }
+
+    .cleanliness-star.active {
+        @apply text-[#f59e0b];
+    }
+
+    .cleanliness-star:hover {
+        @apply text-[#fbbf24];
+    }
+
+    .cleanliness-rating-display {
+        @apply flex items-center gap-2.5 rounded;
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+    }
+
+    .cleanliness-rating-stars {
+        @apply flex gap-1;
+    }
+
+    .cleanliness-rating-stars i {
+        @apply text-sm text-[#f59e0b];
+    }
+
+    .cleanliness-rating-stars i.empty {
+        color: var(--border-light);
+    }
+
+    .cleanliness-rating-label {
+        @apply text-[0.8125rem] font-semibold;
+        color: var(--text-primary);
+    }
+
+    .cleanliness-rating-editor {
+        @apply flex items-center gap-3 rounded;
+        padding: 0.5rem 0.75rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+    }
+
+    .star-input {
+        @apply flex gap-1;
+    }
+
+    .star-button {
+        @apply cursor-pointer rounded-[3px] border-none bg-transparent p-[0.1875rem] transition-[color] duration-150;
+    }
+
+    .star-button:hover:not(.disabled) {
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .star-button.disabled {
+        @apply cursor-not-allowed opacity-50;
+    }
+
+    .star-button i {
+        @apply text-base transition-[color] duration-150;
+        color: var(--border-light);
+    }
+
+    .star-button.active i,
+    .star-button i.filled {
+        @apply text-[#f59e0b];
+    }
+
+    .star-button:hover:not(.disabled) i {
+        @apply text-[#fbbf24];
+    }
+
+    .rating-value-display {
+        @apply flex items-center gap-2 pl-2.5;
+        border-left: 1px solid var(--border-light);
+    }
+
+    .rating-label {
+        @apply text-[0.8125rem] font-semibold;
+        color: var(--text-primary);
+    }
+
+    .rating-container {
+        @apply flex flex-col gap-2;
+    }
+
+    .rating-stars {
+        @apply flex gap-1;
+    }
+
+    .rating-stars .star {
+        @apply cursor-pointer rounded-[3px] border-none bg-transparent p-[0.1875rem] text-base transition-[color] duration-150;
+        color: var(--border-light);
+    }
+
+    .rating-stars .star:hover {
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .rating-stars .star.filled {
+        @apply text-[#f59e0b];
+    }
+
+    .rating-stars .star.hovered {
+        @apply text-[#fbbf24];
+    }
+
+    .rating-value {
+        @apply text-xs font-medium;
+        color: var(--text-secondary);
+    }
+
+    .rating-text {
+        @apply text-[0.8125rem] font-semibold;
+        color: var(--text-primary);
+    }
+
+    .warning-text {
+        @apply mt-2 flex items-center gap-1.5 text-xs font-medium text-[#dc2626];
+    }
+
+    .date-input-container {
+        @apply relative;
+    }
+
+    .date-input-container input {
+        @apply w-full;
+    }
+
+    .overdue-warning {
+        @apply mt-2 flex items-center gap-2 rounded text-xs;
+        padding: 0.4375rem 0.625rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+    }
+
+    .overdue-warning i {
+        @apply text-xs text-[#f59e0b];
+    }
+
+    .view-only-mode {
+        @apply mb-3 flex items-center gap-2.5 rounded;
+        padding: 0.625rem 0.75rem;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+    }
+
+    .view-only-mode i {
+        @apply text-sm text-[#d97706];
+    }
+
+    .view-only-mode-content {
+        @apply flex-1;
+    }
+
+    .view-only-mode-title {
+        @apply m-0 mb-0.5 text-[0.8125rem] font-bold text-[#92400e];
+    }
+
+    .view-only-mode-message {
+        @apply m-0 text-xs leading-snug text-[#b45309];
+    }
+
+    .view-only-banner {
+        @apply flex items-center gap-2 text-xs font-semibold text-[#92400e];
+        padding: 0.4375rem 0.875rem;
+        background: #fffbeb;
+        border-bottom: 1px solid #fde68a;
+    }
+
+    .view-only-banner i {
+        @apply text-xs text-[#f59e0b];
+    }
+
+    .restriction-warning {
+        @apply mb-3 flex items-start gap-2.5 rounded;
+        padding: 0.625rem 0.75rem;
+        background: rgba(220, 38, 38, 0.06);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+    }
+
+    .restriction-warning i {
+        @apply mt-px text-sm text-[#dc2626];
+    }
+
+    .restriction-warning-content {
+        @apply flex-1;
+    }
+
+    .restriction-warning-title {
+        @apply m-0 mb-1 text-[0.8125rem] font-bold text-[#991b1b];
+    }
+
+    .restriction-warning-message {
+        @apply m-0 text-xs leading-snug text-[#b91c1c];
+    }
+
+    .read-only-field {
+        @apply relative;
+    }
+
+    .read-only-field::after {
+        content: '';
+        @apply pointer-events-none absolute inset-0 bg-transparent;
+    }
+
+    .read-only-indicator {
+        @apply ml-1.5 inline-flex items-center gap-1 rounded-[3px] px-1.5 py-px text-[0.625rem] font-bold uppercase tracking-[0.04em];
+        background: var(--bg-tertiary);
+        color: var(--text-tertiary);
+    }
+
+    .read-only-indicator i {
+        @apply text-[0.5625rem];
+    }
+
+    /* DetailViewSection shell-level rules */
+    .dv-input:focus {
+        border-color: var(--dv-accent, #1e3a5f) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--dv-accent, #1e3a5f) 12%, transparent) !important;
+    }
+
+    .dv-btn:hover:not(:disabled) {
+        @apply opacity-85;
+    }
+
+    .dv-btn:active:not(:disabled) {
+        @apply scale-[0.97];
+    }
+
+    .dv-sidebar {
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dv-footer-actions {
+        @apply flex flex-row flex-wrap gap-2;
+    }
+
+    .dv-footer-actions .global-button-secondary {
+        @apply flex-1 justify-center;
+    }
+
+    .dv-sidebar-collapsed .dv-footer-actions {
+        @apply flex-col;
+    }
+
+    .dv-sidebar-collapsed .dv-footer-actions .global-button-secondary {
+        @apply min-w-[48px] p-2.5;
+        flex: unset;
+    }
+
+    .dv-sidebar-collapsed .dv-footer-actions .global-button-secondary span {
+        @apply hidden;
+    }
+
+    .dv-mobile-nav {
+        @apply hidden;
+    }
+
+    @media (max-width: 768px) {
+        .dv-sidebar {
+            display: none !important;
+        }
+
+        .dv-mobile-nav {
+            display: flex !important;
+            position: fixed;
+            inset: auto 0 0 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-light);
+            padding: 12px 10px;
+            gap: 6px;
+            z-index: 50;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            min-height: 72px;
+        }
+
+        .dv-mobile-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .dv-mobile-nav-btn {
+            flex: 0 0 auto;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 72px;
+            transition: all 0.15s;
+        }
+
+        .dv-mobile-nav-btn i {
+            font-size: 18px;
+        }
+
+        .dv-main-content {
+            padding: 12px !important;
+            padding-bottom: 88px !important;
+        }
+
+        .dv-header {
+            padding: 8px 12px !important;
+        }
+
+        .dv-header-title {
+            font-size: 14px !important;
+        }
+
+        .dv-header-actions {
+            gap: 4px !important;
+        }
+
+        .dv-header-actions .global-button-secondary {
+            padding: 8px !important;
+            min-width: 36px;
+            justify-content: center;
+        }
+
+        .dv-header-actions .global-button-secondary span {
+            display: none;
+        }
+
+        .dv-section-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        .dv-section-header h2 {
+            font-size: 13px !important;
+        }
+
+        .form-row-2,
+        .form-row-3 {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    @media (max-width: 480px) {
+        .dv-mobile-nav {
+            padding: 10px 8px;
+            min-height: 68px;
+        }
+
+        .dv-mobile-nav-btn {
+            min-width: 64px;
+            padding: 10px 14px;
+            font-size: 11px;
+        }
+
+        .dv-mobile-nav-btn i {
+            font-size: 16px;
+        }
+
+        .dv-main-content {
+            padding: 10px !important;
+            padding-bottom: 82px !important;
+        }
+
+        .detail-card {
+            padding: 0.625rem !important;
+        }
+
+        .form-control {
+            font-size: 0.75rem !important;
+            padding: 0.375rem 0.5rem !important;
+        }
+
+        input[type='datetime-local'].form-control,
+        input[type='date'].form-control {
+            font-size: 0.8125rem !important;
+            padding: 0.625rem 0.5rem !important;
+        }
+    }
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Dark-mode legacy palette shim
+ *
+ * Below: dark-mode overrides for raw Tailwind palette utilities still in use
+ * across the app (bg-white, bg-gray-*, bg-slate-*, text-*, border-*, …).
+ * Each rule maps a light-mode palette utility to its dark-mode equivalent so
+ * components that haven't yet adopted the semantic tokens (bg-bg-primary,
+ * text-text-primary, …) still render correctly in dark mode.
+ *
+ * Long-term plan: convert each consumer to the semantic tokens or use Tailwind
+ * `dark:` variants, then delete the corresponding override here.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* Surfaces */
+html.dark .bg-white {
+    background-color: #1a1a1a;
+}
+
+html.dark .bg-white\/95 {
+    background-color: rgba(26, 26, 26, 0.95);
+}
+
+html.dark .bg-white\/90 {
+    background-color: rgba(26, 26, 26, 0.9);
+}
+
+html.dark .bg-white\/80 {
+    background-color: rgba(26, 26, 26, 0.8);
+}
+
+html.dark .bg-white\/60 {
+    background-color: rgba(26, 26, 26, 0.6);
+}
+
+html.dark .bg-gray-50 {
+    background-color: #202020;
+}
+
+html.dark .bg-gray-100 {
+    background-color: #242424;
+}
+
+html.dark .bg-gray-200 {
+    background-color: #3a3a3a;
+}
+
+html.dark .bg-gray-300 {
+    background-color: #3c3c3c;
+}
+
+html.dark .from-slate-50 {
+    --tw-gradient-from: #202020 var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(32 32 32 / 0) var(--tw-gradient-to-position);
+}
+
+html.dark .to-slate-100 {
+    --tw-gradient-to: #242424 var(--tw-gradient-to-position);
+}
+
+html.dark .bg-slate-50 {
+    background-color: #202020;
+}
+
+html.dark .bg-slate-50\/80 {
+    background-color: rgba(32, 32, 32, 0.8);
+}
+
+html.dark .bg-slate-100 {
+    background-color: #242424;
+}
+
+html.dark .bg-slate-200 {
+    background-color: #303030;
+}
+
+html.dark .bg-slate-300 {
+    background-color: #3c3c3c;
+}
+
+/* Hover */
+html.dark .hover\:bg-gray-50:hover {
+    background-color: #242424;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+    background-color: #303030;
+}
+
+html.dark .hover\:bg-gray-200:hover {
+    background-color: #3c3c3c;
+}
+
+html.dark .hover\:bg-slate-50:hover {
+    background-color: #242424;
+}
+
+html.dark .hover\:bg-slate-100:hover {
+    background-color: #303030;
+}
+
+html.dark .hover\:bg-slate-200:hover {
+    background-color: #3c3c3c;
+}
+
+html.dark .hover\:bg-white:hover {
+    background-color: #202020;
+}
+
+/* Text */
+html.dark .text-gray-900 {
+    color: #fafafa;
+}
+
+html.dark .text-gray-800 {
+    color: #e8e8e8;
+}
+
+html.dark .text-gray-700 {
+    color: #cccccc;
+}
+
+html.dark .text-gray-600 {
+    color: #999999;
+}
+
+html.dark .text-gray-500 {
+    color: #777777;
+}
+
+html.dark .text-gray-400 {
+    color: #555555;
+}
+
+html.dark .text-gray-300 {
+    color: #3d3d3d;
+}
+
+html.dark .text-slate-900 {
+    color: #fafafa;
+}
+
+html.dark .text-slate-800 {
+    color: #e8e8e8;
+}
+
+html.dark .text-slate-700 {
+    color: #cccccc;
+}
+
+html.dark .text-slate-600 {
+    color: #999999;
+}
+
+html.dark .text-slate-500 {
+    color: #777777;
+}
+
+html.dark .text-slate-400 {
+    color: #555555;
+}
+
+html.dark .text-slate-300 {
+    color: #3d3d3d;
+}
+
+/* Borders */
+html.dark .border-gray-100 {
+    border-color: #363636;
+}
+
+html.dark .border-gray-200 {
+    border-color: #424242;
+}
+
+html.dark .border-gray-300 {
+    border-color: #505050;
+}
+
+html.dark .border-slate-100 {
+    border-color: #363636;
+}
+
+html.dark .border-slate-200 {
+    border-color: #424242;
+}
+
+html.dark .border-slate-300 {
+    border-color: #505050;
+}
+
+html.dark .border-white\/15 {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #363636;
+}
+
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #424242;
+}
+
+/* Rings */
+html.dark .ring-gray-100 {
+    --tw-ring-color: #363636;
+}
+
+html.dark .ring-gray-200 {
+    --tw-ring-color: #424242;
+}
+
+/* Alerts */
+html.dark .bg-red-50 {
+    background-color: #2a1a1a;
+}
+
+html.dark .bg-red-100 {
+    background-color: #342020;
+}
+
+html.dark .bg-green-50 {
+    background-color: #1a2a1a;
+}
+
+html.dark .bg-green-100 {
+    background-color: #203420;
+}
+
+html.dark .bg-yellow-50 {
+    background-color: #2a271a;
+}
+
+html.dark .bg-yellow-100 {
+    background-color: #343020;
+}
+
+html.dark .bg-blue-50 {
+    background-color: #1a1f2a;
+}
+
+html.dark .bg-blue-100 {
+    background-color: #202834;
+}
+
+html.dark .bg-emerald-50 {
+    background-color: #1a2a24;
+}
+
+html.dark .bg-amber-50 {
+    background-color: #2a261a;
+}
+
+html.dark .bg-indigo-50 {
+    background-color: #1e1a2a;
+}
+
+/* Accent text */
+html.dark .text-emerald-600 {
+    color: #34d399;
+}
+
+html.dark .text-amber-600 {
+    color: #fbbf24;
+}
+
+html.dark .text-indigo-600 {
+    color: #a5b4fc;
+}
+
+/* Alert borders */
+html.dark .border-red-200 {
+    border-color: #451a1a;
+}
+
+html.dark .border-green-200 {
+    border-color: #1a451a;
+}
+
+html.dark .border-yellow-200 {
+    border-color: #454019;
+}
+
+html.dark .border-blue-200 {
+    border-color: #1a2645;
+}
+
+html.dark .border-amber-200 {
+    border-color: #45381a;
+}
+
+/* Placeholder text */
+html.dark .placeholder-gray-400::placeholder {
+    color: #4d4d4d;
+}
+
+html.dark .placeholder-gray-500::placeholder {
+    color: #5c5c5c;
+}
+
+/* Shadows */
+html.dark .shadow-sm {
+    --tw-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+html.dark .shadow {
+    --tw-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+html.dark .shadow-md {
+    --tw-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .shadow-lg {
+    --tw-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .shadow-xl {
+    --tw-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Form inputs */
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: #171717;
+    color: #fafafa;
+    border-color: #2a2a2a;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #555555;
+}
+
+/* Arbitrary Tailwind value overrides — surfaces */
+html.dark .bg-\[\#f8fafc\] {
+    background-color: #1a1a1a;
+}
+
+html.dark .bg-\[\#f1f5f9\] {
+    background-color: #171717;
+}
+
+html.dark .bg-\[\#f0f9ff\] {
+    background-color: #181d24;
+}
+
+html.dark .bg-\[\#fafbfc\] {
+    background-color: #242424;
+}
+
+html.dark .bg-\[\#e2e8f0\] {
+    background-color: #2a2a2a;
+}
+
+html.dark .bg-\[\#fff7ed\] {
+    background-color: #221e18;
+}
+
+html.dark .bg-\[\#fef2f2\] {
+    background-color: #261616;
+}
+
+html.dark .bg-\[\#fee2e2\] {
+    background-color: #301c1c;
+}
+
+html.dark .bg-\[\#dcfce7\] {
+    background-color: #162616;
+}
+
+html.dark .bg-\[\#fef3c7\] {
+    background-color: #262216;
+}
+
+html.dark .bg-\[\#dbeafe\] {
+    background-color: #161b26;
+}
+
+html.dark .bg-\[\#f3e8ff\] {
+    background-color: #201626;
+}
+
+html.dark .bg-\[\#ffedd5\] {
+    background-color: #1a100a;
+}
+
+html.dark .bg-\[\#fef9c3\] {
+    background-color: #1a170a;
+}
+
+html.dark .bg-\[\#f0fdf4\] {
+    background-color: #0a1a0a;
+}
+
+html.dark .bg-\[\#eff6ff\] {
+    background-color: #0a0f1a;
+}
+
+html.dark .bg-\[\#fffbeb\] {
+    background-color: #1a150a;
+}
+
+html.dark .bg-\[\#fefce8\] {
+    background-color: #1a170a;
+}
+
+html.dark .bg-\[\#e0e7ff\] {
+    background-color: #0e0a1a;
+}
+
+html.dark .bg-\[\#fecaca\] {
+    background-color: #261010;
+}
+
+/* Arbitrary Tailwind value overrides — text */
+html.dark .text-\[\#374151\] {
+    color: #cccccc;
+}
+
+html.dark .text-\[\#1e293b\] {
+    color: #e8e8e8;
+}
+
+html.dark .text-\[\#334155\] {
+    color: #cccccc;
+}
+
+html.dark .text-\[\#475569\] {
+    color: #94a3b8;
+}
+
+html.dark .text-\[\#64748b\] {
+    color: #94a3b8;
+}
+
+html.dark .text-\[\#94a3b8\] {
+    color: #555555;
+}
+
+html.dark .text-\[\#cbd5e1\] {
+    color: #3d3d3d;
+}
+
+html.dark .text-\[\#1e3a5f\] {
+    color: #7db4e0;
+}
+
+html.dark .text-\[\#991b1b\] {
+    color: #fca5a5;
+}
+
+html.dark .text-\[\#dc2626\] {
+    color: #f87171;
+}
+
+html.dark .text-\[\#166534\] {
+    color: #86efac;
+}
+
+html.dark .text-\[\#16a34a\] {
+    color: #4ade80;
+}
+
+html.dark .text-\[\#22c55e\] {
+    color: #4ade80;
+}
+
+html.dark .text-\[\#10b981\] {
+    color: #34d399;
+}
+
+html.dark .text-\[\#92400e\] {
+    color: #fcd34d;
+}
+
+html.dark .text-\[\#f59e0b\] {
+    color: #fbbf24;
+}
+
+html.dark .text-\[\#f97316\] {
+    color: #fb923c;
+}
+
+html.dark .text-\[\#1e40af\] {
+    color: #93c5fd;
+}
+
+html.dark .text-\[\#3b82f6\] {
+    color: #60a5fa;
+}
+
+html.dark .text-\[\#0891b2\] {
+    color: #22d3ee;
+}
+
+html.dark .text-\[\#7c3aed\] {
+    color: #c084fc;
+}
+
+html.dark .text-\[\#c2410c\] {
+    color: #fb923c;
+}
+
+html.dark .text-\[\#a16207\] {
+    color: #fcd34d;
+}
+
+html.dark .text-\[\#2563eb\] {
+    color: #60a5fa;
+}
+
+html.dark .text-\[\#d97706\] {
+    color: #fbbf24;
+}
+
+html.dark .text-\[\#ca8a04\] {
+    color: #fbbf24;
+}
+
+html.dark .text-\[\#3730a3\] {
+    color: #a5b4fc;
+}
+
+html.dark .text-\[\#4338ca\] {
+    color: #a5b4fc;
+}
+
+html.dark .text-\[\#b91c1c\] {
+    color: #fca5a5;
+}
+
+/* Arbitrary Tailwind value overrides — borders */
+html.dark .border-\[\#e2e8f0\] {
+    border-color: #2a2a2a;
+}
+
+html.dark .border-\[\#e5e7eb\] {
+    border-color: #2a2a2a;
+}
+
+html.dark .border-\[\#1e3a5f\] {
+    border-color: #7db4e0;
+}
+
+html.dark .border-\[\#bfdbfe\] {
+    border-color: #1e3a5f;
+}
+
+html.dark .border-\[\#dc2626\] {
+    border-color: #f87171;
+}
+
+html.dark .border-\[\#fecaca\] {
+    border-color: #3d1515;
+}
+
+html.dark .border-\[\#f59e0b\] {
+    border-color: #fbbf24;
+}
+
+html.dark .border-\[\#bbf7d0\] {
+    border-color: #153d15;
+}
+
+html.dark .border-\[\#fde68a\] {
+    border-color: #3d3015;
+}
+
+html.dark .border-\[\#fef08a\] {
+    border-color: #3d3815;
+}
+
+/* Allocation pills, dark variants — text-primary so it matches the
+ * site-wide monochrome-badge-text rule (white in dark, black in light). */
+html.dark .allocation-pill-high {
+    background-color: #0a1a0a;
+    color: var(--text-primary);
+}
+
+html.dark .allocation-pill-medium {
+    background-color: #1a170a;
+    color: var(--text-primary);
+}
+
+html.dark .allocation-pill-low {
+    background-color: #1a0a0a;
+    color: var(--text-primary);
+}
+
+/* Colored status pills in freight/trailer breakdowns */
+html.dark .bg-purple-100 {
+    background-color: #140a1a;
+}
+
+html.dark .bg-orange-100 {
+    background-color: #1a100a;
+}
+
+html.dark .text-purple-600 {
+    color: #c084fc;
+}
+
+html.dark .text-orange-600 {
+    color: #fb923c;
+}
+
+html.dark .text-orange-800 {
+    color: #fed7aa;
+}
+
+/* Badge palette — green */
+html.dark .bg-green-100 {
+    background-color: #0a1a0a;
+}
+
+html.dark .bg-green-200 {
+    background-color: #102610;
+}
+
+html.dark .text-green-600 {
+    color: #4ade80;
+}
+
+html.dark .text-green-700 {
+    color: #4ade80;
+}
+
+html.dark .text-green-800 {
+    color: #86efac;
+}
+
+html.dark .bg-emerald-100 {
+    background-color: #0a1a0f;
+}
+
+html.dark .text-emerald-700 {
+    color: #34d399;
+}
+
+/* Badge palette — red */
+html.dark .bg-red-100 {
+    background-color: #1a0a0a;
+}
+
+html.dark .bg-red-200 {
+    background-color: #261010;
+}
+
+html.dark .text-red-600 {
+    color: #f87171;
+}
+
+html.dark .text-red-700 {
+    color: #fca5a5;
+}
+
+html.dark .text-red-800 {
+    color: #fecaca;
+}
+
+/* Badge palette — amber/yellow */
+html.dark .bg-amber-100 {
+    background-color: #1a150a;
+}
+
+html.dark .text-amber-500 {
+    color: #fbbf24;
+}
+
+html.dark .text-amber-700 {
+    color: #fcd34d;
+}
+
+html.dark .text-amber-800 {
+    color: #fcd34d;
+}
+
+html.dark .bg-yellow-100 {
+    background-color: #1a170a;
+}
+
+html.dark .text-yellow-800 {
+    color: #fcd34d;
+}
+
+/* Badge palette — blue */
+html.dark .bg-blue-100 {
+    background-color: #0a0f1a;
+}
+
+html.dark .text-blue-700 {
+    color: #93c5fd;
+}
+
+html.dark .text-blue-800 {
+    color: #93c5fd;
+}
+
+html.dark .bg-sky-50 {
+    background-color: #0a101a;
+}
+
+html.dark .bg-sky-100 {
+    background-color: #0a101a;
+}
+
+html.dark .border-sky-200 {
+    border-color: #1a2645;
+}
+
+html.dark .text-sky-700 {
+    color: #7dd3fc;
+}
+
+/* Status badge dark variants — backgrounds keep the semantic tint, text
+ * is theme-aware (var(--text-primary) = white in dark, black in light). */
+html.dark .status-badge-danger {
+    background-color: #1a0a0a;
+    color: var(--text-primary);
+}
+
+html.dark .status-badge-warning {
+    background-color: #1a170a;
+    color: var(--text-primary);
+}
+
+html.dark .status-badge-success {
+    background-color: #0a1a0a;
+    color: var(--text-primary);
+}
+
+html.dark .status-badge-info {
+    background-color: #0a0f1a;
+    color: var(--text-primary);
+}
+
+html.dark .status-badge-neutral {
+    background-color: #171717;
+    color: var(--text-primary);
+}
+
+html.dark .trainer-badge {
+    background-color: #0a0f1a;
+    color: var(--text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * "Grayed Out" theme — surface re-mapping
+ *
+ * The dark shim above repaints every raw color utility (bg-white, bg-gray-50,
+ * bg-slate-100, dark:bg-gray-900, etc.) to near-black surfaces. For the
+ * Grayed Out theme we want the same utilities to land on a medium gray
+ * palette — readable, "slightly dark", but never black. These selectors carry
+ * `html.dark.theme-grayed` so they automatically beat the `html.dark` rules
+ * via specificity, and the cascade order (later rules win on ties) keeps the
+ * map deterministic.
+ *
+ * Palette anchors (see also the theme-token block above):
+ *   --bg-primary:   #4a4f5c   (main surface)
+ *   --bg-secondary: #424754
+ *   --bg-tertiary:  #3a3f4b
+ *   --bg-hover:     #565b69
+ *   --border-light: #5d6271
+ *   --border-medium:#6d7381
+ *   --border-dark:  #7a8090
+ *
+ * Anything not listed here either reads from the token block (already
+ * grayed) or stays the same as the dark theme on purpose (semantic
+ * badges, accents, etc.).
+ * ───────────────────────────────────────────────────────────────────────── */
+
+/* Surfaces — whites / gray-N / slate-N. Palette matches the token block:
+ * primary #5b6270, secondary #565d6b, tertiary #515663, hover #6a7180. */
+html.dark.theme-grayed .bg-white {
+    background-color: #5b6270;
+}
+
+html.dark.theme-grayed .bg-white\/95 {
+    background-color: rgba(91, 98, 112, 0.95);
+}
+
+html.dark.theme-grayed .bg-white\/90 {
+    background-color: rgba(91, 98, 112, 0.9);
+}
+
+html.dark.theme-grayed .bg-white\/80 {
+    background-color: rgba(91, 98, 112, 0.8);
+}
+
+html.dark.theme-grayed .bg-white\/60 {
+    background-color: rgba(91, 98, 112, 0.6);
+}
+
+html.dark.theme-grayed .bg-gray-50 {
+    background-color: #565d6b;
+}
+
+html.dark.theme-grayed .bg-gray-100 {
+    background-color: #515663;
+}
+
+html.dark.theme-grayed .bg-gray-200 {
+    background-color: #6a7180;
+}
+
+html.dark.theme-grayed .bg-gray-300 {
+    background-color: #767d8b;
+}
+
+html.dark.theme-grayed .bg-slate-50 {
+    background-color: #565d6b;
+}
+
+html.dark.theme-grayed .bg-slate-50\/80 {
+    background-color: rgba(86, 93, 107, 0.8);
+}
+
+html.dark.theme-grayed .bg-slate-100 {
+    background-color: #515663;
+}
+
+html.dark.theme-grayed .bg-slate-200 {
+    background-color: #6a7180;
+}
+
+html.dark.theme-grayed .bg-slate-300 {
+    background-color: #767d8b;
+}
+
+/* Tailwind-compiled dark: variants (currently only gray-800 / gray-900 are
+ * used as `dark:bg-*` in source). Map them to the same gray surface set so
+ * darker-meaning utilities still degrade to gray rather than near-black. */
+html.dark.theme-grayed .dark\:bg-gray-800 {
+    background-color: #565d6b;
+}
+
+html.dark.theme-grayed .dark\:bg-gray-900 {
+    background-color: #515663;
+}
+
+/* Gradients */
+html.dark.theme-grayed .from-slate-50 {
+    --tw-gradient-from: #565d6b var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(86 93 107 / 0) var(--tw-gradient-to-position);
+}
+
+html.dark.theme-grayed .to-slate-100 {
+    --tw-gradient-to: #515663 var(--tw-gradient-to-position);
+}
+
+/* Hover */
+html.dark.theme-grayed .hover\:bg-gray-50:hover,
+html.dark.theme-grayed .hover\:bg-slate-50:hover {
+    background-color: #565d6b;
+}
+
+html.dark.theme-grayed .hover\:bg-gray-100:hover,
+html.dark.theme-grayed .hover\:bg-slate-100:hover {
+    background-color: #5f6675;
+}
+
+html.dark.theme-grayed .hover\:bg-gray-200:hover,
+html.dark.theme-grayed .hover\:bg-slate-200:hover {
+    background-color: #6a7180;
+}
+
+html.dark.theme-grayed .hover\:bg-white:hover {
+    background-color: #5f6675;
+}
+
+/* Text — keep the dark-theme readability tier but lift slightly so contrast
+ * against the lighter gray bg stays comfortable. */
+html.dark.theme-grayed .text-gray-900,
+html.dark.theme-grayed .text-slate-900 {
+    color: #ffffff;
+}
+
+html.dark.theme-grayed .text-gray-800,
+html.dark.theme-grayed .text-slate-800 {
+    color: #f1f3f7;
+}
+
+html.dark.theme-grayed .text-gray-700,
+html.dark.theme-grayed .text-slate-700 {
+    color: #dde0e6;
+}
+
+html.dark.theme-grayed .text-gray-600,
+html.dark.theme-grayed .text-slate-600 {
+    color: #c4c8d2;
+}
+
+html.dark.theme-grayed .text-gray-500,
+html.dark.theme-grayed .text-slate-500 {
+    color: #a6abb8;
+}
+
+html.dark.theme-grayed .text-gray-400,
+html.dark.theme-grayed .text-slate-400 {
+    color: #888d99;
+}
+
+html.dark.theme-grayed .text-gray-300,
+html.dark.theme-grayed .text-slate-300 {
+    color: #7a8090;
+}
+
+/* Borders — visible on gray bg without being harsh */
+html.dark.theme-grayed .border-gray-100,
+html.dark.theme-grayed .border-slate-100 {
+    border-color: #6d7381;
+}
+
+html.dark.theme-grayed .border-gray-200,
+html.dark.theme-grayed .border-slate-200 {
+    border-color: #7d8391;
+}
+
+html.dark.theme-grayed .border-gray-300,
+html.dark.theme-grayed .border-slate-300 {
+    border-color: #8b919e;
+}
+
+html.dark.theme-grayed .border-white\/15 {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+html.dark.theme-grayed .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #6d7381;
+}
+
+html.dark.theme-grayed .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #7d8391;
+}
+
+html.dark.theme-grayed .ring-gray-100 {
+    --tw-ring-color: #6d7381;
+}
+
+html.dark.theme-grayed .ring-gray-200 {
+    --tw-ring-color: #7d8391;
+}
+
+/* Component overrides — gradient-driven metric card needs the gray gradient,
+ * unassign button needs to read as a button against the lighter surface. */
+html.dark.theme-grayed .metric-card {
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+/* Semantic badges — the dark-theme tints (near-black with colored text) read
+ * heavy against the lighter gray surface. Lift the backgrounds toward the
+ * gray bg so the colored chip still reads as a chip, not a black block. */
+html.dark.theme-grayed .status-badge-danger {
+    background-color: #6e525a;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .status-badge-warning {
+    background-color: #6c624c;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .status-badge-success {
+    background-color: #4f6e5c;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .status-badge-info {
+    background-color: #525d70;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .status-badge-neutral {
+    background-color: #5b6270;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .trainer-badge {
+    background-color: #525d70;
+    color: var(--text-primary);
+}
+
+html.dark.theme-grayed .bg-emerald-100 {
+    background-color: #4f6e5c;
+}
+
+html.dark.theme-grayed .bg-red-100,
+html.dark.theme-grayed .bg-red-200 {
+    background-color: #6e525a;
+}
+
+html.dark.theme-grayed .bg-amber-100,
+html.dark.theme-grayed .bg-yellow-100 {
+    background-color: #6c624c;
+}
+
+html.dark.theme-grayed .bg-blue-100 {
+    background-color: #525d70;
+}
+
+html.dark.theme-grayed .bg-green-100,
+html.dark.theme-grayed .bg-green-200 {
+    background-color: #4f6e5c;
+}
+
+html.dark.theme-grayed .bg-sky-50,
+html.dark.theme-grayed .bg-sky-100 {
+    background-color: #525d70;
+}
+
+html.dark.theme-grayed .border-sky-200 {
+    border-color: #6d7686;
+}
+
+/* Native form controls — keep the chevron lifted against the gray bg and
+ * make sure inputs / textareas read as fields on the gray surface. The
+ * native dark-mode chrome (color-scheme: dark) was rendering them near-
+ * black; the grayed theme uses color-scheme: light instead, and these
+ * rules pin background / text / border to gray tokens so any consumer
+ * style still composes cleanly. */
+html.dark.theme-grayed select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    /* Lighter chevron stroke so it reads against the gray field. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23d5d8de'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+html.dark.theme-grayed input[type='text'],
+html.dark.theme-grayed input[type='tel'],
+html.dark.theme-grayed input[type='email'],
+html.dark.theme-grayed input[type='password'],
+html.dark.theme-grayed input[type='number'],
+html.dark.theme-grayed input[type='search'],
+html.dark.theme-grayed input[type='url'],
+html.dark.theme-grayed input[type='date'],
+html.dark.theme-grayed input[type='datetime-local'],
+html.dark.theme-grayed input[type='time'],
+html.dark.theme-grayed input[type='month'],
+html.dark.theme-grayed input[type='week'],
+html.dark.theme-grayed textarea {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+html.dark.theme-grayed input::placeholder,
+html.dark.theme-grayed textarea::placeholder {
+    color: var(--text-tertiary);
+    opacity: 1;
+}
+
+/* Date / time / month / week picker indicator — the dark-rendered icon
+ * leaks through even with color-scheme: light on some platforms; invert
+ * tip so it stays readable against the gray field. */
+html.dark.theme-grayed input[type='date']::-webkit-calendar-picker-indicator,
+html.dark.theme-grayed input[type='datetime-local']::-webkit-calendar-picker-indicator,
+html.dark.theme-grayed input[type='time']::-webkit-calendar-picker-indicator,
+html.dark.theme-grayed input[type='month']::-webkit-calendar-picker-indicator,
+html.dark.theme-grayed input[type='week']::-webkit-calendar-picker-indicator {
+    filter: invert(0.85);
+}
+
+/* Form scaffolding wrappers — the add-view-form rules in @layer components
+ * pin background to var(--bg-primary); that's already gray via the token
+ * block. The section card also reads from var(--bg-secondary). These two
+ * rules cover the legacy hardcoded white-card pattern still used by a
+ * couple of older modals. */
+html.dark.theme-grayed .add-view-form input,
+html.dark.theme-grayed .add-view-form select,
+html.dark.theme-grayed .add-view-form textarea {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+
+html.dark.theme-grayed .add-view-form .form-section {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-light);
+}
+
+/* Autofill — Chrome paints autofilled inputs with its own beige/blue tint
+ * that ignores background-color. Use box-shadow inset + text-fill to mask
+ * it back to the gray surface. */
+html.dark.theme-grayed input:-webkit-autofill,
+html.dark.theme-grayed input:-webkit-autofill:hover,
+html.dark.theme-grayed input:-webkit-autofill:focus,
+html.dark.theme-grayed textarea:-webkit-autofill {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: 0 0 0 30px var(--bg-secondary) inset;
+    caret-color: var(--text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Site-wide badge text — always white.
+ *
+ * Badges across the app use varied patterns: named classes
+ * (`.status-badge-*`, `.allocation-pill-*`, `.trainer-badge`) plus a long
+ * tail of inline-styled pills (StatusPill in AssetStatisticsTables, plant
+ * badges, verification chips, mode tags, schedule pills, navbar counters,
+ * etc.) painted with `color: <hex>` inline.
+ *
+ * The rule: any badge-shaped element renders white text regardless of
+ * theme. The COLORED BACKGROUND carries the semantic meaning (green =
+ * good, red = bad, amber = warning, blue = info, etc.) — the text just
+ * has to read against it, and white reads against every saturated tint
+ * we ship. A specific badge that needs darker text on a light tint can
+ * opt out by setting `color` inline to a non-white value (e.g. the
+ * yellow PlantBadge already passes `#3f2d00` for the dark-on-yellow
+ * case, and that won't match the white-text selectors below — the
+ * named-class fallback then catches the rare case where someone forgot
+ * an inline color).
+ *
+ * Badge detection: either a `rounded-full` Tailwind class, an inline
+ * `border-radius: 999`, or one of the named badge classes. Same shape
+ * the previous theme-aware rule used — we're just changing the color
+ * from `var(--text-primary)` to `#ffffff`.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.rounded-full[style*='color: #'],
+.rounded-full[style*='color:#'],
+.rounded-full[style*='color: rgb'],
+[style*='border-radius: 999'][style*='color: #'],
+[style*='border-radius:999'][style*='color:#'],
+[style*='border-radius: 999'][style*='color: rgb'],
+[style*='border-radius:999'][style*='color: rgb'],
+.status-badge,
+.status-badge-danger,
+.status-badge-warning,
+.status-badge-success,
+.status-badge-info,
+.status-badge-neutral,
+.allocation-pill-high,
+.allocation-pill-medium,
+.allocation-pill-low,
+.trainer-badge {
+    color: var(--text-primary) !important;
+}
+
+/* `.force-white-text` was an escape hatch for the previous saturated-fill
+ * badge era — it forced white text on solid-color badge fills via tripled
+ * specificity. The current Dot + Text Badge design uses a theme-tracking
+ * neutral body with `var(--text-primary)` text in EVERY theme, so forcing
+ * white text now makes badges unreadable in light mode (white on light
+ * gray = invisible). The rule is intentionally a no-op — leftover
+ * `className="force-white-text"` in callers becomes inert until those
+ * usages are cleaned up. Do NOT re-enable. */
+.force-white-text {
+}

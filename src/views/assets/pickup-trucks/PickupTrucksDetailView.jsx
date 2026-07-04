@@ -1,0 +1,474 @@
+import React, { useEffect, useMemo, useState } from 'react'
+
+import PlantDropdownModal from '../../../app/components/common/PlantDropdownModal'
+import CommentModalSection from '../../../app/components/sections/CommentModalSection'
+import DetailViewSection from '../../../app/components/sections/DetailViewSection'
+import HistoryViewSection from '../../../app/components/sections/HistoryViewSection'
+import IssueModalSection from '../../../app/components/sections/IssueModalSection'
+import { usePreferences } from '../../../app/context/PreferencesContext'
+import { PickupTruckService } from '../../../services/PickupTruckService'
+import { PlantService } from '../../../services/PlantService'
+import { UserService } from '../../../services/UserService'
+import PickupVehicleInfoCard from './detail/PickupVehicleInfoCard'
+
+/**
+ * Full detail/edit view for a single pickup truck. Supports editing VIN,
+ * make, model, year, assigned person, mileage, comments, plant (region-scoped),
+ * and status. Tracks unsaved changes and auto-saves on back navigation.
+ * Also provides cross-region transfer and sub-modals for comments, issues,
+ * and history.
+ *
+ * @param {string} pickupId - ID of the pickup truck record to display.
+ * @param {Function} onClose - Callback to return to the list view.
+ * @param {Function} [onSaved] - Optional callback after successful save.
+ */
+function PickupTrucksDetailView({ pickupId, onClose, onSaved }) {
+    const { preferences } = usePreferences()
+    const [pickup, setPickup] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSaving, setIsSaving] = useState(false)
+    const [message, setMessage] = useState('')
+    const [vin, setVin] = useState('')
+    const [make, setMake] = useState('')
+    const [model, setModel] = useState('')
+    const [year, setYear] = useState('')
+    const [assigned, setAssigned] = useState('')
+    const [assignedPlant, setAssignedPlant] = useState('')
+    const [status, setStatus] = useState('')
+    const [mileage, setMileage] = useState('')
+    const [comments, setComments] = useState('')
+    const [plants, setPlants] = useState([])
+    const [regionPlantCodes, setRegionPlantCodes] = useState(new Set())
+    const [originalValues, setOriginalValues] = useState(null)
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const [showPlantModal, setShowPlantModal] = useState(false)
+    const [currentRegion, setCurrentRegion] = useState(null)
+    const [canEditPickup, setCanEditPickup] = useState(false)
+    const [canDeletePickup, setCanDeletePickup] = useState(false)
+    const [showHistory, setShowHistory] = useState(false)
+    const [showComments, setShowComments] = useState(false)
+    const [showIssues, setShowIssues] = useState(false)
+    useEffect(() => {
+        async function fetchData() {
+            setIsLoading(true)
+            try {
+                const data = await PickupTruckService.getById(pickupId)
+                setPickup(data)
+                setVin(data?.vin || '')
+                setMake(data?.make || '')
+                setModel(data?.model || '')
+                setYear(data?.year || '')
+                setAssigned(data?.assigned || '')
+                setAssignedPlant(data?.assignedPlant || '')
+                setStatus(data?.status || '')
+                setMileage(data?.mileage ?? '')
+                setComments(data?.comments || '')
+                setOriginalValues({
+                    assigned: data?.assigned || '',
+                    assignedPlant: data?.assignedPlant || '',
+                    comments: data?.comments || '',
+                    make: data?.make || '',
+                    mileage: data?.mileage ?? '',
+                    model: data?.model || '',
+                    status: data?.status || '',
+                    vin: data?.vin || '',
+                    year: data?.year || ''
+                })
+            } catch (e) {
+                console.error('Failed to fetch pickup truck details:', e)
+                setPickup(null)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchData()
+    }, [pickupId])
+    useEffect(() => {
+        async function loadPlants() {
+            try {
+                const data = await PlantService.fetchPlants()
+                setPlants(Array.isArray(data) ? data : [])
+            } catch (e) {
+                console.error('Failed to fetch plants for pickup detail view:', e)
+                setPlants([])
+            }
+        }
+        loadPlants()
+    }, [])
+    useEffect(() => {
+        let cancelled = false
+        async function loadAllowedPlants() {
+            let regionCode = preferences.selectedRegion?.code || ''
+            try {
+                if (!regionCode) {
+                    const user = await UserService.getCurrentUser()
+                    const uid = user?.id || ''
+                    if (uid) {
+                        const profilePlant = await UserService.getUserPlant(uid)
+                        const plantCode =
+                            typeof profilePlant === 'string'
+                                ? profilePlant
+                                : profilePlant?.plant_code || profilePlant?.plantCode || ''
+                        if (plantCode) {
+                            const regions = await PlantService.fetchRegionsByPlantCode(plantCode)
+                            const r = Array.isArray(regions) && regions.length ? regions[0] : null
+                            regionCode = r ? r.regionCode || r.region_code || '' : ''
+                        }
+                    }
+                }
+                if (!regionCode) {
+                    if (!cancelled) setRegionPlantCodes(new Set())
+                    return
+                }
+                const regionPlants = await PlantService.fetchRegionPlants(regionCode)
+                if (cancelled) return
+                const codes = new Set(
+                    regionPlants
+                        .map((p) =>
+                            String(p.plantCode || p.plant_code || '')
+                                .trim()
+                                .toUpperCase()
+                        )
+                        .filter(Boolean)
+                )
+                setRegionPlantCodes(codes)
+            } catch (e) {
+                console.error('Failed to load allowed plant codes for pickup detail view:', e)
+                if (!cancelled) setRegionPlantCodes(new Set())
+            }
+        }
+        loadAllowedPlants()
+        return () => {
+            cancelled = true
+        }
+    }, [preferences.selectedRegion?.code])
+    const filteredPlants = useMemo(() => {
+        if (!regionPlantCodes || regionPlantCodes.size === 0) return []
+        return plants.filter((p) =>
+            regionPlantCodes.has(
+                String(p.plantCode || p.plant_code || '')
+                    .trim()
+                    .toUpperCase()
+            )
+        )
+    }, [plants, regionPlantCodes])
+    const selectedPlantObj = plants.find((p) => (p.plantCode || p.plant_code) === assignedPlant)
+    const plantDisplayText = assignedPlant
+        ? `(${selectedPlantObj?.plantCode || selectedPlantObj?.plant_code || assignedPlant}) ${selectedPlantObj?.plantName || selectedPlantObj?.plant_name || ''}`
+        : 'Select Plant'
+    useEffect(() => {
+        if (!originalValues) return
+        const changed =
+            (vin || '') !== (originalValues.vin || '') ||
+            (make || '') !== (originalValues.make || '') ||
+            (model || '') !== (originalValues.model || '') ||
+            (year || '') !== (originalValues.year || '') ||
+            (assigned || '') !== (originalValues.assigned || '') ||
+            (assignedPlant || '') !== (originalValues.assignedPlant || '') ||
+            (status || '') !== (originalValues.status || '') ||
+            String(mileage ?? '') !== String(originalValues.mileage ?? '') ||
+            (comments || '') !== (originalValues.comments || '')
+        setHasUnsavedChanges(changed)
+    }, [vin, make, model, year, assigned, assignedPlant, status, mileage, comments, originalValues])
+    useEffect(() => {
+        if (pickup?.assignedPlant) {
+            PlantService.fetchRegionsByPlantCode(pickup.assignedPlant)
+                .then((regions) => {
+                    if (regions && regions.length > 0) {
+                        setCurrentRegion(regions[0].regionCode)
+                    } else {
+                        setCurrentRegion(null)
+                    }
+                })
+                .catch(() => setCurrentRegion(null))
+        }
+    }, [pickup?.assignedPlant])
+    /** Transfers the pickup truck to a different region/plant, persists via PickupTruckService, then updates local state. */
+    async function handleRegionTransfer(newRegionCode, newPlantCode) {
+        if (!pickup?.id || !newRegionCode || !newPlantCode) {
+            throw new Error('Invalid pickup truck, region, or plant')
+        }
+        const newRegion = await PlantService.fetchRegionByCode(newRegionCode)
+        if (!newRegion) {
+            throw new Error('Target region not found')
+        }
+        setIsSaving(true)
+        setMessage('')
+        try {
+            const userObj = await UserService.getCurrentUser()
+            const userId = typeof userObj === 'object' && userObj !== null ? userObj.id : userObj
+            const updatedPickup = {
+                ...pickup,
+                assignedPlant: newPlantCode
+            }
+            const result = await PickupTruckService.update(pickup.id, updatedPickup, userId)
+            setPickup(result)
+            setAssignedPlant(newPlantCode)
+            setOriginalValues({
+                ...originalValues,
+                assignedPlant: newPlantCode
+            })
+            setHasUnsavedChanges(false)
+            setMessage(`Successfully transferred to ${newRegion.regionName}`)
+            setTimeout(() => setMessage(''), 3000)
+        } catch (error) {
+            console.error('Region transfer failed:', error)
+            throw error
+        } finally {
+            setIsSaving(false)
+        }
+    }
+    async function handleSave() {
+        if (!pickup?.id) return null
+        setIsSaving(true)
+        try {
+            const payload = {
+                assigned: assigned || null,
+                assignedPlant: assignedPlant || null,
+                comments: comments || null,
+                make: make || null,
+                mileage: mileage === '' ? null : Number(mileage),
+                model: model || null,
+                status: status || null,
+                vin: vin || null,
+                year: year || null
+            }
+            const updated = await PickupTruckService.update(pickup.id, payload)
+            setPickup(updated)
+            setMessage('Changes saved')
+            setTimeout(() => setMessage(''), 3000)
+            setOriginalValues({
+                assigned: updated?.assigned || '',
+                assignedPlant: updated?.assignedPlant || '',
+                comments: updated?.comments || '',
+                make: updated?.make || '',
+                mileage: updated?.mileage ?? '',
+                model: updated?.model || '',
+                status: updated?.status || '',
+                vin: updated?.vin || '',
+                year: updated?.year || ''
+            })
+            setHasUnsavedChanges(false)
+            return updated
+        } catch (e) {
+            let errorMessage = 'Error saving changes'
+            if (e?.message && typeof e.message === 'string') {
+                if (e.message.includes('duplicate key') && e.message.includes('pickup_trucks_truck_number_key')) {
+                    errorMessage = `This truck number already exists. Please use a different truck number.`
+                } else {
+                    errorMessage = e.message
+                }
+            }
+            setMessage(errorMessage)
+            setTimeout(() => setMessage(''), 4000)
+            return null
+        } finally {
+            setIsSaving(false)
+        }
+    }
+    async function handleDelete() {
+        if (!pickup?.id) return
+        try {
+            await PickupTruckService.remove(pickup.id)
+            onClose?.()
+        } catch (e) {
+            console.error('Failed to delete pickup truck:', e)
+        }
+    }
+    async function handleBackClick() {
+        if (hasUnsavedChanges) {
+            const updated = await handleSave()
+            if (!updated) return
+            if (typeof onSaved === 'function') onSaved(updated)
+            else onClose?.()
+            return
+        }
+        if (typeof onSaved === 'function') onSaved()
+        else onClose?.()
+    }
+    useEffect(() => {
+        const checkDeletePermission = async () => {
+            try {
+                const currentUser = await UserService.getCurrentUser()
+                const userId = currentUser?.id || currentUser
+                if (userId) {
+                    const hasPermission = await UserService.hasPermission(userId, 'detailview.delete')
+                    setCanDeletePickup(hasPermission)
+                } else {
+                    setCanDeletePickup(false)
+                }
+            } catch (e) {
+                console.error('Failed to check delete permission:', e)
+                setCanDeletePickup(false)
+            }
+        }
+        checkDeletePermission()
+    }, [])
+    return (
+        <>
+            <DetailViewSection
+                title={`Pickup ${assigned ? `- ${assigned}` : ''}`}
+                onClose={onClose}
+                onBack={handleBackClick}
+                isSaving={isSaving}
+                message={message}
+                itemAssignedPlant={pickup?.assignedPlant}
+                onCanEditChange={setCanEditPickup}
+                isLoading={isLoading}
+                loadingMessage="Loading pickup details..."
+                notFound={!pickup && !isLoading}
+                notFoundMessage="Pickup Not Found"
+                notFoundDescription="Could not find the requested pickup."
+                currentRegion={currentRegion}
+                assetType="pickup_truck"
+                onRegionTransfer={handleRegionTransfer}
+                headerActions={
+                    pickup && (
+                        <>
+                            <button type="button" className="global-button-secondary" onClick={() => setShowIssues(true)}>
+                                <i className="fas fa-tools"></i>
+                                <span>Issues</span>
+                            </button>
+                            <button type="button" className="global-button-secondary" onClick={() => setShowComments(true)}>
+                                <i className="fas fa-comments"></i>
+                                <span>Comments</span>
+                            </button>
+                            <button type="button" className="global-button-secondary" onClick={() => setShowHistory(true)}>
+                                <i className="fas fa-history"></i>
+                                <span>History</span>
+                            </button>
+                        </>
+                    )
+                }
+                footerActions={
+                    canEditPickup && (
+                        <>
+                            <button type="button"
+                                className="global-button-secondary flex-1 justify-center"
+                                onClick={handleSave}
+                                disabled={isSaving || !canEditPickup}
+                            >
+                                <i className="fas fa-save"></i>
+                                <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                            </button>
+                            {canDeletePickup && (
+                                <button type="button"
+                                    className="global-button-secondary flex-1 justify-center"
+                                    onClick={handleDelete}
+                                    disabled={isSaving || !canEditPickup}
+                                >
+                                    <i className="fas fa-trash-alt"></i>
+                                    <span>Delete</span>
+                                </button>
+                            )}
+                        </>
+                    )
+                }
+                modals={
+                    <>
+                        {showPlantModal && (
+                            <PlantDropdownModal
+                                isOpen={showPlantModal}
+                                onClose={() => setShowPlantModal(false)}
+                                plants={filteredPlants}
+                                onSelect={setAssignedPlant}
+                                searchPlaceholder="Search plants..."
+                            />
+                        )}
+                        {showHistory && (
+                            <HistoryViewSection
+                                item={pickup}
+                                onClose={() => setShowHistory(false)}
+                                type="pickup-truck"
+                            />
+                        )}
+                        {showComments && (
+                            <CommentModalSection
+                                itemId={pickup?.id}
+                                itemNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                itemType="Pickup Truck"
+                                onClose={() => setShowComments(false)}
+                                service={PickupTruckService}
+                            />
+                        )}
+                        {showIssues && (
+                            <IssueModalSection
+                                itemId={pickup?.id}
+                                itemNumber={pickup?.assigned || pickup?.vin || pickup?.id}
+                                itemType="Pickup Truck"
+                                onClose={() => setShowIssues(false)}
+                                service={PickupTruckService}
+                            />
+                        )}
+                    </>
+                }
+            >
+                <DetailViewSection.Section id="basic" title="Basic Information" icon="fas fa-truck-pickup">
+                    <DetailViewSection.Card title="Pickup Details" icon="fas fa-info-circle">
+                        <div className="form-group">
+                            <label>Assigned Plant</label>
+                            <button type="button"
+                                className={`operator-select-button form-control text-left ${!canEditPickup ? 'bg-bg-secondary opacity-80 cursor-not-allowed' : ''}`}
+                                onClick={() => setShowPlantModal(true)}
+                                disabled={!canEditPickup}
+                            >
+                                <span className="block truncate">{plantDisplayText}</span>
+                            </button>
+                        </div>
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditPickup}
+                            >
+                                <option value="">Select Status</option>
+                                <option value="Active">Active</option>
+                                <option value="Stationary">Stationary</option>
+                                <option value="Spare">Spare</option>
+                                <option value="In Shop">In Shop</option>
+                                <option value="Retired">Retired</option>
+                                <option value="Sold">Sold</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Assigned</label>
+                            <input
+                                type="text"
+                                value={assigned}
+                                onChange={(e) => setAssigned(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditPickup}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Mileage</label>
+                            <input
+                                type="number"
+                                value={mileage}
+                                onChange={(e) => setMileage(e.target.value)}
+                                className="form-control"
+                                disabled={!canEditPickup}
+                            />
+                        </div>
+                    </DetailViewSection.Card>
+                    <PickupVehicleInfoCard
+                        vin={vin}
+                        onVinChange={setVin}
+                        make={make}
+                        onMakeChange={setMake}
+                        model={model}
+                        onModelChange={setModel}
+                        year={year}
+                        onYearChange={setYear}
+                        comments={comments}
+                        onCommentsChange={setComments}
+                        canEditPickup={canEditPickup}
+                    />
+                </DetailViewSection.Section>
+            </DetailViewSection>
+        </>
+    )
+}
+export default PickupTrucksDetailView

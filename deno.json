@@ -1,0 +1,6 @@
+{
+    "importMap": "./supabase/functions/import_map.json",
+    "compilerOptions": {
+        "strict": true
+    }
+}

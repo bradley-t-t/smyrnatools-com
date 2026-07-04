@@ -1,0 +1,8 @@
+export { PersonActivityPage } from './pages/PersonActivityPage'
+export { PersonCoveragePage } from './pages/PersonCoveragePage'
+export { PersonHiringTrainingPage } from './pages/PersonHiringTrainingPage'
+export { PersonOverviewPage } from './pages/PersonOverviewPage'
+export { PersonPlantsPage } from './pages/PersonPlantsPage'
+export { PersonRatingPage } from './pages/PersonRatingPage'
+export { PersonRolesPage } from './pages/PersonRolesPage'
+export { PersonStatusPage } from './pages/PersonStatusPage'

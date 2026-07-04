@@ -1,0 +1,93 @@
+{
+    "root": true,
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:security/recommended-legacy"
+    ],
+    "plugins": ["react", "react-hooks", "simple-import-sort", "sort-keys-fix", "unused-imports", "security"],
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "rules": {
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "sort-keys-fix/sort-keys-fix": "warn",
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
+        "react/forbid-dom-props": ["warn", { "forbid": ["style"] }],
+        "react/prop-types": "off",
+        "react/react-in-jsx-scope": "off",
+        "no-empty": "off",
+        "no-useless-catch": "off",
+        "no-unused-vars": "off",
+        "security/detect-object-injection": "off"
+    },
+    "overrides": [
+        {
+            "files": [
+                "src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+                "src/**/*.test.{js,jsx,ts,tsx}",
+                "src/setupTests.js"
+            ],
+            "env": {
+                "jest": true,
+                "node": true
+            },
+            "globals": {
+                "vi": "readonly"
+            },
+            "rules": {
+                "max-lines": "off",
+                "no-undef": "off"
+            }
+        },
+        {
+            "files": [
+                "src/views/**/*.jsx",
+                "src/app/components/**/*.jsx"
+            ],
+            "rules": {
+                "max-lines": ["error", { "max": 500, "skipBlankLines": true, "skipComments": true }]
+            }
+        },
+        {
+            "files": ["src/**/*.{js,jsx}"],
+            "excludedFiles": ["src/services/DatabaseService.js"],
+            "rules": {
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        "paths": [
+                            {
+                                "name": "@supabase/supabase-js",
+                                "message": "Use DatabaseService instead of importing @supabase/supabase-js directly"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
