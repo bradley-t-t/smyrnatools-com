@@ -18,8 +18,8 @@ export function collectPageview(siteKey) {
   const { location, document, navigator, screen } = window
   const params = new URLSearchParams(location.search)
   return {
-    path: `${location.pathname}${location.search}`,
     language: navigator.language || null,
+    path: `${location.pathname}${location.search}`,
     referrer: document.referrer || null,
     screen: screen ? `${screen.width}x${screen.height}` : null,
     sessionId: resolveSessionId(),
