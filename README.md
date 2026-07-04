@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=core" alt="CI Status" />
-  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/test.yml/badge.svg?branch=core" alt="Test Status" />
-  <img src="https://img.shields.io/badge/v2026.24.1-release-c12033" alt="Version" />
+  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/ci.yml/badge.svg?branch=production" alt="CI Status" />
+  <img src="https://github.com/bradley-t-t/smyrnatools-com/actions/workflows/test.yml/badge.svg?branch=main" alt="Test Status" />
+  <img src="https://img.shields.io/badge/v2026.26.21-release-c12033" alt="Version" />
   <img src="https://img.shields.io/badge/React-19.1-61DAFB?logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind" />
@@ -139,20 +139,15 @@ validates metrics for mathematical consistency and flags anomalies before submis
 
 ## AI Integration
 
-The AI layer uses xAI's Grok API routed through the `ai-service` edge function (no direct client-to-API calls). Eight
-registered prompt categories live in `src/app/ai/context.json` and are referenced by key from `AIService.js`:
+The AI layer uses xAI's Grok API (`grok-4`, with `grok-3-mini-fast` for lightweight calls) routed exclusively through
+the `ai-service` edge function — there are no direct client-to-API calls, so the API key never reaches the browser.
+Prompt templates live in `src/app/ai/context.json` as a keyed registry and are referenced by key from `AIService.js`:
 
-- **Asset History Summary** (`historySummary`) — converts raw change logs into readable narratives
-- **GM Report Analysis** (`gmReportAnalysis`) — executive summary generation for General Manager weekly reviews
-- **GM Report Export Summary** (`gmReportExportSummary`) — narrative for GM report exports
-- **List Item Improvement** (`improveListItem`) — rewrites task descriptions to be clearer and more actionable
-- **List Item Suggestions** (`suggestListItems`) — auto-completes partial task descriptions
-- **Efficiency Comment Validation** (`validateEfficiencyComment`) — checks operator explanations against flagged issues
-- **List Item Prioritization** (`prioritizeListItems`) — orders task lists by importance
-- **Plant Manager Metric Validation** (`validatePlantManagerMetrics`) — flags mathematical inconsistencies in submissions
+- **Asset History Summary** (`historySummary`) — turns an asset or operator's raw change log into a short, readable
+  assessment (2-3 sentences) that highlights trends and ends with one practical recommendation
 
-Prompts use a JSON-based registry with dynamic role context injection built from the database, so new roles
-automatically get appropriate AI behavior.
+The registry is structured so additional prompt categories can be added as keyed entries without touching the calling
+code.
 
 ---
 
@@ -261,7 +256,7 @@ exercise rather than a copy-paste of N service files.
 - `src/services/__tests__/` — DatabaseService
 - `src/views/__tests__/` — LoginView, MixersView, ReportsSubmitView
 
-Run `npm test` locally. CI runs vitest on every PR to `main` or `core`.
+Run `npm test` locally. CI runs vitest on every PR to `main` or `production`.
 
 ### CI
 
@@ -269,9 +264,9 @@ Three GitHub Actions workflows:
 
 | Workflow | Runs | Purpose |
 |---|---|---|
-| `ci.yml` | push / PR to `core` | ESLint + production Vite build |
-| `test.yml` | PR to `main` or `core` | `npm test` (vitest) |
-| `lint.yml` | PR to `main` | ESLint |
+| `ci.yml` | push / PR to `production` | ESLint + production Vite build |
+| `test.yml` | push / PR to `main`, `production` | `npm test` (vitest) |
+| `lint.yml` | push / PR to `main`, `production` | ESLint |
 
 ### Data Flow
 
@@ -322,7 +317,8 @@ Two font families from Google Fonts:
 - **Exo 2** for body text
 
 The accent color is user-customizable and persisted to the database. Theme classes apply before first paint via an
-inline script to prevent FOUC. Two primary themes supported — dark and light — toggled via a theme mode switch.
+inline script to prevent FOUC. Three theme modes are supported — dark, light, and gray — toggled via a theme mode
+switch, with every view built to work across all three.
 
 ---
 
@@ -337,13 +333,13 @@ standalone app on iOS with translucent status bar.
 
 | Metric                | Value                                              |
 |-----------------------|----------------------------------------------------|
-| **Current Version**   | 2026.24.1                                          |
-| **Views**             | 86 view files across 23 page modules               |
-| **Services**          | 30 service classes                                 |
-| **Custom Hooks**      | 99 specialized hooks                               |
-| **Domain Models**     | 22 model classes                                   |
-| **Edge Functions**    | 38 Supabase edge functions                         |
-| **AI Prompt Types**   | 8 registered prompt categories                     |
+| **Current Version**   | 2026.26.21                                         |
+| **Views**             | 82 view files across 23 page modules               |
+| **Services**          | 18 service classes                                 |
+| **Custom Hooks**      | 59 specialized hooks                               |
+| **Domain Models**     | 21 model classes                                   |
+| **Edge Functions**    | 28 Supabase edge functions                         |
+| **AI Prompt Types**   | 1 registered prompt category                       |
 | **Report Types**      | 8 weekly + 3 one-off report formats                |
 | **Fleet Asset Types** | 5 (Mixers, Tractors, Trailers, Equipment, Pickups) |
 | **Plan Tabs**         | 8 (Dashboard, Schedule, Planner, Demand, Statistics, Call List, Find a Spot, Settings) |

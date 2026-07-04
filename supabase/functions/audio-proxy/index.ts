@@ -15,8 +15,8 @@ import { errorResponse, getCorsHeaders, handleOptions } from '../_shared/cors.ts
  *
  * Public on purpose — podcast audio is public content and we strictly
  * allowlist the upstream hostname so this can't be abused as a generic
- * open proxy. Pattern matches `geocode-service` / `crypto-utility` in the
- * CLAUDE.md utility-function exception list.
+ * open proxy. Follows the same public utility-function pattern as
+ * `geocode-service` / `crypto-utility`.
  */
 
 const ALLOWED_HOSTS = new Set([
