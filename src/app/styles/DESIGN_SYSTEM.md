@@ -1,15 +1,31 @@
-# Smyrna Tools — Shared Design Vocabulary
+<h1 align="center">Smyrna Tools — Design System</h1>
 
-This file is the single source of truth for the motion, elevation, focus,
-hover, and interaction patterns used across the app. Every visual change
-should read from this file and align with the patterns below so the
-product feels coherent across views.
+<p align="center">
+  <b>The shared vocabulary for motion, elevation, focus, and interaction.</b>
+</p>
+<p align="center">
+  One source of truth so every view — fleet, people, plants, reports —<br />
+  feels like the same product across all three themes.
+</p>
 
-The substrate is **Tailwind v3 + CSS custom properties** with three themes
-(light, dark, gray). Tokens like `bg-bg-primary`, `text-text-primary`,
-`border-border-light`, `bg-accent` are defined in `tailwind.config.js` and
-backed by CSS variables in `src/app/index.css`. Never hardcode hex colors.
-Never write raw CSS. Tailwind-only.
+<p align="center">
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-007aff?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="CSS Variables" src="https://img.shields.io/badge/CSS_Variables-tokens-007aff?style=for-the-badge&logo=css3&logoColor=white" />
+  <img alt="Themes" src="https://img.shields.io/badge/Themes-light_·_dark_·_gray-007aff?style=for-the-badge" />
+</p>
+
+<br />
+
+## Why this file
+
+Every visual change should read from this file and align with the patterns
+below, so the product feels coherent across views. The substrate is
+**Tailwind v3 + CSS custom properties** with three themes (light, dark,
+gray). Tokens like `bg-bg-primary`, `text-text-primary`,
+`border-border-light`, and `bg-accent` are defined in `tailwind.config.js`
+and backed by CSS variables in `src/app/index.css`.
+
+> **Never** hardcode hex colors. **Never** write raw CSS. Tailwind-only.
 
 ---
 
@@ -183,3 +199,9 @@ Before declaring any visual change done, mentally verify:
 If a change uses raw palette tokens (`bg-white`, `bg-gray-100`,
 `text-gray-500`), it fails the test. Use semantic tokens
 (`bg-bg-primary`, `text-text-secondary`).
+
+<br />
+
+<p align="center">
+  <sub>One vocabulary — read it before you touch a pixel.</sub>
+</p>
