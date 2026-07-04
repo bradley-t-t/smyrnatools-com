@@ -11,6 +11,7 @@ import { AuthProvider } from './app/context/AuthContext'
 import { ConfirmProvider } from './app/context/ConfirmContext'
 import { PreferencesProvider } from './app/context/PreferencesContext'
 import { TutorialProvider } from './app/context/TutorialContext'
+import { SundayAnalyticsProvider } from './lib/sunday-analyzer'
 import { getSessionUserId } from './services/SessionService'
 
 const SENTRY_DSN = import.meta.env.REACT_APP_SENTRY_DSN
@@ -92,19 +93,21 @@ document.head.appendChild(
 )
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-        <BrowserRouter>
-            <AuthProvider>
-                <PreferencesProvider>
-                    <TutorialProvider>
-                        <ConfirmProvider>
-                            <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-                                <App />
-                            </Sentry.ErrorBoundary>
-                        </ConfirmProvider>
-                    </TutorialProvider>
-                </PreferencesProvider>
-            </AuthProvider>
-        </BrowserRouter>
+        <SundayAnalyticsProvider siteKey="sa_7bcbf8f895fbbf056ce0cbc4a8b92531">
+            <BrowserRouter>
+                <AuthProvider>
+                    <PreferencesProvider>
+                        <TutorialProvider>
+                            <ConfirmProvider>
+                                <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
+                                    <App />
+                                </Sentry.ErrorBoundary>
+                            </ConfirmProvider>
+                        </TutorialProvider>
+                    </PreferencesProvider>
+                </AuthProvider>
+            </BrowserRouter>
+        </SundayAnalyticsProvider>
     </React.StrictMode>
 )
 const runWhenIdle = (callback) => {
