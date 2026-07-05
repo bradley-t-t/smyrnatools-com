@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-007aff?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-  <img alt="CSS Variables" src="https://img.shields.io/badge/CSS_Variables-tokens-007aff?style=for-the-badge&logo=css3&logoColor=white" />
-  <img alt="Themes" src="https://img.shields.io/badge/Themes-light_·_dark_·_gray-007aff?style=for-the-badge" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-2563eb?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="CSS Variables" src="https://img.shields.io/badge/CSS_Variables-tokens-3b82f6?style=for-the-badge&logo=css3&logoColor=white" />
+  <img alt="Themes" src="https://img.shields.io/badge/Themes-light_·_dark_·_gray-1f56cf?style=for-the-badge" />
 </p>
 
 <br />

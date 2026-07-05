@@ -13,13 +13,13 @@
 </p>
 
 <p align="center">
-  <img alt="React" src="https://img.shields.io/badge/React-19-007aff?style=for-the-badge&logo=react&logoColor=white" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-007aff?style=for-the-badge&logo=vite&logoColor=white" />
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-007aff?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-007aff?style=for-the-badge&logo=supabase&logoColor=white" />
-  <img alt="React Router" src="https://img.shields.io/badge/React_Router-7-007aff?style=for-the-badge&logo=reactrouter&logoColor=white" />
-  <img alt="Sentry" src="https://img.shields.io/badge/Sentry-monitored-007aff?style=for-the-badge&logo=sentry&logoColor=white" />
-  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-deployed-007aff?style=for-the-badge&logo=vercel&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-19-2563eb?style=for-the-badge&logo=react&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-6-2563eb?style=for-the-badge&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-3-2563eb?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-2563eb?style=for-the-badge&logo=supabase&logoColor=white" />
+  <img alt="React Router" src="https://img.shields.io/badge/React_Router-7-2563eb?style=for-the-badge&logo=reactrouter&logoColor=white" />
+  <img alt="Sentry" src="https://img.shields.io/badge/Sentry-monitored-3b82f6?style=for-the-badge&logo=sentry&logoColor=white" />
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-deployed-1f56cf?style=for-the-badge&logo=vercel&logoColor=white" />
 </p>
 
 <br />
@@ -129,7 +129,7 @@ src/
 supabase/
   functions/    Deno edge functions (deployed individually) — all database writes
   migrations/   append-only SQL
-scripts/        dev/ops helpers (Supabase CLI wrapper, CalVer, email/SQL tooling)
+scripts/        dev/ops helpers (Supabase CLI wrapper, CalVer, email templates, dispatch bridge)
 public/         logos, favicon, PWA manifest + service worker
 ```
 
