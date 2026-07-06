@@ -36,3 +36,7 @@ badge-designs.html
 
 # local agent/editor config (never publish)
 /.claude/
+.idea/
+.vscode/
+*.iml
+*.sql
