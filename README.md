@@ -20,6 +20,7 @@
   <img alt="React Router" src="https://img.shields.io/badge/React_Router-7-2563eb?style=for-the-badge&logo=reactrouter&logoColor=white" />
   <img alt="Sentry" src="https://img.shields.io/badge/Sentry-monitored-3b82f6?style=for-the-badge&logo=sentry&logoColor=white" />
   <img alt="Vercel" src="https://img.shields.io/badge/Vercel-deployed-1f56cf?style=for-the-badge&logo=vercel&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/license-proprietary-1f56cf?style=for-the-badge" />
 </p>
 
 <br />
@@ -87,7 +88,7 @@ A `supabase:*` script family wraps the Supabase CLI through `scripts/supabase.js
 | Script | Purpose |
 | :--- | :--- |
 | `supabase:start` · `:stop` · `:status` | Run the local Supabase stack |
-| `supabase:db:reset` | Rebuild the local database from migrations |
+| `supabase:db:reset` | Reset the local Supabase database via the CLI |
 | `supabase:functions:serve` · `:deploy` · `:invoke` | Develop and ship edge functions |
 | `supabase:functions:list` · `:new` · `:download` · `:delete` | Manage edge functions |
 | `supabase:login` · `:init` · `:version` | CLI auth and setup |
@@ -128,7 +129,6 @@ src/
   index.jsx     entry — Sentry init, context providers, root <App/>
 supabase/
   functions/    Deno edge functions (deployed individually) — all database writes
-  migrations/   append-only SQL
 scripts/        dev/ops helpers (Supabase CLI wrapper, CalVer, email templates, dispatch bridge)
 public/         logos, favicon, PWA manifest + service worker
 ```
