@@ -79,13 +79,13 @@ function LoginView() {
     }, [isRevealed, reveal, conceal])
 
     return (
-        <div className="relative flex h-full min-h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-slate-950 text-text-primary">
+        <div className="relative flex h-full min-h-screen w-full flex-col overflow-y-auto overflow-x-hidden bg-slate-950 text-white">
             {/*
              * Full-bleed ambient video pinned to the viewport so the navy
              * underlay always covers the screen regardless of scroll
              * position or how tall the revealed portal grows. A dark
-             * vignette sits on top to keep the form panel and gate copy
-             * legible across the dark, light, and gray themes.
+             * vignette sits on top so the translucent glass panels read
+             * cleanly against the moving footage.
              */}
             <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
                 {videoLoaded ? (
@@ -95,30 +95,30 @@ function LoginView() {
                 ) : (
                     <VideoFallback />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/45 to-slate-950/90" />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/75 via-slate-950/55 to-slate-950/90" />
             </div>
             <VersionPopup version={version} />
-            <header className="relative z-10 flex shrink-0 items-center gap-3 border-b border-border-light bg-bg-primary px-4 py-2.5 sm:px-5">
+            <header className="relative z-10 flex shrink-0 items-center gap-3 border-b border-white/10 bg-slate-950/40 px-4 py-2.5 backdrop-blur-xl sm:px-5">
                 <button type="button"
                     onClick={handleBrandClick}
                     aria-expanded={isRevealed}
                     aria-controls="portal-landing"
                     aria-label={isRevealed ? 'Hide sign-in portal' : 'Reveal sign-in portal'}
-                    className="group flex min-w-0 cursor-pointer items-center gap-3 rounded-md border-none bg-transparent p-0 text-left transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary motion-reduce:transition-none"
+                    className="group flex min-w-0 cursor-pointer items-center gap-3 rounded-md border-none bg-transparent p-0 text-left transition-opacity duration-150 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none"
                 >
                     <img src={SrmLogo} alt="Smyrna Ready Mix" className="h-7 w-7 shrink-0" loading="eager" />
                     <span className="flex min-w-0 flex-col leading-tight">
-                        <span className="font-heading text-[15px] font-bold tracking-tight text-text-primary">
+                        <span className="font-heading text-[15px] font-bold tracking-tight text-white">
                             Smyrna Portal
                         </span>
-                        <span className="hidden text-[9.5px] font-semibold uppercase tracking-[0.14em] text-text-tertiary sm:inline">
+                        <span className="hidden text-[9.5px] font-semibold uppercase tracking-[0.14em] text-white/55 sm:inline">
                             Operations · Fleet · Concrete
                         </span>
                     </span>
                 </button>
                 <div className="min-w-[8px] flex-1" />
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border-light bg-bg-secondary px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-text-secondary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-status-active" aria-hidden="true" />
+                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-white/15 bg-white/[0.06] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-white/75">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" aria-hidden="true" />
                     <span className="hidden sm:inline">System</span>
                     Online
                 </span>
@@ -133,17 +133,17 @@ function LoginView() {
                             aria-labelledby="portal-heading"
                             className="mb-7 flex flex-col gap-1.5"
                         >
-                            <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-text-tertiary">
-                                <span className="h-px w-6 bg-border-medium" aria-hidden="true" />
+                            <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55">
+                                <span className="h-px w-6 bg-white/25" aria-hidden="true" />
                                 Welcome
                             </span>
                             <h1
                                 id="portal-heading"
-                                className="m-0 font-heading text-[28px] font-bold leading-[1.05] tracking-tight text-text-primary sm:text-[34px]"
+                                className="m-0 font-heading text-[28px] font-bold leading-[1.05] tracking-tight text-white sm:text-[34px]"
                             >
                                 Smyrna at a glance.
                             </h1>
-                            <p className="m-0 max-w-xl text-[13.5px] leading-relaxed text-text-secondary">
+                            <p className="m-0 max-w-xl text-[13.5px] leading-relaxed text-white/70">
                                 Visit the company site, hop into the fleet platform, or sign in to the operations
                                 tool.
                             </p>
@@ -151,11 +151,11 @@ function LoginView() {
                         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:gap-6">
                             <nav aria-label="Destinations" className="flex flex-col gap-2.5">
                                 <div className="flex items-center gap-2 px-0.5">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-text-tertiary">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-white/55">
                                         Destinations
                                     </span>
-                                    <span className="h-px flex-1 bg-border-light" aria-hidden="true" />
-                                    <span className="text-[10px] font-bold tabular-nums text-text-tertiary">03</span>
+                                    <span className="h-px flex-1 bg-white/15" aria-hidden="true" />
+                                    <span className="text-[10px] font-bold tabular-nums text-white/55">03</span>
                                 </div>
                                 <PortalDestinationCard
                                     title="Smyrna Ready Mix"
@@ -198,12 +198,12 @@ function LoginView() {
                             onClick={reveal}
                             aria-expanded={isRevealed}
                             aria-controls="portal-landing"
-                            className="group flex w-full cursor-pointer flex-col items-center gap-5 rounded-card border border-transparent bg-transparent px-6 py-8 text-center transition-[transform,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-border-light hover:bg-bg-primary focus-visible:outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-secondary motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                            className="group flex w-full cursor-pointer flex-col items-center gap-5 rounded-card border border-transparent bg-transparent px-6 py-8 text-center transition-[transform,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:border-white/40 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                         >
                             <span className="relative inline-flex h-16 w-16 items-center justify-center">
                                 <span
                                     aria-hidden="true"
-                                    className="absolute inset-0 rounded-full bg-accent/10 transition-[transform,background-color] duration-300 ease-out group-hover:scale-110 group-hover:bg-accent/15 motion-reduce:transition-none"
+                                    className="absolute inset-0 rounded-full bg-white/10 transition-[transform,background-color] duration-300 ease-out group-hover:scale-110 group-hover:bg-white/15 motion-reduce:transition-none"
                                 />
                                 <img
                                     src={SrmLogo}
@@ -214,21 +214,21 @@ function LoginView() {
                                 />
                             </span>
                             <span className="flex flex-col items-center gap-2.5">
-                                <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-text-tertiary">
-                                    <span className="h-px w-6 bg-border-medium" aria-hidden="true" />
+                                <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55">
+                                    <span className="h-px w-6 bg-white/25" aria-hidden="true" />
                                     Welcome
-                                    <span className="h-px w-6 bg-border-medium" aria-hidden="true" />
+                                    <span className="h-px w-6 bg-white/25" aria-hidden="true" />
                                 </span>
-                                <span className="font-heading text-[40px] font-bold leading-none tracking-tight text-text-primary sm:text-[48px]">
+                                <span className="font-heading text-[40px] font-bold leading-none tracking-tight text-white sm:text-[48px]">
                                     Smyrna Tools
                                 </span>
-                                <span className="text-[12.5px] text-text-secondary">
+                                <span className="text-[12.5px] text-white/70">
                                     Click to sign in
                                 </span>
                             </span>
                             <span
                                 aria-hidden="true"
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border-light bg-bg-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-text-tertiary transition-[color,border-color,transform] duration-200 ease-out group-hover:translate-y-0.5 group-hover:border-accent group-hover:text-accent motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 transition-[color,border-color,transform,background-color] duration-200 ease-out group-hover:translate-y-0.5 group-hover:border-white/30 group-hover:bg-white/[0.1] group-hover:text-white motion-reduce:transition-none motion-reduce:group-hover:translate-y-0"
                             >
                                 <i className="fas fa-chevron-down text-[9px]" />
                                 Enter

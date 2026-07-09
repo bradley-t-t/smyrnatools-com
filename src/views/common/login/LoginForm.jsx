@@ -20,14 +20,14 @@ const PasswordStrengthBar = memo(function PasswordStrengthBar({ strength }) {
     return (
         <div className="mb-4 -mt-2">
             <div className="flex items-center gap-2">
-                <div className="flex-1 h-1 rounded-sm bg-bg-tertiary">
+                <div className="flex-1 h-1 rounded-sm bg-white/10">
                     <div
                         className="h-full rounded-sm transition-[width] duration-300"
                         style={{ background: strength.color, width: widthMap[strength.value] || '0%' }}
                     />
                 </div>
                 <span
-                    className={`text-[10px] font-bold uppercase tracking-[0.08em] ${STRENGTH_TONE_CLS[strength.value] || 'text-text-secondary'}`}
+                    className={`text-[10px] font-bold uppercase tracking-[0.08em] ${STRENGTH_TONE_CLS[strength.value] || 'text-white/70'}`}
                 >
                     {strength.value}
                 </span>
@@ -47,13 +47,13 @@ const constantTimeEqual = (a, b) => {
 }
 
 const INPUT_CLS =
-    'w-full rounded-md border border-border-light bg-bg-secondary text-text-primary text-[13.5px] ' +
+    'w-full rounded-md border border-white/15 bg-white/[0.06] text-white text-[13.5px] ' +
     'px-3 py-2.5 outline-none transition-[border-color,background-color,box-shadow] duration-150 ease-out motion-reduce:transition-none ' +
-    'placeholder:text-text-tertiary hover:border-border-medium ' +
-    'focus:border-accent focus:bg-bg-primary ' +
-    'focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_18%,transparent)]'
+    'placeholder:text-white/40 hover:border-white/25 ' +
+    'focus:border-white/50 focus:bg-white/[0.1] ' +
+    'focus:shadow-[0_0_0_3px_rgba(255,255,255,0.08)]'
 
-const LABEL_CLS = 'mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.1em] text-text-tertiary'
+const LABEL_CLS = 'mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.1em] text-white/60'
 
 const ALERT_BASE_CLS =
     'mb-5 flex items-start gap-2 rounded-md border px-3 py-2 text-[12.5px] leading-snug animate-msg-in motion-reduce:animate-none'
@@ -186,8 +186,8 @@ function LoginForm() {
         return (
             <Suspense
                 fallback={
-                    <div className="flex h-screen items-center justify-center bg-bg-primary">
-                        <i className="fas fa-spinner fa-spin text-2xl text-text-primary" />
+                    <div className="flex h-screen items-center justify-center bg-slate-950/40 backdrop-blur-xl">
+                        <i className="fas fa-spinner fa-spin text-2xl text-white" />
                     </div>
                 }
             >
@@ -197,16 +197,16 @@ function LoginForm() {
     }
 
     return (
-        <div className="w-full rounded-card border border-border-light bg-bg-primary p-5 sm:p-6">
+        <div className="w-full rounded-card border border-white/10 bg-slate-950/45 p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-6">
             <div className="mb-5 flex flex-col gap-1.5">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-text-tertiary">
-                    <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-300 shadow-[0_0_6px_rgba(125,180,224,0.6)]" aria-hidden="true" />
                     Smyrna Tools
                 </span>
-                <h2 className="m-0 font-heading text-[22px] font-bold leading-tight tracking-tight text-text-primary">
+                <h2 className="m-0 font-heading text-[22px] font-bold leading-tight tracking-tight text-white">
                     {isSignUp ? 'Create account' : 'Sign in to Smyrna Tools'}
                 </h2>
-                <p className="m-0 text-[12.5px] text-text-secondary">
+                <p className="m-0 text-[12.5px] text-white/70">
                     {isSignUp
                         ? 'Fill in your details to request access.'
                         : 'Enter your credentials to continue.'}
@@ -267,7 +267,7 @@ function LoginForm() {
                         {!isSignUp && (
                             <button type="button"
                                 onClick={openRecovery}
-                                className="cursor-pointer border-none bg-transparent p-0 text-[11px] font-semibold text-accent transition-colors duration-150 ease-out hover:underline focus-visible:underline focus-visible:outline-none motion-reduce:transition-none"
+                                className="cursor-pointer border-none bg-transparent p-0 text-[11px] font-semibold text-sky-300 transition-colors duration-150 ease-out hover:text-sky-200 hover:underline focus-visible:underline focus-visible:outline-none motion-reduce:transition-none"
                             >
                                 Forgot password?
                             </button>
@@ -287,7 +287,7 @@ function LoginForm() {
                             onClick={togglePassword}
                             aria-label={showPassword ? 'Hide password' : 'Show password'}
                             aria-pressed={showPassword}
-                            className="absolute inset-y-0 right-0 inline-flex w-9 cursor-pointer items-center justify-center border-none bg-transparent text-sm text-text-tertiary transition-colors duration-150 ease-out hover:text-text-primary focus-visible:rounded-md focus-visible:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent motion-reduce:transition-none"
+                            className="absolute inset-y-0 right-0 inline-flex w-9 cursor-pointer items-center justify-center border-none bg-transparent text-sm text-white/50 transition-colors duration-150 ease-out hover:text-white focus-visible:rounded-md focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 motion-reduce:transition-none"
                         >
                             <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true" />
                         </button>
@@ -322,10 +322,10 @@ function LoginForm() {
                     <div
                         role="status"
                         aria-live="polite"
-                        className={`${ALERT_BASE_CLS} border-status-warning/40 bg-bg-secondary text-text-primary`}
+                        className={`${ALERT_BASE_CLS} border-amber-400/40 bg-amber-400/10 text-white`}
                     >
                         <i
-                            className="fas fa-info-circle mt-0.5 shrink-0 text-status-warning"
+                            className="fas fa-info-circle mt-0.5 shrink-0 text-amber-300"
                             aria-hidden="true"
                         />
                         <span>Your session expired. Please sign in again.</span>
@@ -334,10 +334,10 @@ function LoginForm() {
                 {errorMessage && (
                     <div
                         role="alert"
-                        className={`${ALERT_BASE_CLS} border-status-danger/40 bg-bg-secondary text-text-primary`}
+                        className={`${ALERT_BASE_CLS} border-rose-400/40 bg-rose-400/10 text-white`}
                     >
                         <i
-                            className="fas fa-exclamation-circle mt-0.5 shrink-0 text-status-danger"
+                            className="fas fa-exclamation-circle mt-0.5 shrink-0 text-rose-300"
                             aria-hidden="true"
                         />
                         <span>{errorMessage}</span>
@@ -347,10 +347,10 @@ function LoginForm() {
                     <div
                         role="status"
                         aria-live="polite"
-                        className={`${ALERT_BASE_CLS} border-status-active/40 bg-bg-secondary text-text-primary`}
+                        className={`${ALERT_BASE_CLS} border-emerald-400/40 bg-emerald-400/10 text-white`}
                     >
                         <i
-                            className="fas fa-check-circle mt-0.5 shrink-0 text-status-active"
+                            className="fas fa-check-circle mt-0.5 shrink-0 text-emerald-300"
                             aria-hidden="true"
                         />
                         <span>{successMessage}</span>
@@ -359,7 +359,7 @@ function LoginForm() {
                 <button
                     type="submit"
                     disabled={isSubmitting || loading}
-                    className={`mt-1 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-accent bg-accent px-4 py-2.5 text-[13px] font-bold tracking-tight text-white transition-[filter,transform,opacity] duration-150 ease-out hover:brightness-110 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary motion-reduce:transition-none ${isSubmitting || loading ? 'cursor-not-allowed opacity-70' : ''}`}
+                    className={`mt-1 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-white/20 bg-white px-4 py-2.5 text-[13px] font-bold tracking-tight text-slate-950 transition-[filter,transform,opacity,background-color] duration-150 ease-out hover:bg-white/95 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none ${isSubmitting || loading ? 'cursor-not-allowed opacity-70' : ''}`}
                 >
                     {isSubmitting || loading ? (
                         <>
@@ -377,13 +377,13 @@ function LoginForm() {
                     )}
                 </button>
             </form>
-            <div className="mt-5 flex items-center justify-center gap-1.5 border-t border-border-light pt-4 text-[12px]">
-                <span className="text-text-secondary">
+            <div className="mt-5 flex items-center justify-center gap-1.5 border-t border-white/10 pt-4 text-[12px]">
+                <span className="text-white/70">
                     {isSignUp ? 'Already have an account?' : "Don't have an account?"}
                 </span>
                 <button type="button"
                     onClick={toggleSignUp}
-                    className="cursor-pointer border-none bg-transparent p-0 font-bold text-accent transition-colors duration-150 ease-out hover:underline focus-visible:underline focus-visible:outline-none motion-reduce:transition-none"
+                    className="cursor-pointer border-none bg-transparent p-0 font-bold text-sky-300 transition-colors duration-150 ease-out hover:text-sky-200 hover:underline focus-visible:underline focus-visible:outline-none motion-reduce:transition-none"
                 >
                     {isSignUp ? 'Sign in' : 'Sign up'}
                 </button>
